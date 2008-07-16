@@ -1,0 +1,315 @@
+using System;
+using System.Text;
+
+namespace Spring.Threading.AtomicTypes
+{
+	/// <summary> A <see lang="int"/> array in which elements may be updated atomically.
+	/// <p/>
+	/// Based on the on the back port of JCP JSR-166.
+	/// </summary>
+	/// <author>Doug Lea</author>
+	/// <author>Griffin Caprio (.NET)</author>
+	[Serializable]
+	public class AtomicIntegerArray
+	{
+		private int[] _intArray;
+
+		/// <summary> 
+		/// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicIntegerArray"/> of given length.
+		/// </summary>
+		/// <param name="length">
+		/// The length of the array
+		/// </param>
+		public AtomicIntegerArray(int length)
+		{
+			_intArray = new int[length];
+		}
+
+		/// <summary> 
+		/// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicIntegerArray"/> with the same length as, and
+		/// all elements copied from <paramref name="array"/>.
+		/// </summary>
+		/// <param name="array">
+		/// The array to copy elements from
+		/// </param>
+		/// <exception cref="NullReferenceException"> if the array is null</exception>
+		public AtomicIntegerArray(int[] array)
+		{
+			if (array == null)
+				throw new NullReferenceException();
+			int length = array.Length;
+			_intArray = new int[length];
+			Array.Copy(array, 0, this._intArray, 0, array.Length);
+		}
+
+		/// <summary> 
+		/// Returns the length of the array.
+		/// </summary>
+		/// <returns> 
+		/// The length of the array
+		/// </returns>
+		public int Length
+		{
+			get { return _intArray.Length; }
+		}
+
+		/// <summary> 
+		/// Gets / Sets the current value at position index.
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <returns> 
+		/// The current value
+		/// </returns>
+		public int this[int index]
+		{
+			get
+			{
+				lock (this)
+				{
+					return _intArray[index];
+				}
+			}
+			set { _intArray[index] = value; }
+		}
+
+		/// <summary> 
+		/// Eventually sets the element at position index to the given value.
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <param name="newValue">
+		/// The new value
+		/// </param>
+		[Obsolete("This method will be removed.  Please use AtomicintArray indexer instead.")]
+		public void LazySet(int index, int newValue)
+		{
+			this[index] = newValue;
+		}
+
+		/// <summary> 
+		/// Atomically sets the element at <paramref name="index"/> to <paramref name="newValue"/>
+		/// and returns the old value.
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <param name="newValue">
+		/// The new value
+		/// </param>
+		/// <returns> 
+		/// The previous value
+		/// </returns>
+		public int SetNewAtomicValue(int index, int newValue)
+		{
+			lock (this)
+			{
+				int old = _intArray[index];
+				_intArray[index] = newValue;
+				return old;
+			}
+		}
+
+		/// <summary>
+		/// Atomically sets the value to <paramref name="newValue"/>
+		/// if the value at <paramref name="index"/> == <paramref name="expectedValue"/>
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <param name="expectedValue">
+		/// The expected value
+		/// </param>
+		/// <param name="newValue">
+		/// The new value
+		/// </param>
+		/// <returns> true if successful. False return indicates that
+		/// the actual value was not equal to the expected value.
+		/// </returns>
+		public bool CompareAndSet(int index, int expectedValue, int newValue)
+		{
+			lock (this)
+			{
+				if (_intArray[index] == expectedValue)
+				{
+					_intArray[index] = newValue;
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+
+		/// <summary> 
+		/// Atomically sets the value to <paramref name="newValue"/>
+		/// if the value at <paramref name="index"/> == <paramref name="expectedValue"/>
+		/// May fail spuriously.
+		/// </summary>
+		/// <param name="index">the index
+		/// </param>
+		/// <param name="expectedValue">
+		/// The expected value
+		/// </param>
+		/// <param name="newValue">
+		/// The new value
+		/// </param>
+		/// <returns> 
+		/// True if successful.
+		/// </returns>
+		public virtual bool WeakCompareAndSet(int index, int expectedValue, int newValue)
+		{
+			lock (this)
+			{
+				if (_intArray[index] == expectedValue)
+				{
+					_intArray[index] = newValue;
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+
+		/// <summary> 
+		/// Atomically increments by one the element at <paramref name="index"/>.
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <returns> 
+		/// The previous value
+		/// </returns>
+		public int ReturnValueAndIncrement(int index)
+		{
+			lock (this)
+			{
+				return _intArray[index]++;
+			}
+		}
+
+		/// <summary> 
+		/// Atomically decrements by one the element at <paramref name="index"/>.
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <returns> 
+		/// The previous value
+		/// </returns>
+		public int ReturnValueAndDecrement(int index)
+		{
+			lock (this)
+			{
+				return _intArray[index]--;
+			}
+		}
+
+		/// <summary> 
+		/// Atomically adds <paramref name="deltaValue"/> to the element at <paramref name="index"/>.
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <param name="deltaValue">
+		/// The value to add
+		/// </param>
+		/// <returns> 
+		/// The previous value
+		/// </returns>
+		public int AddDeltaAndReturnPreviousValue(int index, int deltaValue)
+		{
+			lock (this)
+			{
+				int oldValue = _intArray[index];
+				_intArray[index] += deltaValue;
+				return oldValue;
+			}
+		}
+
+		/// <summary> 
+		/// Atomically increments by one the element at <paramref name="index"/>.
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <returns> 
+		/// The updated value
+		/// </returns>
+		public int IncrementValueAndReturn(int index)
+		{
+			lock (this)
+			{
+				return ++_intArray[index];
+			}
+		}
+
+		/// <summary> 
+		/// Atomically decrements by one the element at <paramref name="index"/>.
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <returns> 
+		/// The updated value
+		/// </returns>
+		public int DecrementValueAndReturn(int index)
+		{
+			lock (this)
+			{
+				return --_intArray[index];
+			}
+		}
+
+		/// <summary> 
+		/// Atomically adds <paramref name="deltaValue"/> to the element at <paramref name="index"/>.
+		/// </summary>
+		/// <param name="index">
+		/// The index
+		/// </param>
+		/// <param name="deltaValue">
+		/// The value to add
+		/// </param>
+		/// <returns> 
+		/// The updated value
+		/// </returns>
+		public int AddDeltaAndReturnNewValue(int index, int deltaValue)
+		{
+			lock (this)
+			{
+				return _intArray[index] += deltaValue;
+			}
+		}
+
+		/// <summary> 
+		/// Returns the String representation of the current values of array.
+		/// </summary>
+		/// <returns> 
+		/// The String representation of the current values of array.
+		/// </returns>
+		// TODO: Should be updated to use Spring.Core.StringUtils class.
+		public override String ToString()
+		{
+			if (_intArray.Length == 0)
+				return "[]";
+
+			StringBuilder buf = new StringBuilder();
+			buf.Append('[');
+			buf.Append(_intArray[0]);
+
+			for (int i = 1; i < _intArray.Length; i++)
+			{
+				buf.Append(", ");
+				buf.Append(_intArray[i]);
+			}
+
+			buf.Append("]");
+			return buf.ToString();
+		}
+	}
+}

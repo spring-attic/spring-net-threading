@@ -1,0 +1,427 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4640D873-95DC-4130-98E2-2B931D390C20}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon>
+    </ApplicationIcon>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>Spring.Threading</AssemblyName>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Spring</RootNamespace>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <StartupObject>
+    </StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>..\..\..\build\VS.Net.2005\Spring.Threading\Debug\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE;DEBUG;NET_2_0</DefineConstants>
+    <DocumentationFile>Spring.Threading.xml</DocumentationFile>
+    <DebugSymbols>true</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>false</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>full</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\..\..\build\VS.Net.2005\Spring.Threading\Release\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE;NET_2_0</DefineConstants>
+    <DocumentationFile>
+    </DocumentationFile>
+    <DebugSymbols>false</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>none</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Spring.Core, Version=1.1.2.20125, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\net\2.0\Spring.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <Name>System</Name>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Collections\INavigableDictionary.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Collections\INavigableSet.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Collections\ISortedDictionary.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Collections\ISortedSet.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CommonAssemblyInfo.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicBoolean.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicInteger.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicIntegerArray.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicLong.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicLongArray.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicMarkableReference.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicReference.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicReferenceArray.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicStampedReference.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\BoundedBuffer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\BoundedLinkedQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\BoundedPriorityQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\BrokenBarrierException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\ClockDaemon.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Collections\ArrayBlockingQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Collections\CopyOnWriteArrayList.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Collections\DelayQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Collections\IBlockingQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Collections\IConcurrentDictionary.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Collections\IConcurrentNavigableDictionary.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Collections\LinkedBlockingQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Collections\SynchronousQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\CountDown.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\CyclicBarrier.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\DefaultChannelCapacity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\DirectExecutor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\AbstractExecutorService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\CancellationException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\ExecutionException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\ExecutionPolicy\AbortPolicy.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\ExecutionPolicy\DiscardOldestPolicy.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\ExecutionPolicy\DiscardPolicy.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\ExecutionPolicy\RunPriorToExecutorShutdown.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\ExecutorCompletionService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\Executors.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\ICompletionService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\IExecutorService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\IRejectedExecutionHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\IScheduledExecutorService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\RejectedExecutionException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\ScheduledThreadPoolExecutor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\SimpleThreadFactory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\ThreadPoolExecutor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\FIFOSemaphore.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\ForkJoin\FJTask.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\ForkJoin\FJTaskRunner.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\ForkJoin\FJTaskRunnerGroup.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\ForkJoin\ThreadClass.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\FutureResult.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Future\FutureTask.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Future\IDelayed.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Future\IFuture.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Future\IRunnableFuture.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Future\IRunnableScheduledFuture.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Future\IScheduledFuture.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Heap.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Helpers\CountDownLatch.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Helpers\Exchanger.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Helpers\FIFOWaitNodeQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Helpers\IQueuedSync.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Helpers\IWaitNodeQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Helpers\ThreadExceptionHandlerHelpers.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Helpers\WaitNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\IBarrier.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\IBoundedChannel.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\ICallable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\IChannel.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\IExecutor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\IPuttable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\IRunnable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\ITakable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\IThreadFactory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\LayeredSync.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\LinkedNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\LinkedQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\LockedExecutor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\AbstractSignallerLock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\ConditionVariable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\FIFOConditionVariable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\ICondition.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\IExclusiveLock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\ILock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\IReadWriteLock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\ISignaller.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\NullSignaller.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\ReaderLock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\ReentrantLock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\ReentrantReadWriteLock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Locks\WriterLock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Mutex.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\NullRunnable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\PooledExecutor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\PrioritySemaphore.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\QueuedExecutor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\QueuedSemaphore.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Rendezvous.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\SemaphoreControlledChannel.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Slot.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\SynchronousChannel.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\ThreadedExecutor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\ThreadFactoryUser.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\TimedCallable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\WaitableRunnable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\WaiterPreferenceSemaphore.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\WaitFreeQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Utility\SerializationUtilities.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>
