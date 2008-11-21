@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spring.Threading.2008", "src\Spring\Spring.Threading\Spring.Threading.2008.csproj", "{4640D873-95DC-4130-98E2-2B931D390C20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spring.Threading.Tests.2008", "test\Spring\Spring.Threading.Tests\Spring.Threading.Tests.2008.csproj", "{CFBFDB73-1391-45ED-87A7-6F28146319BA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4640D873-95DC-4130-98E2-2B931D390C20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4640D873-95DC-4130-98E2-2B931D390C20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4640D873-95DC-4130-98E2-2B931D390C20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4640D873-95DC-4130-98E2-2B931D390C20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
