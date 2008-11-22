@@ -108,12 +108,14 @@
     <Compile Include="Threading\AtomicTypes\AtomicIntegerArray.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicIntegerFieldUpdater.cs" />
     <Compile Include="Threading\AtomicTypes\AtomicLong.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Threading\AtomicTypes\AtomicLongArray.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\AtomicTypes\AtomicLongFieldUpdater.cs" />
     <Compile Include="Threading\AtomicTypes\AtomicMarkableReference.cs">
       <SubType>Code</SubType>
     </Compile>

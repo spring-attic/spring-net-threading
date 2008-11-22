@@ -334,13 +334,13 @@ namespace Spring.Threading.Execution
 
 			internal DefaultThreadFactory()
 			{
-				namePrefix = "pool-" + poolNumber.IncrementValueAndReturn() + "-thread-";
+				namePrefix = "pool-" + poolNumber.IncrementAndGet() + "-thread-";
 			}
 
 			public virtual Thread NewThread(IRunnable r)
 			{
 				Thread t = new Thread(new ThreadStart(r.Run));
-				t.Name = namePrefix + threadNumber.IncrementValueAndReturn();
+				t.Name = namePrefix + threadNumber.IncrementAndGet();
 				if (t.IsBackground)
 					t.IsBackground = false;
 				if (t.Priority != ThreadPriority.Normal)
