@@ -34,7 +34,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <summary>
         /// Holds the object reference.
         /// </summary>
-        private T _value;
+        private T _reference;
 
         /// <summary> 
         /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicReference{T}"/> with the given initial value.
@@ -43,7 +43,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The initial value
         /// </param>
         public AtomicReference(T initialValue) {
-            _value = initialValue;
+            _reference = initialValue;
         }
 
         /// <summary> 
@@ -58,15 +58,27 @@ namespace Spring.Threading.AtomicTypes {
         /// <p/>
         /// <b>Note:</b> The setting of this value occurs within a <see lang="lock"/>.
         /// </summary>
-        public T Value {
-            get { return _value; }
+        public T Reference {
+            get { return _reference; }
             set {
                 lock(this) {
-                    _value = value;
+                    _reference = value;
                 }
             }
         }
-
+		/// <summary> 
+		/// Eventually sets to the given value.
+		/// </summary>
+		/// <param name="newValue">
+		/// the new value
+		/// </param>
+		/// TODO: This method doesn't differ from the set() method, which was converted to a property.  For now
+		/// the property will be called for this method.
+		[Obsolete("This method will be removed.  Please use AtomicReference.Reference property instead.")]
+		public void LazySet(T newValue)
+		{
+			Reference = newValue;
+		}
         /// <summary> 
         /// Atomically sets the value to the <paramref name="newValue"/>
         /// if the current value equals the <paramref name="expectedValue"/>.
@@ -83,8 +95,8 @@ namespace Spring.Threading.AtomicTypes {
         public bool CompareAndSet(T expectedValue, T newValue) {
             lock(this) {
                 // TODO: This is crap.  Need to figure out why =='s doesn't work here.  It should.
-                if(_value.Equals(expectedValue)) {
-                    _value = newValue;
+                if(_reference.Equals(expectedValue)) {
+                    _reference = newValue;
                     return true;
                 }
                 return false;
@@ -107,8 +119,8 @@ namespace Spring.Threading.AtomicTypes {
         /// </returns>
         public virtual bool WeakCompareAndSet(T expectedValue, T newValue) {
             lock(this) {
-                if(_value.Equals(expectedValue)) {
-                    _value = newValue;
+                if(_reference.Equals(expectedValue)) {
+                    _reference = newValue;
                     return true;
                 }
                 return false;
@@ -124,10 +136,10 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// the previous value of the instance.
         /// </returns>
-        public T GetAndSet(T newValue) {
+		public T SetNewAtomicValue(T newValue) {
             lock(this) {
-                T old = _value;
-                _value = newValue;
+                T old = _reference;
+                _reference = newValue;
                 return old;
             }
         }
@@ -139,7 +151,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The String representation of the current value.
         /// </returns>
         public override string ToString() {
-            return Convert.ToString(Value);
+            return Convert.ToString(Reference);
         }
     }
 }

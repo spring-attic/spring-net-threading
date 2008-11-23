@@ -36,7 +36,7 @@ namespace Spring.Threading.AtomicTypes {
     /// <author>Andreas Doehring (.NET)</author>
     [Serializable]
     public class AtomicLong {
-        private long _value;
+        private long _longValue;
 
         /// <summary> 
         /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicLong"/> with the given initial value.
@@ -45,7 +45,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The initial value
         /// </param>
         public AtomicLong(long initialValue) {
-            _value = initialValue;
+            _longValue = initialValue;
         }
 
         /// <summary> 
@@ -60,10 +60,10 @@ namespace Spring.Threading.AtomicTypes {
         /// </summary>
         /// <returns> the previous value
         /// </returns>
-        public long GetAndIncrement {
+        public long ReturnValueAndIncrement {
             get {
                 lock(this) {
-                    return _value++;
+                    return _longValue++;
                 }
             }
         }
@@ -74,10 +74,10 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public long GetAndDecrement {
+        public long ReturnValueAndDecrement {
             get {
                 lock(this) {
-                    return _value--;
+                    return _longValue--;
                 }
             }
         }
@@ -90,11 +90,11 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The current value
         /// </returns>
-        public long Value {
-            get { return _value; }
+        public long LongValue {
+            get { return _longValue; }
             set {
                 lock(this) {
-                    _value = value;
+                    _longValue = value;
                 }
             }
         }
@@ -103,28 +103,21 @@ namespace Spring.Threading.AtomicTypes {
         /// Gets the current value as int
         /// </summary>
         public int IntValue {
-            get { return (int)Value; }
-        }
-
-        /// <summary>
-        /// Gets the current value as long
-        /// </summary>
-        public long LongValue {
-            get { return Value; }
+            get { return (int)LongValue; }
         }
 
         /// <summary>
         /// Gets the current value as float
         /// </summary>
         public float FloatValue {
-            get { return Value; }
+            get { return LongValue; }
         }
 
         /// <summary>
         /// Gets the current value as double
         /// </summary>
         public double DoubleValue {
-            get { return Value; }
+            get { return LongValue; }
         }
 
         /// <summary>
@@ -132,7 +125,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <b>Note:</b> this may round the value
         /// </summary>
         public short ShortValue {
-            get { return (short)Value; }
+            get { return (short)LongValue; }
         }
 
         /// <summary>
@@ -140,7 +133,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <b>Note:</b> this may round the value
         /// </summary>
         public byte ByteValue {
-            get { return (byte)Value; }
+            get { return (byte)LongValue; }
         }
 
         /// <summary> 
@@ -153,9 +146,9 @@ namespace Spring.Threading.AtomicTypes {
         /// the property will be called for this method.
         [Obsolete("This method will be removed.  Please use AtomicLong.Value property instead.")]
         public void LazySet(long newValue) {
-            Value = newValue;
+            LongValue = newValue;
         }
-        
+
         /// <summary> 
         /// Atomically sets value to <paramref name="newValue"/> and returns the old value.
         /// </summary>
@@ -165,14 +158,14 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public long GetAndSet(long newValue) {
+        public long SetNewAtomicValue(long newValue) {
             lock(this) {
-                long old = _value;
-                _value = newValue;
+                long old = _longValue;
+                _longValue = newValue;
                 return old;
             }
         }
-        
+
         /// <summary> 
         /// Atomically sets the value to <paramref name="newValue"/>
         /// if the current value == <paramref name="expectedValue"/>.
@@ -188,8 +181,8 @@ namespace Spring.Threading.AtomicTypes {
         /// </returns>
         public bool CompareAndSet(long expectedValue, long newValue) {
             lock(this) {
-                if(_value == expectedValue) {
-                    _value = newValue;
+                if(_longValue == expectedValue) {
+                    _longValue = newValue;
                     return true;
                 }
                 return false;
@@ -212,8 +205,8 @@ namespace Spring.Threading.AtomicTypes {
         /// </returns>
         public virtual bool WeakCompareAndSet(long expectedValue, long newValue) {
             lock(this) {
-                if(_value == expectedValue) {
-                    _value = newValue;
+                if(_longValue == expectedValue) {
+                    _longValue = newValue;
                     return true;
                 }
                 return false;
@@ -229,23 +222,23 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public long GetAndAdd(long deltaValue) {
+        public long AddDeltaAndReturnPreviousValue(long deltaValue) {
             lock(this) {
-                long old = _value;
-                _value += deltaValue;
+                long old = _longValue;
+                _longValue += deltaValue;
                 return old;
             }
         }
-        
+
         /// <summary> 
         /// Atomically increments by one the current value.
         /// </summary>
         /// <returns> 
         /// The updated value
         /// </returns>
-        public long IncrementAndGet() {
+        public long IncrementValueAndReturn() {
             lock(this) {
-                return ++_value;
+                return ++_longValue;
             }
         }
 
@@ -255,9 +248,9 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The updated value
         /// </returns>
-        public long DecrementAndGet() {
+        public long DecrementValueAndReturn() {
             lock(this) {
-                return --_value;
+                return --_longValue;
             }
         }
         /// <summary> 
@@ -269,9 +262,9 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The updated value
         /// </returns>
-        public long AddAndGet(long deltaValue) {
+        public long AddDeltaAndReturnNewValue(long deltaValue) {
             lock(this) {
-                return _value += deltaValue;
+                return _longValue += deltaValue;
             }
         }
         /// <summary> 
@@ -281,7 +274,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The String representation of the current value.
         /// </returns>
         public override string ToString() {
-            return Value.ToString();
+            return LongValue.ToString();
         }
     }
 }

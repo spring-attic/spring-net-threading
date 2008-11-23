@@ -51,7 +51,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <param name="array">
         /// The array to copy elements from
         /// </param>
-        /// <exception cref="NullReferenceException"> if the array is null</exception>
+        /// <exception cref="ArgumentNullException"> if the array is null</exception>
         public AtomicLongArray(long[] array) {
             if(array == null)
                 throw new ArgumentNullException();
@@ -115,7 +115,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public long GetAndSet(int index, long newValue) {
+        public long SetNewAtomicValue(int index, long newValue) {
             lock(this) {
                 long old = _longArray[index];
                 _longArray[index] = newValue;
@@ -188,7 +188,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public long GetAndIncrement(int index) {
+        public long ReturnValueAndIncrement(int index) {
             lock(this) {
                 return _longArray[index]++;
             }
@@ -203,7 +203,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public long GetAndDecrement(int index) {
+        public long ReturnValueAndDecrement(int index) {
             lock(this) {
                 return _longArray[index]--;
             }
@@ -221,7 +221,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public long GetAndAdd(int index, long deltaValue) {
+        public long AddDeltaAndReturnPreviousValue(int index, long deltaValue) {
             lock(this) {
                 long oldValue = _longArray[index];
                 _longArray[index] += deltaValue;
@@ -238,7 +238,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The updated value
         /// </returns>
-        public long IncrementAndGet(int index) {
+        public long IncrementValueAndReturn(int index) {
             lock(this) {
                 return ++_longArray[index];
             }
@@ -253,7 +253,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The updated value
         /// </returns>
-        public long DecrementAndGet(int index) {
+        public long DecrementValueAndReturn(int index) {
             lock(this) {
                 return --_longArray[index];
             }
@@ -271,7 +271,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The updated value
         /// </returns>
-        public long AddAndGet(int index, long deltaValue) {
+        public long AddDeltaAndReturnNewValue(int index, long deltaValue) {
             lock(this) {
                 return _longArray[index] += deltaValue;
             }

@@ -84,7 +84,7 @@ namespace Spring.Threading.AtomicTypes {
         /// Gets the <see cref="ReferenceIntegerPair{T}"/> represented by this instance.
         /// </summary>
         private ReferenceIntegerPair<T> Pair {
-            get { return _atomicReference.Value; }
+            get { return _atomicReference.Reference; }
 
         }
 
@@ -194,7 +194,7 @@ namespace Spring.Threading.AtomicTypes {
         public void SetNewAtomicValue(T newReference, int newStamp) {
             ReferenceIntegerPair<T> current = Pair;
             if(!newReference.Equals(current.Reference) || newStamp != current.Integer)
-                _atomicReference.Value = new ReferenceIntegerPair<T>(newReference, newStamp);
+                _atomicReference.Reference = new ReferenceIntegerPair<T>(newReference, newStamp);
         }
 
         /// <summary> 

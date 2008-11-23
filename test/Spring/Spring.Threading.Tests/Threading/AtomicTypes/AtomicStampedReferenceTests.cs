@@ -1,3 +1,23 @@
+#region License
+
+/*
+ * Copyright 2002-2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#endregion
+
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
@@ -10,9 +30,9 @@ namespace Spring.Threading.AtomicTypes
 	{
 		private class AnonymousClassChangingReference
 		{
-			private AtomicStampedReference ai;
+            private AtomicStampedReference<int> ai;
 
-			public AnonymousClassChangingReference(AtomicStampedReference ai)
+            public AnonymousClassChangingReference(AtomicStampedReference<int> ai)
 			{
 				this.ai = ai;
 			}
@@ -26,9 +46,9 @@ namespace Spring.Threading.AtomicTypes
 
 		private class AnonymousClassChangingStamp
 		{
-			private AtomicStampedReference ai;
+            private AtomicStampedReference<int> ai;
 
-			public AnonymousClassChangingStamp(AtomicStampedReference ai)
+            public AnonymousClassChangingStamp(AtomicStampedReference<int> ai)
 			{
 				this.ai = ai;
 			}
@@ -43,11 +63,11 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void Constructor()
 		{
-			AtomicStampedReference ai = new AtomicStampedReference(one, 0);
-			Assert.AreEqual(one, ai.ObjectReference);
+            AtomicStampedReference<int> ai = new AtomicStampedReference<int>(one, 0);
+			Assert.AreEqual(one, ai.Reference);
 			Assert.AreEqual(0, ai.Stamp);
-			AtomicStampedReference a2 = new AtomicStampedReference(null, 1);
-			Assert.IsNull(a2.ObjectReference);
+            AtomicStampedReference<object> a2 = new AtomicStampedReference<object>(null, 1);
+			Assert.IsNull(a2.Reference);
 			Assert.AreEqual(1, a2.Stamp);
 		}
 
@@ -55,24 +75,24 @@ namespace Spring.Threading.AtomicTypes
 		public void GetSet()
 		{
 			int[] mark = new int[1];
-			AtomicStampedReference ai = new AtomicStampedReference(one, 0);
-			Assert.AreEqual(one, ai.ObjectReference);
+            AtomicStampedReference<int> ai = new AtomicStampedReference<int>(one, 0);
+			Assert.AreEqual(one, ai.Reference);
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(one, ai.GetObjectReference(mark));
 			Assert.AreEqual(0, mark[0]);
 			ai.SetNewAtomicValue(two, 0);
-			Assert.AreEqual(two, ai.ObjectReference);
+			Assert.AreEqual(two, ai.Reference);
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(two, ai.GetObjectReference(mark));
 			Assert.AreEqual(0, mark[0]);
 			ai.SetNewAtomicValue(one, 1);
-			Assert.AreEqual(one, ai.ObjectReference);
+			Assert.AreEqual(one, ai.Reference);
 			Assert.AreEqual(1, ai.Stamp);
 			Assert.AreEqual(one, ai.GetObjectReference(mark));
 			Assert.AreEqual(1, mark[0]);
 
 			ai.SetNewAtomicValue(one, 1);
-			Assert.AreEqual(one, ai.ObjectReference);
+			Assert.AreEqual(one, ai.Reference);
 			Assert.AreEqual(1, ai.Stamp);
 			Assert.AreEqual(one, ai.GetObjectReference(mark));
 			Assert.AreEqual(1, mark[0]);
@@ -82,7 +102,7 @@ namespace Spring.Threading.AtomicTypes
 		public void AttemptStamp()
 		{
 			int[] mark = new int[1];
-			AtomicStampedReference ai = new AtomicStampedReference(one, 0);
+            AtomicStampedReference<int> ai = new AtomicStampedReference<int>(one, 0);
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.IsTrue(ai.AttemptStamp(one, 1));
 			Assert.AreEqual(1, ai.Stamp);
@@ -94,7 +114,7 @@ namespace Spring.Threading.AtomicTypes
 		public void CompareAndSet()
 		{
 			int[] mark = new int[1];
-			AtomicStampedReference ai = new AtomicStampedReference(one, 0);
+            AtomicStampedReference<int> ai = new AtomicStampedReference<int>(one, 0);
 			Assert.AreEqual(one, ai.GetObjectReference(mark));
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(0, mark[0]);
@@ -115,26 +135,26 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreads()
 		{
-			AtomicStampedReference ai = new AtomicStampedReference(one, 0);
+            AtomicStampedReference<int> ai = new AtomicStampedReference<int>(one, 0);
 			Thread t = new Thread(new ThreadStart(new AnonymousClassChangingReference(ai).Run));
 			t.Start();
 			Assert.IsTrue(ai.CompareAndSet(one, two, 0, 0));
 			t.Join(LONG_DELAY_MS);
 			Assert.IsFalse(t.IsAlive);
-			Assert.AreEqual(ai.ObjectReference, three);
+			Assert.AreEqual(ai.Reference, three);
 			Assert.AreEqual(ai.Stamp, 0);
 		}
 
 		[Test]
 		public void CompareAndSetInMultipleThreads2()
 		{
-			AtomicStampedReference ai = new AtomicStampedReference(one, 0);
-			Thread t = new Thread(new ThreadStart(new AnonymousClassChangingStamp(ai).Run));
+            AtomicStampedReference<int> ai = new AtomicStampedReference<int>(one, 0);
+            Thread t = new Thread(new ThreadStart(new AnonymousClassChangingStamp(ai).Run));
 			t.Start();
 			Assert.IsTrue(ai.CompareAndSet(one, one, 0, 1));
 			t.Join(LONG_DELAY_MS);
 			Assert.IsFalse(t.IsAlive);
-			Assert.AreEqual(ai.ObjectReference, one);
+			Assert.AreEqual(ai.Reference, one);
 			Assert.AreEqual(ai.Stamp, 2);
 		}
 
@@ -142,7 +162,7 @@ namespace Spring.Threading.AtomicTypes
 		public void WeakCompareAndSet()
 		{
 			int[] mark = new int[1];
-			AtomicStampedReference ai = new AtomicStampedReference(one, 0);
+            AtomicStampedReference<int> ai = new AtomicStampedReference<int>(one, 0);
 			Assert.AreEqual(one, ai.GetObjectReference(mark));
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(0, mark[0]);
@@ -160,7 +180,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void SerializeAndDeseralize()
 		{
-			AtomicStampedReference  atomicStampedReference = new AtomicStampedReference(one, 0987654321);	
+            AtomicStampedReference<int> atomicStampedReference = new AtomicStampedReference<int>(one, 0987654321);	
 			MemoryStream bout = new MemoryStream(10000);
 
 			BinaryFormatter formatter = new BinaryFormatter();
@@ -168,9 +188,9 @@ namespace Spring.Threading.AtomicTypes
 
 			MemoryStream bin = new MemoryStream(bout.ToArray());
 			BinaryFormatter formatter2 = new BinaryFormatter();
-			AtomicStampedReference atomicStampedReference2 = (AtomicStampedReference) formatter2.Deserialize(bin);
+            AtomicStampedReference<int> atomicStampedReference2 = (AtomicStampedReference<int>)formatter2.Deserialize(bin);
 
-			Assert.AreEqual(atomicStampedReference.ObjectReference, atomicStampedReference2.ObjectReference);
+			Assert.AreEqual(atomicStampedReference.Reference, atomicStampedReference2.Reference);
 			Assert.AreEqual( atomicStampedReference.Stamp, atomicStampedReference2.Stamp);
 		}
 	}

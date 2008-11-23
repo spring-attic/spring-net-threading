@@ -161,6 +161,7 @@
     <Compile Include="Threading\Collections\IConcurrentNavigableDictionary.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\Collections\IQueue.cs" />
     <Compile Include="Threading\Collections\LinkedBlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>

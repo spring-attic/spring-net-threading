@@ -1,3 +1,23 @@
+#region License
+
+/*
+ * Copyright 2002-2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#endregion
+
 using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -36,7 +56,7 @@ namespace Spring.Threading.AtomicTypes
 		}
 
 
-		[ExpectedException(typeof (NullReferenceException))]
+		[ExpectedException(typeof (ArgumentNullException))]
 		[Test]
 		public void Constructor2NPE()
 		{
@@ -186,9 +206,9 @@ namespace Spring.Threading.AtomicTypes
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
 				ai[i] = 1;
-				Assert.AreEqual(1, ai.SetNewAtomicValue(i, 0));
-				Assert.AreEqual(0, ai.SetNewAtomicValue(i, - 10));
-				Assert.AreEqual(- 10, ai.SetNewAtomicValue(i, 1));
+                Assert.AreEqual(1, ai.SetNewAtomicValue(i, 0));
+                Assert.AreEqual(0, ai.SetNewAtomicValue(i, -10));
+                Assert.AreEqual(-10, ai.SetNewAtomicValue(i, 1));
 			}
 		}
 
@@ -200,9 +220,9 @@ namespace Spring.Threading.AtomicTypes
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
 				ai[i] = 1;
-				Assert.AreEqual(1, ai.AddDeltaAndReturnPreviousValue(i, 2));
+                Assert.AreEqual(1, ai.AddDeltaAndReturnPreviousValue(i, 2));
 				Assert.AreEqual(3, ai[i]);
-				Assert.AreEqual(3, ai.AddDeltaAndReturnPreviousValue(i, - 4));
+                Assert.AreEqual(3, ai.AddDeltaAndReturnPreviousValue(i, -4));
 				Assert.AreEqual(- 1, ai[i]);
 			}
 		}
@@ -215,9 +235,9 @@ namespace Spring.Threading.AtomicTypes
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
 				ai[i] = 1;
-				Assert.AreEqual(1, ai.ReturnValueAndDecrement(i));
-				Assert.AreEqual(0, ai.ReturnValueAndDecrement(i));
-				Assert.AreEqual(- 1, ai.ReturnValueAndDecrement(i));
+                Assert.AreEqual(1, ai.ReturnValueAndDecrement(i));
+                Assert.AreEqual(0, ai.ReturnValueAndDecrement(i));
+                Assert.AreEqual(-1, ai.ReturnValueAndDecrement(i));
 			}
 		}
 
@@ -229,12 +249,12 @@ namespace Spring.Threading.AtomicTypes
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
 				ai[i] = 1;
-				Assert.AreEqual(1, ai.ReturnValueAndIncrement(i));
+                Assert.AreEqual(1, ai.ReturnValueAndIncrement(i));
 				Assert.AreEqual(2, ai[i]);
 				ai[i] = - 2;
-				Assert.AreEqual(- 2, ai.ReturnValueAndIncrement(i));
-				Assert.AreEqual(- 1, ai.ReturnValueAndIncrement(i));
-				Assert.AreEqual(0, ai.ReturnValueAndIncrement(i));
+                Assert.AreEqual(-2, ai.ReturnValueAndIncrement(i));
+                Assert.AreEqual(-1, ai.ReturnValueAndIncrement(i));
+                Assert.AreEqual(0, ai.ReturnValueAndIncrement(i));
 				Assert.AreEqual(1, ai[i]);
 			}
 		}
@@ -247,9 +267,9 @@ namespace Spring.Threading.AtomicTypes
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
 				ai[i] = 1;
-				Assert.AreEqual(3, ai.AddDeltaAndReturnNewValue(i, 2));
+                Assert.AreEqual(3, ai.AddDeltaAndReturnNewValue(i, 2));
 				Assert.AreEqual(3, ai[i]);
-				Assert.AreEqual(- 1, ai.AddDeltaAndReturnNewValue(i, - 4));
+                Assert.AreEqual(-1, ai.AddDeltaAndReturnNewValue(i, -4));
 				Assert.AreEqual(- 1, ai[i]);
 			}
 		}
@@ -262,9 +282,9 @@ namespace Spring.Threading.AtomicTypes
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
 				ai[i] = 1;
-				Assert.AreEqual(0, ai.DecrementValueAndReturn(i));
-				Assert.AreEqual(- 1, ai.DecrementValueAndReturn(i));
-				Assert.AreEqual(- 2, ai.DecrementValueAndReturn(i));
+                Assert.AreEqual(0, ai.DecrementValueAndReturn(i));
+                Assert.AreEqual(-1, ai.DecrementValueAndReturn(i));
+                Assert.AreEqual(-2, ai.DecrementValueAndReturn(i));
 				Assert.AreEqual(- 2, ai[i]);
 			}
 		}
@@ -277,12 +297,12 @@ namespace Spring.Threading.AtomicTypes
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
 				ai[i] = 1;
-				Assert.AreEqual(2, ai.IncrementValueAndReturn(i));
+                Assert.AreEqual(2, ai.IncrementValueAndReturn(i));
 				Assert.AreEqual(2, ai[i]);
 				ai[i] = - 2;
-				Assert.AreEqual(- 1, ai.IncrementValueAndReturn(i));
-				Assert.AreEqual(0, ai.IncrementValueAndReturn(i));
-				Assert.AreEqual(1, ai.IncrementValueAndReturn(i));
+                Assert.AreEqual(-1, ai.IncrementValueAndReturn(i));
+                Assert.AreEqual(0, ai.IncrementValueAndReturn(i));
+                Assert.AreEqual(1, ai.IncrementValueAndReturn(i));
 				Assert.AreEqual(1, ai[i]);
 			}
 		}

@@ -78,7 +78,7 @@ namespace Spring.Threading.AtomicTypes {
         /// Returns the <see cref="ReferenceBooleanPair{TI}"/> held but this instance.
         /// </summary>
         private ReferenceBooleanPair<T> Pair {
-            get { return _atomicReference.Value; }
+            get { return _atomicReference.Reference; }
 
         }
 
@@ -118,7 +118,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The current value of the reference
         /// </returns>
-        public T GetObjectReference(ref bool[] markHolder) {
+        public T GetReference(ref bool[] markHolder) {
             ReferenceBooleanPair<T> p = Pair;
             markHolder[0] = p.MarkBit;
             return p.Reference;
@@ -190,7 +190,7 @@ namespace Spring.Threading.AtomicTypes {
         public void SetNewAtomicValue(T newReference, bool newMark) {
             ReferenceBooleanPair<T> current = Pair;
             if(!newReference.Equals(current.Reference) || newMark != current.MarkBit)
-                _atomicReference.GetAndSet(new ReferenceBooleanPair<T>(newReference, newMark));
+                _atomicReference.SetNewAtomicValue(new ReferenceBooleanPair<T>(newReference, newMark));
         }
 
         /// <summary> 

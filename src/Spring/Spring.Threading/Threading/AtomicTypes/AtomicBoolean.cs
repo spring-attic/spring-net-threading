@@ -35,7 +35,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <summary>
         /// Holds a <see lang="int"/> representation of the flag value.
         /// </summary>
-        private volatile int _value;
+        private volatile int _booleanValue;
 
         /// <summary> 
         /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicBoolean"/> with the given initial value.
@@ -44,7 +44,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The initial value
         /// </param>
         public AtomicBoolean(bool initialValue) {
-            _value = initialValue ? 1 : 0;
+            _booleanValue = initialValue ? 1 : 0;
         }
 
         /// <summary> 
@@ -59,11 +59,11 @@ namespace Spring.Threading.AtomicTypes {
         /// <p/>
         /// <b>Note:</b> The setting of this value occurs within a <see lang="lock"/>.
         /// </summary>
-        public bool Value {
-            get { return _value != 0; }
+		public bool BooleanValue {
+            get { return _booleanValue != 0; }
             set {
                 lock(this) {
-                    _value = value ? 1 : 0;
+                    _booleanValue = value ? 1 : 0;
                 }
             }
         }
@@ -83,8 +83,8 @@ namespace Spring.Threading.AtomicTypes {
         /// </returns>
         public bool CompareAndSet(bool expectedValue, bool newValue) {
             lock(this) {
-                if(expectedValue == (_value != 0)) {
-                    _value = newValue ? 1 : 0;
+                if(expectedValue == (_booleanValue != 0)) {
+                    _booleanValue = newValue ? 1 : 0;
                     return true;
                 }
                 return false;
@@ -107,8 +107,8 @@ namespace Spring.Threading.AtomicTypes {
         /// </returns>
         public virtual bool WeakCompareAndSet(bool expectedValue, bool newValue) {
             lock(this) {
-                if(expectedValue == (_value != 0)) {
-                    _value = newValue ? 1 : 0;
+                if(expectedValue == (_booleanValue != 0)) {
+                    _booleanValue = newValue ? 1 : 0;
                     return true;
                 }
                 return false;
@@ -125,7 +125,7 @@ namespace Spring.Threading.AtomicTypes {
 		/// the property will be called for this method.
         [Obsolete("This method will be removed.  Please use AtomicBoolean.BooleanValue property instead.")]
         public void LazySet(bool newValue) {
-            Value = newValue;
+            BooleanValue = newValue;
         }
 
         /// <summary> 
@@ -137,10 +137,10 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// the previous value of the instance.
         /// </returns>
-        public bool GetAndSet(bool newValue) {
+		public bool SetNewAtomicValue(bool newValue) {
             lock(this) {
-                int oldValue = _value;
-                _value = newValue ? 1 : 0;
+                int oldValue = _booleanValue;
+                _booleanValue = newValue ? 1 : 0;
                 return oldValue != 0;
             }
         }
@@ -152,7 +152,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The String representation of the current value.
         /// </returns>
         public override string ToString() {
-            return Value.ToString();
+            return BooleanValue.ToString();
         }
     }
 }

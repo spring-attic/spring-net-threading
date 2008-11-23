@@ -50,7 +50,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <param name="array">
         /// The array to copy elements from
         /// </param>
-        /// <exception cref="NullReferenceException"> if the array is null</exception>
+        /// <exception cref="ArgumentNullException"> if the array is null</exception>
         public AtomicIntegerArray(int[] array) {
             if(array == null)
                 throw new ArgumentNullException();
@@ -114,7 +114,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public int GetAndSet(int index, int newValue) {
+        public int SetNewAtomicValue(int index, int newValue) {
             lock(this) {
                 int old = _intArray[index];
                 _intArray[index] = newValue;
@@ -183,7 +183,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public int GetAndIncrement(int index) {
+        public int ReturnValueAndIncrement(int index) {
             lock(this) {
                 return _intArray[index]++;
             }
@@ -198,7 +198,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public int GetAndDecrement(int index) {
+        public int ReturnValueAndDecrement(int index) {
             lock(this) {
                 return _intArray[index]--;
             }
@@ -216,7 +216,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public int GetAndAdd(int index, int deltaValue) {
+		public int AddDeltaAndReturnPreviousValue(int index, int deltaValue){
             lock(this) {
                 int oldValue = _intArray[index];
                 _intArray[index] += deltaValue;
@@ -233,7 +233,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The updated value
         /// </returns>
-        public int IncrementAndGet(int index) {
+		public int IncrementValueAndReturn(int index){
             lock(this) {
                 return ++_intArray[index];
             }
@@ -248,7 +248,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The updated value
         /// </returns>
-        public int DecrementAndGet(int index) {
+		public int DecrementValueAndReturn(int index){
             lock(this) {
                 return --_intArray[index];
             }
@@ -266,7 +266,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The updated value
         /// </returns>
-        public int AddAndGet(int index, int deltaValue) {
+		public int AddDeltaAndReturnNewValue(int index, int deltaValue){
             lock(this) {
                 return _intArray[index] += deltaValue;
             }
