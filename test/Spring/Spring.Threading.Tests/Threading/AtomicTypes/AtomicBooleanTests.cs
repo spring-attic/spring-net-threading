@@ -49,76 +49,73 @@ namespace Spring.Threading.AtomicTypes {
         [Test]
         public void Constructor() {
             AtomicBoolean ai = new AtomicBoolean(true);
-            Assert.AreEqual(true, ai.BooleanValue);
+            Assert.AreEqual(true, ai.Value);
         }
 
         [Test]
         public void DefaultConstructor() {
             AtomicBoolean ai = new AtomicBoolean();
-            Assert.AreEqual(false, ai.BooleanValue);
+            Assert.AreEqual(false, ai.Value);
         }
 
         [Test]
         public void GetLastSetValue() {
             AtomicBoolean ai = new AtomicBoolean(true);
-            Assert.AreEqual(true, ai.BooleanValue);
-            ai.BooleanValue = false;
-            Assert.AreEqual(false, ai.BooleanValue);
-            ai.BooleanValue = true;
-            Assert.AreEqual(true, ai.BooleanValue);
+            Assert.AreEqual(true, ai.Value);
+            ai.Value = false;
+            Assert.AreEqual(false, ai.Value);
+            ai.Value = true;
+            Assert.AreEqual(true, ai.Value);
         }
 
         [Test]
         public void GetLastLazySetValue() {
             AtomicBoolean ai = new AtomicBoolean(true);
-            Assert.AreEqual(true, ai.BooleanValue);
+            Assert.AreEqual(true, ai.Value);
             ai.LazySet(false);
-            Assert.AreEqual(false, ai.BooleanValue);
+            Assert.AreEqual(false, ai.Value);
             ai.LazySet(true);
-            Assert.AreEqual(true, ai.BooleanValue);
+            Assert.AreEqual(true, ai.Value);
         }
 
         [Test]
         public void CompareExpectedValueAndSetNewValue() {
             AtomicBoolean ai = new AtomicBoolean(true);
-            Assert.AreEqual(true, ai.BooleanValue);
+            Assert.AreEqual(true, ai.Value);
             Assert.IsTrue(ai.CompareAndSet(true, false));
-            Assert.AreEqual(false, ai.BooleanValue);
+            Assert.AreEqual(false, ai.Value);
             Assert.IsTrue(ai.CompareAndSet(false, false));
-            Assert.AreEqual(false, ai.BooleanValue);
+            Assert.AreEqual(false, ai.Value);
             Assert.IsFalse(ai.CompareAndSet(true, false));
-            Assert.IsFalse((ai.BooleanValue));
+            Assert.IsFalse((ai.Value));
             Assert.IsTrue(ai.CompareAndSet(false, true));
-            Assert.AreEqual(true, ai.BooleanValue);
+            Assert.AreEqual(true, ai.Value);
         }
 
         [Test]
         public void CompareExpectedValueAndSetNewValueInMultipleThreads() {
             AtomicBoolean ai = new AtomicBoolean(true);
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable(ai).Run));
+            Thread t = new Thread(new AnonymousClassRunnable(ai).Run);
 
             t.Start();
             Assert.IsTrue(ai.CompareAndSet(true, false), "Value");
             t.Join(SMALL_DELAY_MS);
             Assert.IsFalse(t.IsAlive, "Thread is still alive.");
-            Assert.IsTrue(ai.BooleanValue);
+            Assert.IsTrue(ai.Value);
         }
 
         [Test]
         public void WeakCompareExpectedValueAndSetNewValue() {
             AtomicBoolean ai = new AtomicBoolean(true);
             while(!ai.WeakCompareAndSet(true, false)) {
-                ;
             }
-            Assert.AreEqual(false, ai.BooleanValue);
+            Assert.AreEqual(false, ai.Value);
             while(!ai.WeakCompareAndSet(false, false)) {
-                ;
             }
-            Assert.AreEqual(false, ai.BooleanValue);
+            Assert.AreEqual(false, ai.Value);
             while(!ai.WeakCompareAndSet(false, true)) {
-                ;
             }
-            Assert.AreEqual(true, ai.BooleanValue);
+            Assert.AreEqual(true, ai.Value);
             Assert.IsFalse(ai.WeakCompareAndSet(false, true));
         }
 
@@ -128,14 +125,14 @@ namespace Spring.Threading.AtomicTypes {
             Assert.AreEqual(true, ai.SetNewAtomicValue(false));
             Assert.AreEqual(false, ai.SetNewAtomicValue(false));
             Assert.AreEqual(false, ai.SetNewAtomicValue(true));
-            Assert.AreEqual(true, ai.BooleanValue);
+            Assert.AreEqual(true, ai.Value);
         }
 
         [Test]
-        public void SerializationOfAtomicBooleanValue() {
+        public void SerializationOfAtomicValue() {
             AtomicBoolean atomicBoolean = new AtomicBoolean();
 
-            atomicBoolean.BooleanValue = true;
+            atomicBoolean.Value = true;
             MemoryStream bout = new MemoryStream(10000);
 
             BinaryFormatter formatter = new BinaryFormatter();
@@ -144,14 +141,14 @@ namespace Spring.Threading.AtomicTypes {
             MemoryStream bin = new MemoryStream(bout.ToArray());
             BinaryFormatter formatter2 = new BinaryFormatter();
             AtomicBoolean r = (AtomicBoolean)formatter2.Deserialize(bin);
-            Assert.AreEqual(atomicBoolean.BooleanValue, r.BooleanValue);
+            Assert.AreEqual(atomicBoolean.Value, r.Value);
         }
 
         [Test]
         public void ToStringRepresentation() {
             AtomicBoolean ai = new AtomicBoolean();
             Assert.AreEqual(ai.ToString(), Boolean.FalseString);
-            ai.BooleanValue = true;
+            ai.Value = true;
             Assert.AreEqual(ai.ToString(), Boolean.TrueString);
         }
     }

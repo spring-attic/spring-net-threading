@@ -1,17 +1,16 @@
 using System;
-using System.Collections;
-using Spring.Collections;
+using System.Collections.Generic;
 
 namespace Spring.Threading.Collections
 {
 	/// <summary> 
-	/// A <see cref="Spring.Collections.IQueue"/> that additionally supports operations
+	/// A <see cref="Spring.Threading.Collections.IQueue{T}"/> that additionally supports operations
 	/// that wait for the queue to become non-empty when retrieving an
 	/// element, and wait for space to become available in the queue when
 	/// storing an element.
 	/// </summary>
 	/// <remarks>
-	/// <see cref="Spring.Threading.Collections.IBlockingQueue"/> methods come in four forms, with different ways
+    /// <see cref="Spring.Threading.Collections.IBlockingQueue{T}"/> methods come in four forms, with different ways
 	/// of handling operations that cannot be satisfied immediately, but may be
 	/// satisfied at some point in the future:
 	/// one throws an exception, the second returns a special value (either
@@ -21,32 +20,32 @@ namespace Spring.Threading.Collections
 	/// up.  These methods are summarized in the following table:
 	/// 
 	/// <p/>
-	/// A <see cref="Spring.Threading.Collections.IBlockingQueue"/> does not accept <see lang="null"/> elements.
+    /// A <see cref="Spring.Threading.Collections.IBlockingQueue{T}"/> does not accept <see lang="null"/> elements.
 	/// Implementations throw <see cref="System.ArgumentNullException"/> on attempts
-	/// to call <see cref="Spring.Collections.IQueue.Add(object)"/>, <see cref="Spring.Threading.Collections.IBlockingQueue.Put(object)"/>
+    /// to call <see cref="ICollection{T}.Add"/>, <see cref="Spring.Threading.Collections.IBlockingQueue{T}.Put(T)"/>
 	/// or  <see cref="Spring.Collections.IQueue.Offer(object)"/> a <see lang="null"/>.  A
 	/// <see lang="null"/> is used as a sentinel value to indicate failure of
-	/// <see cref="Spring.Collections.IQueue.Poll()"/> operations.
+    /// <see cref="Spring.Threading.Collections.IQueue{T}.Poll()"/> operations.
 	/// 
 	/// <p/>
-	/// A <see cref="Spring.Threading.Collections.IBlockingQueue"/> may be capacity bounded. At any given
-	/// time it may have a <see cref="Spring.Threading.Collections.IBlockingQueue.RemainingCapacity"/> beyond which no
-	/// additional elements can be <see cref="Spring.Threading.Collections.IBlockingQueue.Put(object)"/> without blocking.
-	/// A <see cref="Spring.Threading.Collections.IBlockingQueue"/> without any intrinsic capacity constraints always
+    /// A <see cref="Spring.Threading.Collections.IBlockingQueue{T}"/> may be capacity bounded. At any given
+    /// time it may have a <see cref="Spring.Threading.Collections.IBlockingQueue{T}.RemainingCapacity"/> beyond which no
+    /// additional elements can be <see cref="Spring.Threading.Collections.IBlockingQueue{T}.Put(T)"/> without blocking.
+    /// A <see cref="Spring.Threading.Collections.IBlockingQueue{T}"/> without any intrinsic capacity constraints always
 	/// reports a remaining capacity of <see cref="System.Int32.MaxValue"/>.
 	/// 
 	/// <p/>
-	/// <see cref="Spring.Threading.Collections.IBlockingQueue"/> implementations are designed to be used
+    /// <see cref="Spring.Threading.Collections.IBlockingQueue{T}"/> implementations are designed to be used
 	/// primarily for producer-consumer queues, but additionally support
-	/// the <see cref="System.Collections.ICollection"/> interface.  So, for example, it is
+    /// the <see cref="System.Collections.Generic.ICollection{T}"/> interface.  So, for example, it is
 	/// possible to remove an arbitrary element from a queue using
-	/// <see cref="Spring.Collections.IQueue.Remove()"/>. 
+    /// <see cref="Spring.Threading.Collections.IQueue{T}.Remove()"/>. 
 	/// However, such operations are in general
 	/// <b>not</b> performed very efficiently, and are intended for only
 	/// occasional use, such as when a queued message is cancelled.
 	/// 
 	/// <p/>
-	/// A <see cref="Spring.Threading.Collections.IBlockingQueue"/> does <b>not</b> intrinsically support
+    /// A <see cref="Spring.Threading.Collections.IBlockingQueue{T}"/> does <b>not</b> intrinsically support
 	/// any kind of 'close' or 'shutdown' operation to
 	/// indicate that no more items will be added.  The needs and usage of
 	/// such features tend to be implementation-dependent. For example, a
@@ -56,7 +55,7 @@ namespace Spring.Threading.Collections
 	/// 
 	/// <p/>
 	/// Usage example, based on a typical producer-consumer scenario.
-	/// Note that a <see cref="Spring.Threading.Collections.IBlockingQueue"/> can safely be used with multiple
+    /// Note that a <see cref="Spring.Threading.Collections.IBlockingQueue{T}"/> can safely be used with multiple
 	/// producers and multiple consumers.
 	/// 
 	/// <code>
@@ -101,18 +100,19 @@ namespace Spring.Threading.Collections
 	/// </remarks>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio(.NET)</author>
-	public interface IBlockingQueue : IQueue
+    /// <author>Andreas Doehring (.NET)</author>
+	public interface IBlockingQueue<T> : IQueue<T>
 	{
 		/// <summary> 
 		/// Inserts the specified element into this queue, waiting if necessary
 		/// for space to become available.
 		/// </summary>
-		/// <param name="objectToAdd">the element to add</param>
+        /// <param name="element">the element to add</param>
 		/// <exception cref="System.InvalidOperationException">
 		/// If the element cannot be added at this time due to capacity restrictions.
 		/// </exception>
 		/// <exception cref="System.InvalidCastException">
-		/// If the class of the supplied <paramref name="objectToAdd"/> prevents it
+        /// If the class of the supplied <paramref name="element"/> prevents it
 		/// from being added to this queue.
 		/// </exception>
 		/// <exception cref="System.ArgumentNullException">
@@ -120,16 +120,16 @@ namespace Spring.Threading.Collections
 		/// permit <see lang="null"/> elements.
 		/// </exception>
 		/// <exception cref="System.ArgumentException">
-		/// If some property of the supplied <paramref name="objectToAdd"/> prevents
+        /// If some property of the supplied <paramref name="element"/> prevents
 		/// it from being added to this queue.
 		/// </exception>
-		void Put(object objectToAdd);
+		void Put(T element);
 
 		/// <summary> 
 		/// Inserts the specified element into this queue, waiting up to the
 		/// specified wait time if necessary for space to become available.
 		/// </summary>
-		/// <param name="objectToAdd">the element to add</param>
+		/// <param name="element">the element to add</param>
 		/// <param name="duration">how long to wait before giving up</param>
 		/// <returns> <see lang="true"/> if successful, or <see lang="false"/> if
 		/// the specified waiting time elapses before space is available
@@ -138,7 +138,7 @@ namespace Spring.Threading.Collections
 		/// If the element cannot be added at this time due to capacity restrictions.
 		/// </exception>
 		/// <exception cref="System.InvalidCastException">
-		/// If the class of the supplied <paramref name="objectToAdd"/> prevents it
+		/// If the class of the supplied <paramref name="element"/> prevents it
 		/// from being added to this queue.
 		/// </exception>
 		/// <exception cref="System.ArgumentNullException">
@@ -146,17 +146,17 @@ namespace Spring.Threading.Collections
 		/// permit <see lang="null"/> elements.
 		/// </exception>
 		/// <exception cref="System.ArgumentException">
-		/// If some property of the supplied <paramref name="objectToAdd"/> prevents
+		/// If some property of the supplied <paramref name="element"/> prevents
 		/// it from being added to this queue.
 		/// </exception>
-		bool Offer(object objectToAdd, TimeSpan duration);
+		bool Offer(T element, TimeSpan duration);
 
 		/// <summary> 
 		/// Retrieves and removes the head of this queue, waiting if necessary
 		/// until an element becomes available.
 		/// </summary>
 		/// <returns> the head of this queue</returns>
-		object Take();
+		T Take();
 
 		/// <summary> 
 		/// Retrieves and removes the head of this queue, waiting up to the
@@ -167,7 +167,7 @@ namespace Spring.Threading.Collections
 		/// the head of this queue, or <see lang="null"/> if the
 		/// specified waiting time elapses before an element is available
 		/// </returns>
-		object Poll(TimeSpan duration);
+		T Poll(TimeSpan duration);
 
 		/// <summary> 
 		/// Returns the number of additional elements that this queue can ideally
@@ -177,7 +177,7 @@ namespace Spring.Threading.Collections
 		/// 
 		/// <p/>
 		/// Note that you <b>cannot</b> always tell if an attempt to insert
-		/// an element will succeed by inspecting <see cref="Spring.Threading.Collections.IBlockingQueue.RemainingCapacity"/>
+		/// an element will succeed by inspecting <see cref="Spring.Threading.Collections.IBlockingQueue{T}.RemainingCapacity"/>
 		/// because it may be the case that another thread is about to
 		/// insert or remove an element.
 		/// </summary>
@@ -214,7 +214,7 @@ namespace Spring.Threading.Collections
 		/// <exception cref="System.ArgumentException">
 		/// If <paramref name="collection"/> represents the queue itself.
 		/// </exception>
-		int DrainTo(ICollection collection);
+		int DrainTo(ICollection<T> collection);
 
 		/// <summary> Removes at most the given number of available elements from
 		/// this queue and adds them to the given collection.  
@@ -246,6 +246,6 @@ namespace Spring.Threading.Collections
 		/// <exception cref="System.ArgumentException">
 		/// If <paramref name="collection"/> represents the queue itself.
 		/// </exception>
-		int DrainTo(ICollection collection, int maxElements);
+		int DrainTo(ICollection<T> collection, int maxElements);
 	}
 }

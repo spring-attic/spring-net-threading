@@ -128,6 +128,7 @@
     <Compile Include="Threading\AtomicTypes\AtomicStampedReference.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\AtomicTypes\AbstractAtomic.cs" />
     <Compile Include="Threading\BoundedBuffer.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -143,6 +144,7 @@
     <Compile Include="Threading\ClockDaemon.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\Collections\AbstractQueue.cs" />
     <Compile Include="Threading\Collections\ArrayBlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -165,6 +167,7 @@
     <Compile Include="Threading\Collections\LinkedBlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\Collections\PriorityQueue.cs" />
     <Compile Include="Threading\Collections\SynchronousQueue.cs">
       <SubType>Code</SubType>
     </Compile>

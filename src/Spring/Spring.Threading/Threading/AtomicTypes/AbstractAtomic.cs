@@ -19,12 +19,10 @@
 #endregion
 
 using System;
-using System.Threading;
 
 namespace Spring.Threading.AtomicTypes {
     /// <summary>
-    /// A <see lang="bool"/> value that may be updated atomically. An <see cref="Spring.Threading.AtomicTypes.AtomicBoolean"/> 
-    /// is used for instances of atomically updated flags, and cannot be used as a replacement for a <see lang="bool"/> value.
+    /// the base class for non array atomic types. 
     /// <p/>
     /// Based on the on the back port of JCP JSR-166.
     /// </summary>
@@ -32,26 +30,44 @@ namespace Spring.Threading.AtomicTypes {
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
     [Serializable]
-    public class AtomicBoolean : AbstractAtomic<bool> {
+    public abstract class AbstractAtomic<T> {
+        /// <summary>
+        /// Holds a representation of the current value.
+        /// </summary>
+        private T _value;
 
         /// <summary> 
-        /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicBoolean"/> with the given initial value.
+        /// Creates a new <see cref="AbstractAtomic{T}"/> with the given initial value.
         /// </summary>
-        /// <param name="initialValue">
-        /// The initial value
-        /// </param>
-        public AtomicBoolean(bool initialValue) : base(initialValue) {
+        /// <param name="initialValue">The initial value</param>
+        protected  AbstractAtomic(T initialValue) {
+            _value = initialValue;
         }
 
         /// <summary> 
-        /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicBoolean"/> with initial value of <see lang="false"/>.
+        /// Creates a new <see cref="AbstractAtomic{T}"/> with initial value of <see lang="default(T)"/>.
         /// </summary>
-        public AtomicBoolean() {
+        protected AbstractAtomic()
+            : this(default(T)) {
+        }
+
+        /// <summary> 
+        /// Gets / Sets the current value.
+        /// <p/>
+        /// <b>Note:</b> The setting of this value occurs within a <see lang="lock"/>.
+        /// </summary>
+		public T Value {
+            get { return _value; }
+            set {
+                lock(this) {
+                    _value = value;
+                }
+            }
         }
 
         /// <summary> 
         /// Atomically sets the value to <paramref name="newValue"/>
-        /// if the current value == <paramref name="expectedValue"/>
+        /// if the current value <see lang="Equals"/> <paramref name="expectedValue"/>
         /// </summary>
         /// <param name="expectedValue">
         /// The expected value
@@ -62,16 +78,7 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
         /// </returns>
-        public override bool CompareAndSet(bool expectedValue, bool newValue) {
-            // cannot use Interlocked here because there are no overloads for bool
-            lock(this) {
-                if(expectedValue == Value) {
-                    Value = newValue;
-                    return true;
-                }
-                return false;
-            }
-        }
+        public abstract bool CompareAndSet(T expectedValue, T newValue);
 
         /// <summary> 
         /// Atomically sets the value to <paramref name="newValue"/>
@@ -87,19 +94,26 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns>
         /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
         /// </returns>
-        public override bool WeakCompareAndSet(bool expectedValue, bool newValue) {
-            // cannot use Interlocked here because there are no overloads for bool
-            lock(this) {
-                if(expectedValue == Value) {
-                    Value = newValue;
-                    return true;
-                }
-                return false;
-            }
-        }
+        public abstract bool WeakCompareAndSet(T expectedValue, T newValue);
         
         /// <summary> 
+		/// Eventually sets to the given value.
+		/// <remarks>this is exactly the same as the set'ter of <see cref="Value"/> and is implemented only for
+		/// compatability with the according java classes</remarks>
+		/// </summary>
+		/// <param name="newValue">
+		/// the new value
+		/// </param>
+		/// This method doesn't differ from the set() method, which was converted to a property.  For now
+		/// the property will be called for this method.
+        //[Obsolete("This method will be removed.  Please use AtomicBoolean.BooleanValue property instead.")]
+        public void LazySet(T newValue) {
+            Value = newValue;
+        }
+
+        /// <summary> 
         /// Atomically sets the current value to <parmref name="newValue"/> and returns the previous value.
+        /// <remarks>in java this is the getAndSet method</remarks>
         /// </summary>
         /// <param name="newValue">
         /// The new value for the instance.
@@ -107,13 +121,16 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// the previous value of the instance.
         /// </returns>
-		public override bool SetNewAtomicValue(bool newValue) {
-            // cannot use Interlocked here because there are no overloads for bool
-            lock(this) {
-                bool oldValue = Value;
-                Value = newValue;
-                return oldValue;
-            }
+        public abstract T SetNewAtomicValue(T newValue);
+
+        /// <summary> 
+        /// Returns the String representation of the current value.
+        /// </summary>
+        /// <returns> 
+        /// The String representation of the current value.
+        /// </returns>
+        public override string ToString() {
+            return Value.ToString();
         }
     }
 }
