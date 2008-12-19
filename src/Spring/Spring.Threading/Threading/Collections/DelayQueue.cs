@@ -337,7 +337,7 @@ namespace Spring.Threading.Collections
                     }
                     T head;
                     _queue.Poll(out head);
-                    CollectionUtils.Add(collection, head);
+                    collection.Add(head);
                     ++n;
                 }
                 if (n > 0)
@@ -404,7 +404,7 @@ namespace Spring.Threading.Collections
                     }
                     T head;
                     _queue.Poll(out head);
-                    CollectionUtils.Add(collection, head);
+                    collection.Add(head);
                     ++n;
                 }
                 if (n > 0)
