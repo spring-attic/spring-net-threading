@@ -25,7 +25,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using Spring.Utility;
 
-namespace Spring.Threading.Collections {
+namespace Spring.Threading.Collections.Generic {
     /// <summary> 
     /// A thread-safe variant of <see cref="System.Collections.ArrayList"/> in which all mutative
     /// operations are implemented by making a fresh copy of the underlying array.
