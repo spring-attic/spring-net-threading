@@ -15,12 +15,15 @@
 * limitations under the License.
 */
 #endregion
+
+using Spring.Threading.Future;
+
 namespace Spring.Threading
 {
     /// <summary>
     /// Interface for executables. It is the same of java Runnable.
     /// </summary>
-	public interface IRunnable
+	public interface IRunnable 
 	{
         /// <summary>
         /// The entry point

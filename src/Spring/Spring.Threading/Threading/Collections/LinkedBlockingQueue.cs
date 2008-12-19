@@ -4,10 +4,12 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading;
 using Spring.Collections;
+using Spring.Collections.Generic;
+using Spring.Threading.Collections.Generic;
 
 namespace Spring.Threading.Collections {
     /// <summary> 
-    /// An optionally-bounded <see cref="Spring.Threading.Collections.IBlockingQueue{T}"/> based on
+    /// An optionally-bounded <see cref="IBlockingQueue{T}"/> based on
     /// linked nodes.
     /// </summary>
     /// <remarks>
@@ -349,17 +351,18 @@ namespace Spring.Threading.Collections {
         /// specified wait time if necessary for an element to become available.
         /// </summary>
         /// <param name="duration">how long to wait before giving up</param>
+        /// <param name="element"></param>
         /// <returns> 
         /// the head of this queue, or <see lang="default(T)"/> if the
         /// specified waiting time elapses before an element is available.
         /// </returns>
-        public virtual T Poll(TimeSpan duration) {
+        public virtual bool Poll(TimeSpan duration, out T element) {
             T x;
             int c;
             TimeSpan durationToWait = duration;
             lock(takeLock) {
                 DateTime deadline = DateTime.Now.Add(duration);
-                for(; ; ) {
+                for(;;) {
                     if(_activeCount > 0) {
                         x = extract();
                         lock(this) {
@@ -369,9 +372,11 @@ namespace Spring.Threading.Collections {
                             Monitor.Pulse(takeLock);
                         break;
                     }
-                    if(durationToWait.TotalMilliseconds <= 0)
-                        // TODO for value types this is not distinguishable from a valid return value
-                        return default(T);
+                    if (durationToWait.TotalMilliseconds <= 0)
+                    {
+                        element = default(T);
+                        return false;
+                    }
                     try {
                         Monitor.Wait(this, duration);
                         durationToWait = deadline.Subtract(DateTime.Now);
@@ -384,8 +389,8 @@ namespace Spring.Threading.Collections {
             }
             if(c == _capacity)
                 signalNotFull();
-
-            return x;
+            element = x;
+            return true;
         }
 
         /// <summary> 
@@ -400,7 +405,7 @@ namespace Spring.Threading.Collections {
         /// because it may be the case that another thread is about to
         /// insert or remove an element.
         /// </remarks>
-        public virtual int RemainingCapacity {
+        public override int RemainingCapacity {
             get {
                 return _capacity - _activeCount;
             }
@@ -625,37 +630,47 @@ namespace Spring.Threading.Collections {
             return tempCount >= 0;
         }
 
-        /// <summary> 
-        /// Retrieves, but does not remove, the head of this queue,
-        /// or returns <see lang="null"/> if this queue is empty.
-        /// </summary>
-        /// <returns> 
-        /// The head of this queue, or <see lang="null"/> if this queue is empty.
-        /// </returns>
-        public override T Peek() {
+	    /// <summary>
+	    /// Retrieves, but does not remove, the head of this queue into out
+	    /// parameter <paramref name="element"/>.
+	    /// </summary>
+	    /// <param name="element">
+	    /// The head of this queue. <c>default(T)</c> if queue is empty.
+	    /// </param>
+	    /// <returns>
+	    /// <c>false</c> is the queue is empty. Otherwise <c>true</c>.
+	    /// </returns>
+	    public override bool Peek(out T element) {
             if(_activeCount == 0)
-                return default(T);
+            {
+                element = default(T);
+                return false;
+            }
             lock(takeLock) {
                 Node first = head.next;
-                if(first == null)
-                    return default(T);
-                
-                return first.item;
+                element = first.item;
+                return true;
             }
         }
 
-        /// <summary> 
-        /// Retrieves and removes the head of this queue,
-        /// or returns <see lang="null"/> if this queue is empty.
-        /// </summary>
-        /// <returns> 
-        /// The head of this queue, or <see lang="null"/> if this queue is empty.
-        /// </returns>
-        public override T Poll() {
-            if(_activeCount == 0)
-                return default(T);
+	    /// <summary>
+	    /// Retrieves and removes the head of this queue into out parameter
+	    /// <paramref name="element"/>. 
+	    /// </summary>
+	    /// <param name="element">
+	    /// Set to the head of this queue. <c>default(T)</c> if queue is empty.
+	    /// </param>
+	    /// <returns>
+	    /// <c>false</c> if the queue is empty. Otherwise <c>true</c>.
+	    /// </returns>
+	    public override bool Poll(out T element){
+            if (_activeCount == 0)
+            {
+                element = default(T);
+                return false;
+            }
 
-            T x = default(T);
+	        T x = default(T);
             int c = -1;
             lock(takeLock) {
                 if(_activeCount > 0) {
@@ -668,9 +683,11 @@ namespace Spring.Threading.Collections {
                 }
             }
             if(c == _capacity)
+            {
                 signalNotFull();
-
-            return x;
+            }
+	        element = x;
+            return true;
         }
 
         /// <summary>
@@ -717,14 +734,14 @@ namespace Spring.Threading.Collections {
         ///When implemented by a class, gets an object that can be used to synchronize access to the ICollection.  For this implementation,
         ///always return null, indicating the array is already synchronized.
         /// </summary>
-        public override object SyncRoot {
+        protected override object SyncRoot {
             get { return null; }
         }
 
         /// <summary>
         /// When implemented by a class, gets a value indicating whether access to the ICollection is synchronized (thread-safe).
         /// </summary>
-        public override Boolean IsSynchronized {
+        protected override bool IsSynchronized {
             get { return true; }
         }
 

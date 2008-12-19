@@ -81,7 +81,11 @@
     </Reference>
     <Reference Include="nunit.framework, Version=2.2.7.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\lib\Net\2.0\nunit.framework.dll</HintPath>
+      <HintPath>..\..\..\lib\net\2.0\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Rhino.Mocks, Version=3.4.0.0, Culture=neutral, PublicKeyToken=0b3305902db7183f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\net\2.0\Rhino.Mocks.dll</HintPath>
     </Reference>
     <Reference Include="Spring.Core, Version=1.1.2.20125, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -95,6 +99,17 @@
     <Compile Include="BaseThreadingTestCase.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Collections\Generic\AbstractCollectionTest.cs" />
+    <Compile Include="BaseAbstractCollectionTest.cs" />
+    <Compile Include="Collections\Generic\AbstractEnumeratorTest.cs" />
+    <Compile Include="Collections\Generic\AbstractListTest.cs" />
+    <Compile Include="Collections\Generic\CollectionTestUtils.cs" />
+    <Compile Include="Collections\Generic\EnumeratorFunctionTestBase.cs" />
+    <Compile Include="Collections\Generic\IOmniCollection.cs" />
+    <Compile Include="Collections\Generic\IOmniList.cs" />
+    <Compile Include="Collections\Generic\TestEnumerator.cs" />
+    <Compile Include="Collections\Generic\TransformingEnumeratorTest.cs" />
+    <Compile Include="Collections\Generic\TransformingListTest.cs" />
     <Compile Include="CoreExceptionTests.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -104,6 +119,7 @@
     <Compile Include="StandardsComplianceTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TestHelper.cs" />
     <Compile Include="Threading\AtomicTypes\AtomicBooleanTests.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -131,15 +147,13 @@
     <Compile Include="Threading\AtomicTypes\AtomicStampedReferenceTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Threading\Collections\ArrayBlockingQueueTests.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Threading\Collections\CopyOnWriteArrayListTests.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Threading\Collections\DelayQueueTests.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs">
       <SubType>Code</SubType>
     </Compile>

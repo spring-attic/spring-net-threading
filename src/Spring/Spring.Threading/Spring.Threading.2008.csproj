@@ -86,6 +86,18 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Collections\Generic\AbstractCollection.cs" />
+    <Compile Include="Collections\Generic\AbstractEnumerator.cs" />
+    <Compile Include="Collections\Generic\AbstractList.cs" />
+    <Compile Include="Collections\Generic\AbstractQueue.cs" />
+    <Compile Include="Collections\Generic\AbstractTransformingList.cs" />
+    <Compile Include="Collections\Generic\ArrayQueue.cs" />
+    <Compile Include="Collections\Generic\DownCastList.cs" />
+    <Compile Include="Collections\Generic\IQueue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Collections\Generic\TransformingEnumerator.cs" />
+    <Compile Include="Collections\Generic\TransformingList.cs" />
     <Compile Include="Collections\INavigableDictionary.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -141,11 +153,8 @@
     <Compile Include="Threading\BrokenBarrierException.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\Call.cs" />
     <Compile Include="Threading\ClockDaemon.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Threading\Collections\AbstractQueue.cs" />
-    <Compile Include="Threading\Collections\ArrayBlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Threading\Collections\CopyOnWriteArrayList.cs">
@@ -154,16 +163,17 @@
     <Compile Include="Threading\Collections\DelayQueue.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Threading\Collections\IBlockingQueue.cs">
+    <Compile Include="Threading\Collections\Generic\ArrayBlockingQueue.cs" />
+    <Compile Include="Threading\Collections\Generic\BlockingQueueWrapper.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\Collections\Generic\IBlockingQueue.cs" />
     <Compile Include="Threading\Collections\IConcurrentDictionary.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Threading\Collections\IConcurrentNavigableDictionary.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Threading\Collections\IQueue.cs" />
     <Compile Include="Threading\Collections\LinkedBlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -402,6 +412,7 @@
     <Compile Include="Threading\SynchronousChannel.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\Task.cs" />
     <Compile Include="Threading\ThreadedExecutor.cs">
       <SubType>Code</SubType>
     </Compile>

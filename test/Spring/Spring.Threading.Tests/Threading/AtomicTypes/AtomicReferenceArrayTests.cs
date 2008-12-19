@@ -73,7 +73,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void NewAtomicReferenceArrayFromExistingArrayConstructor()
 		{
-			int[] a = new [] {two, one, three, four, seven};
+			int[] a = new int[] {two, one, three, four, seven};
             AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(a);
 			Assert.AreEqual(a.Length, ai.Length());
 			for (int i = 0; i < a.Length; ++i)
@@ -239,7 +239,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void ReferenceArrayToString()
 		{
-			int[] a = new [] {two, one, three, four, seven};
+			int[] a = new int[] {two, one, three, four, seven};
             AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(a);
 			Assert.AreEqual(convertArrayToString(a), ai.ToString());
 		}
