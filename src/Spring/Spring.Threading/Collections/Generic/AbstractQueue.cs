@@ -77,28 +77,31 @@ namespace Spring.Collections.Generic
         /// If the collection is the current queue or the collection size is 
         /// greater than the queue capacity.
         /// </exception>
-        public virtual void AddAll(ICollection<T> collection)
+        public virtual bool AddAll(ICollection<T> collection)
         {
-            if(collection == null)
+            if (collection == null)
             {
                 throw new ArgumentNullException("collection");
             }
-            if(collection == this)
+            if (collection == this)
             {
                 throw new ArgumentException("Cannot add to itself.");
             }
-            if(collection.Count > RemainingCapacity)
+            if (collection.Count > RemainingCapacity)
             {
                 throw new ArgumentException("Collcation size greater than queue capacity.");
             }
-            foreach(T element in collection)
+            bool modified = false;
+            foreach (T element in collection)
             {
                 Add(element);
+                modified = true;
             }
+            return modified;
         }
 
 
-        /// <summary>
+	    /// <summary>
         /// Returns the remaining capacity of this queue.
         /// </summary>
         public abstract int RemainingCapacity { get; }

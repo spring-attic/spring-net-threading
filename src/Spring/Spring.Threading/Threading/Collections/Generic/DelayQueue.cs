@@ -4,11 +4,9 @@ using System.Diagnostics;
 using System.Threading;
 using Spring.Collections;
 using Spring.Collections.Generic;
-using Spring.Threading.Collections.Generic;
 using Spring.Threading.Future;
-using CollectionUtils=Spring.Util.Generic.CollectionUtils;
 
-namespace Spring.Threading.Collections
+namespace Spring.Threading.Collections.Generic
 {
 	/// <summary>
 	/// An unbounded <see cref="IBlockingQueue{T}"/> of
@@ -17,7 +15,7 @@ namespace Spring.Threading.Collections
 	/// </summary>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
-    public class DelayQueue<T> : AbstractQueue<T>, IBlockingQueue<T> //where T : IDelayed
+    public class DelayQueue<T> : AbstractQueue<T>, IBlockingQueue<T> //TODO should we include this? where T : IDelayed
     {
         [NonSerialized]
         private object lockObject = new object();
@@ -508,6 +506,19 @@ namespace Spring.Threading.Collections
             lock (lockObject)
             {
                 _queue.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Removes a single instance of the specified element from this
+        /// queue, if it is present, whether or not it has expired.
+        /// </summary>
+        /// <param name="element">element to remove</param>
+        /// <returns><see lang="true"/> if element was remove, <see lang="false"/> if not.</returns>
+        public override bool Remove(T element) {
+            lock (lockObject)
+            {
+                return _queue.Remove(element);
             }
         }
     }

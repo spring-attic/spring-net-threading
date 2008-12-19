@@ -68,7 +68,7 @@ namespace Spring.Threading.Collections {
     /// <author>Josh Bloch</author>
     /// <author>Griffin Caprio (.NET)</author>
     [Serializable]
-    public class PriorityQueue<T> : AbstractQueue<T>, ISerializable {
+    public class PriorityQueue<T> : AbstractQueue<T>, ISerializable  {
         private class PriorityQueueEnumerator : IEnumerator<T> {
             private readonly PriorityQueue<T> _enclosingInstance;
 
@@ -291,7 +291,7 @@ namespace Spring.Threading.Collections {
             if(_comparator == null) {
                 while(k > 1) {
                     int j = k >> 1;
-                    if(((IComparable<T>)_queue[j]).CompareTo(_queue[k]) <= 0)
+                    if(((IComparable)_queue[j]).CompareTo(_queue[k]) <= 0)
                         break;
                     T tmp = _queue[j];
                     _queue[j] = _queue[k];
@@ -329,7 +329,7 @@ namespace Spring.Threading.Collections {
                     if(j < _priorityQueueSize && ((IComparable)_queue[j]).CompareTo(_queue[j + 1]) > 0)
                         j++; // j indexes smallest kid
 
-                    if(((IComparable<T>)_queue[k]).CompareTo(_queue[j]) <= 0)
+                    if(((IComparable)_queue[k]).CompareTo(_queue[j]) <= 0)
                         break;
                     T tmp = _queue[j];
                     _queue[j] = _queue[k];
@@ -581,7 +581,7 @@ namespace Spring.Threading.Collections {
 
             if(_comparator == null) {
                 for(int i = 1; i <= _priorityQueueSize; i++) {
-                    if(((IComparable<T>)_queue[i]).CompareTo(objectToRemove) == 0) {
+                    if(((IComparable)_queue[i]).CompareTo(objectToRemove) == 0) {
                         removeAt(i);
                         return true;
                     }

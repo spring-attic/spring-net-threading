@@ -161,9 +161,7 @@ namespace Spring.Collections.Generic
             get
             {
                 int count = 0;
-#pragma warning disable 168
                 foreach (T item in this) count++;
-#pragma warning restore 168
                 return count;
             }
         }

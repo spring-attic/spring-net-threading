@@ -160,13 +160,11 @@
     <Compile Include="Threading\Collections\CopyOnWriteArrayList.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Threading\Collections\DelayQueue.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\BlockingQueueWrapper.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\Collections\Generic\DelayQueue.cs" />
     <Compile Include="Threading\Collections\Generic\IBlockingQueue.cs" />
     <Compile Include="Threading\Collections\IConcurrentDictionary.cs">
       <SubType>Code</SubType>

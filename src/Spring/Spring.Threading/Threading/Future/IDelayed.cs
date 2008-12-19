@@ -37,7 +37,7 @@ namespace Spring.Threading.Future
 	/// <li>Changed GetDelay return type from long to TimeSpan, and remove parameter.</li>
 	/// </ol>
 	/// </changes>
-	public interface IDelayed : IComparable<IDelayed>
+	public interface IDelayed : IComparable<IDelayed>, IComparable
 	{
 		/// <summary> 
 		/// Returns the remaining delay associated with this object
