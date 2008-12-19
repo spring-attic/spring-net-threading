@@ -145,7 +145,7 @@ namespace Spring.Threading.Execution
 		public virtual IFuture Poll()
 		{
 		    IFuture next;
-            if ( _completionQueue.Poll(out next))
+            if ( !_completionQueue.Poll(out next))
             {
                 return null;
             }

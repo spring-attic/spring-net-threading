@@ -481,6 +481,10 @@ namespace Spring.Threading.Execution
 		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
 		public virtual Object InvokeAny(ICollection tasks)
 		{
+            if ( tasks == null )
+            {
+                throw new ArgumentNullException("tasks");
+            }
 			try
 			{
 				return doInvokeAny(tasks, tasks.Count, false, NoTime);
@@ -669,6 +673,11 @@ namespace Spring.Threading.Execution
 		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
 		public virtual Object InvokeAny(ICollection tasks, TimeSpan durationToWait)
 		{
+            if ( tasks == null )
+            {
+                throw new ArgumentNullException("tasks");
+            }
+		    
 			return doInvokeAny(tasks, tasks.Count, true, durationToWait);
 		}
 //
@@ -1078,6 +1087,10 @@ namespace Spring.Threading.Execution
 		//TODO: Replace "ICollection" with ICallableCollection
 		public virtual IList InvokeAll(ICollection tasks)
 		{
+            if ( tasks == null )
+            {
+                throw new ArgumentNullException("tasks");
+            }
 		    return InvokeAll(tasks, tasks.Count);
 		}
 //
@@ -1410,6 +1423,10 @@ namespace Spring.Threading.Execution
 		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
 		public virtual IList InvokeAll(ICollection tasks, TimeSpan durationToWait)
 		{
+            if ( tasks == null )
+            {
+                throw new ArgumentNullException("tasks");
+            }
 		    return InvokeAll(tasks, tasks.Count, durationToWait);
 		}
 
@@ -1504,17 +1521,17 @@ namespace Spring.Threading.Execution
 
 		#endregion
 
-#if NET_2_0
+//#if NET_2_0
+//        private object doInvokeAny(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait)
+//        {
+//            return doInvokeAny(tasks, count, timed, durationToWait, Callable2Future);
+//        }
+//
+//
+//        private object doInvokeAny(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait, Converter<object, IRunnableFuture> converter)
+//#else
         private object doInvokeAny(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait)
-        {
-            return doInvokeAny(tasks, count, timed, durationToWait, Callable2Future);
-        }
-
-
-        private object doInvokeAny(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait, Converter<object, IRunnableFuture> converter)
-#else
-        private object doInvokeAny(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait)
-#endif
+//#endif
         {
 			if (tasks == null)
 				throw new ArgumentNullException("tasks");
@@ -1572,9 +1589,9 @@ namespace Spring.Threading.Execution
 						{
 							return f.GetResult();
 						}
-						catch (ThreadInterruptedException ie)
+						catch (ThreadInterruptedException)
 						{
-							throw ie;
+							throw;
 						}
 						catch (ExecutionException eex)
 						{
