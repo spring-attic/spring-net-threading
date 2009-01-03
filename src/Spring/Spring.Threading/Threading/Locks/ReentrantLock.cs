@@ -371,7 +371,7 @@ namespace Spring.Threading.Locks
 						_holds = 1;
 						return;
 					}
-					else if (caller == _owner)
+					if (caller == _owner)
 					{
 						++_holds;
 						return;

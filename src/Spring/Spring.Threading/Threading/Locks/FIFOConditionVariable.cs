@@ -11,7 +11,7 @@ namespace Spring.Threading.Locks
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	[Serializable]
-	internal class FIFOConditionVariable : ConditionVariable, ICondition
+	internal class FIFOConditionVariable : ConditionVariable
 	{
 		static FIFOConditionVariable()
 		{
@@ -108,9 +108,10 @@ namespace Spring.Threading.Locks
 			{
 				throw new SynchronizationLockException();
 			}
+          
 			WaitNode n = new WaitNode();
 			wq.Enqueue(n);
-			bool success = false;
+			bool success;
 			Lock.Unlock();
 			try
 			{
