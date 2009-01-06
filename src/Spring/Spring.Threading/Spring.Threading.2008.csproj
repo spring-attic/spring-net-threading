@@ -81,6 +81,8 @@
     <Reference Include="System">
       <Name>System</Name>
     </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs">
@@ -93,23 +95,17 @@
     <Compile Include="Collections\Generic\AbstractTransformingList.cs" />
     <Compile Include="Collections\Generic\ArrayQueue.cs" />
     <Compile Include="Collections\Generic\DownCastList.cs" />
+    <Compile Include="Collections\Generic\INavigableDictionary.cs" />
+    <Compile Include="Collections\Generic\INavigableSet.cs" />
+    <Compile Include="Collections\Generic\ISet.cs" />
+    <Compile Include="Collections\Generic\ISortedDictionary.cs" />
+    <Compile Include="Collections\Generic\ISortedSet.cs" />
+    <Compile Include="Threading\Collections\Generic\IConcurrentDictionary.cs" />
     <Compile Include="Collections\Generic\IQueue.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Collections\Generic\TransformingEnumerator.cs" />
     <Compile Include="Collections\Generic\TransformingList.cs" />
-    <Compile Include="Collections\INavigableDictionary.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Collections\INavigableSet.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Collections\ISortedDictionary.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Collections\ISortedSet.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="CommonAssemblyInfo.cs" />
     <Compile Include="Threading\AtomicTypes\AtomicBoolean.cs">
       <SubType>Code</SubType>
@@ -164,12 +160,7 @@
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayList.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueue.cs" />
     <Compile Include="Threading\Collections\Generic\IBlockingQueue.cs" />
-    <Compile Include="Threading\Collections\IConcurrentDictionary.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Threading\Collections\IConcurrentNavigableDictionary.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Threading\Collections\Generic\IConcurrentNavigableDictionary.cs" />
     <Compile Include="Threading\Collections\LinkedBlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>

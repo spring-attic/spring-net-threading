@@ -18,52 +18,52 @@
 
 #endregion
 
-using System.Collections;
+using System.Collections.Generic;
 
-namespace Spring.Collections
+namespace Spring.Collections.Generic
 {
 	/// <summary>
 	/// An interface representing a <see cref="System.Collections.IDictionary"/>, sorted in ascending order.
 	/// </summary>
 	/// <author>Griffin Caprio</author>
-	public interface ISortedDictionary : IDictionary
+	public interface ISortedDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	{
 		/// <summary>
-		/// Gets a flag indicating if the <see cref="ISortedDictionary"/> is empty.
+		/// Gets a flag indicating if the <see cref="ISortedDictionary{TKey,TValue}"/> is empty.
 		/// </summary>
 		bool IsEmpty { get; }
 		/// <summary>
 		/// Gets the first (lowest) key in this dictionary
 		/// </summary>
-		object FirstKey { get; }
+		TKey FirstKey { get; }
 		/// <summary>
 		/// Gets the last ( highest ) key in this dictionary
 		/// </summary>
-		object LastKey { get; }
+		TKey LastKey { get; }
 		/// <summary>
-		/// Returns a <see cref="Spring.Collections.ISortedDictionary"/> view of this dictionary, where all elements have keys less
+		/// Returns a <see cref="ISortedDictionary{TKey,TValue}"/> view of this dictionary, where all elements have keys less
 		/// than <paramref name="ceilingKey"/>
 		/// </summary>
 		/// <param name="ceilingKey">the key</param>
-		/// <returns>A <see cref="Spring.Collections.ISortedDictionary"/> view of this dictionary, where all elements have keys less
+		/// <returns>A <see cref="ISortedDictionary{TKey,TValue}"/> view of this dictionary, where all elements have keys less
 		/// than <paramref name="ceilingKey"/></returns>
-		ISortedDictionary HeadDictionary( object ceilingKey );
+		ISortedDictionary<TKey, TValue> HeadDictionary( TKey ceilingKey );
 		/// <summary>
-		/// Returns a <see cref="Spring.Collections.ISortedDictionary"/> view of this dictionary, where all elements have keys greater than
+		/// Returns a <see cref="ISortedDictionary{TKey,TValue}"/> view of this dictionary, where all elements have keys greater than
 		/// <paramref name="floorKey"/> inclusive and less than <paramref name="ceilingKey"/> exclusive.
 		/// </summary>
 		/// <param name="floorKey">lowest key</param>
 		/// <param name="ceilingKey">highest key</param>
-		/// <returns>A <see cref="Spring.Collections.ISortedDictionary"/> view of this dictionary, where all elements have keys greater than
+		/// <returns>A <see cref="ISortedDictionary{TKey,TValue}"/> view of this dictionary, where all elements have keys greater than
 		/// <paramref name="floorKey"/> inclusive and less than <paramref name="ceilingKey"/> exclusive.</returns>
-		ISortedDictionary SubDictionary( object floorKey, object ceilingKey );
+		ISortedDictionary<TKey, TValue> SubDictionary( TKey floorKey, TKey ceilingKey );
 		/// <summary>
-		/// Returns a <see cref="Spring.Collections.ISortedDictionary"/>  view of this dictionary, where all elements have keys greater than
+		/// Returns a <see cref="ISortedDictionary{TKey,TValue}"/>  view of this dictionary, where all elements have keys greater than
 		/// <paramref name="floorKey"/>
 		/// </summary>
 		/// <param name="floorKey">the key</param>
-		/// <returns>A <see cref="Spring.Collections.ISortedDictionary"/>  view of this dictionary, where all elements have keys greater than
+		/// <returns>A <see cref="ISortedDictionary{TKey,TValue}"/>  view of this dictionary, where all elements have keys greater than
 		/// <paramref name="floorKey"/></returns>
-		ISortedDictionary TailDictionary( object floorKey );
+		ISortedDictionary<TKey, TValue> TailDictionary( TKey floorKey );
 	}
 }
