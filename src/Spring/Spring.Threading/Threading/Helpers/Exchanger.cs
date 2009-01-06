@@ -5,7 +5,7 @@ namespace Spring.Threading.Helpers
 {
 	/// <summary> 
 	/// A synchronization point at which two threads can exchange objects.
-    /// Each thread presents some object on entry to the <see cref="M:Spring.Threading.Helpers.Exchanger.Exchange"/>
+    /// Each thread presents some object on entry to the <see cref="Exchanger.Exchange(object)"/>
 	/// method, and receives the object presented by the other
 	/// thread on return.
 	/// </summary>
@@ -15,7 +15,7 @@ namespace Spring.Threading.Helpers
 	/// <author>Griffin Caprio (.NET)</author>
 	public class Exchanger
 	{
-		private object _lock = new Object();
+		private readonly object _lock = new Object();
 
 		/// <summary>Holder for the item being exchanged </summary>
 		private object _itemToBeExchanged;
@@ -25,15 +25,6 @@ namespace Spring.Threading.Helpers
 		/// during an exchange.
 		/// </summary>
 		private int _arrivalCount;
-
-		#region Constructor
-		/// <summary> 
-		/// Creates a new Exchanger.
-		/// </summary>
-		public Exchanger()
-		{
-		}
-		#endregion
 
 		/// <summary> Main exchange function, handling the different policy variants.</summary>
 		private object doExchange(Object objectToExchange, bool timed, TimeSpan duration)
@@ -49,7 +40,7 @@ namespace Spring.Threading.Helpers
 						Monitor.Wait(_lock);
 					else if (durationToWait.Ticks > 0)
 					{
-						Monitor.Wait(this, durationToWait);
+						Monitor.Wait(_lock, durationToWait);
 						durationToWait = deadline.Subtract(DateTime.Now);
 					}
 					else
@@ -80,7 +71,7 @@ namespace Spring.Threading.Helpers
 							Monitor.Wait(_lock);
 						else if (durationToWait.Ticks > 0)
 						{
-							Monitor.Wait(this, durationToWait);
+							Monitor.Wait(_lock, durationToWait);
 
 							durationToWait = deadline.Subtract(DateTime.Now);
 						}
@@ -114,8 +105,7 @@ namespace Spring.Threading.Helpers
 				if (interrupted != null)
 					throw interrupted;
 					// must be timeout
-				else
-					throw new TimeoutException();
+			    throw new TimeoutException();
 			}
 		}
 

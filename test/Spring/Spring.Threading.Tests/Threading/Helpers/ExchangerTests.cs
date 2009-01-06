@@ -15,7 +15,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -33,7 +33,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -51,7 +51,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -69,7 +69,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -87,7 +87,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -109,7 +109,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -131,7 +131,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -154,7 +154,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -178,7 +178,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -197,7 +197,7 @@ namespace Spring.Threading.Helpers
                 this.e = e;
             }
 
-            private Exchanger e;
+            private readonly Exchanger e;
 
             public void Run()
             {
@@ -212,8 +212,8 @@ namespace Spring.Threading.Helpers
         public void Exchange()
         {
             Exchanger e = new Exchanger();
-            Thread t1 = new Thread(new ThreadStart(new AnonymousClassRunnable(e).Run));
-            Thread t2 = new Thread(new ThreadStart(new AnonymousClassRunnable1(e).Run));
+            Thread t1 = new Thread(new AnonymousClassRunnable(e).Run);
+            Thread t2 = new Thread(new AnonymousClassRunnable1(e).Run);
             t1.Start();
             t2.Start();
             t1.Join();
@@ -222,13 +222,12 @@ namespace Spring.Threading.Helpers
 
 
         [Test]
-            [Ignore("Causes Sync Lock exception.")]
         public void TimedExchange()
         {
             Exchanger e = new Exchanger();
-            Thread t1 = new Thread(new ThreadStart(new AnonymousClassRunnable2(e).Run));
+            Thread t1 = new Thread(new AnonymousClassRunnable2(e).Run);
             t1.Name = "thread1";
-            Thread t2 = new Thread(new ThreadStart(new AnonymousClassRunnable3(e).Run));
+            Thread t2 = new Thread(new AnonymousClassRunnable3(e).Run);
             t2.Name = "thread2";
             t1.Start();
             t2.Start();
@@ -241,7 +240,7 @@ namespace Spring.Threading.Helpers
         public void Exchange_InterruptedException()
         {
             Exchanger e = new Exchanger();
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable4(e).Run));
+            Thread t = new Thread(new AnonymousClassRunnable4(e).Run);
             t.Start();
             Thread.Sleep(SHORT_DELAY_MS);
             t.Interrupt();
@@ -250,11 +249,10 @@ namespace Spring.Threading.Helpers
 
 
         [Test]
-            [Ignore("Causes SyncLock exceptions.")]
         public void TimedExchange_InterruptedException()
         {
             Exchanger e = new Exchanger();
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable5(e).Run));
+            Thread t = new Thread(new AnonymousClassRunnable5(e).Run);
             t.Start();
             t.Interrupt();
             t.Join();
@@ -262,11 +260,10 @@ namespace Spring.Threading.Helpers
 
 
         [Test]
-            [Ignore("Causes SyncLock Exceptions")]
         public void Exchange_TimeOutException()
         {
             Exchanger e = new Exchanger();
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable6(e).Run));
+            Thread t = new Thread(new AnonymousClassRunnable6(e).Run);
             t.Start();
             t.Join();
         }
@@ -276,9 +273,9 @@ namespace Spring.Threading.Helpers
         public void ReplacementAfterExchange()
         {
             Exchanger e = new Exchanger();
-            Thread t1 = new Thread(new ThreadStart(new AnonymousClassRunnable7(e).Run));
-            Thread t2 = new Thread(new ThreadStart(new AnonymousClassRunnable8(e).Run));
-            Thread t3 = new Thread(new ThreadStart(new AnonymousClassRunnable9(e).Run));
+            Thread t1 = new Thread(new AnonymousClassRunnable7(e).Run);
+            Thread t2 = new Thread(new AnonymousClassRunnable8(e).Run);
+            Thread t3 = new Thread(new AnonymousClassRunnable9(e).Run);
 
             t1.Start();
             t2.Start();

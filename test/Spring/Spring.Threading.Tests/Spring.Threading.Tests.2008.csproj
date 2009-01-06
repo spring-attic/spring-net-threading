@@ -96,6 +96,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseMockTestCase.cs" />
     <Compile Include="BaseThreadingTestCase.cs">
       <SubType>Code</SubType>
     </Compile>
