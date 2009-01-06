@@ -33,246 +33,246 @@ using System.Threading;
 
 namespace Spring.Threading
 {
-	
-	/// <summary> Abstract base class for semaphores relying on queued wait nodes.
-	/// </summary>
-	public abstract class QueuedSemaphore:Semaphore
-	{
-		internal virtual WaitQueue.WaitNode Signallee
-		{
-			get
-			{
-				lock (this)
-				{
-					WaitQueue.WaitNode w = wq_.Extract();
-					if (w == null)
-						++nPermits; // if none, inc permits for new arrivals
-					return w;
-				}
-			}
-			
-		}
-		
+    /// <summary> Abstract base class for semaphores relying on queued wait nodes.
+    /// </summary>
+    public abstract class QueuedSemaphore : Semaphore
+    {
+        internal virtual WaitQueue.WaitNode Signallee
+        {
+            get
+            {
+                lock (this)
+                {
+                    WaitQueue.WaitNode w = wq_.Extract();
+                    if (w == null)
+                        ++nPermits; // if none, inc permits for new arrivals
+                    return w;
+                }
+            }
+
+        }
+
         /// <summary>
         /// The backing wait queue
         /// </summary>
-		protected readonly internal WaitQueue wq_;
-		
-		internal QueuedSemaphore(WaitQueue q, long initialPermits):base(initialPermits)
-		{
-			wq_ = q;
-		}
-		/// <summary>
-		/// <see cref="ISync.Acquire"/>
-		/// </summary>
-		public override void  Acquire()
-		{
+        protected readonly internal WaitQueue wq_;
+
+        internal QueuedSemaphore(WaitQueue q, long initialPermits)
+            : base(initialPermits)
+        {
+            wq_ = q;
+        }
+        /// <summary>
+        /// <see cref="ISync.Acquire"/>
+        /// </summary>
+        public override void Acquire()
+        {
             Utils.FailFastIfInterrupted();
-			if (Precheck())
-				return ;
-			WaitQueue.WaitNode w = new WaitQueue.WaitNode();
-			w.doWait(this);
-		}
-		
+            if (Precheck())
+                return;
+            WaitQueue.WaitNode w = new WaitQueue.WaitNode();
+            w.doWait(this);
+        }
+
         /// <summary>
         /// <see cref="ISync.Attempt"/>
         /// </summary>
-		public override bool Attempt(long msecs)
-		{
+        public override bool Attempt(long msecs)
+        {
             Utils.FailFastIfInterrupted();
-			if (Precheck())
-				return true;
-			if (msecs <= 0)
-				return false;
-			
-			WaitQueue.WaitNode w = new WaitQueue.WaitNode();
-			return w.doTimedWait(this, msecs);
-		}
-		
+            if (Precheck())
+                return true;
+            if (msecs <= 0)
+                return false;
+
+            WaitQueue.WaitNode w = new WaitQueue.WaitNode();
+            return w.doTimedWait(this, msecs);
+        }
+
         /// <summary>
         /// Check to do before a timed wait
         /// </summary>
         /// <returns></returns>
-		protected internal virtual bool Precheck()
-		{
-			lock (this)
-			{
-				bool pass = (nPermits > 0);
-				if (pass)
-					--nPermits;
-				return pass;
-			}
-		}
-		
+        protected internal virtual bool Precheck()
+        {
+            lock (this)
+            {
+                bool pass = (nPermits > 0);
+                if (pass)
+                    --nPermits;
+                return pass;
+            }
+        }
+
         /// <summary>
         /// Check to do on a wait node
         /// </summary>
         /// <param name="w"></param>
         /// <returns></returns>
-		internal virtual bool Recheck(WaitQueue.WaitNode w)
-		{
-			lock (this)
-			{
-				bool pass = (nPermits > 0);
-				if (pass)
-					--nPermits;
-				else
-					wq_.Insert(w);
-				return pass;
-			}
-		}
-		
+        internal virtual bool Recheck(WaitQueue.WaitNode w)
+        {
+            lock (this)
+            {
+                bool pass = (nPermits > 0);
+                if (pass)
+                    --nPermits;
+                else
+                    wq_.Insert(w);
+                return pass;
+            }
+        }
+
         /// <summary>
         /// <see cref="ISync.Release"/>
         /// </summary>
-		public override void  Release()
-		{
-			for (; ; )
-			{
-				WaitQueue.WaitNode w = Signallee;
-				if (w == null)
-					return ; // no one to signal
-				if (w.signal(this))
-					return ; // notify if still waiting, else skip
-			}
-		}
-		
-		/// <summary>Release N permits *</summary>
-		public override void  Release(long n)
-		{
-			if (n < 0)
-				throw new System.ArgumentException("Negative argument");
-			
-			for (long i = 0; i < n; ++i)
-			    Release();
-		}
-		
-		/// <summary> Base class for internal queue classes for semaphores, etc.
-		/// Relies on subclasses to actually implement queue mechanics
-		/// 
-		/// </summary>
-		
-		protected internal abstract class WaitQueue
-		{			
+        public override void Release()
+        {
+            for (; ; )
+            {
+                WaitQueue.WaitNode w = Signallee;
+                if (w == null)
+                    return; // no one to signal
+                if (w.signal(this))
+                    return; // notify if still waiting, else skip
+            }
+        }
+
+        /// <summary>Release N permits *</summary>
+        public override void Release(long n)
+        {
+            if (n < 0)
+                throw new System.ArgumentException("Negative argument");
+
+            for (long i = 0; i < n; ++i)
+                Release();
+        }
+
+        /// <summary> Base class for internal queue classes for semaphores, etc.
+        /// Relies on subclasses to actually implement queue mechanics
+        /// 
+        /// </summary>
+
+        protected internal abstract class WaitQueue
+        {
             /// <summary>
             /// assumed not to block
             /// </summary>
-			internal abstract void  Insert(WaitNode w); 
+            internal abstract void Insert(WaitNode w);
 
             /// <summary>
             /// should return null if empty
             /// </summary>
-			internal abstract WaitNode Extract(); 
-			
-			internal class WaitNode
-			{
-				internal bool waiting = true;
-				internal WaitNode next = null;
-				
-				protected internal virtual bool signal(QueuedSemaphore sem)
-				{
-					lock (this)
-					{
-						bool signalled = waiting;
-						if (signalled)
-						{
-							waiting = false;
-							// TODO: ? System.Threading.Monitor.Pulse(this);
-							System.Threading.Monitor.Pulse(sem);
-						}
-						return signalled;
-					}
-				}
-				
-				protected internal virtual bool doTimedWait(QueuedSemaphore sem, long msecs)
-				{
-					lock (this)
-					{
-						if (sem.Recheck(this) || !waiting)
-							return true;
-						else if (msecs <= 0)
-						{
-							waiting = false;
-							return false;
-						}
-						else
-						{
-							long waitTime = msecs;
-							long start = Utils.CurrentTimeMillis;
-							
-							try
-							{
-								for (; ; )
-								{
-									//TODO: ? System.Threading.Monitor.Wait(this, TimeSpan.FromMilliseconds(waitTime));
-									System.Threading.Monitor.Wait(sem, TimeSpan.FromMilliseconds(waitTime));
-									if (!waiting)
-									// definitely signalled
-										return true;
-									else
-									{
-										waitTime = msecs - (Utils.CurrentTimeMillis - start);
-										if (waitTime <= 0)
-										{
-											//  timed out
-											waiting = false;
-											return false;
-										}
-									}
-								}
-							}
-							catch (System.Threading.ThreadInterruptedException ex)
-							{
-								if (waiting)
-								{
-									// no notification
-									waiting = false; // invalidate for the signaller
-									throw ex;
-								}
-								else
-								{
-									// thread was interrupted after it was notified
-									Thread.CurrentThread.Interrupt();
-									return true;
-								}
-							}
-						}
-					}
-				}
-				
-				protected internal virtual void  doWait(QueuedSemaphore sem)
-				{
-					lock (this)
-					{
-						if (!sem.Recheck(this))
-						{
-							try
-							{
-								while (waiting)
-								{
-								    //TODO: ? System.Threading.Monitor.Wait(this);
-								    System.Threading.Monitor.Wait(sem);
-								}
-							}
-							catch (System.Threading.ThreadInterruptedException ex)
-							{
-								if (waiting)
-								{
-									// no notification
-									waiting = false; // invalidate for the signaller
-									throw ex;
-								}
-								else
-								{
-									// thread was interrupted after it was notified
-									Thread.CurrentThread.Interrupt();
-									return ;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+            internal abstract WaitNode Extract();
+
+            internal class WaitNode
+            {
+                internal bool waiting = true;
+                internal WaitNode next = null;
+
+                protected internal virtual bool signal(QueuedSemaphore sem)
+                {
+                    lock (this)
+                    {
+                        bool signalled = waiting;
+                        if (signalled)
+                        {
+                            waiting = false;
+                            // TODO: ? System.Threading.Monitor.Pulse(this);
+                            System.Threading.Monitor.Pulse(sem);
+                        }
+                        return signalled;
+                    }
+                }
+
+                protected internal virtual bool doTimedWait(QueuedSemaphore sem, long msecs)
+                {
+                    lock (this)
+                    {
+                        if (sem.Recheck(this) || !waiting)
+                            return true;
+                        else if (msecs <= 0)
+                        {
+                            waiting = false;
+                            return false;
+                        }
+                        else
+                        {
+                            long waitTime = msecs;
+                            long start = Utils.CurrentTimeMillis;
+
+                            try
+                            {
+                                for (; ; )
+                                {
+                                    //TODO: ? System.Threading.Monitor.Wait(this, TimeSpan.FromMilliseconds(waitTime));
+                                    System.Threading.Monitor.Wait(sem, TimeSpan.FromMilliseconds(waitTime));
+                                    if (!waiting)
+                                        // definitely signalled
+                                        return true;
+                                    else
+                                    {
+                                        waitTime = msecs - (Utils.CurrentTimeMillis - start);
+                                        if (waitTime <= 0)
+                                        {
+                                            //  timed out
+                                            waiting = false;
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                            catch (System.Threading.ThreadInterruptedException ex)
+                            {
+                                if (waiting)
+                                {
+                                    // no notification
+                                    waiting = false; // invalidate for the signaller
+                                    throw ex;
+                                }
+                                else
+                                {
+                                    // thread was interrupted after it was notified
+                                    Thread.CurrentThread.Interrupt();
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                protected internal virtual void doWait(QueuedSemaphore sem)
+                {
+                    lock (this)
+                    {
+                        if (!sem.Recheck(this))
+                        {
+                            try
+                            {
+                                while (waiting)
+                                {
+                                    //TODO: ? System.Threading.Monitor.Wait(this);
+                                    System.Threading.Monitor.Wait(sem);
+                                }
+                            }
+                            catch (System.Threading.ThreadInterruptedException ex)
+                            {
+                                if (waiting)
+                                {
+                                    // no notification
+                                    waiting = false; // invalidate for the signaller
+                                    throw ex;
+                                }
+                                else
+                                {
+                                    // thread was interrupted after it was notified
+                                    Thread.CurrentThread.Interrupt();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

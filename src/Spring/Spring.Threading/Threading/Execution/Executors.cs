@@ -20,7 +20,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using Spring.Threading;
 using Spring.Threading.AtomicTypes;
 using Spring.Threading.Collections;
 using Spring.Threading.Future;
@@ -619,7 +618,7 @@ namespace Spring.Threading.Execution
 
 			public virtual Thread NewThread(IRunnable r)
 			{
-				Thread t = new Thread(new ThreadStart(r.Run));
+				Thread t = new Thread(r.Run);
                 t.Name = namePrefix + threadNumber.IncrementValueAndReturn();
 				if (t.IsBackground)
 					t.IsBackground = false;
@@ -633,7 +632,7 @@ namespace Spring.Threading.Execution
 
 		internal class DelegatedExecutorService : AbstractExecutorService
 		{
-			private IExecutorService _executorService;
+			private readonly IExecutorService _executorService;
 
 			public override bool IsShutdown
 			{
@@ -713,7 +712,7 @@ namespace Spring.Threading.Execution
 		/// </summary>
 		internal class DelegatedScheduledExecutorService : DelegatedExecutorService, IScheduledExecutorService
 		{
-			private IScheduledExecutorService e;
+			private readonly IScheduledExecutorService e;
 
 			internal DelegatedScheduledExecutorService(IScheduledExecutorService executor) : base(executor)
 			{

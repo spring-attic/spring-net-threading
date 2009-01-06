@@ -322,7 +322,7 @@ namespace Spring.Threading.Execution
 			/// intended to cancel the worker thread from instead
 			/// interrupting the task being run.
 			/// </summary>
-			private ReentrantLock _runLock = new ReentrantLock();
+			private readonly ReentrantLock _runLock = new ReentrantLock();
 
 			/// <summary> 
 			/// Initial task to run before entering run loop
@@ -344,7 +344,7 @@ namespace Spring.Threading.Execution
 			/// <summary>
 			/// <see cref="Spring.Threading.Execution.ThreadPoolExecutor"/> that holds this worker.
 			/// </summary>
-			private ThreadPoolExecutor _parentThreadPoolExecutor;
+			private readonly ThreadPoolExecutor _parentThreadPoolExecutor;
 
 			/// <summary>
 			/// Default Constructor
@@ -466,17 +466,17 @@ namespace Spring.Threading.Execution
 		/// <summary> 
 		/// Queue used for holding tasks and handing off to worker threads.
 		/// </summary>
-		private IBlockingQueue<IRunnable> _workQueue;
+		private readonly IBlockingQueue<IRunnable> _workQueue;
 
 		/// <summary> 
 		/// Lock held on updates to poolSize, corePoolSize, maximumPoolSize, and workers set.
 		/// </summary>
-		private object _mainLock = new object();
+		private readonly object _mainLock = new object();
 
 		/// <summary> 
 		/// Set containing all worker threads in pool.
 		/// </summary>
-		private IList _currentWorkerThreads = new ArrayList();
+		private readonly IList _currentWorkerThreads = new ArrayList();
 
 		/// <summary> 
 		///	Timeout <see cref="System.TimeSpan"/> for idle threads waiting for work.
@@ -904,7 +904,7 @@ namespace Spring.Threading.Execution
 						{
 							if ( _currentPoolSize <= _corePoolSize && !_allowCoreThreadsToTimeOut )
 							{
-								return (IRunnable) _workQueue.Take();
+								return _workQueue.Take();
 							}
 							TimeSpan timeout = _keepAliveTime;
 							if ( timeout.Ticks <= 0 )
@@ -934,7 +934,7 @@ namespace Spring.Threading.Execution
 								interruptIdleWorkers();
 								return null;
 							}
-							return (IRunnable) _workQueue.Take();
+							return _workQueue.Take();
 						}
 						case ThreadPoolState.STOP:
 							return null;
@@ -1415,10 +1415,10 @@ namespace Spring.Threading.Execution
 							worker.InterruptNow();
 						}
 					}
-					catch ( SecurityException se )
+					catch ( SecurityException )
 					{
 						_currentLifecycleState = state; // back out;
-						throw se;
+						throw;
 					}
 				}
 				else
