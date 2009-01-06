@@ -122,15 +122,15 @@ namespace Spring.Threading
     public class CyclicBarrier : IBarrier
     {
         /// <summary>The lock for guarding barrier entry </summary>
-        private Object _internalBarrierEntryLock = new Object();
+        private readonly Object _internalBarrierEntryLock = new Object();
 
         /// <summary>The number of parties </summary>
-        private int _parties;
+        private readonly int _parties;
 
         /// <summary>
         /// The <see cref="Spring.Threading.IRunnable"/> to run when tripped
         /// </summary>
-        private IRunnable _barrierCommand;
+        private readonly IRunnable _barrierCommand;
 
         /// <summary>The current generation </summary>
         private Generation _generation;
@@ -156,8 +156,8 @@ namespace Spring.Threading
         /// </remarks>
         private class Generation
         {
-            internal bool isBroken = false;
-            internal bool isTripped = false;
+            internal bool isBroken;
+            internal bool isTripped;
         }
 
         /// <summary> 
@@ -275,10 +275,10 @@ namespace Spring.Threading
                         else if (durationToWait.Ticks > 0)
                             Monitor.Wait(_internalBarrierEntryLock, durationToWait);
                     }
-                    catch (ThreadInterruptedException ie)
+                    catch (ThreadInterruptedException)
                     {
                         breakBarrier();
-                        throw ie;
+                        throw;
                     }
 
                     if (currentGeneration.isBroken)
@@ -310,10 +310,13 @@ namespace Spring.Threading
         /// tripped, or <see lang="null"/>  if there is no action.
         /// </param>
         /// <exception cref="System.ArgumentException">if <paramref name="parties"/> is less than 1.</exception>
+        /// <exception cref="ArgumentNullException">if <paramref name="barrierAction"/> is null.</exception>
         public CyclicBarrier(int parties, IRunnable barrierAction)
         {
             if (parties <= 0)
+            {
                 throw new ArgumentException();
+            }
             _parties = parties;
             _waitingPartiesCount = parties;
             _barrierCommand = barrierAction;

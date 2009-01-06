@@ -94,6 +94,8 @@
     <Reference Include="System">
       <Name>System</Name>
     </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseMockTestCase.cs" />
@@ -151,6 +153,7 @@
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />
+    <Compile Include="Threading\CyclicBarrierTests.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs">
       <SubType>Code</SubType>
     </Compile>
