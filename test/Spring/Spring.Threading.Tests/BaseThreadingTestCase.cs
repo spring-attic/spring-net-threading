@@ -68,10 +68,6 @@ namespace Spring.Threading
 
 	internal class ShortDelayClassRunnable : IRunnable
 	{
-		public ShortDelayClassRunnable()
-		{
-		}
-
 		public virtual void Run()
 		{
 			Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY_MS);
@@ -80,7 +76,7 @@ namespace Spring.Threading
 
 	internal class ShortRunnable : IRunnable
 	{
-		internal volatile bool done = false;
+		internal volatile bool done;
 
 		public virtual void Run()
 		{
@@ -119,7 +115,7 @@ namespace Spring.Threading
 
 	internal class TrackedLongRunnable : IRunnable
 	{
-		private volatile bool done = false;
+		private volatile bool done;
 
 		public void Run()
 		{
@@ -141,7 +137,7 @@ namespace Spring.Threading
 
 	internal class TrackedNoOpRunnable : IRunnable
 	{
-		private volatile bool done = false;
+		private volatile bool done;
 
 		public void Run()
 		{
@@ -163,7 +159,7 @@ namespace Spring.Threading
 
 	internal class TrackedShortRunnable : IRunnable
 	{
-		internal volatile bool done = false;
+		internal volatile bool done;
 
 		public virtual void Run()
 		{
@@ -193,10 +189,6 @@ namespace Spring.Threading
 
 	internal class MediumRunnable : IRunnable
 	{
-		public MediumRunnable()
-		{
-		}
-
 		public virtual void Run()
 		{
 			Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY_MS);
@@ -213,10 +205,6 @@ namespace Spring.Threading
 
 	internal class MediumPossiblyInterruptedRunnable : IRunnable
 	{
-		public MediumPossiblyInterruptedRunnable()
-		{
-		}
-
 		public virtual void Run()
 		{
 			try
@@ -231,7 +219,7 @@ namespace Spring.Threading
 
 	internal class TrackedCallable : ICallable
 	{
-		public volatile bool done = false;
+		public volatile bool done;
 
 		public Object Call()
 		{
@@ -256,15 +244,11 @@ namespace Spring.Threading
 
 	internal class SimpleThreadFactory : IThreadFactory
 	{
-		public SimpleThreadFactory()
-		{
-		}
-
 		#region IThreadFactory Members
 
 		public Thread NewThread(IRunnable runnable)
 		{
-			return new Thread(new ThreadStart(runnable.Run));
+			return new Thread(runnable.Run);
 		}
 
 		#endregion
@@ -280,7 +264,7 @@ namespace Spring.Threading
 			return null;
 		}
 
-		object Spring.Threading.Execution.IExecutorService.InvokeAny(System.Collections.ICollection tasks)
+		object IExecutorService.InvokeAny(System.Collections.ICollection tasks)
 		{
 			// TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.InvokeAny implementation
 			return null;
@@ -294,10 +278,10 @@ namespace Spring.Threading
 
 	    public IFuture Submit(Task task)
 	    {
-	        throw new System.NotImplementedException();
+	        throw new NotImplementedException();
 	    }
 
-	    System.Collections.IList Spring.Threading.Execution.IExecutorService.InvokeAll(System.Collections.ICollection tasks)
+	    System.Collections.IList IExecutorService.InvokeAll(System.Collections.ICollection tasks)
 		{
 			// TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.InvokeAll implementation
 			return null;
@@ -332,7 +316,7 @@ namespace Spring.Threading
 			}
 		}
 
-		public Spring.Threading.Future.IFuture Submit(IRunnable task)
+		public IFuture Submit(IRunnable task)
 		{
 			// TODO:  Add NoOpExecutorService.Submit implementation
 			return null;
@@ -340,16 +324,16 @@ namespace Spring.Threading
 
 	    public IFuture Submit(Task task, object result)
 	    {
-	        throw new System.NotImplementedException();
+	        throw new NotImplementedException();
 	    }
 
-	    Spring.Threading.Future.IFuture Spring.Threading.Execution.IExecutorService.Submit(IRunnable task, object result)
+	    IFuture IExecutorService.Submit(IRunnable task, object result)
 		{
 			// TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.Submit implementation
 			return null;
 		}
 
-		Spring.Threading.Future.IFuture Spring.Threading.Execution.IExecutorService.Submit(ICallable task)
+		IFuture IExecutorService.Submit(ICallable task)
 		{
 			// TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.Submit implementation
 			return null;
@@ -372,7 +356,7 @@ namespace Spring.Threading
 
 	    public void Execute(Task task)
 	    {
-	        throw new System.NotImplementedException();
+	        throw new NotImplementedException();
 	    }
 
 	    #endregion
