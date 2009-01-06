@@ -7,13 +7,6 @@ namespace Spring.Threading.Execution.ExecutionPolicy
 	public class AbortPolicy : IRejectedExecutionHandler
 	{
 		/// <summary> 
-		/// Creates an <see cref="Spring.Threading.Execution.ExecutionPolicy.AbortPolicy"/>.
-		/// </summary>
-		public AbortPolicy()
-		{
-		}
-
-		/// <summary> 
 		/// Always throws <see cref="Spring.Threading.Execution.RejectedExecutionException"/>.
 		/// </summary>
 		/// <param name="runnable">the <see cref="Spring.Threading.IRunnable"/> task requested to be executed</param>
@@ -21,7 +14,7 @@ namespace Spring.Threading.Execution.ExecutionPolicy
 		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">Always thrown upon execution.</exception>
 		public virtual void RejectedExecution(IRunnable runnable, IExecutorService executor)
 		{
-			throw new RejectedExecutionException("IRunnable: " + runnable.ToString() + " rejected from execution by ThreadPoolExecutor: " + executor.ToString());
+			throw new RejectedExecutionException("IRunnable: " + runnable + " rejected from execution by ThreadPoolExecutor: " + executor);
 		}
 	}
 }

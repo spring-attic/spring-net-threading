@@ -1,39 +1,36 @@
-using DotNetMock.Dynamic;
 using NUnit.Framework;
+using Rhino.Mocks;
 
 namespace Spring.Threading.Execution.ExecutionPolicy
 {
     [TestFixture]
-    public class RunPriorToExecutorShutdownTests
+    public class RunPriorToExecutorShutdownTests : BaseMockTestCase
     {
         [Test]
-            public void RunsRunnableWithNonShutdownExecutorService()
+        public void RunsRunnableWithNonShutdownExecutorService()
         {
-            DynamicMock executorServiceMock = new DynamicMock(typeof(IExecutorService));
-            executorServiceMock.ExpectAndReturn("IsShutdown", false);
-            DynamicMock runnableMock = new DynamicMock(typeof(IRunnable));
-            runnableMock.Expect("Run");
+            IExecutorService executorServiceMock =  _repository.StrictMock<IExecutorService>();
+            Expect.On(executorServiceMock).Call(executorServiceMock.IsShutdown).Return(false);
+
+            IRunnable runnableMock = _repository.StrictMock<IRunnable>();
+            runnableMock.Run();
+
+            _repository.ReplayAll();
 
             RunPriorToExecutorShutdown runPriorToExecutorShutdown = new RunPriorToExecutorShutdown();
-            runPriorToExecutorShutdown.RejectedExecution((IRunnable)runnableMock.Object, (IExecutorService) executorServiceMock.Object );
-
-            executorServiceMock.Verify();
-            runnableMock.Verify();
+            runPriorToExecutorShutdown.RejectedExecution(runnableMock, executorServiceMock);
         }
         [Test]
-            [Ignore("Fix DotNetMock ExpectNoCall bug")]
         public void DoesNotRunRunnableWithShutdownExecutorService()
         {
-            DynamicMock executorServiceMock = new DynamicMock(typeof(IExecutorService));
-            executorServiceMock.ExpectAndReturn("IsShutdown", true);
-            DynamicMock runnableMock = new DynamicMock(typeof(IRunnable));
-            runnableMock.ExpectNoCall("Run");
+            IExecutorService executorServiceMock =  _repository.StrictMock<IExecutorService>();
+            Expect.On(executorServiceMock).Call(executorServiceMock.IsShutdown).Return(true);
+
+            IRunnable runnableMock =  _repository.StrictMock<IRunnable>();
+            _repository.ReplayAll();
 
             RunPriorToExecutorShutdown runPriorToExecutorShutdown = new RunPriorToExecutorShutdown();
-            runPriorToExecutorShutdown.RejectedExecution((IRunnable)runnableMock.Object, (IExecutorService) executorServiceMock.Object );
-
-            executorServiceMock.Verify();
-            runnableMock.Verify();
+            runPriorToExecutorShutdown.RejectedExecution(runnableMock, executorServiceMock );
         }
     }
 }
