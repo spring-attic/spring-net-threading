@@ -1,5 +1,3 @@
-using Spring.Threading.Execution;
-
 namespace Spring.Threading.Execution
 {
 	/// <summary> 

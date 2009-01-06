@@ -1,4 +1,3 @@
-using System;
 
 #region License
 
@@ -20,20 +19,6 @@ using System;
 
 #endregion
 
-/*
-File: Callable.java
-
-Originally written by Doug Lea and released into the public domain.
-This may be used for any purposes whatsoever without acknowledgment.
-Thanks for the assistance and support of Sun Microsystems Labs,
-and everyone contributing, testing, and using this code.
-
-History:
-Date       Who                What
-30Jun1998  dl               Create public version
-5Jan1999  dl               Change Exception to Throwable in call signature
-27Jan1999  dl               Undo last change*/
-
 namespace Spring.Threading
 {
 	/// <summary> 
@@ -45,8 +30,8 @@ namespace Spring.Threading
 	/// FutureResults
 	/// </p>
 	/// </summary>
-	/// <seealso cref="FutureResult">
-	/// </seealso>
+	/// <author>Doug Lea</author>
+	/// <author>Griffin Caprio (.NET)</author>
 	public interface ICallable
 	{
 		/// <summary>Perform some action that returns a result or throws an exception *</summary>
