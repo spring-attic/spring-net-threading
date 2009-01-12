@@ -55,11 +55,13 @@ namespace Spring.Threading.AtomicTypes {
 
         /// <summary> 
         /// Gets / Sets the current value.
-        /// <p/>
-        /// <b>Note:</b> The setting of this value occurs within a <see lang="lock"/>.
         /// </summary>
         public T Reference {
-            get { return _reference; }
+            get {
+                lock(this) {
+                    return _reference;
+                }
+            }
             set {
                 lock(this) {
                     _reference = value;
@@ -94,7 +96,6 @@ namespace Spring.Threading.AtomicTypes {
         /// </returns>
         public bool CompareAndSet(T expectedValue, T newValue) {
             lock(this) {
-                // TODO: This is crap.  Need to figure out why =='s doesn't work here.  It should.
                 if(_reference.Equals(expectedValue)) {
                     _reference = newValue;
                     return true;

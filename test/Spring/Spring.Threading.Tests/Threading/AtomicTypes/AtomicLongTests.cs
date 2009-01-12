@@ -219,33 +219,5 @@ namespace Spring.Threading.AtomicTypes {
             AtomicLong ai = new AtomicLong(42);
             Assert.AreEqual(ai.LongValue, 42L);
         }
-
-        [Test]
-        public void FloatValue() {
-            AtomicLong ai = new AtomicLong(42);
-            Assert.AreEqual(ai.FloatValue, 42.0F);
-        }
-
-        [Test]
-        public void DoubleValue() {
-            AtomicLong ai = new AtomicLong(42);
-            Assert.AreEqual(ai.DoubleValue, 42.0D);
-        }
-
-        [Test]
-        public void ShortValue() {
-            AtomicLong ai = new AtomicLong(42);
-            Assert.AreEqual(ai.ShortValue, 42);
-            ai.LongValue = short.MaxValue + 5;
-            Assert.AreEqual(ai.ShortValue, short.MinValue + 4);
-        }
-
-        [Test]
-        public void ByteValue() {
-            AtomicLong ai = new AtomicLong(42);
-            Assert.AreEqual(ai.ShortValue, 42);
-            ai.LongValue = byte.MaxValue + 5;
-            Assert.AreEqual(ai.ByteValue, byte.MinValue + 4);
-        }
     }
 }

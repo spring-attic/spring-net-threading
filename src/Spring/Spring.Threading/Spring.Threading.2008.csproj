@@ -136,7 +136,6 @@
     <Compile Include="Threading\AtomicTypes\AtomicStampedReference.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Threading\AtomicTypes\AbstractAtomic.cs" />
     <Compile Include="Threading\BoundedBuffer.cs">
       <SubType>Code</SubType>
     </Compile>

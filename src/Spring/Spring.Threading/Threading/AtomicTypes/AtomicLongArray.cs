@@ -20,6 +20,7 @@
 
 using System;
 using System.Text;
+using Spring.Util;
 
 namespace Spring.Threading.AtomicTypes {
     /// <summary> 
@@ -283,20 +284,13 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The String representation of the current values of array.
         /// </returns>
-        // TODO: Should be updated to use Spring.Core.StringUtils class.
         public override String ToString() {
             if(_longArray.Length == 0)
                 return "[]";
 
             StringBuilder buf = new StringBuilder();
             buf.Append('[');
-            buf.Append(_longArray[0]);
-
-            for(int i = 1; i < _longArray.Length; i++) {
-                buf.Append(", ");
-                buf.Append(_longArray[i]);
-            }
-
+            buf.Append(StringUtils.CollectionToCommaDelimitedString(_longArray));
             buf.Append("]");
             return buf.ToString();
         }

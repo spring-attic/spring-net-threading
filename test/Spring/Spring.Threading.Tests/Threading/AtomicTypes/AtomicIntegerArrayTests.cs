@@ -360,7 +360,7 @@ namespace Spring.Threading.AtomicTypes {
             buf.Append(array[0]);
 
             for(int i = 1; i < array.Length; i++) {
-                buf.Append(", ");
+                buf.Append(",");
                 buf.Append(array[i]);
             }
 

@@ -62,7 +62,7 @@ namespace Spring.Threading.AtomicTypes
 			}
 		}
 
-		[ExpectedException(typeof (NullReferenceException))]
+		[ExpectedException(typeof (ArgumentNullException))]
 		[Test]
 		public void NullReferenceExceptionForConstructor()
 		{
@@ -255,7 +255,7 @@ namespace Spring.Threading.AtomicTypes
 
 			for (int i = 1; i < array.Length; i++)
 			{
-				buf.Append(", ");
+				buf.Append(",");
 				buf.Append(array[i]);
 			}
 

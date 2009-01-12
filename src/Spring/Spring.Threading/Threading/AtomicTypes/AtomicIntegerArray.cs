@@ -20,6 +20,7 @@
 
 using System;
 using System.Text;
+using Spring.Util;
 
 namespace Spring.Threading.AtomicTypes {
     /// <summary> A <see lang="int"/> array in which elements may be updated atomically.
@@ -278,20 +279,13 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The String representation of the current values of array.
         /// </returns>
-        // TODO: Should be updated to use Spring.Core.StringUtils class.
         public override string ToString() {
             if(_intArray.Length == 0)
                 return "[]";
 
             StringBuilder buf = new StringBuilder();
             buf.Append('[');
-            buf.Append(_intArray[0]);
-
-            for(int i = 1; i < _intArray.Length; i++) {
-                buf.Append(", ");
-                buf.Append(_intArray[i]);
-            }
-
+            buf.Append(StringUtils.CollectionToCommaDelimitedString(_intArray));
             buf.Append("]");
             return buf.ToString();
         }

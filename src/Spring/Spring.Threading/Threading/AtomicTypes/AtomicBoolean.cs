@@ -1,5 +1,4 @@
 #region License
-
 /*
  * Copyright 2002-2008 the original author or authors.
  *
@@ -15,11 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #endregion
 
 using System;
-using System.Threading;
 
 namespace Spring.Threading.AtomicTypes {
     /// <summary>
@@ -32,7 +29,11 @@ namespace Spring.Threading.AtomicTypes {
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
     [Serializable]
-    public class AtomicBoolean : AbstractAtomic<bool> {
+    public class AtomicBoolean {
+        /// <summary>
+        /// Holds a <see lang="Int32"/> representation of the flag value.
+        /// </summary>
+        private volatile int _booleanValue;
 
         /// <summary> 
         /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicBoolean"/> with the given initial value.
@@ -40,13 +41,29 @@ namespace Spring.Threading.AtomicTypes {
         /// <param name="initialValue">
         /// The initial value
         /// </param>
-        public AtomicBoolean(bool initialValue) : base(initialValue) {
+        public AtomicBoolean(bool initialValue) {
+            _booleanValue = initialValue ? 1 : 0;
         }
 
         /// <summary> 
         /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicBoolean"/> with initial value of <see lang="false"/>.
         /// </summary>
-        public AtomicBoolean() {
+        public AtomicBoolean()
+            : this(false) {
+        }
+
+        /// <summary> 
+        /// Gets / Sets the current value.
+        /// <p/>
+        /// <b>Note:</b> The setting of this value occurs within a <see lang="lock"/>.
+        /// </summary>
+        public bool Value {
+            get { return _booleanValue != 0; }
+            set {
+                lock(this) {
+                    _booleanValue = value ? 1 : 0;
+                }
+            }
         }
 
         /// <summary> 
@@ -62,11 +79,10 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
         /// </returns>
-        public override bool CompareAndSet(bool expectedValue, bool newValue) {
-            // cannot use Interlocked here because there are no overloads for bool
+        public bool CompareAndSet(bool expectedValue, bool newValue) {
             lock(this) {
-                if(expectedValue == Value) {
-                    Value = newValue;
+                if(expectedValue == (_booleanValue != 0)) {
+                    _booleanValue = newValue ? 1 : 0;
                     return true;
                 }
                 return false;
@@ -87,17 +103,29 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns>
         /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
         /// </returns>
-        public override bool WeakCompareAndSet(bool expectedValue, bool newValue) {
-            // cannot use Interlocked here because there are no overloads for bool
+        public virtual bool WeakCompareAndSet(bool expectedValue, bool newValue) {
             lock(this) {
-                if(expectedValue == Value) {
-                    Value = newValue;
+                if(expectedValue == (_booleanValue != 0)) {
+                    _booleanValue = newValue ? 1 : 0;
                     return true;
                 }
                 return false;
             }
         }
-        
+
+        /// <summary> 
+        /// Eventually sets to the given value.
+        /// </summary>
+        /// <param name="newValue">
+        /// the new value
+        /// </param>
+        /// TODO: This method doesn't differ from the set() method, which was converted to a property.  For now
+        /// the property will be called for this method.
+        [Obsolete("This method will be removed.  Please use AtomicBoolean.Value property instead.")]
+        public void LazySet(bool newValue) {
+            Value = newValue;
+        }
+
         /// <summary> 
         /// Atomically sets the current value to <parmref name="newValue"/> and returns the previous value.
         /// </summary>
@@ -107,13 +135,22 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// the previous value of the instance.
         /// </returns>
-		public override bool SetNewAtomicValue(bool newValue) {
-            // cannot use Interlocked here because there are no overloads for bool
+        public bool SetNewAtomicValue(bool newValue) {
             lock(this) {
-                bool oldValue = Value;
-                Value = newValue;
-                return oldValue;
+                int oldValue = _booleanValue;
+                _booleanValue = newValue ? 1 : 0;
+                return oldValue != 0;
             }
+        }
+
+        /// <summary> 
+        /// Returns the String representation of the current value.
+        /// </summary>
+        /// <returns> 
+        /// The String representation of the current value.
+        /// </returns>
+        public override String ToString() {
+            return Value.ToString();
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Spring.Threading.AtomicTypes
 	{
 		private class AnonymousClassChangingReference
 		{
-            private AtomicStampedReference<int> ai;
+            private readonly AtomicStampedReference<int> ai;
 
             public AnonymousClassChangingReference(AtomicStampedReference<int> ai)
 			{
@@ -46,7 +46,7 @@ namespace Spring.Threading.AtomicTypes
 
 		private class AnonymousClassChangingStamp
 		{
-            private AtomicStampedReference<int> ai;
+            private readonly AtomicStampedReference<int> ai;
 
             public AnonymousClassChangingStamp(AtomicStampedReference<int> ai)
 			{
@@ -136,7 +136,7 @@ namespace Spring.Threading.AtomicTypes
 		public void CompareAndSetInMultipleThreads()
 		{
             AtomicStampedReference<int> ai = new AtomicStampedReference<int>(one, 0);
-			Thread t = new Thread(new ThreadStart(new AnonymousClassChangingReference(ai).Run));
+			Thread t = new Thread(new AnonymousClassChangingReference(ai).Run);
 			t.Start();
 			Assert.IsTrue(ai.CompareAndSet(one, two, 0, 0));
 			t.Join(LONG_DELAY_MS);
@@ -149,7 +149,7 @@ namespace Spring.Threading.AtomicTypes
 		public void CompareAndSetInMultipleThreads2()
 		{
             AtomicStampedReference<int> ai = new AtomicStampedReference<int>(one, 0);
-            Thread t = new Thread(new ThreadStart(new AnonymousClassChangingStamp(ai).Run));
+            Thread t = new Thread(new AnonymousClassChangingStamp(ai).Run);
 			t.Start();
 			Assert.IsTrue(ai.CompareAndSet(one, one, 0, 1));
 			t.Join(LONG_DELAY_MS);
@@ -167,14 +167,14 @@ namespace Spring.Threading.AtomicTypes
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(0, mark[0]);
 
-			while (!ai.WeakCompareAndSet(one, two, 0, 0))
-				;
+			while (!ai.WeakCompareAndSet(one, two, 0, 0)) {}
+		    
 			Assert.AreEqual(two, ai.GetObjectReference(mark));
 			Assert.AreEqual(0, mark[0]);
 
-			while (!ai.WeakCompareAndSet(two, m3, 0, 1))
-				;
-			Assert.AreEqual(m3, ai.GetObjectReference(mark));
+			while (!ai.WeakCompareAndSet(two, m3, 0, 1)) {}
+
+		    Assert.AreEqual(m3, ai.GetObjectReference(mark));
 			Assert.AreEqual(1, mark[0]);
 		}
 		[Test]
