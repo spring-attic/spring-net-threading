@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4" relativePaths="true" type="JAVA_MODULE">
+  <component name="ModuleRootManager" />
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_4" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/../classes/production/backport-util-concurrent" />
+    <exclude-output />
+    <output-test url="file://$MODULE_DIR$/../classes/test/backport-util-concurrent" />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/loops/src" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test/tck/src" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="junit" level="application" />
+    <orderEntryProperties />
+  </component>
+</module>
+

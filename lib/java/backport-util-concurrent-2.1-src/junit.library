@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library>
+  <!--JBuilder Library Definition File-->
+  <fullname>junit</fullname>
+  <class>
+    <path>[external/junit.jar]</path>
+  </class>
+  <lastmodsaved>1102549187645</lastmodsaved>
+</library>

@@ -1,0 +1,7 @@
+build.menu.1[0]=com.borland.primetime.build.ProjectBuildActionContainer;Make distribution##com.borland.jbuilder.build.AntBuilder;build.xml;dist##
+build.menu.2[0]=com.borland.primetime.build.ProjectBuildActionContainer;Rebuild distribution##com.borland.jbuilder.build.AntBuilder;build.xml;rebuild.dist##
+classFilter.unittest.1[0]=junit.framework.*
+classFilter.unittest.2[0]=java.lang.reflect.Method
+classFilter.unittest.3[0]=com.borland.jbuilder.unittest.JBTestRunner
+classFilter.unittest.4[0]=sun.reflect.NativeMethodAccessorImpl
+classFilter.unittest.5[0]=sun.reflect.DelegatingMethodAccessorImpl

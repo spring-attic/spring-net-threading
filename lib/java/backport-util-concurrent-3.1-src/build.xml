@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="backport-util-concurrent" default="dist">
+
+    <!-- where to build the distribution -->
+    <condition property="buc.dist.dir" value="${dist.dir}">
+      <isset property="dist.dir"/>
+    </condition>
+    <property name="buc.dist.dir" location="backport-util-concurrent-dist"/>
+
+    <!-- see the comments on the "test" target -->
+    <property name="tck.shortDelay" value="100"/>
+
+    <property name="build.compiler.emacs" value="true"/>
+    <property name="javadoc.executable" value="javadoc"/>
+
+    <import file="build-jbexport.xml"/>
+
+    <target name="dist" depends="jbuild,copy.dist,javadoc"/>
+
+    <target name="copy.dist">
+        <copy file="backport-util-concurrent.jar" todir="${buc.dist.dir}/"/>
+        <copy file="license.html" todir="${buc.dist.dir}"/>
+        <copy file="README.html" todir="${buc.dist.dir}"/>
+        <copy file="LEGAL" todir="${buc.dist.dir}"/>
+        <copy todir="${buc.dist.dir}/src">
+            <fileset dir="src" includes="**/*" excludes="**/CVS"/>
+        </copy>
+    </target>
+
+    <target name="jbuild" depends="jdeps,make"/>
+
+    <target depends="init" name="javacompile">
+      <javac classpathref="project.class.path" debug="true"
+             deprecation="true" destdir="${dest}" nowarn="false"
+             source="1.4" target="1.4">
+        <src path="src"/>
+        <src path="test/tck/src"/>
+        <src path="test/loops/src"/>
+        <src path="test/serialization"/>
+      </javac>
+    </target>
+
+    <target name="jdeps">
+      <dependset>
+        <srcfileset dir="src" includes="**/*"/>
+        <srcfileset dir="test/tck/src" includes="**/*"/>
+        <srcfileset dir="test/loops/src" includes="**/*"/>
+        <srcfileset dir="." includes="*.xml"/>
+        <targetfileset dir="classes" includes="**/*"/>
+        <targetfileset dir="doc/api" includes="**/*"/>
+      </dependset>
+    </target>
+
+    <target name="javadoc" depends="javadoc.uptodateCheck" unless="javadoc.uptodate">
+      <javadoc source="1.4"
+               destdir="doc/api"
+               protected="true"
+               packagenames="edu.emory.mathcs.*"
+               sourcepath="src"
+               executable="${javadoc.executable}">
+        <tag description="To Do:" name="todo" scope="all"/>
+      </javadoc>
+      <copy todir="${buc.dist.dir}/doc">
+          <fileset dir="doc" includes="**/*"/>
+      </copy>
+    </target>
+
+    <target name="javadoc.uptodateCheck">
+      <uptodate property="javadoc.uptodate" targetfile="doc/api/index.html">
+        <srcfiles dir="src" includes="**/*"/>
+      </uptodate>
+    </target>
+
+    <target name="clean.dist" depends="clean"
+            description="Deletes distribution and all generated files">
+      <delete dir="${buc.dist.dir}"/>
+      <delete dir="doc/api"/>
+    </target>
+
+    <target name="rebuild.dist" depends="clean.dist,dist"
+            description="Rebuilds the distribution from scratch">
+    </target>
+
+
+   <!-- tests -->
+
+    <!--
+
+    Please note that the TCK unit tests have been written in a way so that
+    they depend on certain race conditions (e.g. that a given thread completes
+    within a given time frame etc.). In other words, failing unit test does
+    NOT immediately imply that there is a bug in the backport - it may simply
+    be the effect of a missed race, e.g. resulting from the background load
+    interferring with the tests.
+
+    To balance robustness with time-to-completion, the "tck.shortDelay" property
+    can be used. The bigger its value, the more reliable the test suite
+    becomes, but the time to completion increases proportionally. For these
+    tests to be representative, you need to make sure that no other CPU- or
+    IO-bound programs are running, and use sufficiently large value of the
+    "tck.shortDelay" property (default is 100ms). Good value to start with is
+    50ms, although it may be insufficient on machines below 1 GHz. On fast
+    computers (3 GHz) you can get away with values of 10ms. However, if you
+    observe failures, increase this value. Please report errors ONLY if the
+    failures occur consistently (with constant probability) regardless of the
+    value of the "tck.shortDelay" property, and with no background load.
+
+    By default, the tests run in text mode. To run in GUI mode, use
+    -Djunit.ui=swingui property.
+     -->
+
+    <target name="test" depends="jdeps,make"
+            description="runs TCK unit tests on the backport">
+
+        <property name="junit.ui" value="textui"/>
+
+        <echo message="Running on ${java.home}"/>
+        <java classname="junit.${junit.ui}.TestRunner" fork="true">
+            <classpath>
+                <pathelement location="external/junit.jar"/>
+                <pathelement location="backport-util-concurrent-test.jar"/>
+            </classpath>
+            <sysproperty key="tck.shortDelay" value="${tck.shortDelay}"/>
+            <arg value="JSR166TestCase"/>
+        </java>
+
+<!--        <junit printsummary="true" showoutput="true">
+            <classpath>
+                <pathelement location="external/junit.jar"/>
+                <pathelement location="classes/"/>
+            </classpath>
+
+            <test name="JSR166TestCase" haltonfailure="no" fork="true"/>
+        </junit>
+-->
+    </target>
+
+    <target name="test.loops"
+            depends="test.loops.locks, test.loops.producer-consumer, test.loops.executors,
+                     test.loops.concurrentQueues, test.loops.deques, test.loops.other1,
+                     test.loops.mapChecks, test.loops.setChecks, test.loops.mapLoops,
+                     test.loops.stringMapLoops, test.loops.mapWordLoops,
+                     test.loops.collectionLoops, test.loops.collectionWordLoops,
+                     test.loops.lists, test.loops.other2, test.loops.rljbars,
+                     test.loops.unboundedQueueFill,test.loops.iterators"/>
+
+
+    <target name="test.loops.init" depends="init,jdeps,make">
+        <property name="max.trials" value="8"/>
+        <echo message="Running on ${java.home}"/>
+    </target>
+
+    <target name="test.loops.locks" depends="test.loops.init">
+        <runloop class="CASLoops" args="4"/>
+        <runloop.maxtrials class="SimpleReentrantLockLoops"/>
+        <runloop.maxtrials class="SimpleSemaphoreLoops"/>
+        <runloop.maxtrials class="SimpleLockLoops"/>
+        <runloop.maxtrials class="SimpleWriteLockLoops"/>
+        <runloop.maxtrials class="SimpleTimedLockLoops"/>
+        <runloop.maxtrials class="SimpleSpinLockLoops"/>
+        <runloop.maxtrials class="TimeoutLockLoops"/>
+        <runloop.maxtrials class="CheckedLockLoops"/>
+        <runloop.maxtrials class="UncheckedLockLoops"/>
+        <runloop.maxtrials class="CancelledLockLoops"/>
+        <runloop.maxtrials class="LockOncePerThreadLoops"/>
+    </target>
+
+    <target name="test.loops.producer-consumer" depends="test.loops.init">
+        <runloop.maxtrials class="ProducerConsumerLoops"/>
+        <runloop.maxtrials class="MultipleProducersSingleConsumerLoops"/>
+        <runloop.maxtrials class="SingleProducerMultipleConsumerLoops"/>
+        <runloop.maxtrials class="CancelledProducerConsumerLoops"/>
+        <runloop.maxtrials class="TimeoutProducerConsumerLoops"/>
+    </target>
+
+    <target name="test.loops.executors" depends="test.loops.init">
+        <runloop.maxtrials class="ExecutorCompletionServiceLoops"/>
+        <runloop.maxtrials class="CachedThreadPoolLoops"/>
+    </target>
+
+    <target name="test.loops.concurrentQueues" depends="test.loops.init">
+        <runloop class="ConcurrentQueueLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentLinkedQueue ${max.trials}"/>
+        <runloop class="ConcurrentQueueLoops"
+                 args="SynchronizedLinkedListQueue ${max.trials}"/>
+        <runloop class="ConcurrentDequeLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingDeque ${max.trials}"/>
+    </target>
+
+    <target name="test.loops.deques" depends="test.loops.init">
+        <runloop class="DequeBash"
+                 args="edu.emory.mathcs.backport.java.util.ArrayDeque ${max.trials}"/>
+        <runloop class="DequeBash"
+                 args="edu.emory.mathcs.backport.java.util.LinkedList ${max.trials}"/>
+        <runloop class="DequeBash"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingDeque ${max.trials}"/>
+    </target>
+
+    <target name="test.loops.other1" depends="test.loops.init">
+        <runloop.maxtrials class="ExchangeLoops"/>
+        <runloop.maxtrials class="TimeoutExchangerLoops"/>
+        <runloop.maxtrials class="TSPExchangerTest"/>
+        <runloop.maxtrials class="CancelledFutureLoops"/>
+    </target>
+
+    <target name="test.loops.mapChecks" depends="test.loops.init">
+        <runloop class="MapCheck"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap ${max.trials}"/>
+        <runloop class="IntMapCheck"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap ${max.trials}"/>
+        <runloop class="IntMapCheck"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListMap ${max.trials}"/>
+        <runloop class="NavigableMapCheck" args="edu.emory.mathcs.backport.java.util.TreeMap ${max.trials}"/>
+        <runloop class="NavigableMapCheck"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListMap ${max.trials}"/>
+    </target>
+
+    <target name="test.loops.setChecks" depends="test.loops.init">
+        <runloop class="NavigableSetCheck"
+                 args="edu.emory.mathcs.backport.java.util.TreeSet ${max.trials}"/>
+        <runloop class="SetBash"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListSet ${max.trials} 100"/>
+        <runloop class="SetBash"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashSet ${max.trials} 100"/>
+        <runloop class="NavigableSetCheck"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListSet ${max.trials}"/>
+    </target>
+
+    <target name="test.loops.mapLoops" depends="test.loops.init">
+        <runloop class="MapLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap ${max.trials}"/>
+        <runloop class="MapLoops"
+                  args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListMap ${max.trials}"/>
+        <runloop class="MapLoops" args="RWMap ${max.trials}"/>
+    </target>
+
+    <target name="test.loops.stringMapLoops" depends="test.loops.init">
+        <runloop class="StringMapLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap ${max.trials}"/>
+        <runloop class="StringMapLoops"
+                  args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListMap ${max.trials}"/>
+        <runloop class="StringMapLoops" args="RWMap ${max.trials}"/>
+    </target>
+
+    <target name="test.loops.mapWordLoops" depends="test.loops.init">
+        <runloop class="MapWordLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap ${max.trials}"/>
+        <runloop class="MapWordLoops"
+                 args="edu.emory.mathcs.backport.java.util.TreeMap ${max.trials}"/>
+        <runloop class="MapWordLoops" args="RWMap ${max.trials}"/>
+        <runloop class="MapWordLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListMap ${max.trials}"/>
+    </target>
+
+    <target name="test.loops.collectionLoops" depends="test.loops.init">
+        <runloop class="CollectionLoops"
+                 args="RWCollection"/>
+        <runloop class="CollectionLoops"
+                 args="SCollection"/>
+        <runloop class="CollectionLoops"
+                 args="SynchronizedCollection"/>
+    </target>
+
+    <target name="test.loops.collectionWordLoops" depends="test.loops.init">
+        <runloop class="CollectionWordLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListSet"/>
+        <runloop class="CollectionWordLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentLinkedQueue"/>
+        <runloop class="CollectionWordLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.CopyOnWriteArrayList"/>
+        <runloop class="CollectionWordLoops"
+                 args="edu.emory.mathcs.backport.java.util.ArrayDeque"/>
+    </target>
+
+    <target name="test.loops.lists" depends="test.loops.init">
+        <runloop class="ListBash"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.CopyOnWriteArrayList 100 100"/>
+        <runloop class="ListBash"
+                 args="edu.emory.mathcs.backport.java.util.LinkedList 100 100"/>
+    </target>
+
+    <target name="test.loops.other2" depends="test.loops.init">
+        <runloop class="TimeUnitLoops"/>
+        <runloop class="ReadHoldingWriteLock"/>
+        <runloop class="Finals"/>
+        <runloop class="FinalLongTest"/>
+    </target>
+
+    <target name="test.loops.rljbars" depends="test.loops.init">
+        <runloop class="RLJBar"/>
+        <runloop class="RLJBar" args="-b"/>
+        <runloop class="RLIBar" args="-np ${max.trials}"/>
+        <runloop class="RLIBar" args="-batch 10 -np ${max.trials}"/>
+    </target>
+
+    <target name="test.loops.unboundedQueueFill" depends="test.loops.init">
+        <runloop class="UnboundedQueueFillEmptyLoops"
+                 args="edu.emory.mathcs.backport.java.util.ArrayDeque"/>
+        <runloop class="UnboundedQueueFillEmptyLoops"
+                 args="edu.emory.mathcs.backport.java.util.PriorityQueue"/>
+        <runloop class="UnboundedQueueFillEmptyLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.PriorityBlockingQueue"/>
+        <runloop class="UnboundedQueueFillEmptyLoops"
+                 args="edu.emory.mathcs.backport.java.util.LinkedList"/>
+        <runloop class="UnboundedQueueFillEmptyLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentLinkedQueue"/>
+        <runloop class="UnboundedQueueFillEmptyLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue"/>
+        <runloop class="UnboundedQueueFillEmptyLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingDeque"/>
+    </target>
+
+    <target name="test.loops.iterators" depends="test.loops.init">
+        <runloop class="IteratorLoops"
+                 args="java.util.ArrayList"/>
+        <runloop class="IteratorLoops"
+                 args="java.util.Vector"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.CopyOnWriteArrayList"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.LinkedList"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentLinkedQueue"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.ArrayDeque"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingDeque"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.PriorityQueue"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.PriorityBlockingQueue"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.TreeSet"/>
+        <runloop class="IteratorLoops"
+                 args="edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListSet"/>
+        <runloop class="IteratorLoops"
+                 args="java.util.HashSet"/>
+        <runloop class="IteratorLoops"
+                 args="ConcurrentHashSet"/>
+    </target>
+
+
+    <macrodef name="runloop">
+      <attribute name="class"/>
+      <attribute name="args" default=""/>
+      <sequential>
+        <echo message="@{class} @{args}"/>
+        <java classpath="backport-util-concurrent-test.jar"
+              classname="@{class}" fork="true" dir="test/loops/words">
+          <arg line="@{args}"/>
+        </java>
+      </sequential>
+    </macrodef>
+
+    <presetdef name="runloop.maxtrials">
+      <runloop args="${max.trials}"/>
+    </presetdef>
+
+</project>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library>
+  <!--JBuilder Library Definition File-->
+  <fullname>backport.util.concurrent.1.4</fullname>
+  <class>
+    <path>[../../backport-util-concurrent.jar]</path>
+  </class>
+  <source>
+    <path>[../../backport-util-concurrent-src.jar]</path>
+  </source>
+  <documentation>
+    <path>[../../backport-util-concurrent-doc.jar]</path>
+  </documentation>
+  <lastmodsaved>1101857966720</lastmodsaved>
+</library>
