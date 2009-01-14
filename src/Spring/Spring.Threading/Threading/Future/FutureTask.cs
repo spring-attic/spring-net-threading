@@ -27,6 +27,8 @@ namespace Spring.Threading.Future
 	/// </summary>
 	public enum TaskState
 	{
+		/// <summary>State value representing that task is ready to run </summary>
+        READY = 0,
 		/// <summary>State value representing that task is running </summary>
 		RUNNING = 1,
 		/// <summary>State value representing that task ran </summary>
@@ -256,7 +258,7 @@ namespace Spring.Threading.Future
 		{
 			lock (this)
 			{
-				if (_taskState != 0)
+				if (_taskState != TaskState.READY)
 					return;
 				_taskState = TaskState.RUNNING;
 				_runningThread = Thread.CurrentThread;
@@ -436,7 +438,7 @@ namespace Spring.Threading.Future
 		{
 			lock (this)
 			{
-				if (_taskState != 0)
+				if (_taskState != TaskState.READY)
 					return false;
 				_taskState = TaskState.RUNNING;
 				_runningThread = Thread.CurrentThread;
@@ -449,7 +451,7 @@ namespace Spring.Threading.Future
 					_runningThread = null;
 					if (_taskState == TaskState.RUNNING)
 					{
-						_taskState = 0;
+						_taskState = TaskState.READY;
 						return true;
 					}
 					else
