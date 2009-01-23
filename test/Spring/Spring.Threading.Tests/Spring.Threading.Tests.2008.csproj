@@ -110,6 +110,7 @@
     <Compile Include="Collections\Generic\EnumeratorFunctionTestBase.cs" />
     <Compile Include="Collections\Generic\IOmniCollection.cs" />
     <Compile Include="Collections\Generic\IOmniList.cs" />
+    <Compile Include="Collections\Generic\PriorityQueueTests.cs" />
     <Compile Include="Collections\Generic\TestEnumerator.cs" />
     <Compile Include="Collections\Generic\TransformingEnumeratorTest.cs" />
     <Compile Include="Collections\Generic\TransformingListTest.cs" />
