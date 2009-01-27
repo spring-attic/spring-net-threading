@@ -566,9 +566,9 @@ namespace Spring.Threading.Collections {
         /// with elements currently in the priority queue according
         /// to the priority queue's ordering.
         /// </exception>
-        public override void Add(T objectToAdd) {
-            Offer(objectToAdd);
-        }
+//        public  bool Add(T objectToAdd) {
+//            return Offer(objectToAdd);
+//        }
 
         /// <summary> 
         /// Removes a single instance of the specified element from this

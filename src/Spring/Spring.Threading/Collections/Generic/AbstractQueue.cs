@@ -221,12 +221,13 @@ namespace Spring.Collections.Generic
         /// If the <paramref name="element"/> cannot be added at this time due 
         /// to capacity restrictions. 
         /// </exception>
-	    public override void Add(T element)
+	    public new bool Add(T element)
         {
-            if (!Offer(element))
+	        if (!Offer(element))
             {
                 throw new InvalidOperationException("Queue full.");
             }
+	        return true;
         }
 
 	    /// <summary>

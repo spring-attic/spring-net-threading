@@ -110,7 +110,6 @@
     <Compile Include="Collections\Generic\EnumeratorFunctionTestBase.cs" />
     <Compile Include="Collections\Generic\IOmniCollection.cs" />
     <Compile Include="Collections\Generic\IOmniList.cs" />
-    <Compile Include="Collections\Generic\PriorityQueueTests.cs" />
     <Compile Include="Collections\Generic\TestEnumerator.cs" />
     <Compile Include="Collections\Generic\TransformingEnumeratorTest.cs" />
     <Compile Include="Collections\Generic\TransformingListTest.cs" />
@@ -154,6 +153,7 @@
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />
+    <Compile Include="Threading\Collections\Generic\PriorityQueueTests.cs" />
     <Compile Include="Threading\CyclicBarrierTests.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs">
       <SubType>Code</SubType>
