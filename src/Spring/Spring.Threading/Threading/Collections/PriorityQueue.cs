@@ -230,7 +230,7 @@ namespace Spring.Threading.Collections {
                 throw new ArgumentNullException("collection");
             initializeArray(collection);
             if(collection is PriorityQueue<T>) {
-                PriorityQueue<T> s = (PriorityQueue<T>)collection;
+                var s = (PriorityQueue<T>)collection;
                 _comparator = s.Comparator();
                 fillFromSorted(s);
             }
@@ -241,6 +241,27 @@ namespace Spring.Threading.Collections {
         }
 
         #endregion
+
+        /// <summary>
+        /// Inserts the specified <paramref name="element"/> into this queue 
+        /// if it is possible to do so immediately without violating capacity 
+        /// restrictions. Throws an <see cref="InvalidOperationException"/> 
+        /// if no space is currently available.
+	    /// </summary>
+        /// <param name="element">The element to add.</param>
+        /// <exception cref="InvalidOperationException">
+        /// If the <paramref name="element"/> cannot be added at this time due 
+        /// to capacity restrictions. 
+        /// </exception>
+	    public new bool Add(T element)
+        {
+            if (!Offer(element))
+            {
+                throw new InvalidOperationException("Queue full.");
+            }
+            return true;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -536,45 +557,12 @@ namespace Spring.Threading.Collections {
             return true; 
         }
 
-        // Collection Methods - the first two override to update docs
-        /// <summary> 
-        /// Inserts the specified element into this queue if it is possible to do so
-        /// immediately without violating capacity restrictions, returning
-        /// <see lang="true"/> upon success and throwing an
-        /// <see cref="System.InvalidOperationException"/> if no space is
-        /// currently available.
-        /// </summary>
-        /// <param name="objectToAdd">
-        /// The element to add.
-        /// </param>
-        /// <returns> 
-        /// <see lang="true"/> if successful.
-        /// </returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// If the element cannot be added at this time due to capacity restrictions.
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the specified element is <see lang="null"/> and this queue does not
-        /// permit <see lang="null"/> elements.
-        /// </exception>
-        /// <exception cref="System.ArgumentException">
-        /// If some property of the supplied <paramref name="objectToAdd"/> prevents
-        /// it from being added to this queue.
-        /// </exception>
-        /// <exception cref="System.InvalidCastException">
-        /// if the specified element cannot be compared
-        /// with elements currently in the priority queue according
-        /// to the priority queue's ordering.
-        /// </exception>
-//        public  bool Add(T objectToAdd) {
-//            return Offer(objectToAdd);
-//        }
 
         /// <summary> 
         /// Removes a single instance of the specified element from this
         /// queue, if it is present.
         /// </summary>
-        public new virtual bool Remove(T objectToRemove) {
+        public override bool Remove(T objectToRemove) {
             if(objectToRemove == null) {
                 return false;
             }
