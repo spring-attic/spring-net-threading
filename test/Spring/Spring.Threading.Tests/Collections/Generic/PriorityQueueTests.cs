@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using Spring.Collections;
+using Spring.Threading;
+using Spring.Threading.Collections;
 
-namespace Spring.Threading.Collections
+namespace Spring.Collections.Generic
 {
     [TestFixture]
     public class PriorityQueueTests : BaseThreadingTestCase

@@ -100,6 +100,7 @@
     <Compile Include="Collections\Generic\ISet.cs" />
     <Compile Include="Collections\Generic\ISortedDictionary.cs" />
     <Compile Include="Collections\Generic\ISortedSet.cs" />
+    <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="Threading\Collections\Generic\IConcurrentDictionary.cs" />
     <Compile Include="Collections\Generic\IQueue.cs">
       <SubType>Code</SubType>
@@ -163,7 +164,6 @@
     <Compile Include="Threading\Collections\LinkedBlockingQueue.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Threading\Collections\PriorityQueue.cs" />
     <Compile Include="Threading\Collections\SynchronousQueue.cs">
       <SubType>Code</SubType>
     </Compile>
