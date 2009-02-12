@@ -85,6 +85,14 @@ namespace Spring.Threading.AtomicTypes {
         }
 
         [Test]
+        public void CompareAndSetWithNullReference() {
+            AtomicReference<string> sar = new AtomicReference<string>();
+            string expected = "test";
+            Assert.IsTrue(sar.CompareAndSet(null, expected));
+            Assert.IsTrue(sar.Reference.Equals(expected));
+        }
+
+        [Test]
         public void CompareAndSetInMultipleThreads() {
             AtomicReference<int> ai = new AtomicReference<int>(one);
             Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable(ai).Run));
