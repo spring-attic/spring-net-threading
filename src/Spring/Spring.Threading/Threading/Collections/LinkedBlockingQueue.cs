@@ -378,7 +378,11 @@ namespace Spring.Threading.Collections {
                         return false;
                     }
                     try {
-                        Monitor.Wait(this, duration);
+                        lock ( this )
+                        {
+                            
+                            Monitor.Wait(this, duration);
+                        }
                         durationToWait = deadline.Subtract(DateTime.Now);
                     }
                     catch(ThreadInterruptedException) {
