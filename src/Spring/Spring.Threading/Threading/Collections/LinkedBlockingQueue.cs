@@ -301,7 +301,9 @@ namespace Spring.Threading.Collections {
                     if(durationToWait.TotalMilliseconds <= 0)
                         return false;
                     try {
-                        Monitor.Wait(this, duration);
+                        lock(this) {
+                            Monitor.Wait(this, duration);
+                        }
                         durationToWait = deadline.Subtract(DateTime.Now);
                     }
                     catch(ThreadInterruptedException) {
@@ -973,6 +975,8 @@ namespace Spring.Threading.Collections {
             /// </summary>
             /// <returns></returns>
             public virtual bool MoveNext() {
+                if (_currentNode == null)
+                    return false;
                 Node nextNode = _currentNode.next;
                 _currentNode = nextNode;
                 return nextNode != null;
