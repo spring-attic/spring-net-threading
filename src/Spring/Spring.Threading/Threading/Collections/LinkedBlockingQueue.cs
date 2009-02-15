@@ -364,7 +364,7 @@ namespace Spring.Threading.Collections {
             TimeSpan durationToWait = duration;
             lock(takeLock) {
                 DateTime deadline = DateTime.Now.Add(duration);
-                for(;;) {
+                for(; ; ) {
                     if(_activeCount > 0) {
                         x = extract();
                         lock(this) {
@@ -374,15 +374,13 @@ namespace Spring.Threading.Collections {
                             Monitor.Pulse(takeLock);
                         break;
                     }
-                    if (durationToWait.TotalMilliseconds <= 0)
-                    {
+                    if(durationToWait.TotalMilliseconds <= 0) {
                         element = default(T);
                         return false;
                     }
                     try {
-                        lock ( this )
-                        {
-                            
+                        lock(this) {
+
                             Monitor.Wait(this, duration);
                         }
                         durationToWait = deadline.Subtract(DateTime.Now);
@@ -636,19 +634,18 @@ namespace Spring.Threading.Collections {
             return tempCount >= 0;
         }
 
-	    /// <summary>
-	    /// Retrieves, but does not remove, the head of this queue into out
-	    /// parameter <paramref name="element"/>.
-	    /// </summary>
-	    /// <param name="element">
-	    /// The head of this queue. <c>default(T)</c> if queue is empty.
-	    /// </param>
-	    /// <returns>
-	    /// <c>false</c> is the queue is empty. Otherwise <c>true</c>.
-	    /// </returns>
-	    public override bool Peek(out T element) {
-            if(_activeCount == 0)
-            {
+        /// <summary>
+        /// Retrieves, but does not remove, the head of this queue into out
+        /// parameter <paramref name="element"/>.
+        /// </summary>
+        /// <param name="element">
+        /// The head of this queue. <c>default(T)</c> if queue is empty.
+        /// </param>
+        /// <returns>
+        /// <c>false</c> is the queue is empty. Otherwise <c>true</c>.
+        /// </returns>
+        public override bool Peek(out T element) {
+            if(_activeCount == 0) {
                 element = default(T);
                 return false;
             }
@@ -659,24 +656,23 @@ namespace Spring.Threading.Collections {
             }
         }
 
-	    /// <summary>
-	    /// Retrieves and removes the head of this queue into out parameter
-	    /// <paramref name="element"/>. 
-	    /// </summary>
-	    /// <param name="element">
-	    /// Set to the head of this queue. <c>default(T)</c> if queue is empty.
-	    /// </param>
-	    /// <returns>
-	    /// <c>false</c> if the queue is empty. Otherwise <c>true</c>.
-	    /// </returns>
-	    public override bool Poll(out T element){
-            if (_activeCount == 0)
-            {
+        /// <summary>
+        /// Retrieves and removes the head of this queue into out parameter
+        /// <paramref name="element"/>. 
+        /// </summary>
+        /// <param name="element">
+        /// Set to the head of this queue. <c>default(T)</c> if queue is empty.
+        /// </param>
+        /// <returns>
+        /// <c>false</c> if the queue is empty. Otherwise <c>true</c>.
+        /// </returns>
+        public override bool Poll(out T element) {
+            if(_activeCount == 0) {
                 element = default(T);
                 return false;
             }
 
-	        T x = default(T);
+            T x = default(T);
             int c = -1;
             lock(takeLock) {
                 if(_activeCount > 0) {
@@ -688,11 +684,10 @@ namespace Spring.Threading.Collections {
                         Monitor.Pulse(takeLock);
                 }
             }
-            if(c == _capacity)
-            {
+            if(c == _capacity) {
                 signalNotFull();
             }
-	        element = x;
+            element = x;
             return true;
         }
 
@@ -907,6 +902,7 @@ namespace Spring.Threading.Collections {
         public class LinkedBlockingQueueEnumerator : IEnumerator<T> {
             private readonly LinkedBlockingQueue<T> _enclosingInstance;
             private Node _currentNode;
+            private readonly int _countAtStart;
             private T _currentElement;
 
             /// <summary>
@@ -927,11 +923,7 @@ namespace Spring.Threading.Collections {
                         lock(Enclosing_Instance.takeLock) {
                             if(_currentNode == null)
                                 throw new NoElementsException();
-                            T x = _currentElement;
-                            _currentNode = _currentNode.next;
-                            if(_currentNode != null)
-                                _currentElement = _currentNode.item;
-                            return x;
+                            return _currentElement;
                         }
                     }
                 }
@@ -950,9 +942,8 @@ namespace Spring.Threading.Collections {
                 _enclosingInstance = enclosingInstance;
                 lock(Enclosing_Instance.putLock) {
                     lock(Enclosing_Instance.takeLock) {
-                        _currentNode = Enclosing_Instance.head.next;
-                        if(_currentNode != null)
-                            _currentElement = _currentNode.item;
+                        CurrentNode = Enclosing_Instance.head;
+                        _countAtStart = Enclosing_Instance.Count;
                     }
                 }
             }
@@ -963,9 +954,10 @@ namespace Spring.Threading.Collections {
             public virtual void Reset() {
                 lock(Enclosing_Instance.putLock) {
                     lock(Enclosing_Instance.takeLock) {
-                        _currentNode = Enclosing_Instance.head.next;
-                        if(_currentNode != null)
-                            _currentElement = _currentNode.item;
+                        if(_countAtStart != Enclosing_Instance.Count)
+                            throw new InvalidOperationException("queue has changed during enumeration");
+
+                        CurrentNode = Enclosing_Instance.head;
                     }
                 }
             }
@@ -975,11 +967,20 @@ namespace Spring.Threading.Collections {
             /// </summary>
             /// <returns></returns>
             public virtual bool MoveNext() {
-                if (_currentNode == null)
-                    return false;
+                if(_countAtStart != Enclosing_Instance.Count)
+                    throw new InvalidOperationException("queue has changed during enumeration");
+                
                 Node nextNode = _currentNode.next;
-                _currentNode = nextNode;
+                CurrentNode = nextNode;
                 return nextNode != null;
+            }
+
+            private Node CurrentNode {
+                set {
+                    _currentNode = value;
+                    if(_currentNode != null)
+                        _currentElement = _currentNode.item;
+                }
             }
 
             #region IDisposable Members

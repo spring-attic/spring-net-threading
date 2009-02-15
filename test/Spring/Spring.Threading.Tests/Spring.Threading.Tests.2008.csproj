@@ -114,6 +114,7 @@
     <Compile Include="Collections\Generic\TestEnumerator.cs" />
     <Compile Include="Collections\Generic\TransformingEnumeratorTest.cs" />
     <Compile Include="Collections\Generic\TransformingListTest.cs" />
+    <Compile Include="Collections\LinkedBlockingQueueTest.cs" />
     <Compile Include="CoreExceptionTests.cs">
       <SubType>Code</SubType>
     </Compile>
