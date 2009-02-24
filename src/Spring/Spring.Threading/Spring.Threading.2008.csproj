@@ -421,6 +421,9 @@
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Threading\Collections\PriorityBlockingQueue.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

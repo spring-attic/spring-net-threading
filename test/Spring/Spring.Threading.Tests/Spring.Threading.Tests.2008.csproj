@@ -114,7 +114,7 @@
     <Compile Include="Collections\Generic\TestEnumerator.cs" />
     <Compile Include="Collections\Generic\TransformingEnumeratorTest.cs" />
     <Compile Include="Collections\Generic\TransformingListTest.cs" />
-    <Compile Include="Collections\LinkedBlockingQueueTest.cs" />
+    <Compile Include="Threading\Collections\LinkedBlockingQueueTest.cs" />
     <Compile Include="CoreExceptionTests.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -219,6 +219,9 @@
       <Project>{4640D873-95DC-4130-98E2-2B931D390C20}</Project>
       <Name>Spring.Threading.2008</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Threading\Collections\PriorityBlockingQueueTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
