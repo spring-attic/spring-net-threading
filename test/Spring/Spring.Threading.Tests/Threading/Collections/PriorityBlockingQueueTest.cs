@@ -8,15 +8,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
+using Spring.Collections;
+using Spring.Threading.AtomicTypes;
 using Spring.Threading.Collections.Generic;
+using Spring.Threading.Execution;
 
 namespace Spring.Threading.Tests.Collections {
     /// <author>Doug Lea>author>
     /// <author>Andreas Döhring (.NET)</author>
     [TestFixture]
-    public class PriorityBlockingQueueTest {
+    public class PriorityBlockingQueueTest : BaseThreadingTestCase {
 
         private const int SIZE = 4;
         private const int NOCAP = Int32.MaxValue;
@@ -30,22 +36,21 @@ namespace Spring.Threading.Tests.Collections {
             }
         }
 
-        ///**
-        // * Create a queue of given size containing consecutive
-        // * Integers 0 ... n.
-        // */
-        //private PriorityBlockingQueue populatedQueue(int n) {
-        //    PriorityBlockingQueue<> q = new PriorityBlockingQueue(n);
-        //    assertTrue(q.isEmpty());
-        //    for(int i = n-1; i >= 0; i-=2)
-        //        assertTrue(q.offer(new Integer(i)));
-        //    for(int i = (n & 1); i < n; i+=2)
-        //        assertTrue(q.offer(new Integer(i)));
-        //    assertFalse(q.isEmpty());
-        //    assertEquals(NOCAP, q.remainingCapacity());
-        //    assertEquals(n, q.size());
-        //    return q;
-        //}
+        /// <summary>
+        /// Create a queue of given size containing consecutive Integers 0 ... n.
+        /// </summary>
+        private static PriorityBlockingQueue<int> PopulatedQueue(int n) {
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(n);
+            Assert.IsTrue(q.IsEmpty);
+            for(int i = n - 1; i >= 0; i -= 2)
+                Assert.IsTrue(q.Offer(i));
+            for(int i = (n & 1); i < n; i += 2)
+                Assert.IsTrue(q.Offer(i));
+            Assert.IsFalse(q.IsEmpty);
+            Assert.That(q.RemainingCapacity, Is.EqualTo(NOCAP));
+            Assert.That(q.Count, Is.EqualTo(n));
+            return q;
+        }
 
         /// <summary>
         /// A new queue has unbounded capacity
@@ -126,820 +131,734 @@ namespace Spring.Threading.Tests.Collections {
             }
         }
 
-        ///**
-        // * isEmpty is true before add, false after
-        // */
-        //public void testEmpty() {
-        //    PriorityBlockingQueue q = new PriorityBlockingQueue(2);
-        //    assertTrue(q.isEmpty());
-        //    assertEquals(NOCAP, q.remainingCapacity());
-        //    q.add(one);
-        //    assertFalse(q.isEmpty());
-        //    q.add(two);
-        //    q.remove();
-        //    q.remove();
-        //    assertTrue(q.isEmpty());
+        /// <summary>
+        /// isEmpty is true before add, false after
+        /// </summary>
+        [Test]
+        public void TestEmpty() {
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
+            Assert.IsTrue(q.IsEmpty);
+            Assert.That(q.RemainingCapacity, Is.EqualTo(NOCAP));
+            q.Add(one);
+            Assert.IsFalse(q.IsEmpty);
+            q.Add(two);
+            q.Remove();
+            q.Remove();
+            Assert.IsTrue(q.IsEmpty);
+        }
+
+        /// <summary>
+        /// remainingCapacity does not change when elements added or removed, but size does
+        /// </summary>
+        [Test]
+        public void TestRemainingCapacity() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.That(q.RemainingCapacity, Is.EqualTo(NOCAP));
+                Assert.That(q.Count, Is.EqualTo(SIZE - i));
+                q.Remove();
+            }
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.That(q.RemainingCapacity, Is.EqualTo(NOCAP));
+                Assert.That(q.Count, Is.EqualTo(i));
+                q.Add(i);
+            }
+        }
+
+        /// <summary>
+        /// Offer(null) throws NPE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestOfferNull() {
+            PriorityBlockingQueue<object> q = new PriorityBlockingQueue<object>(1);
+            q.Offer(null);
+        }
+
+        /// <summary>
+        /// add(null) throws NPE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestAddNull() {
+            PriorityBlockingQueue<object> q = new PriorityBlockingQueue<object>(1);
+            q.Add(null);
+        }
+
+        /// <summary>
+        /// Offer of comparable element succeeds
+        /// </summary>
+        [Test]
+        public void TestOffer() {
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(1);
+            Assert.IsTrue(q.Offer(zero));
+            Assert.IsTrue(q.Offer(one));
+        }
+
+        /// <summary>
+        /// Offer of non-Comparable throws CCE
+        /// </summary>
+        [Test, ExpectedException(typeof(InvalidCastException))]
+        public void TestOfferNonComparable() {
+            PriorityBlockingQueue<object> q = new PriorityBlockingQueue<object>(1);
+            q.Offer(new object());
+            q.Offer(new object());
+            q.Offer(new object());
+        }
+
+        /// <summary>
+        /// add of comparable succeeds
+        /// </summary>
+        [Test]
+        public void TestAdd() {
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.That(q.Count, Is.EqualTo(i));
+                q.Add(i);
+                Assert.That(q.Count, Is.EqualTo(i + 1));
+            }
+        }
+
+        /// <summary>
+        /// addAll(null) throws NPE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestAddAll1() {
+            PriorityBlockingQueue<object> q = new PriorityBlockingQueue<object>(1);
+            q.AddAll(null);
+        }
+
+        /// <summary>
+        /// addAll(this) throws IAE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void TestAddAllSelf() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            q.AddAll(q);
+        }
+
+        /// <summary>
+        /// addAll of a collection with null elements throws NPE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestAddAll2() {
+            PriorityBlockingQueue<object> q = new PriorityBlockingQueue<object>(SIZE);
+            object[] objs = new object[SIZE];
+            q.AddAll(objs);
+        }
+
+        /// <summary>
+        /// addAll of a collection with any null elements throws NPE after possibly adding some elements
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestAddAll3() {
+            PriorityBlockingQueue<string> q = new PriorityBlockingQueue<string>(SIZE);
+            string[] objs = new string[SIZE];
+            for(int i = 0; i < SIZE - 1; ++i)
+                objs[i] = "";
+            q.AddAll(objs);
+        }
+
+        /// <summary>
+        /// Queue contains all elements of successful addAll
+        /// </summary>
+        [Test]
+        public void TestAddAll5() {
+            int[] empty = new int[0];
+            int[] ints = new int[SIZE];
+            for(int i = SIZE - 1; i >= 0; --i)
+                ints[i] = i;
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(SIZE);
+            Assert.IsFalse(q.AddAll(empty));
+            Assert.IsTrue(q.AddAll(ints));
+            for(int i = 0; i < SIZE; ++i) {
+                int result;
+                Assert.IsTrue(q.Poll(out result));
+                Assert.That(result, Is.EqualTo(ints[i]));
+            }
+        }
+
+        /// <summary>
+        /// put(null) throws NPE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestPutNull() {
+            PriorityBlockingQueue<object> q = new PriorityBlockingQueue<object>(SIZE);
+            q.Put(null);
+        }
+
+        /// <summary>
+        /// all elements successfully put are contained
+        /// </summary>
+        [Test]
+        public void TestPut() {
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                q.Put(i);
+                Assert.IsTrue(q.Contains(i));
+            }
+            Assert.That(q.Count, Is.EqualTo(SIZE));
+        }
+
+        /// <summary>
+        /// put doesn't block waiting for take
+        /// </summary>
+        [Test]
+        public void TestPutWithTake() {
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
+            Thread t = new Thread(new ThreadStart(delegate {
+                int added = 0;
+                try {
+                    q.Put(0);
+                    ++added;
+                    q.Put(0);
+                    ++added;
+                    q.Put(0);
+                    ++added;
+                    q.Put(0);
+                    ++added;
+                    Assert.IsTrue(added == 4);
+                }
+                finally { }
+            }));
+
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            q.Take();
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// timed Offer does not time out
+        /// </summary>
+        [Test]
+        public void TestTimedOffer() {
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    q.Put(0);
+                    q.Put(0);
+                    Assert.IsTrue(q.Offer(0, SHORT_DELAY_MS));
+                    Assert.IsTrue(q.Offer(0, LONG_DELAY_MS));
+                }
+                finally { }
+            }));
+
+            t.Start();
+            Thread.Sleep(SMALL_DELAY_MS);
+            q.Take();
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// take retrieves elements in priority order
+        /// </summary>
+        [Test]
+        public void TestTake() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.That(q.Take(), Is.EqualTo(i));
+            }
+        }
+
+        /// <summary>
+        /// take blocks interruptibly when empty
+        /// </summary>
+        [Test]
+        public void TestTakeFromEmpty() {
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    q.Take();
+                }
+                catch(ThreadInterruptedException) { }
+            }));
+
+            t.Start();
+            Thread.Sleep(SMALL_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// Take removes existing elements until empty, then blocks interruptibly
+        /// </summary>
+        [Test]
+        public void TestBlockingTake() {
+            AtomicBoolean isInterupted = new AtomicBoolean(false);
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+                    for(int i = 0; i < SIZE; ++i) {
+                        Assert.That(q.Take(), Is.EqualTo(i));
+                    }
+                    q.Take();
+                }
+                catch(ThreadInterruptedException success) {
+                    isInterupted.Value = true;
+                }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+            Assert.IsTrue(isInterupted.Value);
+        }
+
+
+        /// <summary>
+        /// poll succeeds unless empty
+        /// </summary>
+        [Test]
+        public void TestPoll() {
+            int item;
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+
+                Assert.IsTrue(q.Poll(out item));
+                Assert.That(item, Is.EqualTo(i));
+            }
+            Assert.IsFalse(q.Poll(out item));
+        }
+
+        /// <summary>
+        /// timed pool with zero timeout succeeds when non-empty, else times out
+        /// </summary>
+        [Test]
+        public void TestTimedPoll0() {
+            int item;
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.IsTrue(q.Poll(TimeSpan.Zero, out item));
+                Assert.That(item, Is.EqualTo(i));
+            }
+            Assert.IsFalse(q.Poll(TimeSpan.Zero, out item));
+        }
+
+        /// <summary>
+        /// timed pool with nonzero timeout succeeds when non-empty, else times out
+        /// </summary>
+        [Test]
+        public void TestTimedPoll() {
+            int item;
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.IsTrue(q.Poll(SHORT_DELAY_MS, out item));
+                Assert.That(item, Is.EqualTo(i));
+            }
+            Assert.IsFalse(q.Poll(SHORT_DELAY_MS, out item));
+        }
+
+        /// <summary>
+        /// Interrupted timed poll throws InterruptedException instead of returning timeout status
+        /// </summary>
+        [Test]
+        public void TestInterruptedTimedPoll() {
+            AtomicBoolean isInterupted = new AtomicBoolean(false);
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    int item;
+                    PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+                    for(int i = 0; i < SIZE; ++i) {
+                        Assert.IsTrue(q.Poll(SHORT_DELAY_MS, out item));
+                        Assert.That(item, Is.EqualTo(i));
+                    }
+                    Assert.IsFalse(q.Poll(SHORT_DELAY_MS, out item));
+                }
+                catch(ThreadInterruptedException) {
+                    isInterupted.Value = true;
+                }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// timed poll before a delayed Offer fails; after Offer succeeds; on interruption throws
+        /// </summary>
+        [Test]
+        public void testTimedPollWithOffer() {
+            AtomicBoolean isInterupted = new AtomicBoolean(false);
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    int item;
+                    Assert.IsFalse(q.Poll(SHORT_DELAY_MS, out item));
+                    q.Poll(LONG_DELAY_MS, out item);
+                    q.Poll(LONG_DELAY_MS, out item);
+                }
+                catch(ThreadInterruptedException) {
+                    isInterupted.Value = true;
+                }
+            }));
+            t.Start();
+            Thread.Sleep(SMALL_DELAY_MS);
+            Assert.IsTrue(q.Offer(0, SHORT_DELAY_MS));
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// peek returns next element, or null if empty
+        /// </summary>
+        [Test]
+        public void TestPeek() {
+            int item;
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.IsTrue(q.Peek(out item));
+                Assert.That(item, Is.EqualTo(i));
+                q.Poll(out item);
+                Assert.IsTrue(q.Peek(out item) || i != item);
+            }
+            Assert.IsFalse(q.Peek(out item));
+        }
+
+        /// <summary>
+        /// element returns next element, or throws NSEE if empty
+        /// </summary>
+        [Test, ExpectedException(typeof(NoElementsException))]
+        public void TestElement() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.That(q.Element(), Is.EqualTo(i));
+                int item;
+                q.Poll(out item);
+            }
+            q.Element();
+        }
+
+        /// <summary>
+        /// remove removes next element, or throws NSEE if empty
+        /// </summary>
+        [Test, ExpectedException(typeof(NoElementsException))]
+        public void TestRemove() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.That(q.Remove(), Is.EqualTo(i));
+            }
+            q.Remove();
+        }
+
+        /// <summary>
+        /// remove(x) removes x and returns true if present
+        /// </summary>
+        [Test]
+        public void TestRemoveElement() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 1; i < SIZE; i += 2) {
+                Assert.IsTrue(q.Remove(i));
+            }
+            for(int i = 0; i < SIZE; i += 2) {
+                Assert.IsTrue(q.Remove(i));
+                Assert.IsFalse(q.Remove(i + 1));
+            }
+            Assert.IsTrue(q.IsEmpty);
+        }
+
+        /// <summary>
+        /// contains(x) reports true when elements added but not yet removed
+        /// </summary>
+        [Test]
+        public void TestContains() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.IsTrue(q.Contains(i));
+                int item;
+                q.Poll(out item);
+            }
+            // cannot test for Contains(0) !!!
+            for(int i = 1; i < SIZE; ++i) {
+                Assert.IsFalse(q.Contains(i));
+            }
+        }
+
+        /// <summary>
+        /// clear removes all elements
+        /// </summary>
+        [Test]
+        public void TestClear() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            q.Clear();
+            Assert.IsTrue(q.IsEmpty);
+            Assert.That(q.Count, Is.EqualTo(0));
+            q.Add(one);
+            Assert.IsFalse(q.IsEmpty);
+            Assert.IsTrue(q.Contains(one));
+            q.Clear();
+            Assert.IsTrue(q.IsEmpty);
+        }
+
+        /// <summary>
+        /// TODO containsAll(c) is true when c contains a subset of elements
+        /// </summary>
+        //[Test]
+        //public void TestContainsAll() {
+        //    PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+        //    PriorityBlockingQueue<int> p = new PriorityBlockingQueue<int>(SIZE);
+        //    for(int i = 0; i < SIZE; ++i) {
+        //        Assert.IsTrue(q.ContainsAll(p));
+        //        Assert.IsFalse(p.ContainsAll(q));
+        //        p.Add(i);
+        //    }
+        //    Assert.IsTrue(p.ContainsAll(q));
         //}
 
         ///**
-        // * remainingCapacity does not change when elements added or removed,
-        // * but size does
+        // * TODO retainAll(c) retains only those elements of c and reports true if changed
         // */
-        //public void testRemainingCapacity() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertEquals(NOCAP, q.remainingCapacity());
-        //        assertEquals(SIZE-i, q.size());
-        //        q.remove();
-        //    }
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertEquals(NOCAP, q.remainingCapacity());
-        //        assertEquals(i, q.size());
-        //        q.add(new Integer(i));
-        //    }
-        //}
-
-        ///**
-        // * offer(null) throws NPE
-        // */
-        //public void testOfferNull() {
-        //    try {
-        //        PriorityBlockingQueue q = new PriorityBlockingQueue(1);
-        //        q.offer(null);
-        //        shouldThrow();
-        //    } catch (NullPointerException success) { }
-        //}
-
-        ///**
-        // * add(null) throws NPE
-        // */
-        //public void testAddNull() {
-        //    try {
-        //        PriorityBlockingQueue q = new PriorityBlockingQueue(1);
-        //        q.add(null);
-        //        shouldThrow();
-        //    } catch (NullPointerException success) { }
-        //}
-
-        ///**
-        // * Offer of comparable element succeeds
-        // */
-        //public void testOffer() {
-        //    PriorityBlockingQueue q = new PriorityBlockingQueue(1);
-        //    assertTrue(q.offer(zero));
-        //    assertTrue(q.offer(one));
-        //}
-
-        ///**
-        // * Offer of non-Comparable throws CCE
-        // */
-        //public void testOfferNonComparable() {
-        //    try {
-        //        PriorityBlockingQueue q = new PriorityBlockingQueue(1);
-        //        q.offer(new object());
-        //        q.offer(new object());
-        //        q.offer(new object());
-        //        shouldThrow();
-        //    }
-        //    catch(ClassCastException success) {}
-        //}
-
-        ///**
-        // * add of comparable succeeds
-        // */
-        //public void testAdd() {
-        //    PriorityBlockingQueue q = new PriorityBlockingQueue(SIZE);
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertEquals(i, q.size());
-        //        assertTrue(q.add(new Integer(i)));
-        //    }
-        //}
-
-        ///**
-        // * addAll(null) throws NPE
-        // */
-        //public void testAddAll1() {
-        //    try {
-        //        PriorityBlockingQueue q = new PriorityBlockingQueue(1);
-        //        q.addAll(null);
-        //        shouldThrow();
-        //    }
-        //    catch (NullPointerException success) {}
-        //}
-
-        ///**
-        // * addAll(this) throws IAE
-        // */
-        //public void testAddAllSelf() {
-        //    try {
-        //        PriorityBlockingQueue q = populatedQueue(SIZE);
-        //        q.addAll(q);
-        //        shouldThrow();
-        //    }
-        //    catch (IllegalArgumentException success) {}
-        //}
-
-        ///**
-        // * addAll of a collection with null elements throws NPE
-        // */
-        //public void testAddAll2() {
-        //    try {
-        //        PriorityBlockingQueue q = new PriorityBlockingQueue(SIZE);
-        //        Integer[] ints = new Integer[SIZE];
-        //        q.addAll(Arrays.asList(ints));
-        //        shouldThrow();
-        //    }
-        //    catch (NullPointerException success) {}
-        //}
-        ///**
-        // * addAll of a collection with any null elements throws NPE after
-        // * possibly adding some elements
-        // */
-        //public void testAddAll3() {
-        //    try {
-        //        PriorityBlockingQueue q = new PriorityBlockingQueue(SIZE);
-        //        Integer[] ints = new Integer[SIZE];
-        //        for (int i = 0; i < SIZE-1; ++i)
-        //            ints[i] = new Integer(i);
-        //        q.addAll(Arrays.asList(ints));
-        //        shouldThrow();
-        //    }
-        //    catch (NullPointerException success) {}
-        //}
-
-        ///**
-        // * Queue contains all elements of successful addAll
-        // */
-        //public void testAddAll5() {
-        //    try {
-        //        Integer[] empty = new Integer[0];
-        //        Integer[] ints = new Integer[SIZE];
-        //        for (int i = SIZE-1; i >= 0; --i)
-        //            ints[i] = new Integer(i);
-        //        PriorityBlockingQueue q = new PriorityBlockingQueue(SIZE);
-        //        assertFalse(q.addAll(Arrays.asList(empty)));
-        //        assertTrue(q.addAll(Arrays.asList(ints)));
-        //        for (int i = 0; i < SIZE; ++i)
-        //            assertEquals(ints[i], q.poll());
-        //    }
-        //    finally {}
-        //}
-
-        ///**
-        // * put(null) throws NPE
-        // */
-        // public void testPutNull() {
-        //    try {
-        //        PriorityBlockingQueue q = new PriorityBlockingQueue(SIZE);
-        //        q.put(null);
-        //        shouldThrow();
-        //    }
-        //    catch (NullPointerException success){
-        //    }
-        // }
-
-        ///**
-        // * all elements successfully put are contained
-        // */
-        // public void testPut() {
-        //     try {
-        //         PriorityBlockingQueue q = new PriorityBlockingQueue(SIZE);
-        //         for (int i = 0; i < SIZE; ++i) {
-        //             Integer I = new Integer(i);
-        //             q.put(I);
-        //             assertTrue(q.contains(I));
-        //         }
-        //         assertEquals(SIZE, q.size());
-        //     }
-        //     finally {
-        //    }
-        //}
-
-        ///**
-        // * put doesn't block waiting for take
-        // */
-        //public void testPutWithTake() {
-        //    final PriorityBlockingQueue q = new PriorityBlockingQueue(2);
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                int added = 0;
-        //                try {
-        //                    q.put(new Integer(0));
-        //                    ++added;
-        //                    q.put(new Integer(0));
-        //                    ++added;
-        //                    q.put(new Integer(0));
-        //                    ++added;
-        //                    q.put(new Integer(0));
-        //                    ++added;
-        //                    threadAssertTrue(added == 4);
-        //                } finally {
-        //                }
-        //            }
-        //        });
-        //    try {
-        //        t.start();
-        //        Thread.sleep(SHORT_DELAY_MS);
-        //        q.take();
-        //        t.interrupt();
-        //        t.join();
-        //    } catch (Exception e){
-        //        unexpectedException();
-        //    }
-        //}
-
-        ///**
-        // * timed offer does not time out
-        // */
-        //public void testTimedOffer() {
-        //    final PriorityBlockingQueue q = new PriorityBlockingQueue(2);
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
-        //                    q.put(new Integer(0));
-        //                    q.put(new Integer(0));
-        //                    threadAssertTrue(q.offer(new Integer(0), SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
-        //                    threadAssertTrue(q.offer(new Integer(0), LONG_DELAY_MS, TimeUnit.MILLISECONDS));
-        //                } finally { }
-        //            }
-        //        });
-
-        //    try {
-        //        t.start();
-        //        Thread.sleep(SMALL_DELAY_MS);
-        //        t.interrupt();
-        //        t.join();
-        //    } catch (Exception e){
-        //        unexpectedException();
-        //    }
-        //}
-
-        ///**
-        // * take retrieves elements in priority order
-        // */
-        //public void testTake() {
-        //    try {
-        //        PriorityBlockingQueue q = populatedQueue(SIZE);
-        //        for (int i = 0; i < SIZE; ++i) {
-        //            assertEquals(i, ((Integer)q.take()).intValue());
-        //        }
-        //    } catch (InterruptedException e){
-        //        unexpectedException();
-        //    }
-        //}
-
-        ///**
-        // * take blocks interruptibly when empty
-        // */
-        //public void testTakeFromEmpty() {
-        //    final PriorityBlockingQueue q = new PriorityBlockingQueue(2);
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
-        //                    q.take();
-        //                    threadShouldThrow();
-        //                } catch (InterruptedException success){ }
-        //            }
-        //        });
-        //    try {
-        //        t.start();
-        //        Thread.sleep(SHORT_DELAY_MS);
-        //        t.interrupt();
-        //        t.join();
-        //    } catch (Exception e){
-        //        unexpectedException();
-        //    }
-        //}
-
-        ///**
-        // * Take removes existing elements until empty, then blocks interruptibly
-        // */
-        //public void testBlockingTake() {
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
-        //                    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //                    for (int i = 0; i < SIZE; ++i) {
-        //                        threadAssertEquals(i, ((Integer)q.take()).intValue());
-        //                    }
-        //                    q.take();
-        //                    threadShouldThrow();
-        //                } catch (InterruptedException success){
-        //                }
-        //            }});
-        //    t.start();
-        //    try {
-        //       Thread.sleep(SHORT_DELAY_MS);
-        //       t.interrupt();
-        //       t.join();
-        //    }
-        //    catch (InterruptedException ie) {
-        //        unexpectedException();
-        //    }
-        //}
-
-
-        ///**
-        // * poll succeeds unless empty
-        // */
-        //public void testPoll() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertEquals(i, ((Integer)q.poll()).intValue());
-        //    }
-        //    assertNull(q.poll());
-        //}
-
-        ///**
-        // * timed pool with zero timeout succeeds when non-empty, else times out
-        // */
-        //public void testTimedPoll0() {
-        //    try {
-        //        PriorityBlockingQueue q = populatedQueue(SIZE);
-        //        for (int i = 0; i < SIZE; ++i) {
-        //            assertEquals(i, ((Integer)q.poll(0, TimeUnit.MILLISECONDS)).intValue());
-        //        }
-        //        assertNull(q.poll(0, TimeUnit.MILLISECONDS));
-        //    } catch (InterruptedException e){
-        //        unexpectedException();
-        //    }
-        //}
-
-        ///**
-        // * timed pool with nonzero timeout succeeds when non-empty, else times out
-        // */
-        //public void testTimedPoll() {
-        //    try {
-        //        PriorityBlockingQueue q = populatedQueue(SIZE);
-        //        for (int i = 0; i < SIZE; ++i) {
-        //            assertEquals(i, ((Integer)q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS)).intValue());
-        //        }
-        //        assertNull(q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
-        //    } catch (InterruptedException e){
-        //        unexpectedException();
-        //    }
-        //}
-
-        ///**
-        // * Interrupted timed poll throws InterruptedException instead of
-        // * returning timeout status
-        // */
-        //public void testInterruptedTimedPoll() {
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
-        //                    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //                    for (int i = 0; i < SIZE; ++i) {
-        //                        threadAssertEquals(i, ((Integer)q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS)).intValue());
-        //                    }
-        //                    threadAssertNull(q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
-        //                } catch (InterruptedException success){
-        //                }
-        //            }});
-        //    t.start();
-        //    try {
-        //       Thread.sleep(SHORT_DELAY_MS);
-        //       t.interrupt();
-        //       t.join();
-        //    }
-        //    catch (InterruptedException ie) {
-        //        unexpectedException();
-        //    }
-        //}
-
-        ///**
-        // *  timed poll before a delayed offer fails; after offer succeeds;
-        // *  on interruption throws
-        // */
-        //public void testTimedPollWithOffer() {
-        //    final PriorityBlockingQueue q = new PriorityBlockingQueue(2);
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
-        //                    threadAssertNull(q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
-        //                    q.poll(LONG_DELAY_MS, TimeUnit.MILLISECONDS);
-        //                    q.poll(LONG_DELAY_MS, TimeUnit.MILLISECONDS);
-        //                    threadShouldThrow();
-        //                } catch (InterruptedException success) { }
-        //            }
-        //        });
-        //    try {
-        //        t.start();
-        //        Thread.sleep(SMALL_DELAY_MS);
-        //        assertTrue(q.offer(new Integer(0), SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
-        //        t.interrupt();
-        //        t.join();
-        //    } catch (Exception e){
-        //        unexpectedException();
-        //    }
-        //}
-
-
-        ///**
-        // * peek returns next element, or null if empty
-        // */
-        //public void testPeek() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertEquals(i, ((Integer)q.peek()).intValue());
-        //        q.poll();
-        //        assertTrue(q.peek() == null ||
-        //                   i != ((Integer)q.peek()).intValue());
-        //    }
-        //    assertNull(q.peek());
-        //}
-
-        ///**
-        // * element returns next element, or throws NSEE if empty
-        // */
-        //public void testElement() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertEquals(i, ((Integer)q.element()).intValue());
-        //        q.poll();
-        //    }
-        //    try {
-        //        q.element();
-        //        shouldThrow();
-        //    }
-        //    catch (NoSuchElementException success) {}
-        //}
-
-        ///**
-        // * remove removes next element, or throws NSEE if empty
-        // */
-        //public void testRemove() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertEquals(i, ((Integer)q.remove()).intValue());
-        //    }
-        //    try {
-        //        q.remove();
-        //        shouldThrow();
-        //    } catch (NoSuchElementException success){
-        //    }
-        //}
-
-        ///**
-        // * remove(x) removes x and returns true if present
-        // */
-        //public void testRemoveElement() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    for (int i = 1; i < SIZE; i+=2) {
-        //        assertTrue(q.remove(new Integer(i)));
-        //    }
-        //    for (int i = 0; i < SIZE; i+=2) {
-        //        assertTrue(q.remove(new Integer(i)));
-        //        assertFalse(q.remove(new Integer(i+1)));
-        //    }
-        //    assertTrue(q.isEmpty());
-        //}
-
-        ///**
-        // * contains(x) reports true when elements added but not yet removed
-        // */
-        //public void testContains() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertTrue(q.contains(new Integer(i)));
-        //        q.poll();
-        //        assertFalse(q.contains(new Integer(i)));
-        //    }
-        //}
-
-        ///**
-        // * clear removes all elements
-        // */
-        //public void testClear() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    q.clear();
-        //    assertTrue(q.isEmpty());
-        //    assertEquals(0, q.size());
-        //    q.add(one);
-        //    assertFalse(q.isEmpty());
-        //    assertTrue(q.contains(one));
-        //    q.clear();
-        //    assertTrue(q.isEmpty());
-        //}
-
-        ///**
-        // * containsAll(c) is true when c contains a subset of elements
-        // */
-        //public void testContainsAll() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    PriorityBlockingQueue p = new PriorityBlockingQueue(SIZE);
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertTrue(q.containsAll(p));
-        //        assertFalse(p.containsAll(q));
-        //        p.add(new Integer(i));
-        //    }
-        //    assertTrue(p.containsAll(q));
-        //}
-
-        ///**
-        // * retainAll(c) retains only those elements of c and reports true if changed
-        // */
-        //public void testRetainAll() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    PriorityBlockingQueue p = populatedQueue(SIZE);
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        boolean changed = q.retainAll(p);
-        //        if (i == 0)
-        //            assertFalse(changed);
+        //public void TestRetainAll() {
+        //    PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+        //    PriorityBlockingQueue<int> p = PopulatedQueue(SIZE);
+        //    for(int i = 0; i < SIZE; ++i) {
+        //        bool changed = q.RetainAll(p);
+        //        if(i == 0)
+        //            Assert.IsFalse(changed);
         //        else
-        //            assertTrue(changed);
+        //            Assert.IsTrue(changed);
 
-        //        assertTrue(q.containsAll(p));
-        //        assertEquals(SIZE-i, q.size());
-        //        p.remove();
+        //        Assert.IsTrue(q.ContainsAll(p));
+        //        Assert.That(q.Count, Is.EqualTo(SIZE - i));
+        //        p.Remove();
         //    }
         //}
 
-        ///**
-        // * removeAll(c) removes only those elements of c and reports true if changed
-        // */
-        //public void testRemoveAll() {
-        //    for (int i = 1; i < SIZE; ++i) {
-        //        PriorityBlockingQueue q = populatedQueue(SIZE);
-        //        PriorityBlockingQueue p = populatedQueue(i);
-        //        assertTrue(q.removeAll(p));
-        //        assertEquals(SIZE-i, q.size());
-        //        for (int j = 0; j < i; ++j) {
+        /// <summary>
+        /// TODO removeAll(c) removes only those elements of c and reports true if changed
+        /// </summary>
+        //[Test]
+        //public void TestRemoveAll() {
+        //    for(int i = 1; i < SIZE; ++i) {
+        //        PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+        //        PriorityBlockingQueue<int> p = PopulatedQueue(i);
+        //        Assert.IsTrue(q.RemoveAll(p));
+        //        assertEquals(SIZE - i, q.size());
+        //        for(int j = 0; j < i; ++j) {
         //            Integer I = (Integer)(p.remove());
-        //            assertFalse(q.contains(I));
+        //            Assert.IsFalse(q.contains(I));
         //        }
         //    }
         //}
 
-        ///**
-        // *  toArray contains all elements
-        // */
-        //public void testToArray() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    object[] o = q.toArray();
-        //    Arrays.sort(o);
-        //    try {
-        //    for(int i = 0; i < o.length; i++)
-        //        assertEquals(o[i], q.take());
-        //    } catch (InterruptedException e){
-        //        unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// toArray contains all elements
+        /// </summary>
+        [Test]
+        public void TestToArray() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            int[] o = q.ToArray();
+            Array.Sort(o);
+            for(int i = 0; i < o.Length; i++)
+                Assert.That(q.Take(), Is.EqualTo(o[i]));
+        }
 
-        ///**
-        // * toArray(a) contains all elements
-        // */
-        //public void testToArray2() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    Integer[] ints = new Integer[SIZE];
-        //    ints = (Integer[])q.toArray(ints);
-        //    Arrays.sort(ints);
-        //    try {
-        //        for(int i = 0; i < ints.length; i++)
-        //            assertEquals(ints[i], q.take());
-        //    } catch (InterruptedException e){
-        //        unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// toArray(a) contains all elements
+        /// </summary>
+        [Test]
+        public void TestToArray2() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            int[] ints = new int[SIZE];
+            ints = q.ToArray(ints);
+            Array.Sort(ints);
+            for(int i = 0; i < ints.Length; i++)
+                Assert.That(q.Take(), Is.EqualTo(ints[i]));
+        }
 
-        ///**
-        // * toArray(null) throws NPE
-        // */
-        //public void testToArray_BadArg() {
-        //    try {
-        //        PriorityBlockingQueue q = populatedQueue(SIZE);
-        //        object o[] = q.toArray(null);
-        //        shouldThrow();
-        //    } catch(NullPointerException success){}
-        //}
+        /// <summary>
+        /// toArray(null) throws NPE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestToArray_BadArg() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            q.ToArray(null);
+        }
 
-        ///**
-        // * toArray with incompatible array type throws CCE
-        // */
-        //public void testToArray1_BadArg() {
-        //    try {
-        //        PriorityBlockingQueue q = populatedQueue(SIZE);
-        //        object o[] = q.toArray(new string[10] );
-        //        shouldThrow();
-        //    } catch(ArrayStoreException  success){}
-        //}
+        /// <summary>
+        /// iterator iterates through all elements
+        /// </summary>
+        [Test]
+        public void TestIterator() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            int i = 0;
+            IEnumerator<int> it = q.GetEnumerator();
+            while(it.MoveNext()) {
+                Assert.IsTrue(q.Contains(it.Current));
+                ++i;
+            }
+            Assert.That(SIZE, Is.EqualTo(i));
+        }
 
-        ///**
-        // * iterator iterates through all elements
-        // */
-        //public void testIterator() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    int i = 0;
-        //    Iterator it = q.iterator();
-        //    while(it.hasNext()) {
-        //        assertTrue(q.contains(it.next()));
-        //        ++i;
-        //    }
-        //    assertEquals(i, SIZE);
-        //}
+        /// <summary>
+        /// toString contains toStrings of elements
+        /// </summary>
+        [Test]
+        public void TestToString() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            string s = q.ToString();
+            for(int i = 0; i < SIZE; ++i) {
+                Assert.IsTrue(s.IndexOf(i.ToString()) >= 0);
+            }
+        }
 
-        ///**
-        // * iterator.remove removes current element
-        // */
-        //public void testIteratorRemove () {
-        //    final PriorityBlockingQueue q = new PriorityBlockingQueue(3);
-        //    q.add(new Integer(2));
-        //    q.add(new Integer(1));
-        //    q.add(new Integer(3));
+        /// <summary>
+        /// Offer transfers elements across Executor tasks
+        /// </summary>
+        [Test, Ignore("check JoinPool()")]
+        public void TestPollInExecutor() {
+            AtomicBoolean isInterupted = new AtomicBoolean(false);
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
+            IExecutorService executor = Executors.NewFixedThreadPool(2);
+            executor.Execute(delegate {
+                int item;
+                Assert.IsFalse(q.Poll(out item));
+                try {
+                    Assert.IsTrue(q.Poll(MEDIUM_DELAY_MS, out item));
+                    Assert.IsTrue(q.IsEmpty);
+                }
+                catch(ThreadInterruptedException) {
+                    isInterupted.Value = true;
+                }
+            });
 
-        //    Iterator it = q.iterator();
-        //    it.next();
-        //    it.remove();
+            executor.Execute(delegate {
+                try {
+                    Thread.Sleep(SMALL_DELAY_MS);
+                    q.Put(1);
+                }
+                catch(ThreadInterruptedException e) {
+                    isInterupted.Value = true;
+                }
+            });
 
-        //    it = q.iterator();
-        //    assertEquals(it.next(), new Integer(2));
-        //    assertEquals(it.next(), new Integer(3));
-        //    assertFalse(it.hasNext());
-        //}
+            JoinPool(executor);
+        }
 
+        /// <summary>
+        /// A deserialized serialized queue has same elements
+        /// </summary>
+        [Test]
+        public void TestSerialization() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
 
-        ///**
-        // * toString contains toStrings of elements
-        // */
-        //public void testToString() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    string s = q.toString();
-        //    for (int i = 0; i < SIZE; ++i) {
-        //        assertTrue(s.indexOf(string.valueOf(i)) >= 0);
-        //    }
-        //}
+            BinaryFormatter bf = new BinaryFormatter();
 
-        ///**
-        // * offer transfers elements across Executor tasks
-        // */
-        //public void testPollInExecutor() {
-        //    final PriorityBlockingQueue q = new PriorityBlockingQueue(2);
-        //    ExecutorService executor = Executors.newFixedThreadPool(2);
-        //    executor.execute(new Runnable() {
-        //        public void run() {
-        //            threadAssertNull(q.poll());
-        //            try {
-        //                threadAssertTrue(null != q.poll(MEDIUM_DELAY_MS, TimeUnit.MILLISECONDS));
-        //                threadAssertTrue(q.isEmpty());
-        //            }
-        //            catch (InterruptedException e) {
-        //                threadUnexpectedException();
-        //            }
-        //        }
-        //    });
+            MemoryStream sout = new MemoryStream();
+            bf.Serialize(sout, q);
+            Byte[] data = sout.ToArray();
+            sout.Close();
 
-        //    executor.execute(new Runnable() {
-        //        public void run() {
-        //            try {
-        //                Thread.sleep(SMALL_DELAY_MS);
-        //                q.put(new Integer(1));
-        //            }
-        //            catch (InterruptedException e) {
-        //                threadUnexpectedException();
-        //            }
-        //        }
-        //    });
+            MemoryStream sin = new MemoryStream(data);
+            PriorityBlockingQueue<int> r = (PriorityBlockingQueue<int>)bf.Deserialize(sin);
+            sin.Close();
 
-        //    joinPool(executor);
-        //}
+            Assert.That(r.Count, Is.EqualTo(q.Count));
+            while(!q.IsEmpty)
+                Assert.That(r.Remove(), Is.EqualTo(q.Remove()));
+        }
 
-        ///**
-        // * A deserialized serialized queue has same elements
-        // */
-        //public void testSerialization() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    try {
-        //        ByteArrayOutputStream bout = new ByteArrayOutputStream(10000);
-        //        ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(bout));
-        //        out.writeObject(q);
-        //        out.close();
+        /// <summary>
+        /// drainTo(null) throws NPE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestDrainToNull() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            q.DrainTo(null);
+        }
 
-        //        ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
-        //        ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(bin));
-        //        PriorityBlockingQueue r = (PriorityBlockingQueue)in.readObject();
-        //        assertEquals(q.size(), r.size());
-        //        while (!q.isEmpty())
-        //            assertEquals(q.remove(), r.remove());
-        //    } catch(Exception e){
-        //        e.printStackTrace();
-        //        unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// drainTo(this) throws IAE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void TestDrainToSelf() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            q.DrainTo(q);
+        }
 
-        ///**
-        // * drainTo(null) throws NPE
-        // */
-        //public void testDrainToNull() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    try {
-        //        q.drainTo(null);
-        //        shouldThrow();
-        //    } catch(NullPointerException success) {
-        //    }
-        //}
+        /// <summary>
+        /// drainTo(c) empties queue into another collection c
+        /// </summary>
+        [Test]
+        public void TestDrainTo() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            IList<int> l = new List<int>();
+            q.DrainTo(l);
+            Assert.That(q.Count,Is.EqualTo(0));
+            Assert.That(l.Count, Is.EqualTo(SIZE));
+            for(int i = 0; i < SIZE; ++i)
+                Assert.That(l[i], Is.EqualTo((i)));
+            q.Add(zero);
+            q.Add(one);
+            Assert.IsFalse(q.IsEmpty);
+            Assert.IsTrue(q.Contains(zero));
+            Assert.IsTrue(q.Contains(one));
+            l.Clear();
+            q.DrainTo(l);
+            Assert.That(q.Count, Is.EqualTo(0));
+            Assert.That(l.Count, Is.EqualTo(2));
+            for(int i = 0; i < 2; ++i)
+                Assert.That(l[i], Is.EqualTo((i)));
+        }
 
-        ///**
-        // * drainTo(this) throws IAE
-        // */
-        //public void testDrainToSelf() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    try {
-        //        q.drainTo(q);
-        //        shouldThrow();
-        //    } catch(IllegalArgumentException success) {
-        //    }
-        //}
+        /// <summary>
+        /// drainTo empties queue
+        /// </summary>
+        [Test]
+        public void TestDrainToWithActivePut() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+            Thread t = new Thread(new ThreadStart(delegate {
+                                                      q.Put(SIZE + 1);
+                                                  }));
 
-        ///**
-        // * drainTo(c) empties queue into another collection c
-        // */
-        //public void testDrainTo() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    ArrayList l = new ArrayList();
-        //    q.drainTo(l);
-        //    assertEquals(q.size(), 0);
-        //    assertEquals(l.size(), SIZE);
-        //    for (int i = 0; i < SIZE; ++i)
-        //        assertEquals(l.get(i), new Integer(i));
-        //    q.add(zero);
-        //    q.add(one);
-        //    assertFalse(q.isEmpty());
-        //    assertTrue(q.contains(zero));
-        //    assertTrue(q.contains(one));
-        //    l.clear();
-        //    q.drainTo(l);
-        //    assertEquals(q.size(), 0);
-        //    assertEquals(l.size(), 2);
-        //    for (int i = 0; i < 2; ++i)
-        //        assertEquals(l.get(i), new Integer(i));
-        //}
+                t.Start();
+                IList<int> l = new List<int>();
+                q.DrainTo(l);
+                Assert.IsTrue(l.Count >= SIZE);
+                for (int i = 0; i < SIZE; ++i)
+                    Assert.That(l[i], Is.EqualTo((i)));
+                t.Join();
+                Assert.IsTrue(q.Count + l.Count >= SIZE);
+        }
 
-        ///**
-        // * drainTo empties queue
-        // */
-        //public void testDrainToWithActivePut() {
-        //    final PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                q.put(new Integer(SIZE+1));
-        //            }
-        //        });
-        //    try {
-        //        t.start();
-        //        ArrayList l = new ArrayList();
-        //        q.drainTo(l);
-        //        assertTrue(l.size() >= SIZE);
-        //        for (int i = 0; i < SIZE; ++i)
-        //            assertEquals(l.get(i), new Integer(i));
-        //        t.join();
-        //        assertTrue(q.size() + l.size() >= SIZE);
-        //    } catch(Exception e){
-        //        unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// drainTo(null, n) throws NPE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestDrainToNullN() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+                q.DrainTo(null, 0);
+        }
 
-        ///**
-        // * drainTo(null, n) throws NPE
-        // */
-        //public void testDrainToNullN() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    try {
-        //        q.drainTo(null, 0);
-        //        shouldThrow();
-        //    } catch(NullPointerException success) {
-        //    }
-        //}
+        /// <summary>
+        /// drainTo(this, n) throws IAE
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void testDrainToSelfN() {
+            PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+                q.DrainTo(q, 0);
+        }
 
-        ///**
-        // * drainTo(this, n) throws IAE
-        // */
-        //public void testDrainToSelfN() {
-        //    PriorityBlockingQueue q = populatedQueue(SIZE);
-        //    try {
-        //        q.drainTo(q, 0);
-        //        shouldThrow();
-        //    } catch(IllegalArgumentException success) {
-        //    }
-        //}
-
-        ///**
-        // * drainTo(c, n) empties first max {n, size} elements of queue into c
-        // */
-        //public void testDrainToN() {
-        //    PriorityBlockingQueue q = new PriorityBlockingQueue(SIZE*2);
-        //    for (int i = 0; i < SIZE + 2; ++i) {
-        //        for(int j = 0; j < SIZE; j++)
-        //            assertTrue(q.offer(new Integer(j)));
-        //        ArrayList l = new ArrayList();
-        //        q.drainTo(l, i);
-        //        int k = (i < SIZE)? i : SIZE;
-        //        assertEquals(l.size(), k);
-        //        assertEquals(q.size(), SIZE-k);
-        //        for (int j = 0; j < k; ++j)
-        //            assertEquals(l.get(j), new Integer(j));
-        //        while (q.poll() != null) ;
-        //    }
-        //}
-
+        /// <summary>
+        /// drainTo(c, n) empties first max {n, size} elements of queue into c
+        /// </summary>
+        [Test]
+        public void testDrainToN() {
+            PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(SIZE * 2);
+            for(int i = 0; i < SIZE + 2; ++i) {
+                for(int j = 0; j < SIZE; j++)
+                    Assert.IsTrue(q.Offer(j));
+                IList<int> l = new List<int>();
+                q.DrainTo(l, i);
+                int k = (i < SIZE) ? i : SIZE;
+                Assert.That(l.Count, Is.EqualTo(k));
+                Assert.That(q.Count, Is.EqualTo(SIZE - k));
+                for(int j = 0; j < k; ++j)
+                    Assert.That(l[j], Is.EqualTo(j));
+                int item;
+                while(q.Poll(out item)) {}
+            }
+        }
     }
 }

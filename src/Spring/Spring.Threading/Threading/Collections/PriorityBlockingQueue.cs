@@ -26,6 +26,8 @@
 #region Imports
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Threading;
 using Spring.Collections.Generic;
 using Spring.Threading.Locks;
@@ -82,7 +84,8 @@ namespace Spring.Threading.Collections.Generic {
     /// </summary>
     /// <author>Doug Lea</author>
     /// <author>Andreas Döhring (.NET)</author>
-    public class PriorityBlockingQueue<T> : AbstractQueue<T>, IBlockingQueue<T> { //}, java.io.Serializable {
+    [Serializable]
+    public class PriorityBlockingQueue<T> : AbstractQueue<T>, IBlockingQueue<T>, ISerializable  { //}, java.io.Serializable {
 
         private readonly PriorityQueue<T> _innerQueue;
         private readonly ReentrantLock _lock = new ReentrantLock(true);
@@ -133,6 +136,23 @@ namespace Spring.Threading.Collections.Generic {
             notEmpty = _lock.NewCondition();
         }
 
+        /// <summary> 
+        /// Reconstitute the <see cref="Spring.Collections.PriorityQueue"/> instance from a stream (that is,
+        /// deserialize it).
+        /// </summary>
+        /// <param name="serializationInfo">the stream</param>
+        /// <param name="context">the context</param>
+        protected PriorityBlockingQueue(SerializationInfo serializationInfo, StreamingContext context) {
+            Type[] ctorArgumentTypes = new[] {typeof (SerializationInfo), typeof (StreamingContext)};
+            
+            ConstructorInfo ctorInfo = typeof(PriorityQueue<T>).GetConstructor(BindingFlags.Instance|BindingFlags.NonPublic,null,ctorArgumentTypes,null);
+            
+            object[] ctorParameters = new object[]{serializationInfo,context};
+            
+            _innerQueue = (PriorityQueue<T>)ctorInfo.Invoke(ctorParameters);
+        }
+
+
         /// <summary>
         /// Inserts the specified element into this priority queue. Only calls <see cref="Offer(T)"/>
         /// </summary>
@@ -145,7 +165,7 @@ namespace Spring.Threading.Collections.Generic {
         /// Inserts the specified element into this priority queue.
         /// </summary>
         /// <param name="element">the element to add</param>
-        /// <returns><tt>true</tt> (as specified by {@link Queue#offer})</returns>
+        /// <returns><tt>true</tt> (as specified by {@link Queue#Offer})</returns>
         /// <exception cref="System.InvalidCastException">
         /// if the specified element cannot be compared
         /// with elements currently in the priority queue according
@@ -169,7 +189,7 @@ namespace Spring.Threading.Collections.Generic {
             try {
                 bool ok = _innerQueue.Offer(element);
                 if(!ok)
-                    throw new InvalidOperationException("offer returns false but must return true");
+                    throw new InvalidOperationException("Offer returns false but must return true");
                 notEmpty.Signal();
                 return true;
             }
@@ -580,8 +600,8 @@ namespace Spring.Threading.Collections.Generic {
          * Snapshot iterator that works off copy of underlying q array.
          */
         private class InnerEnumerator : IEnumerator<T> {
-            T[] _array;         // Array of all elements
-            int _cursor = -1;   // index of next element to return;
+            private readonly T[] _array;         // Array of all elements
+            private int _cursor = -1;   // index of next element to return;
 
             public InnerEnumerator(T[] array) {
                 _array = array;
@@ -590,7 +610,7 @@ namespace Spring.Threading.Collections.Generic {
             #region IEnumerator<T> Members
 
             public T Current {
-                get { return _array[_cursor]; }
+                get { return InternalCurrent; }
             }
 
             #endregion
@@ -598,7 +618,7 @@ namespace Spring.Threading.Collections.Generic {
             #region IDisposable Members
 
             public void Dispose() {
-                throw new NotImplementedException();
+                // NOOP
             }
 
             #endregion
@@ -606,20 +626,26 @@ namespace Spring.Threading.Collections.Generic {
             #region IEnumerator Members
 
             object System.Collections.IEnumerator.Current {
-                get {
-                    throw new NotImplementedException();
-                }
+                get { return InternalCurrent; }
             }
 
             public bool MoveNext() {
-                throw new NotImplementedException();
+                return ++_cursor < _array.Length ? true : false;
             }
 
             public void Reset() {
-                throw new NotImplementedException();
+                _cursor = -1;
             }
 
             #endregion
+
+            private T InternalCurrent {
+                get {
+                    if(_cursor < 0)
+                        throw new InvalidOperationException("access before start of queue");
+                    return _array[_cursor];
+                }
+            }
         }
 
         /*
@@ -639,5 +665,18 @@ namespace Spring.Threading.Collections.Generic {
         //    }
         //}
 
+
+        #region ISerializable Members
+
+        /// <summary>
+        /// get the datat of the inner queue during serialization process
+        /// </summary>
+        /// <param name="info">the serialization info</param>
+        /// <param name="context">the serialization context</param>
+        public void GetObjectData(SerializationInfo info, StreamingContext context) {
+           _innerQueue.GetObjectData(info, context);
+        }
+
+        #endregion
     }
 }
