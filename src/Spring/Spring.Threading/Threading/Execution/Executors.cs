@@ -113,7 +113,7 @@ namespace Spring.Threading.Execution
 		/// <returns> the newly created single-threaded <see cref="Spring.Threading.IExecutor"/> </returns>
 		public static IExecutorService NewSingleThreadExecutor()
 		{
-			return new DelegatedExecutorService(new ThreadPoolExecutor(1, 1, new TimeSpan(0), new LinkedBlockingQueue<IRunnable>()));
+			return new FinalizableDelegatedExecutorService(new ThreadPoolExecutor(1, 1, new TimeSpan(0), new LinkedBlockingQueue<IRunnable>()));
 		}
 
 		/// <summary> 
@@ -130,7 +130,7 @@ namespace Spring.Threading.Execution
 		/// <returns> the newly created single-threaded <see cref="Spring.Threading.IExecutor"/></returns>
 		public static IExecutorService NewSingleThreadExecutor(IThreadFactory threadFactory)
 		{
-			return new DelegatedExecutorService(new ThreadPoolExecutor(1, 1, new TimeSpan(0), new LinkedBlockingQueue<IRunnable>(), threadFactory));
+			return new FinalizableDelegatedExecutorService(new ThreadPoolExecutor(1, 1, new TimeSpan(0), new LinkedBlockingQueue<IRunnable>(), threadFactory));
 		}
 
 		/// <summary> 
@@ -357,7 +357,6 @@ namespace Spring.Threading.Execution
             return CreateCallable(task, null);
         }
 
-#if NET_2_0
         /// <summary> 
         /// Returns a <see cref="ICallable{T}"/>  object that, when called, 
         /// runs the given <paramref name="task"/> and returns the given 
@@ -511,7 +510,6 @@ namespace Spring.Threading.Execution
             if (callable == null) throw new ArgumentNullException("callable");
             return callable.Call;
         }
-#endif
 
         /// <summary>
         /// Converts a <see cref="Task"/> delegate to an
@@ -573,7 +571,6 @@ namespace Spring.Threading.Execution
             #endregion
         }
 
-#if NET_2_0
         internal sealed class CallableAdapter<T> : ICallable<T>
         {
             internal Call<T> call;
@@ -603,7 +600,6 @@ namespace Spring.Threading.Execution
                 return Call();
             }
         }
-#endif
 
         internal class DefaultThreadFactory : IThreadFactory
 		{
@@ -707,7 +703,21 @@ namespace Spring.Threading.Execution
 			}
 		}
 
-		/// <summary> A wrapper class that exposes only the <see cref="Spring.Threading.Execution.IExecutorService"/> and
+
+        internal class FinalizableDelegatedExecutorService : DelegatedExecutorService
+        {
+            internal FinalizableDelegatedExecutorService(IExecutorService executor)
+                : base(executor)
+            {
+            }
+
+            ~FinalizableDelegatedExecutorService()
+            {
+                base.Shutdown();
+            }
+        }
+
+       /// <summary> A wrapper class that exposes only the <see cref="Spring.Threading.Execution.IExecutorService"/> and
 		/// <see cref="Spring.Threading.Execution.IScheduledExecutorService"/> methods of a <see cref="Spring.Threading.Execution.IScheduledExecutorService"/> implementation.
 		/// </summary>
 		internal class DelegatedScheduledExecutorService : DelegatedExecutorService, IScheduledExecutorService

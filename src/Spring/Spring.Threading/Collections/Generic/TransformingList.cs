@@ -18,9 +18,7 @@
 
 #endregion
 
-#if NET_2_0
-
-#region Importsusing System;
+#region Imports
 using System;
 using System.Collections.Generic;
 #endregion
@@ -132,4 +130,3 @@ namespace Spring.Collections.Generic
     }
 
 }
-#endif

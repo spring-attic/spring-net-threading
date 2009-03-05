@@ -20,7 +20,6 @@
 
 namespace Spring.Threading
 {
-#if NET_2_0
     /// <summary> 
     /// Delegate for actions that bear results and/or throw Exceptions.
     /// </summary>
@@ -35,5 +34,4 @@ namespace Spring.Threading
     /// <seealso cref="FutureResult{T}"/>
     /// <author>Kenneth Xu</author>
     public delegate T Call<T>();
-#endif
 }

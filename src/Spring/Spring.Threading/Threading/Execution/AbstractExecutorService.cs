@@ -20,12 +20,8 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Threading;
-using Spring.Threading;
 using Spring.Threading.Future;
-#if NET_2_0
 using System.Collections.Generic;
-using Spring.Collections.Generic;
-#endif
 
 namespace Spring.Threading.Execution
 {
@@ -70,13 +66,12 @@ namespace Spring.Threading.Execution
 	public abstract class AbstractExecutorService : IExecutorService
     {
 
-        #region Private Statis Fields
+        #region Private Static Fields
 
         private static readonly TimeSpan NoTime = new TimeSpan(0);
 
         #endregion
 
-#if NET_2_0
         private readonly Converter<object, IRunnableFuture> Callable2Future;
 
         /// <summary>
@@ -86,7 +81,6 @@ namespace Spring.Threading.Execution
 	    {
             Callable2Future = delegate(object callable) { return NewTaskFor((ICallable)callable); };
 	    }
-#endif
 
         #region Abstract Methods
         /// <summary> 
@@ -184,8 +178,6 @@ namespace Spring.Threading.Execution
 		{
 			return new FutureTask(callable);
 		}
-//
-//#if NET_2_0
 //        /// <summary> 
 //        /// Returns a <see cref="IRunnableFuture{T}"/> for the given 
 //        /// <paramref name="call"/> delegate.

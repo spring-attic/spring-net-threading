@@ -8,14 +8,10 @@ using System.Reflection;
 // associated with an assembly.
 //
 
-#if !NET_2_0
-[assembly: AssemblyConfiguration("net-1.1.win32; Release")]
-#else
 [assembly: AssemblyConfiguration("net-2.0.win32; Release")]
-#endif
 [assembly: AssemblyCompany("http://www.springframework.net")]
 [assembly: AssemblyProduct("Spring Threading for .NET 1.0")]
-[assembly: AssemblyCopyright("Copyright 2002-2007 SpringSource.")]
+[assembly: AssemblyCopyright("Copyright 2002-2009 SpringSource.")]
 [assembly: AssemblyTrademark("Apache License, Version 2.0")]
 [assembly: AssemblyCulture("")]
 
@@ -30,11 +26,7 @@ using System.Reflection;
 //
 //
 // This is to support side-by-side deployment of .NET 1.1 and .NET 2.0 versions of the assembly.
-#if !NET_2_0
-[assembly: AssemblyVersion("1.1.1.11001")]
-#else
 [assembly: AssemblyVersion("1.1.1.20001")]
-#endif
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the 
