@@ -450,21 +450,16 @@ namespace Spring.Threading.Locks
 
             public void Run()
             {
-                Debug.Print("Locking");
                 _myLock.Lock();
-                Debug.Print("Starting");
                 lockStarted = true;
 
                 while (!canAwake)
                 {
-                    Debug.Print("Awaiting");
                     _condition.AwaitUninterruptibly();
                 }
 
-                Debug.Print("Interrupted?");
                 interrupted = InternalThread.IsAlive;
 
-                Debug.Print("Unlocking?");
                 _myLock.Unlock();
             }
 
