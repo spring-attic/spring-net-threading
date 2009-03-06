@@ -82,8 +82,17 @@ namespace Spring.Threading.Locks
 		/// </remarks>
 		public override void Unlock()
 		{
-			ISignaller s = ReentrantReadWriteLock.EndRead();
-			s.SignalWaiters();
+			switch (ReentrantReadWriteLock.EndRead())
+		    {
+		        case ReentrantReadWriteLock.Signaller.READER:
+		            ReentrantReadWriteLock.SignallerReaderLock.SignalWaiters();
+		            break;
+		        case ReentrantReadWriteLock.Signaller.WRITER:
+		            ReentrantReadWriteLock.SignallerWriterLock.SignalWaiters();
+		            break;
+		        default:
+		            break;
+		    }
 		}
 
 

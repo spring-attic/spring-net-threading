@@ -149,6 +149,24 @@ namespace Spring.Threading.Locks
 	[Serializable]
 	public class ReentrantReadWriteLock : IReadWriteLock, ISerializable
 	{
+        /// <summary>
+        /// Enumeration indicatiing which lock to signal.
+        /// </summary>
+        public enum Signaller
+        {
+            /// <summary>
+            /// No Lock
+            /// </summary>
+            NONE = 0,
+            /// <summary>
+            /// Reader Lock
+            /// </summary>
+            READER = 1,
+            /// <summary>
+            /// Writer Lock
+            /// </summary>
+            WRITER = 2
+        }
 		[NonSerialized] internal int _activeReaders = 0;
 		[NonSerialized] internal Thread _activeWriter = null;
 		[NonSerialized] internal int _waitingReaders = 0;
@@ -606,7 +624,7 @@ namespace Spring.Threading.Locks
 		/// <exception cref="System.Threading.ThreadStateException">
 		/// Thrown if there are no current readers for the lock from the current thread.
 		/// </exception>
-		internal ISignaller EndRead()
+		internal Signaller EndRead()
 		{
 			lock (this)
 			{
@@ -628,18 +646,18 @@ namespace Spring.Threading.Locks
 					{
 						_readers[currentThread] = decrementedReaderCountForThread;
 					}
-					return Null_Signaller;
+					return Signaller.NONE;
 				}
 				else
 				{
 					_readers.Remove(currentThread);
 
 					if (_writeHolds > 0)
-						return Null_Signaller;
+						return Signaller.NONE;
 					else if (_activeReaders == 0 && _waitingWriters > 0)
-						return _writerLock;
+						return Signaller.WRITER;
 					else
-						return Null_Signaller;
+						return Signaller.NONE;
 				}
 			}
 		}
@@ -659,28 +677,38 @@ namespace Spring.Threading.Locks
 		/// <exception cref="System.Threading.SynchronizationLockException">
 		/// Thrown if the current thread is not currently the active writer.
 		/// </exception>
-		internal ISignaller EndWrite()
+		internal Signaller EndWrite()
 		{
-			lock (this)
-			{
-				if (_activeWriter != Thread.CurrentThread)
-				{
-					throw new SynchronizationLockException();
-				}
-				--_writeHolds;
-				if (_writeHolds > 0)
-					return Null_Signaller;
-				else
-				{
-					_activeWriter = null;
-					if (_waitingReaders > 0 && AllowReader)
-						return _readerLock;
-					else if (_waitingWriters > 0)
-						return _writerLock;
-					else
-						return Null_Signaller;
-				}
-			}
+            lock (this)
+            {
+                if (_activeWriter != Thread.CurrentThread)
+                {
+                    throw new SynchronizationLockException();
+                }
+                --_writeHolds;
+                if (_writeHolds > 0)
+                {
+                    return Signaller.NONE;
+                }
+                else
+                {
+                    _activeWriter = null;
+                    if (_waitingReaders > 0 && AllowReader)
+                    {
+
+                        return Signaller.READER;
+                    }
+                    else if (_waitingWriters > 0)
+                    {
+
+                        return Signaller.WRITER;
+                    }
+                    else
+                    {
+                        return Signaller.NONE;
+                    }
+                }
+            }
 		}
 
 		#endregion
