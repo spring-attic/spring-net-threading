@@ -222,6 +222,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Threading\Collections\PriorityBlockingQueueTest.cs" />
+    <Compile Include="Threading\Execution\ThreadPoolExecutorTests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -81,7 +81,7 @@ namespace Spring.Threading.Locks
 	/// <author>Dawid Kurzyniec</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	[Serializable]
-	public class ReentrantLock : ILock, IExclusiveLock
+	public class ReentrantLock : IExclusiveLock
 	{
 		#region Internal Helper Classes
 
@@ -89,8 +89,8 @@ namespace Spring.Threading.Locks
 		internal abstract class Sync
 		{
 			// TODO: Should this be an interface some how?  Many of these methods are shared by ILock and IExclusiveLock
-			[NonSerialized] protected internal Thread _owner = null;
-			[NonSerialized] protected internal int _holds = 0;
+			[NonSerialized] protected internal Thread _owner;
+			[NonSerialized] protected internal int _holds;
 
 			protected internal virtual Thread Owner
 			{
@@ -156,12 +156,12 @@ namespace Spring.Threading.Locks
 						_holds = 1;
 						return true;
 					}
-					else if (caller == _owner)
-					{
-						++_holds;
-						return true;
-					}
-					return false;
+				    if (caller == _owner)
+				    {
+				        ++_holds;
+				        return true;
+				    }
+				    return false;
 				}
 			}
 
@@ -195,11 +195,7 @@ namespace Spring.Threading.Locks
 		[Serializable]
 		internal sealed class NonfairSync : Sync
 		{
-			internal NonfairSync()
-			{
-			}
-
-			public override bool IsFair
+		    public override bool IsFair
 			{
 				get { return false; }
 
@@ -207,38 +203,35 @@ namespace Spring.Threading.Locks
 
 			public override void LockInterruptibly()
 			{
-				Thread caller = Thread.CurrentThread;
+				var caller = Thread.CurrentThread;
 				lock (this)
 				{
-					if (_owner == null)
+				    if (_owner == null)
 					{
 						_owner = caller;
 						_holds = 1;
 						return;
 					}
-					else if (caller == _owner)
-					{
-						++_holds;
-						return;
-					}
-					else
-					{
-						try
-						{
-							do
-							{
-								Monitor.Wait(this);
-							} while (_owner != null);
-							_owner = caller;
-							_holds = 1;
-							return;
-						}
-						catch (ThreadInterruptedException ex)
-						{
-							Monitor.Pulse(this);
-							throw ex;
-						}
-					}
+				    if (caller == _owner)
+				    {
+				        ++_holds;
+				        return;
+				    }
+				    try
+				    {
+				        do
+				        {
+				            Monitor.Wait(this);
+				        } while (_owner != null);
+				        _owner = caller;
+				        _holds = 1;
+				        return;
+				    }
+				    catch (ThreadInterruptedException)
+				    {
+				        Monitor.Pulse(this);
+				        throw;
+				    }
 				}
 			}
 
@@ -248,51 +241,45 @@ namespace Spring.Threading.Locks
 
 				lock (this)
 				{
-					if (_owner == null)
+				    if (_owner == null)
 					{
 						_owner = caller;
 						_holds = 1;
 						return true;
 					}
-					else if (caller == _owner)
-					{
-						++_holds;
-						return true;
-					}
-					else if (durationToWait.Ticks <= 0)
-						return false;
-					else
-					{
-						DateTime deadline = DateTime.Now;
-						try
-						{
-							for (;; )
-							{
-								Monitor.Wait(this, durationToWait);
-								if (caller == _owner)
-								{
-									++_holds;
-									return true;
-								}
-								else if (_owner == null)
-								{
-									_owner = caller;
-									_holds = 1;
-									return true;
-								}
-								else
-								{
-									if ( deadline.Subtract(DateTime.Now).TotalMilliseconds <= 0)
-										return false;
-								}
-							}
-						}
-						catch (ThreadInterruptedException ex)
-						{
-							Monitor.Pulse(this);
-							throw ex;
-						}
-					}
+				    if (caller == _owner)
+				    {
+				        ++_holds;
+				        return true;
+				    }
+				    if (durationToWait.Ticks <= 0)
+				        return false;
+				    DateTime deadline = DateTime.Now;
+				    try
+				    {
+				        for (;; )
+				        {
+				            Monitor.Wait(this, durationToWait);
+				            if (caller == _owner)
+				            {
+				                ++_holds;
+				                return true;
+				            }
+				            if (_owner == null)
+				            {
+				                _owner = caller;
+				                _holds = 1;
+				                return true;
+				            }
+				            if ( deadline.Subtract(DateTime.Now).TotalMilliseconds <= 0)
+				                return false;
+				        }
+				    }
+				    catch (ThreadInterruptedException)
+				    {
+				        Monitor.Pulse(this);
+				        throw;
+				    }
 				}
 			}
 
@@ -318,7 +305,7 @@ namespace Spring.Threading.Locks
 		internal sealed class FairSync : Sync, IQueuedSync, ISerializable
 
 		{
-			[NonSerialized] private IWaitNodeQueue _wq = new FIFOWaitNodeQueue();
+			[NonSerialized] private readonly IWaitNodeQueue _wq = new FIFOWaitNodeQueue();
 
 			public override bool IsFair
 			{
@@ -341,12 +328,12 @@ namespace Spring.Threading.Locks
 						_holds = 1;
 						return true;
 					}
-					else if (caller == _owner)
-					{
-						++_holds;
-						return true;
-					}
-					_wq.Enqueue(node);
+				    if (caller == _owner)
+				    {
+				        ++_holds;
+				        return true;
+				    }
+				    _wq.Enqueue(node);
 					return false;
 				}
 			}
@@ -377,7 +364,7 @@ namespace Spring.Threading.Locks
 						return;
 					}
 				}
-				WaitNode n = new WaitNode();
+				var n = new WaitNode();
 				n.DoWait(this);
 			}
 
@@ -386,19 +373,19 @@ namespace Spring.Threading.Locks
 				Thread caller = Thread.CurrentThread;
 				lock (this)
 				{
-					if (_owner == null)
+				    if (_owner == null)
 					{
 						_owner = caller;
 						_holds = 1;
 						return true;
 					}
-					else if (caller == _owner)
-					{
-						++_holds;
-						return true;
-					}
+				    if (caller == _owner)
+				    {
+				        ++_holds;
+				        return true;
+				    }
 				}
-				WaitNode n = new WaitNode();
+			    var n = new WaitNode();
 				return n.DoTimedWait(this, timespan);
 			}
 
@@ -485,11 +472,11 @@ namespace Spring.Threading.Locks
 
 			private FairSync(SerializationInfo info, StreamingContext context)
 			{
-				Type thisType = this.GetType();
+				Type thisType = GetType();
 				MemberInfo[] mi = FormatterServices.GetSerializableMembers(thisType, context);
 				for (int i = 0; i < mi.Length; i++)
 				{
-					FieldInfo fi = (FieldInfo) mi[i];
+					var fi = (FieldInfo) mi[i];
 					fi.SetValue(this, info.GetValue(fi.Name, fi.FieldType));
 				}
 				lock (this)
@@ -500,7 +487,7 @@ namespace Spring.Threading.Locks
 
 			public void GetObjectData(SerializationInfo info, StreamingContext context)
 			{
-				Type thisType = this.GetType();
+				Type thisType = GetType();
 				MemberInfo[] mi = FormatterServices.GetSerializableMembers(thisType, context);
 				for (int i = 0; i < mi.Length; i++)
 				{
@@ -511,7 +498,7 @@ namespace Spring.Threading.Locks
 
 		#endregion
 
-		private Sync sync;
+		private readonly Sync sync;
 
 		/// <summary> 
 		/// Queries the number of holds on this lock by the current thread.
@@ -673,7 +660,7 @@ namespace Spring.Threading.Locks
 		/// </param>
 		public ReentrantLock(bool fair)
 		{
-			sync = (fair) ? (Sync) new FairSync() : new NonfairSync();
+			sync = fair ? (Sync) new FairSync() : new NonfairSync();
 		}
 
 
@@ -697,7 +684,7 @@ namespace Spring.Threading.Locks
 		/// </summary>
 		public virtual void Lock()
 		{
-			bool wasInterrupted = false;
+			var wasInterrupted = false;
 			while (true)
 			{
 				try
@@ -1042,7 +1029,7 @@ namespace Spring.Threading.Locks
 				throw new NullReferenceException();
 			if (!(condition is ConditionVariable))
 				throw new ArgumentException("not owner");
-			ConditionVariable condVar = (ConditionVariable) condition;
+			var condVar = (ConditionVariable) condition;
 			if (condVar.Lock != this)
 				throw new ArgumentException("not owner");
 			return condVar;

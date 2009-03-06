@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
@@ -7,359 +8,419 @@ using Spring.Threading.Future;
 
 namespace Spring.Threading
 {
-	public class BaseThreadingTestCase
-	{
-		protected static Int32 zero = Int32.Parse("0");
-		protected static Int32 one = Int32.Parse("1");
-		protected static Int32 two = Int32.Parse("2");
-		protected static Int32 three = Int32.Parse("3");
-		protected static Int32 four = Int32.Parse("4");
-		protected static Int32 five = Int32.Parse("5");
-		protected static Int32 six = Int32.Parse("6");
-		protected static Int32 seven = Int32.Parse("7");
-		protected static Int32 eight = Int32.Parse("8");
-		protected static Int32 nine = Int32.Parse("9");
-		protected static Int32 m1 = Int32.Parse("-1");
-		protected static Int32 m2 = Int32.Parse("-2");
-		protected static Int32 m3 = Int32.Parse("-3");
-		protected static Int32 m4 = Int32.Parse("-4");
-		protected static Int32 m5 = Int32.Parse("-5");
-		protected static Int32 m10 = Int32.Parse("-10");
+    public class BaseThreadingTestCase
+    {
+        public const string TEST_STRING = "a test string";
+        public static int DEFAULT_COLLECTION_SIZE = 20;
+        protected static Int32 eight = Int32.Parse("8");
+        protected static Int32 five = Int32.Parse("5");
+        protected static Int32 four = Int32.Parse("4");
+        public static TimeSpan LONG_DELAY_MS;
+        protected static Int32 m1 = Int32.Parse("-1");
+        protected static Int32 m10 = Int32.Parse("-10");
+        protected static Int32 m2 = Int32.Parse("-2");
+        protected static Int32 m3 = Int32.Parse("-3");
+        protected static Int32 m4 = Int32.Parse("-4");
+        protected static Int32 m5 = Int32.Parse("-5");
+        public static TimeSpan MEDIUM_DELAY_MS;
+        protected static Int32 nine = Int32.Parse("9");
+        protected static Int32 one = Int32.Parse("1");
+        protected static Int32 seven = Int32.Parse("7");
 
-		public static int DEFAULT_COLLECTION_SIZE = 20;
+        public static TimeSpan SHORT_DELAY_MS;
+        protected static Int32 six = Int32.Parse("6");
+        public static TimeSpan SMALL_DELAY_MS;
+        protected static Int32 three = Int32.Parse("3");
+        protected static Int32 two = Int32.Parse("2");
+        protected static Int32 zero = Int32.Parse("0");
 
-		public static TimeSpan SHORT_DELAY_MS;
-		public static TimeSpan SMALL_DELAY_MS;
-		public static TimeSpan MEDIUM_DELAY_MS;
-		public static TimeSpan LONG_DELAY_MS;
+        private volatile bool threadFailed;
 
-		public const string TEST_STRING = "a test string";
+        protected BaseThreadingTestCase()
+        {
+            SHORT_DELAY_MS = new TimeSpan(0, 0, 0, 0, 300);
+            SMALL_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*5);
+            MEDIUM_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*10);
+            LONG_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*20);
+        }
 
-		protected BaseThreadingTestCase()
-		{
-			SHORT_DELAY_MS = new TimeSpan(0, 0, 0, 0, 300);
-			SMALL_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*5);
-			MEDIUM_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*10);
-			LONG_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds * 20);
-		}
+        public void UnexpectedException()
+        {
+            Assert.Fail("Unexpected exception");
+        }
 
-		public void JoinPool(IExecutorService exec)
-		{
-			try
-			{
-				exec.Shutdown();
-				Assert.IsTrue(exec.AwaitTermination(LONG_DELAY_MS));
-			}
-			catch (ThreadInterruptedException)
-			{
-				Assert.Fail("Unexpected exception");
-			}
-		}
+        public void JoinPool(IExecutorService exec)
+        {
+            try
+            {
+                exec.Shutdown();
+                Assert.IsTrue(exec.AwaitTermination(LONG_DELAY_MS));
+            }
+            catch (ThreadInterruptedException)
+            {
+                Assert.Fail("Unexpected exception");
+            }
+        }
 
-	}
+        public void ThreadUnexpectedException()
+        {
+            threadFailed = true;
+            Assert.Fail("Unexpected exception");
+        }
+    }
 
-	internal class SmallRunnable : IRunnable
-	{
-		public void Run()
-		{
-			Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
-		}
-	}
+    internal class SmallRunnable : IRunnable
+    {
+        #region IRunnable Members
 
-	internal class ShortDelayClassRunnable : IRunnable
-	{
-		public virtual void Run()
-		{
-			Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY_MS);
-		}
-	}
+        public void Run()
+        {
+            Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
+        }
 
-	internal class ShortRunnable : IRunnable
-	{
-		internal volatile bool done;
+        #endregion
+    }
 
-		public virtual void Run()
-		{
-			try
-			{
-				Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY_MS);
-				done = true;
-			}
-			catch (Exception)
-			{
-			}
-		}
+    internal class ShortDelayClassRunnable : IRunnable
+    {
+        #region IRunnable Members
 
-		public bool IsDone
-		{
-			get { return done; }
-		}
+        public virtual void Run()
+        {
+            Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY_MS);
+        }
 
-	}
+        #endregion
+    }
 
-	internal class SmallCallable : ICallable
-	{
-		public Object Call()
-		{
-			try
-			{
-				Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
-			}
-			catch (Exception e)
-			{
-				Assert.Fail(e.Message);
-			}
-			return true;
-		}
-	}
+    internal class ShortRunnable : IRunnable
+    {
+        internal volatile bool done;
 
-	internal class TrackedLongRunnable : IRunnable
-	{
-		private volatile bool done;
+        public bool IsDone
+        {
+            get { return done; }
+        }
 
-		public void Run()
-		{
-			try
-			{
-				Thread.Sleep(BaseThreadingTestCase.LONG_DELAY_MS);
-				done = true;
-			}
-			catch (Exception)
-			{
-			}
-		}
+        #region IRunnable Members
 
-		public bool IsDone
-		{
-			get { return done; }
-		}
-	}
+        public virtual void Run()
+        {
+            try
+            {
+                Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY_MS);
+                done = true;
+            }
+            catch (Exception)
+            {
+            }
+        }
 
-	internal class TrackedNoOpRunnable : IRunnable
-	{
-		private volatile bool done;
+        #endregion
+    }
 
-		public void Run()
-		{
-			done = true;
-		}
+    internal class SmallCallable : ICallable
+    {
+        #region ICallable Members
 
-		public bool IsDone
-		{
-			get { return done; }
-		}
-	}
+        public Object Call()
+        {
+            try
+            {
+                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
+            }
+            catch (Exception e)
+            {
+                Assert.Fail(e.Message);
+            }
+            return true;
+        }
 
-	internal class NoOpRunnable : IRunnable
-	{
-		public void Run()
-		{
-		}
-	}
+        #endregion
+    }
 
-	internal class TrackedShortRunnable : IRunnable
-	{
-		internal volatile bool done;
+    internal class TrackedLongRunnable : IRunnable
+    {
+        private volatile bool done;
 
-		public virtual void Run()
-		{
-			try
-			{
-				Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
-				done = true;
-			}
-			catch (Exception)
-			{
-			}
-		}
+        public bool IsDone
+        {
+            get { return done; }
+        }
 
-		public bool IsDone
-		{
-			get { return done; }
-		}
-	}
+        #region IRunnable Members
 
-	internal class StringTask : ICallable
-	{
-		public object Call()
-		{
-			return BaseThreadingTestCase.TEST_STRING;
-		}
-	}
+        public void Run()
+        {
+            try
+            {
+                Thread.Sleep(BaseThreadingTestCase.LONG_DELAY_MS);
+                done = true;
+            }
+            catch (Exception)
+            {
+            }
+        }
 
-	internal class MediumRunnable : IRunnable
-	{
-		public virtual void Run()
-		{
-			Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY_MS);
-		}
-	}
+        #endregion
+    }
 
-	internal class NPETask : ICallable
-	{
-		public virtual Object Call()
-		{
-			throw new NullReferenceException();
-		}
-	}
+    internal class TrackedNoOpRunnable : IRunnable
+    {
+        private volatile bool done;
 
-	internal class MediumPossiblyInterruptedRunnable : IRunnable
-	{
-		public virtual void Run()
-		{
-			try
-			{
-				Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY_MS);
-			}
-			catch (ThreadInterruptedException)
-			{
-			}
-		}
-	}
+        public bool IsDone
+        {
+            get { return done; }
+        }
 
-	internal class TrackedCallable : ICallable
-	{
-		public volatile bool done;
+        #region IRunnable Members
 
-		public Object Call()
-		{
-			try
-			{
-				Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
-				done = true;
-			}
-			catch (Exception)
-			{
-			}
-			return true;
-		}
-	}
+        public void Run()
+        {
+            done = true;
+        }
 
-	internal class NoOpREHandler : IRejectedExecutionHandler
-	{
-		public void RejectedExecution(IRunnable r, IExecutorService executor)
-		{
-		}
-	}
+        #endregion
+    }
 
-	internal class SimpleThreadFactory : IThreadFactory
-	{
-		#region IThreadFactory Members
+    internal class NoOpRunnable : IRunnable
+    {
+        #region IRunnable Members
 
-		public Thread NewThread(IRunnable runnable)
-		{
-			return new Thread(runnable.Run);
-		}
+        public void Run()
+        {
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 
-	internal class NoOpExecutorService : IExecutorService
-	{
-		#region IExecutorService Members
+    internal class TrackedShortRunnable : IRunnable
+    {
+        internal volatile bool done;
 
-		public object InvokeAny(System.Collections.ICollection tasks, TimeSpan durationToWait)
-		{
-			// TODO:  Add NoOpExecutorService.InvokeAny implementation
-			return null;
-		}
+        public bool IsDone
+        {
+            get { return done; }
+        }
 
-		object IExecutorService.InvokeAny(System.Collections.ICollection tasks)
-		{
-			// TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.InvokeAny implementation
-			return null;
-		}
+        #region IRunnable Members
 
-		public System.Collections.IList InvokeAll(System.Collections.ICollection tasks, TimeSpan durationToWait)
-		{
-			// TODO:  Add NoOpExecutorService.InvokeAll implementation
-			return null;
-		}
+        public virtual void Run()
+        {
+            try
+            {
+                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
+                done = true;
+            }
+            catch (Exception)
+            {
+            }
+        }
 
-	    public IFuture Submit(Task task)
-	    {
-	        throw new NotImplementedException();
-	    }
+        #endregion
+    }
 
-	    System.Collections.IList IExecutorService.InvokeAll(System.Collections.ICollection tasks)
-		{
-			// TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.InvokeAll implementation
-			return null;
-		}
+    internal class StringTask : ICallable
+    {
+        #region ICallable Members
 
-		public IList<IRunnable> ShutdownNow()
-		{
-			// TODO:  Add NoOpExecutorService.ShutdownNow implementation
-			return null;
-		}
+        public object Call()
+        {
+            return BaseThreadingTestCase.TEST_STRING;
+        }
 
-		public bool IsTerminated
-		{
-			get
-			{
-				// TODO:  Add NoOpExecutorService.IsTerminated getter implementation
-				return false;
-			}
-		}
+        #endregion
+    }
 
-		public void Shutdown()
-		{
-			// TODO:  Add NoOpExecutorService.Shutdown implementation
-		}
+    internal class MediumRunnable : IRunnable
+    {
+        #region IRunnable Members
 
-		public bool IsShutdown
-		{
-			get
-			{
-				// TODO:  Add NoOpExecutorService.IsShutdown getter implementation
-				return false;
-			}
-		}
+        public virtual void Run()
+        {
+            Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY_MS);
+        }
 
-		public IFuture Submit(IRunnable task)
-		{
-			// TODO:  Add NoOpExecutorService.Submit implementation
-			return null;
-		}
+        #endregion
+    }
 
-	    public IFuture Submit(Task task, object result)
-	    {
-	        throw new NotImplementedException();
-	    }
+    internal class NPETask : ICallable
+    {
+        #region ICallable Members
 
-	    IFuture IExecutorService.Submit(IRunnable task, object result)
-		{
-			// TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.Submit implementation
-			return null;
-		}
+        public virtual Object Call()
+        {
+            throw new NullReferenceException();
+        }
 
-		IFuture IExecutorService.Submit(ICallable task)
-		{
-			// TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.Submit implementation
-			return null;
-		}
+        #endregion
+    }
 
-		public bool AwaitTermination(TimeSpan timeSpan)
-		{
-			// TODO:  Add NoOpExecutorService.AwaitTermination implementation
-			return false;
-		}
+    internal class MediumPossiblyInterruptedRunnable : IRunnable
+    {
+        #region IRunnable Members
 
-		#endregion
+        public virtual void Run()
+        {
+            try
+            {
+                Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY_MS);
+            }
+            catch (ThreadInterruptedException)
+            {
+            }
+        }
 
-		#region IExecutor Members
+        #endregion
+    }
 
-		public void Execute(IRunnable command)
-		{
-			// TODO:  Add NoOpExecutorService.Execute implementation
-		}
+    internal class TrackedCallable : ICallable
+    {
+        public volatile bool done;
 
-	    public void Execute(Task task)
-	    {
-	        throw new NotImplementedException();
-	    }
+        #region ICallable Members
 
-	    #endregion
+        public Object Call()
+        {
+            try
+            {
+                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
+                done = true;
+            }
+            catch (Exception)
+            {
+            }
+            return true;
+        }
 
-	}
+        #endregion
+    }
+
+    internal class NoOpREHandler : IRejectedExecutionHandler
+    {
+        #region IRejectedExecutionHandler Members
+
+        public void RejectedExecution(IRunnable r, IExecutorService executor)
+        {
+        }
+
+        #endregion
+    }
+
+    internal class SimpleThreadFactory : IThreadFactory
+    {
+        #region IThreadFactory Members
+
+        public Thread NewThread(IRunnable runnable)
+        {
+            return new Thread(runnable.Run);
+        }
+
+        #endregion
+    }
+
+    internal class NoOpExecutorService : IExecutorService
+    {
+        #region IExecutorService Members
+
+        public object InvokeAny(ICollection tasks, TimeSpan durationToWait)
+        {
+            // TODO:  Add NoOpExecutorService.InvokeAny implementation
+            return null;
+        }
+
+        object IExecutorService.InvokeAny(ICollection tasks)
+        {
+            // TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.InvokeAny implementation
+            return null;
+        }
+
+        public IList InvokeAll(ICollection tasks, TimeSpan durationToWait)
+        {
+            // TODO:  Add NoOpExecutorService.InvokeAll implementation
+            return null;
+        }
+
+        public IFuture Submit(Task task)
+        {
+            throw new NotImplementedException();
+        }
+
+        IList IExecutorService.InvokeAll(ICollection tasks)
+        {
+            // TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.InvokeAll implementation
+            return null;
+        }
+
+        public IList<IRunnable> ShutdownNow()
+        {
+            // TODO:  Add NoOpExecutorService.ShutdownNow implementation
+            return null;
+        }
+
+        public bool IsTerminated
+        {
+            get
+            {
+                // TODO:  Add NoOpExecutorService.IsTerminated getter implementation
+                return false;
+            }
+        }
+
+        public void Shutdown()
+        {
+            // TODO:  Add NoOpExecutorService.Shutdown implementation
+        }
+
+        public bool IsShutdown
+        {
+            get
+            {
+                // TODO:  Add NoOpExecutorService.IsShutdown getter implementation
+                return false;
+            }
+        }
+
+        public IFuture Submit(IRunnable task)
+        {
+            // TODO:  Add NoOpExecutorService.Submit implementation
+            return null;
+        }
+
+        public IFuture Submit(Task task, object result)
+        {
+            throw new NotImplementedException();
+        }
+
+        IFuture IExecutorService.Submit(IRunnable task, object result)
+        {
+            // TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.Submit implementation
+            return null;
+        }
+
+        IFuture IExecutorService.Submit(ICallable task)
+        {
+            // TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.Submit implementation
+            return null;
+        }
+
+        public bool AwaitTermination(TimeSpan timeSpan)
+        {
+            // TODO:  Add NoOpExecutorService.AwaitTermination implementation
+            return false;
+        }
+
+        public void Execute(IRunnable command)
+        {
+            // TODO:  Add NoOpExecutorService.Execute implementation
+        }
+
+        public void Execute(Task task)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+    }
 }

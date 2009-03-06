@@ -27,7 +27,13 @@ namespace Spring.Threading.Locks
 		{
 			get { return ReentrantReadWriteLock.WriterLockedByCurrentThread; }
 		}
-		#endregion
+
+	    public int HoldCount
+	    {
+            get { return ReentrantReadWriteLock.WriteHoldCount; }
+	    }
+
+	    #endregion
 
 		#region Abstract Implementation Methods
 		/// <summary> 
