@@ -18,7 +18,6 @@
 
 using System;
 using System.Collections;
-using Spring.Threading;
 using Spring.Threading.Future;
 using System.Collections.Generic;
 
@@ -195,7 +194,9 @@ namespace Spring.Threading.Execution
         /// If the <paramref name="task"/> is <c>null</c>
         /// </exception>
         IFuture Submit(Task task);
-//
+
+        #region ".NET 2.0"
+        //
 //#if NET_2_0
 //
 //        /// <summary> 
@@ -1058,7 +1059,8 @@ namespace Spring.Threading.Execution
 //        /// If the <paramref name="tasks"/> is <c>null</c>.
 //        /// </exception>
 //        T InvokeAny<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait);
-//#endif
+        //#endif
 
-	}
+        #endregion
+    }
 }

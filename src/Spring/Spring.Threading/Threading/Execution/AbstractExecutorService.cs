@@ -1,4 +1,5 @@
 #region License
+
 /*
 * Copyright (C) 2002-2009 the original author or authors.
 * 
@@ -14,58 +15,57 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 #endregion
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Spring.Threading.Future;
-using System.Collections.Generic;
 
 namespace Spring.Threading.Execution
 {
-	/// <summary> 
-	/// Provides default implementations of <see cref="Spring.Threading.Execution.IExecutorService"/>
-	/// execution methods. 
-	/// </summary>
-	/// <remarks> 
-    /// This class implements the <see cref="M:Spring.Threading.Execution.IExecutorService.Submit"/> methods,
-    /// <see cref="M:Spring.Threading.Execution.IExecutorService.InvokeAny"/> and <see cref="M:Spring.Threading.Execution.IExecutorService.InvokeAll"/> methods using a
-    /// <see cref="Spring.Threading.Future.IRunnableFuture"/> returned by <see cref="M:Spring.Threading.Execution.AbstractExecutorService.NewTaskFor"/>
-	/// , which defaults to the <see cref="Spring.Threading.Future.FutureTask"/> class provided in this package.  
-	/// <p/>
-	/// For example, the implementation of <see cref="Spring.Threading.Execution.IExecutorService.Submit(IRunnable)"/> creates an
-	/// associated <see cref="Spring.Threading.Future.IRunnableFuture"/> that is executed and
-    /// returned. Subclasses may override the <see cref="M:Spring.Threading.Execution.AbstractExecutorService.NewTaskFor"/> methods
-	/// to return <see cref="Spring.Threading.Future.IRunnableFuture"/> implementations other than
-	/// <see cref="Spring.Threading.Future.FutureTask"/>.
-	/// 
-	/// <p/> 
-	/// <b>Extension example</b>. 
-	/// Here is a sketch of a class
-	/// that customizes <see cref="Spring.Threading.Execution.ThreadPoolExecutor"/> to use
-	/// a custom Task class instead of the default <see cref="Spring.Threading.Future.FutureTask"/>:
-	/// <code>
-	/// public class CustomThreadPoolExecutor : ThreadPoolExecutor {
-	///		static class CustomTask : IRunnableFuture {...}
-	/// 
-	///		protected IRunnableFuture newTaskFor(ICallable c) {
-	///			return new CustomTask(c);
-	/// 	}
-	///		protected IRunnableFuture newTaskFor(IRunnable r) {
-	/// 		return new CustomTask(r);
-	/// 	}
-	/// 	// ... add constructors, etc.
-	/// }
-	/// </code>
-	/// </remarks>
-	/// <author>Doug Lea</author>
-	/// <author>Griffin Caprio(.NET)</author>
-	/// <author>Kenneth Xu</author>
-	public abstract class AbstractExecutorService : IExecutorService
+    /// <summary> 
+    /// Provides default implementations of <see cref="Spring.Threading.Execution.IExecutorService"/>
+    /// execution methods. 
+    /// </summary>
+    /// <remarks> 
+    /// This class implements the <see cref="Spring.Threading.Execution.IExecutorService"/> methods using a
+    /// <see cref="Spring.Threading.Future.IRunnableFuture"/> returned by NewTaskFor
+    /// , which defaults to the <see cref="Spring.Threading.Future.FutureTask"/> class provided in this package.  
+    /// <p/>
+    /// For example, the implementation of <see cref="Spring.Threading.Execution.IExecutorService.Submit(IRunnable)"/> creates an
+    /// associated <see cref="Spring.Threading.Future.IRunnableFuture"/> that is executed and
+    /// returned. Subclasses may override the NewTaskFor methods
+    /// to return <see cref="Spring.Threading.Future.IRunnableFuture"/> implementations other than
+    /// <see cref="Spring.Threading.Future.FutureTask"/>.
+    /// 
+    /// <p/> 
+    /// <b>Extension example</b>. 
+    /// Here is a sketch of a class
+    /// that customizes <see cref="Spring.Threading.Execution.ThreadPoolExecutor"/> to use
+    /// a custom Task class instead of the default <see cref="Spring.Threading.Future.FutureTask"/>:
+    /// <code>
+    /// public class CustomThreadPoolExecutor : ThreadPoolExecutor {
+    ///		class CustomTask : IRunnableFuture {...}
+    /// 
+    ///		protected IRunnableFuture newTaskFor(ICallable c) {
+    ///			return new CustomTask(c);
+    /// 	}
+    ///		protected IRunnableFuture newTaskFor(IRunnable r) {
+    /// 		return new CustomTask(r);
+    /// 	}
+    /// 	// ... add constructors, etc.
+    /// }
+    /// </code>
+    /// </remarks>
+    /// <author>Doug Lea</author>
+    /// <author>Griffin Caprio(.NET)</author>
+    /// <author>Kenneth Xu</author>
+    public abstract class AbstractExecutorService : IExecutorService
     {
-
         #region Private Static Fields
 
         private static readonly TimeSpan NoTime = new TimeSpan(0);
@@ -78,107 +78,116 @@ namespace Spring.Threading.Execution
         /// Default constructor for subclasses
         /// </summary>
         protected AbstractExecutorService()
-	    {
-            Callable2Future = delegate(object callable) { return NewTaskFor((ICallable)callable); };
-	    }
+        {
+            Callable2Future = delegate(object callable) { return NewTaskFor((ICallable) callable); };
+        }
 
         #region Abstract Methods
+
         /// <summary> 
-		/// Initiates an orderly shutdown in which previously submitted
-		/// tasks are executed, but no new tasks will be
-		/// accepted. Invocation has no additional effect if already shut
-		/// down.
-		/// </summary>
-		public abstract void Shutdown();
-		/// <summary> 
-		/// Attempts to stop all actively executing tasks, halts the
-		/// processing of waiting tasks, and returns a list of the tasks that were
-		/// awaiting execution.
-		/// </summary>
-		/// <remarks> 
-		/// There are no guarantees beyond best-effort attempts to stop
-		/// processing actively executing tasks.  For example, typical
-		/// implementations will cancel via <see cref="System.Threading.Thread.Interrupt()"/>, so if any
-		/// tasks mask or fail to respond to interrupts, they may never terminate.
-		/// </remarks>
-		/// <returns> list of tasks that never commenced execution</returns>
-		public abstract IList<IRunnable> ShutdownNow();
-		/// <summary> 
-		/// Executes the given command at some time in the future.
-		/// </summary>
-		/// <remarks>
-		/// The command may execute in a new thread, in a pooled thread, or in the calling
-		/// thread, at the discretion of the <see cref="Spring.Threading.IExecutor"/> implementation.
-		/// </remarks>
-		/// <param name="runnable">the runnable task</param>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>	
-		public abstract void Execute(IRunnable runnable);
-		/// <summary> 
-		/// Blocks until all tasks have completed execution after a shutdown
-		/// request, or the timeout occurs, or the current thread is
-		/// interrupted, whichever happens first. 
-		/// </summary>
-		/// <param name="timeSpan">the time span to wait.
-		/// </param>
-		/// <returns> <see lang="true"/> if this executor terminated and <see lang="false"/>
-		/// if the timeout elapsed before termination
-		/// </returns>
-		public abstract bool AwaitTermination(TimeSpan timeSpan);
-		/// <summary> 
-		/// Returns <see lang="true"/> if all tasks have completed following shut down.
-		/// </summary>
-		/// <remarks>
-		/// Note that this will never return <see lang="true"/> unless
-		/// either <see cref="Spring.Threading.Execution.IExecutorService.Shutdown()"/> or 
-		/// <see cref="Spring.Threading.Execution.IExecutorService.ShutdownNow()"/> was called first.
-		/// </remarks>
-		/// <returns> <see lang="true"/> if all tasks have completed following shut down
-		/// </returns>
-		public abstract bool IsTerminated { get; }
-		/// <summary> 
-		/// Returns <see lang="true"/> if this executor has been shut down.
-		/// </summary>
-		/// <returns> 
-		/// Returns <see lang="true"/> if this executor has been shut down.
-		/// </returns>
-		public abstract bool IsShutdown { get; }
+        /// Initiates an orderly shutdown in which previously submitted
+        /// tasks are executed, but no new tasks will be
+        /// accepted. Invocation has no additional effect if already shut
+        /// down.
+        /// </summary>
+        public abstract void Shutdown();
 
-		#endregion
+        /// <summary> 
+        /// Attempts to stop all actively executing tasks, halts the
+        /// processing of waiting tasks, and returns a list of the tasks that were
+        /// awaiting execution.
+        /// </summary>
+        /// <remarks> 
+        /// There are no guarantees beyond best-effort attempts to stop
+        /// processing actively executing tasks.  For example, typical
+        /// implementations will cancel via <see cref="System.Threading.Thread.Interrupt()"/>, so if any
+        /// tasks mask or fail to respond to interrupts, they may never terminate.
+        /// </remarks>
+        /// <returns> list of tasks that never commenced execution</returns>
+        public abstract IList<IRunnable> ShutdownNow();
 
-		/// <summary> 
-		/// Returns a <see cref="Spring.Threading.Future.IRunnableFuture"/> for the given runnable and default
-		/// value.
-		/// </summary>
-		/// <param name="runnable">the runnable task being wrapped
-		/// </param>
-		/// <param name="defaultValue">the default value for the returned future
-		/// </param>
-		/// <returns>
-		/// A <see cref="Spring.Threading.Future.IRunnableFuture"/> which, when run, will run the
-		/// underlying runnable and which, as a <see cref="Spring.Threading.Future.IFuture"/>, will yield
-		/// the given value as its result and provide for cancellation of
-		/// the underlying task.
-		/// </returns>
-		protected internal virtual IRunnableFuture NewTaskFor(IRunnable runnable, object defaultValue)
-		{
-			return new FutureTask(runnable, defaultValue);
-		}
+        /// <summary> 
+        /// Executes the given command at some time in the future.
+        /// </summary>
+        /// <remarks>
+        /// The command may execute in a new thread, in a pooled thread, or in the calling
+        /// thread, at the discretion of the <see cref="Spring.Threading.IExecutor"/> implementation.
+        /// </remarks>
+        /// <param name="runnable">the runnable task</param>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>	
+        public abstract void Execute(IRunnable runnable);
 
-		/// <summary> 
-		/// Returns a <see cref="Spring.Threading.Future.IRunnableFuture"/> for the given callable task.
-		/// </summary>
-		/// <param name="callable">the callable task being wrapped</param>
-		/// <returns> a <see cref="Spring.Threading.Future.IRunnableFuture"/> which when run will call the
-		/// underlying callable and which, as a <see cref="Spring.Threading.Future.IFuture"/>, will yield
-		/// the callable's result as its result and provide for
-		/// cancellation of the underlying task.
-		/// </returns>
-		protected internal virtual IRunnableFuture NewTaskFor(ICallable callable)
-		{
-			return new FutureTask(callable);
-		}
-//        /// <summary> 
+        /// <summary> 
+        /// Blocks until all tasks have completed execution after a shutdown
+        /// request, or the timeout occurs, or the current thread is
+        /// interrupted, whichever happens first. 
+        /// </summary>
+        /// <param name="timeSpan">the time span to wait.
+        /// </param>
+        /// <returns> <see lang="true"/> if this executor terminated and <see lang="false"/>
+        /// if the timeout elapsed before termination
+        /// </returns>
+        public abstract bool AwaitTermination(TimeSpan timeSpan);
+
+        /// <summary> 
+        /// Returns <see lang="true"/> if all tasks have completed following shut down.
+        /// </summary>
+        /// <remarks>
+        /// Note that this will never return <see lang="true"/> unless
+        /// either <see cref="Spring.Threading.Execution.IExecutorService.Shutdown()"/> or 
+        /// <see cref="Spring.Threading.Execution.IExecutorService.ShutdownNow()"/> was called first.
+        /// </remarks>
+        /// <returns> <see lang="true"/> if all tasks have completed following shut down
+        /// </returns>
+        public abstract bool IsTerminated { get; }
+
+        /// <summary> 
+        /// Returns <see lang="true"/> if this executor has been shut down.
+        /// </summary>
+        /// <returns> 
+        /// Returns <see lang="true"/> if this executor has been shut down.
+        /// </returns>
+        public abstract bool IsShutdown { get; }
+
+        #endregion
+
+        /// <summary> 
+        /// Returns a <see cref="Spring.Threading.Future.IRunnableFuture"/> for the given runnable and default
+        /// value.
+        /// </summary>
+        /// <param name="runnable">the runnable task being wrapped
+        /// </param>
+        /// <param name="defaultValue">the default value for the returned future
+        /// </param>
+        /// <returns>
+        /// A <see cref="Spring.Threading.Future.IRunnableFuture"/> which, when run, will run the
+        /// underlying runnable and which, as a <see cref="Spring.Threading.Future.IFuture"/>, will yield
+        /// the given value as its result and provide for cancellation of
+        /// the underlying task.
+        /// </returns>
+        protected internal virtual IRunnableFuture NewTaskFor(IRunnable runnable, object defaultValue)
+        {
+            return new FutureTask(runnable, defaultValue);
+        }
+
+        /// <summary> 
+        /// Returns a <see cref="Spring.Threading.Future.IRunnableFuture"/> for the given callable task.
+        /// </summary>
+        /// <param name="callable">the callable task being wrapped</param>
+        /// <returns> a <see cref="Spring.Threading.Future.IRunnableFuture"/> which when run will call the
+        /// underlying callable and which, as a <see cref="Spring.Threading.Future.IFuture"/>, will yield
+        /// the callable's result as its result and provide for
+        /// cancellation of the underlying task.
+        /// </returns>
+        protected internal virtual IRunnableFuture NewTaskFor(ICallable callable)
+        {
+            return new FutureTask(callable);
+        }
+
+        #region .NET 2.0
+
+        //        /// <summary> 
 //        /// Returns a <see cref="IRunnableFuture{T}"/> for the given 
 //        /// <paramref name="call"/> delegate.
 //        /// </summary>
@@ -229,25 +238,27 @@ namespace Spring.Threading.Execution
 //            return delegate(object call) { return NewTaskFor((Call<T>)call); };
 //        }
 //
-//#endif
+        //#endif
+
+        #endregion
 
         #region IExecutorImplementation
 
-	    /// <summary> 
-	    /// Executes the given task at some time in the future.
-	    /// </summary>
-	    /// <remarks>
-	    /// The task may execute in a new thread, in a pooled thread, or in the calling
-	    /// thread, at the discretion of the <see cref="IExecutor"/> implementation.
-	    /// </remarks>
-	    /// <param name="task">The task to be executed.</param>
-	    /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">
-	    /// If the task cannot be accepted for execution.
-	    /// </exception>
-	    /// <exception cref="System.ArgumentNullException">
-	    /// If the <paramref name="task"/> is <c>null</c>
-	    /// </exception>
-	    public virtual void Execute(Task task)
+        /// <summary> 
+        /// Executes the given task at some time in the future.
+        /// </summary>
+        /// <remarks>
+        /// The task may execute in a new thread, in a pooled thread, or in the calling
+        /// thread, at the discretion of the <see cref="IExecutor"/> implementation.
+        /// </remarks>
+        /// <param name="task">The task to be executed.</param>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">
+        /// If the task cannot be accepted for execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="task"/> is <c>null</c>
+        /// </exception>
+        public virtual void Execute(Task task)
         {
             Execute(Executors.CreateRunnable(task));
         }
@@ -255,111 +266,115 @@ namespace Spring.Threading.Execution
         #endregion
 
         #region IExecutorService Implementation
-        /// <summary> 
-		/// Submits a <see cref="Spring.Threading.IRunnable"/> task for execution and returns a
-		/// <see cref="Spring.Threading.Future.IFuture"/> 
-		/// representing that task. The <see cref="Spring.Threading.Future.IFuture.GetResult()"/> method will
-		/// return the given result upon successful completion.
-		/// </summary>
-		/// <param name="task">the task to submit</param>
-		/// <param name="result">the result to return</param>
-		/// <returns> a <see cref="Spring.Threading.Future.IFuture"/> representing pending completion of the task</returns>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public virtual IFuture Submit(IRunnable task, object result)
-		{
-			if (task == null)
-				throw new ArgumentNullException("task");
-			IRunnableFuture runnableFuture = NewTaskFor(task, result);
-			Execute(runnableFuture);
-			return runnableFuture;
-		}
-		/// <summary> 
-		/// Submits a value-returning task for execution and returns a
-		/// Future representing the pending results of the task. The
-		/// <see cref="Spring.Threading.Future.IFuture.GetResult()"/> method will return the task's result upon
-		/// <b>successful</b> completion.
-		/// </summary>
-		/// <remarks> 
-		/// If you would like to immediately block waiting
-		/// for a task, you can use constructions of the form
-		/// <code>
-		///		result = exec.Submit(aCallable).GetResult();
-		/// </code> 
-		/// <p/> 
-		/// Note: The <see cref="Spring.Threading.Execution.Executors"/> class includes a set of methods
-		/// that can convert some other common closure-like objects,
-		/// for example, <see cref="Spring.Threading.IRunnable"/> to
-		/// <see cref="Spring.Threading.ICallable"/> form so they can be submitted.
-		/// </remarks>
-		/// <param name="callable">the task to submit</param>
-		/// <returns> a <see cref="Spring.Threading.Future.IFuture"/> representing pending completion of the task</returns>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public virtual IFuture Submit(ICallable callable)
-		{
-			if (callable == null)
-				throw new ArgumentNullException("callable");
-			IRunnableFuture runnableFuture = NewTaskFor(callable);
-			Execute(runnableFuture);
-			return runnableFuture;
-		}
-		/// <summary> Submits a Runnable task for execution and returns a Future
-		/// representing that task. The Future's <see cref="M:Spring.Threading.Future.IFuture.GetResult"/> method will
-		/// return <see lang="null"/> upon successful completion.
-		/// </summary>
-		/// <param name="runnable">the task to submit</param>
-		/// <returns> a Future representing pending completion of the task</returns>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public virtual IFuture Submit(IRunnable runnable)
-		{
-			return Submit(runnable, null);
-		}
 
-	    /// <summary> 
-	    /// Submits a delegate <see cref="Task"/> for execution and returns an
-	    /// <see cref="IFuture"/> representing that <paramref name="task"/>. The 
-	    /// <see cref="IFuture.GetResult()"/> method will return the given 
-	    /// <paramref name="result"/> upon successful completion.
-	    /// </summary>
-	    /// <param name="task">The task to submit.</param>
-	    /// <param name="result">The result to return.</param>
-	    /// <returns>
-	    /// An <see cref="IFuture"/> representing pending completion of the 
-	    /// <paramref name="task"/>.
-	    /// </returns>
-	    /// <exception cref="RejectedExecutionException">
-	    /// If the <paramref name="task"/> cannot be accepted for execution.
-	    /// </exception>
-	    /// <exception cref="ArgumentNullException">
-	    /// If the <paramref name="task"/> is <c>null</c>
-	    /// </exception>
-	    public virtual IFuture Submit(Task task, object result)
+        /// <summary> 
+        /// Submits a <see cref="Spring.Threading.IRunnable"/> task for execution and returns a
+        /// <see cref="Spring.Threading.Future.IFuture"/> 
+        /// representing that task. The <see cref="Spring.Threading.Future.IFuture.GetResult()"/> method will
+        /// return the given result upon successful completion.
+        /// </summary>
+        /// <param name="task">the task to submit</param>
+        /// <param name="result">the result to return</param>
+        /// <returns> a <see cref="Spring.Threading.Future.IFuture"/> representing pending completion of the task</returns>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>
+        public virtual IFuture Submit(IRunnable task, object result)
+        {
+            if (task == null)
+                throw new ArgumentNullException("task");
+            var runnableFuture = NewTaskFor(task, result);
+            Execute(runnableFuture);
+            return runnableFuture;
+        }
+
+        /// <summary> 
+        /// Submits a value-returning task for execution and returns a
+        /// Future representing the pending results of the task. The
+        /// <see cref="Spring.Threading.Future.IFuture.GetResult()"/> method will return the task's result upon
+        /// <b>successful</b> completion.
+        /// </summary>
+        /// <remarks> 
+        /// If you would like to immediately block waiting
+        /// for a task, you can use constructions of the form
+        /// <code>
+        ///		result = exec.Submit(aCallable).GetResult();
+        /// </code> 
+        /// <p/> 
+        /// Note: The <see cref="Spring.Threading.Execution.Executors"/> class includes a set of methods
+        /// that can convert some other common closure-like objects,
+        /// for example, <see cref="Spring.Threading.IRunnable"/> to
+        /// <see cref="Spring.Threading.ICallable"/> form so they can be submitted.
+        /// </remarks>
+        /// <param name="callable">the task to submit</param>
+        /// <returns> a <see cref="Spring.Threading.Future.IFuture"/> representing pending completion of the task</returns>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>
+        public virtual IFuture Submit(ICallable callable)
+        {
+            if (callable == null)
+                throw new ArgumentNullException("callable");
+            var runnableFuture = NewTaskFor(callable);
+            Execute(runnableFuture);
+            return runnableFuture;
+        }
+
+        /// <summary> Submits a Runnable task for execution and returns a Future
+        /// representing that task. The Future's <see cref="M:Spring.Threading.Future.IFuture.GetResult"/> method will
+        /// return <see lang="null"/> upon successful completion.
+        /// </summary>
+        /// <param name="runnable">the task to submit</param>
+        /// <returns> a Future representing pending completion of the task</returns>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>
+        public virtual IFuture Submit(IRunnable runnable)
+        {
+            return Submit(runnable, null);
+        }
+
+        /// <summary> 
+        /// Submits a delegate <see cref="Task"/> for execution and returns an
+        /// <see cref="IFuture"/> representing that <paramref name="task"/>. The 
+        /// <see cref="IFuture.GetResult()"/> method will return the given 
+        /// <paramref name="result"/> upon successful completion.
+        /// </summary>
+        /// <param name="task">The task to submit.</param>
+        /// <param name="result">The result to return.</param>
+        /// <returns>
+        /// An <see cref="IFuture"/> representing pending completion of the 
+        /// <paramref name="task"/>.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the <paramref name="task"/> cannot be accepted for execution.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// If the <paramref name="task"/> is <c>null</c>
+        /// </exception>
+        public virtual IFuture Submit(Task task, object result)
         {
             return Submit(Executors.CreateCallable(task, result));
         }
 
-	    /// <summary> 
-	    /// Submits a delegate <see cref="Task"/> for execution and returns an
-	    /// <see cref="IFuture"/> representing that <paramref name="task"/>. The 
-	    /// <see cref="IFuture.GetResult()"/> method will return <c>null</c>.
-	    /// </summary>
-	    /// <param name="task">The task to submit.</param>
-	    /// <returns>
-	    /// An <see cref="IFuture"/> representing pending completion of the 
-	    /// <paramref name="task"/>.
-	    /// </returns>
-	    /// <exception cref="RejectedExecutionException">
-	    /// If the <paramref name="task"/> cannot be accepted for execution.
-	    /// </exception>
-	    /// <exception cref="ArgumentNullException">
-	    /// If the <paramref name="task"/> is <c>null</c>
-	    /// </exception>
-	    public virtual IFuture Submit(Task task)
+        /// <summary> 
+        /// Submits a delegate <see cref="Task"/> for execution and returns an
+        /// <see cref="IFuture"/> representing that <paramref name="task"/>. The 
+        /// <see cref="IFuture.GetResult()"/> method will return <c>null</c>.
+        /// </summary>
+        /// <param name="task">The task to submit.</param>
+        /// <returns>
+        /// An <see cref="IFuture"/> representing pending completion of the 
+        /// <paramref name="task"/>.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the <paramref name="task"/> cannot be accepted for execution.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// If the <paramref name="task"/> is <c>null</c>
+        /// </exception>
+        public virtual IFuture Submit(Task task)
         {
             return Submit(Executors.CreateCallable(task, null));
         }
+
 //
 //
 //#if NET_2_0
@@ -457,36 +472,36 @@ namespace Spring.Threading.Execution
 //        }
 //
 //#endif
-		/// <summary> 
-		/// Executes the given tasks, returning the result
-		/// of one that has completed successfully (i.e., without throwing
-		/// an exception), if any do. 
-		/// </summary>
-		/// <remarks>
-		/// Upon normal or exceptional return, tasks that have not completed are cancelled.
-		/// The results of this method are undefined if the given
-		/// collection is modified while this operation is in progress.
-		/// </remarks>
-		/// <param name="tasks">the collection of tasks</param>
-		/// <returns> The result returned by one of the tasks.</returns>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public virtual Object InvokeAny(ICollection tasks)
-		{
-            if ( tasks == null )
+        /// <summary> 
+        /// Executes the given tasks, returning the result
+        /// of one that has completed successfully (i.e., without throwing
+        /// an exception), if any do. 
+        /// </summary>
+        /// <remarks>
+        /// Upon normal or exceptional return, tasks that have not completed are cancelled.
+        /// The results of this method are undefined if the given
+        /// collection is modified while this operation is in progress.
+        /// </remarks>
+        /// <param name="tasks">the collection of tasks</param>
+        /// <returns> The result returned by one of the tasks.</returns>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>
+        public virtual Object InvokeAny(ICollection tasks)
+        {
+            if (tasks == null)
             {
                 throw new ArgumentNullException("tasks");
             }
-			try
-			{
-				return doInvokeAny(tasks, tasks.Count, false, NoTime);
-			}
-			catch (TimeoutException)
-			{
-				Debug.Assert(false);
-				return null;
-			}
-		}
+            try
+            {
+                return doInvokeAny(tasks, tasks.Count, false, NoTime);
+            }
+            catch (TimeoutException)
+            {
+                Debug.Assert(false);
+                return null;
+            }
+        }
 
 //#if NET_2_0
 //
@@ -647,31 +662,32 @@ namespace Spring.Threading.Execution
 //        }
 //#endif
 
-		/// <summary> Executes the given tasks, returning the result
-		/// of one that has completed successfully (i.e., without throwing
-		/// an exception), if any do before the given timeout elapses.
-		/// </summary>
-		/// <remarks>
-		/// Upon normal or exceptional return, tasks that have not
-		/// completed are cancelled.
-		/// The results of this method are undefined if the given
-		/// collection is modified while this operation is in progress.
-		/// </remarks>
-		/// <param name="tasks">the collection of tasks</param>
-		/// <param name="durationToWait">the time span to wait.</param> 
-		/// <returns> The result returned by one of the tasks.
-		/// </returns>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public virtual Object InvokeAny(ICollection tasks, TimeSpan durationToWait)
-		{
-            if ( tasks == null )
+        /// <summary> Executes the given tasks, returning the result
+        /// of one that has completed successfully (i.e., without throwing
+        /// an exception), if any do before the given timeout elapses.
+        /// </summary>
+        /// <remarks>
+        /// Upon normal or exceptional return, tasks that have not
+        /// completed are cancelled.
+        /// The results of this method are undefined if the given
+        /// collection is modified while this operation is in progress.
+        /// </remarks>
+        /// <param name="tasks">the collection of tasks</param>
+        /// <param name="durationToWait">the time span to wait.</param> 
+        /// <returns> The result returned by one of the tasks.
+        /// </returns>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>
+        public virtual Object InvokeAny(ICollection tasks, TimeSpan durationToWait)
+        {
+            if (tasks == null)
             {
                 throw new ArgumentNullException("tasks");
             }
-		    
-			return doInvokeAny(tasks, tasks.Count, true, durationToWait);
-		}
+
+            return doInvokeAny(tasks, tasks.Count, true, durationToWait);
+        }
+
 //
 //#if NET_2_0
 //
@@ -1058,33 +1074,34 @@ namespace Spring.Threading.Execution
 //#endif
 
         /// <summary> 
-		/// Executes the given tasks, returning a list of <see cref="Spring.Threading.Future.IFuture"/>s holding
-		/// their status and results when all complete.
-		/// </summary>
-		/// <remarks>
-		/// <see cref="Spring.Threading.Future.IFuture.IsDone"/>
-		/// is <see lang="true"/> for each element of the returned list.
-		/// Note that a <b>completed</b> task could have
-		/// terminated either normally or by throwing an exception.
-		/// The results of this method are undefined if the given
-		/// collection is modified while this operation is in progress.
-		/// </remarks>
-		/// <param name="tasks">the collection of tasks</param>
-		/// <returns> A list of Futures representing the tasks, in the same
-		/// sequential order as produced by the iterator for the given task
-		/// list, each of which has completed.
-		/// </returns>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		//TODO: Replace "ICollection" with ICallableCollection
-		public virtual IList InvokeAll(ICollection tasks)
-		{
-            if ( tasks == null )
+        /// Executes the given tasks, returning a list of <see cref="Spring.Threading.Future.IFuture"/>s holding
+        /// their status and results when all complete.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Spring.Threading.Future.IFuture.IsDone"/>
+        /// is <see lang="true"/> for each element of the returned list.
+        /// Note that a <b>completed</b> task could have
+        /// terminated either normally or by throwing an exception.
+        /// The results of this method are undefined if the given
+        /// collection is modified while this operation is in progress.
+        /// </remarks>
+        /// <param name="tasks">the collection of tasks</param>
+        /// <returns> A list of Futures representing the tasks, in the same
+        /// sequential order as produced by the iterator for the given task
+        /// list, each of which has completed.
+        /// </returns>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>
+        //TODO: Replace "ICollection" with ICallableCollection
+        public virtual IList InvokeAll(ICollection tasks)
+        {
+            if (tasks == null)
             {
                 throw new ArgumentNullException("tasks");
             }
-		    return InvokeAll(tasks, tasks.Count);
-		}
+            return InvokeAll(tasks, tasks.Count);
+        }
+
 //
 //#if NET_2_0
 //        private List<IFuture> InvokeAll(IEnumerable tasks, int count)
@@ -1096,59 +1113,60 @@ namespace Spring.Threading.Execution
 //#else
         private IList InvokeAll(IEnumerable tasks, int count)
 //#endif
-		{
-			if (tasks == null)
-				throw new ArgumentNullException("tasks");
+        {
+            if (tasks == null)
+                throw new ArgumentNullException("tasks");
 //#if NET_2_0
 //			List<IFuture> futures = count > 0 ?  new List<IFuture>(count) : new List<IFuture>();
 //#else
-			IList futures = new ArrayList(count);
+            IList futures = new ArrayList(count);
 //#endif
             bool done = false;
-			try
-			{
+            try
+            {
 //#if NET_2_0
 //                foreach (object task in tasks)
 //                {
 //                    IRunnableFuture runnableFuture = converter(task);
 //#else
-				foreach ( ICallable callable in tasks)
-				{
-					IRunnableFuture runnableFuture = NewTaskFor(callable);
+                foreach (ICallable callable in tasks)
+                {
+                    IRunnableFuture runnableFuture = NewTaskFor(callable);
 //#endif
                     futures.Add(runnableFuture);
-					Execute(runnableFuture);
-				}
-				foreach ( IFuture future in futures )
-				{
-					if (!future.IsDone)
-					{
-						try
-						{
-							future.GetResult();
-						}
-						catch (CancellationException)
-						{
-						}
-						catch (ExecutionException)
-						{
-						}
-					}
-				}
-				done = true;
-				return futures;
-			}
-			finally
-			{
-				if (!done)
-				{
-					foreach ( IFuture future in futures )
-					{
-						future.Cancel(true);
-					}
-				}
-			}
-		}
+                    Execute(runnableFuture);
+                }
+                foreach (IFuture future in futures)
+                {
+                    if (!future.IsDone)
+                    {
+                        try
+                        {
+                            future.GetResult();
+                        }
+                        catch (CancellationException)
+                        {
+                        }
+                        catch (ExecutionException)
+                        {
+                        }
+                    }
+                }
+                done = true;
+                return futures;
+            }
+            finally
+            {
+                if (!done)
+                {
+                    foreach (IFuture future in futures)
+                    {
+                        future.Cancel(true);
+                    }
+                }
+            }
+        }
+
 //
 //#if NET_2_0
 //
@@ -1392,126 +1410,125 @@ namespace Spring.Threading.Execution
 //#endif
 
         /// <summary> 
-		/// Executes the given tasks, returning a list of <see cref="Spring.Threading.Future.IFuture"/>s holding
-		/// their status and results when all complete or the <paramref name="durationToWait"/> expires, whichever happens first.
-		/// </summary>
-		/// <remarks>
-		/// <see cref="Spring.Threading.Future.IFuture.IsDone"/>
-		/// is <see lang="true"/> for each element of the returned list.
-		/// Note that a <b>completed</b> task could have
-		/// terminated either normally or by throwing an exception.
-		/// The results of this method are undefined if the given
-		/// collection is modified while this operation is in progress.
-		/// </remarks>
-		/// <param name="tasks">the collection of tasks</param>
-		/// <param name="durationToWait">the time span to wait.</param> 
-		/// <returns> A list of Futures representing the tasks, in the same
-		/// sequential order as produced by the iterator for the given
-		/// task list. If the operation did not time out, each task will
-		/// have completed. If it did time out, some of these tasks will
-		/// not have completed.
-		/// </returns>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public virtual IList InvokeAll(ICollection tasks, TimeSpan durationToWait)
-		{
-            if ( tasks == null )
+        /// Executes the given tasks, returning a list of <see cref="Spring.Threading.Future.IFuture"/>s holding
+        /// their status and results when all complete or the <paramref name="durationToWait"/> expires, whichever happens first.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Spring.Threading.Future.IFuture.IsDone"/>
+        /// is <see lang="true"/> for each element of the returned list.
+        /// Note that a <b>completed</b> task could have
+        /// terminated either normally or by throwing an exception.
+        /// The results of this method are undefined if the given
+        /// collection is modified while this operation is in progress.
+        /// </remarks>
+        /// <param name="tasks">the collection of tasks</param>
+        /// <param name="durationToWait">the time span to wait.</param> 
+        /// <returns> A list of Futures representing the tasks, in the same
+        /// sequential order as produced by the iterator for the given
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>
+        public virtual IList InvokeAll(ICollection tasks, TimeSpan durationToWait)
+        {
+            if (tasks == null)
             {
                 throw new ArgumentNullException("tasks");
             }
-		    return InvokeAll(tasks, tasks.Count, durationToWait);
-		}
-
-#if NET_2_0
-        private List<IFuture> InvokeAll(IEnumerable tasks, int count, TimeSpan durationToWait)
-        {
-            return InvokeAll(tasks, count, durationToWait, Callable2Future);
+            return InvokeAll(tasks, tasks.Count, durationToWait);
         }
 
-        private List<IFuture> InvokeAll(IEnumerable tasks, int count, TimeSpan durationToWait, Converter<object, IRunnableFuture> converter)
-#else
+//#if NET_2_0
+//        private List<IFuture> InvokeAll(IEnumerable tasks, int count, TimeSpan durationToWait)
+//        {
+//            return InvokeAll(tasks, count, durationToWait, Callable2Future);
+//        }
+//
+//        private List<IFuture> InvokeAll(IEnumerable tasks, int count, TimeSpan durationToWait, Converter<object, IRunnableFuture> converter)
+//#else
         private IList InvokeAll(IEnumerable tasks, int count, TimeSpan durationToWait)
-#endif
+//#endif
         {
-			if (tasks == null )
-				throw new ArgumentNullException("tasks");
-			TimeSpan duration = durationToWait;
-#if NET_2_0
-            List<IFuture> futures = count > 0 ? new List<IFuture>(count) : new List<IFuture>();
-#else
+            if (tasks == null)
+                throw new ArgumentNullException("tasks");
+            TimeSpan duration = durationToWait;
+//#if NET_2_0
+//            List<IFuture> futures = count > 0 ? new List<IFuture>(count) : new List<IFuture>();
+//#else
 			IList futures = new ArrayList(count);
-#endif
+//#endif
             bool done = false;
-			try
-			{
-#if NET_2_0
-                foreach (object task in tasks)
-                {
-                    futures.Add(converter(task));
-                }
-#else
+            try
+            {
+//#if NET_2_0
+//                foreach (object task in tasks)
+//                {
+//                    futures.Add(converter(task));
+//                }
+//#else
 				foreach ( ICallable callable in tasks)
 				{
 					futures.Add(NewTaskFor(callable));
                 }
-#endif
+//#endif
 
-				DateTime lastTime = DateTime.Now;
+                DateTime lastTime = DateTime.Now;
 
-				// Interleave time checks and calls to execute in case
-				// executor doesn't have any/much parallelism.
-				foreach ( IRunnable runnable in futures )
-				{
-					Execute(runnable);
+                // Interleave time checks and calls to execute in case
+                // executor doesn't have any/much parallelism.
+                foreach (IRunnable runnable in futures)
+                {
+                    Execute(runnable);
 
-					duration = duration.Subtract(DateTime.Now.Subtract(lastTime));
-					lastTime = DateTime.Now;
-					if (duration.Ticks <= 0)
-						return futures;
-				}
+                    duration = duration.Subtract(DateTime.Now.Subtract(lastTime));
+                    lastTime = DateTime.Now;
+                    if (duration.Ticks <= 0)
+                        return futures;
+                }
 
-				foreach ( IFuture future in futures )
-				{
-					if (!future.IsDone)
-					{
-						if (duration.Ticks <= 0)
-							return futures;
-						try
-						{
-							future.GetResult(duration);
-						}
-						catch (CancellationException)
-						{
-						}
-						catch (ExecutionException)
-						{
-						}
-						catch (TimeoutException)
-						{
-							return futures;
-						}
+                foreach (IFuture future in futures)
+                {
+                    if (!future.IsDone)
+                    {
+                        if (duration.Ticks <= 0)
+                            return futures;
+                        try
+                        {
+                            future.GetResult(duration);
+                        }
+                        catch (CancellationException)
+                        {
+                        }
+                        catch (ExecutionException)
+                        {
+                        }
+                        catch (TimeoutException)
+                        {
+                            return futures;
+                        }
 
-						duration = duration.Subtract(DateTime.Now.Subtract(lastTime));
-						lastTime = DateTime.Now;
-					}
-				}
-				done = true;
-				return futures;
-			}
-			finally
-			{
-				if (!done)
-				{
+                        duration = duration.Subtract(DateTime.Now.Subtract(lastTime));
+                        lastTime = DateTime.Now;
+                    }
+                }
+                done = true;
+                return futures;
+            }
+            finally
+            {
+                if (!done)
+                {
+                    foreach (IFuture future in futures)
+                    {
+                        future.Cancel(true);
+                    }
+                }
+            }
+        }
 
-					foreach ( IFuture future in futures )
-					{
-						future.Cancel(true);
-					}
-				}
-			}
-		}
-
-		#endregion
+        #endregion
 
 //#if NET_2_0
 //        private object doInvokeAny(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait)
@@ -1525,36 +1542,36 @@ namespace Spring.Threading.Execution
         private object doInvokeAny(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait)
 //#endif
         {
-			if (tasks == null)
-				throw new ArgumentNullException("tasks");
-			IList futures = count == 0 ? new ArrayList() : new ArrayList(count);
-			ExecutorCompletionService ecs = new ExecutorCompletionService(this);
-			TimeSpan duration = durationToWait;
+            if (tasks == null)
+                throw new ArgumentNullException("tasks");
+            IList futures = count == 0 ? new ArrayList() : new ArrayList(count);
+            var ecs = new ExecutorCompletionService(this);
+            var duration = durationToWait;
 
-			// For efficiency, especially in executors with limited
-			// parallelism, check to see if previously submitted tasks are
-			// done before submitting more of them. This interleaving
-			// plus the exception mechanics account for messiness of main
-			// loop.
+            // For efficiency, especially in executors with limited
+            // parallelism, check to see if previously submitted tasks are
+            // done before submitting more of them. This interleaving
+            // plus the exception mechanics account for messiness of main
+            // loop.
 
-			try
-			{
-				// Record exceptions so that if we fail to obtain any
-				// result, we can throw the last exception we got.
-				ExecutionException ee = null;
-				DateTime lastTime = (timed) ? DateTime.Now : new DateTime(0);
-                IEnumerator it = tasks.GetEnumerator();
-			    bool hasMoreTasks = it.MoveNext();
-				if (!hasMoreTasks)
+            try
+            {
+                // Record exceptions so that if we fail to obtain any
+                // result, we can throw the last exception we got.
+                ExecutionException ee = null;
+                var lastTime = (timed) ? DateTime.Now : new DateTime(0);
+                var it = tasks.GetEnumerator();
+                var hasMoreTasks = it.MoveNext();
+                if (!hasMoreTasks)
                     throw new ArgumentException("No tasks passed in.");
-                futures.Add(ecs.Submit((ICallable)it.Current));
-				int active = 1;
+                futures.Add(ecs.Submit((ICallable) it.Current));
+                var active = 1;
 
-				for (;; )
-				{
-					IFuture f = ecs.Poll();
-					if (f == null)
-					{
+                for (;;)
+                {
+                    IFuture f = ecs.Poll();
+                    if (f == null)
+                    {
                         if (hasMoreTasks && (hasMoreTasks = it.MoveNext()))
                         {
                             futures.Add(ecs.Submit((ICallable) it.Current));
@@ -1573,41 +1590,40 @@ namespace Spring.Threading.Execution
                         }
                         else
                             f = ecs.Take();
-					}
-					if (f != null)
-					{
-						--active;
-						try
-						{
-							return f.GetResult();
-						}
-						catch (ThreadInterruptedException)
-						{
-							throw;
-						}
-						catch (ExecutionException eex)
-						{
-							ee = eex;
-						}
-						catch (SystemException rex)
-						{
-							ee = new ExecutionException(rex);
-						}
-					}
-				}
+                    }
+                    if (f != null)
+                    {
+                        --active;
+                        try
+                        {
+                            return f.GetResult();
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                            throw;
+                        }
+                        catch (ExecutionException eex)
+                        {
+                            ee = eex;
+                        }
+                        catch (SystemException rex)
+                        {
+                            ee = new ExecutionException(rex);
+                        }
+                    }
+                }
 
-				if (ee == null)
-					ee = new ExecutionException();
-				throw ee;
-			}
-			finally
-			{
-				foreach ( IFuture future in futures)
-				{
-					future.Cancel(true);
-				}
-			}
-		}
-
+                if (ee == null)
+                    ee = new ExecutionException();
+                throw ee;
+            }
+            finally
+            {
+                foreach (IFuture future in futures)
+                {
+                    future.Cancel(true);
+                }
+            }
+        }
     }
 }
