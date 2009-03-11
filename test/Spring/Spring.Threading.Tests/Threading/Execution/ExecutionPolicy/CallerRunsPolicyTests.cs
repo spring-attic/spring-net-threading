@@ -4,7 +4,7 @@ using Rhino.Mocks;
 namespace Spring.Threading.Execution.ExecutionPolicy
 {
     [TestFixture]
-    public class RunPriorToExecutorShutdownTests : BaseMockTestCase
+    public class CallerRunsPolicyTests : BaseMockTestCase
     {
         [Test]
         public void RunsRunnableWithNonShutdownExecutorService()

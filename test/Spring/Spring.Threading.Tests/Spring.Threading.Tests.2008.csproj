@@ -165,9 +165,6 @@
     <Compile Include="Threading\Execution\ExecutionPolicy\AbortPolicyTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Threading\Execution\ExecutionPolicy\RunPriorToExecutorShutdownTests.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTests.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -222,6 +219,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Threading\Collections\PriorityBlockingQueueTest.cs" />
+    <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicyTests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
