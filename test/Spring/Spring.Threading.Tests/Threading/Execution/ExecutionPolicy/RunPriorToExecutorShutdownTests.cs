@@ -17,8 +17,8 @@ namespace Spring.Threading.Execution.ExecutionPolicy
 
             _repository.ReplayAll();
 
-            RunPriorToExecutorShutdown runPriorToExecutorShutdown = new RunPriorToExecutorShutdown();
-            runPriorToExecutorShutdown.RejectedExecution(runnableMock, executorServiceMock);
+            CallerRunsPolicy callerRunsPolicy = new CallerRunsPolicy();
+            callerRunsPolicy.RejectedExecution(runnableMock, executorServiceMock);
         }
         [Test]
         public void DoesNotRunRunnableWithShutdownExecutorService()
@@ -29,8 +29,8 @@ namespace Spring.Threading.Execution.ExecutionPolicy
             IRunnable runnableMock =  _repository.StrictMock<IRunnable>();
             _repository.ReplayAll();
 
-            RunPriorToExecutorShutdown runPriorToExecutorShutdown = new RunPriorToExecutorShutdown();
-            runPriorToExecutorShutdown.RejectedExecution(runnableMock, executorServiceMock );
+            CallerRunsPolicy callerRunsPolicy = new CallerRunsPolicy();
+            callerRunsPolicy.RejectedExecution(runnableMock, executorServiceMock );
         }
     }
 }

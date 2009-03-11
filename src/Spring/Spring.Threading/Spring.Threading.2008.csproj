@@ -197,9 +197,6 @@
     <Compile Include="Threading\Execution\ExecutionPolicy\DiscardPolicy.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Threading\Execution\ExecutionPolicy\RunPriorToExecutorShutdown.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Threading\Execution\ExecutorCompletionService.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -423,6 +420,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Threading\Collections\PriorityBlockingQueue.cs" />
+    <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicy.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

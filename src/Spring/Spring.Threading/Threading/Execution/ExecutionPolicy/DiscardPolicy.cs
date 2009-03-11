@@ -6,11 +6,6 @@ namespace Spring.Threading.Execution.ExecutionPolicy
 	/// </summary>
 	public class DiscardPolicy : IRejectedExecutionHandler
 	{
-		/// <summary> Creates a <see cref="Spring.Threading.Execution.ExecutionPolicy.DiscardPolicy"/>.</summary>
-		public DiscardPolicy()
-		{
-		}
-
 		/// <summary> 
 		/// Silently discards the <see cref="Spring.Threading.IRunnable"/>
 		/// </summary>
