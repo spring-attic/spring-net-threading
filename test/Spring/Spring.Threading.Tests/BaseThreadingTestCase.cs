@@ -41,7 +41,7 @@ namespace Spring.Threading
             SHORT_DELAY_MS = new TimeSpan(0, 0, 0, 0, 300);
             SMALL_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*5);
             MEDIUM_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*10);
-            LONG_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*20);
+            LONG_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*50);
         }
 
         public void UnexpectedException()

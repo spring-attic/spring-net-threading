@@ -11,9 +11,9 @@ namespace Spring.Threading.Execution
     [TestFixture]
     public class AbstractExecutorServiceTests : BaseThreadingTestCase
     {
-        private class AnonymousClassRunnable : IRunnable
+        private sealed class AnonymousClassRunnable : IRunnable
         {
-            private ThreadPoolExecutor p;
+            private readonly ThreadPoolExecutor p;
 
             public AnonymousClassRunnable(ThreadPoolExecutor p)
             {
@@ -22,7 +22,7 @@ namespace Spring.Threading.Execution
 
             #region IRunnable Members
 
-            public virtual void Run()
+            public void Run()
             {
                 try
                 {
@@ -31,25 +31,17 @@ namespace Spring.Threading.Execution
                 catch (ThreadInterruptedException)
                 {
                 }
-                catch (Exception e)
-                {
-                    throw e;
-                }
             }
 
             #endregion
 
             #region Nested type: AnonymousClassCallable
 
-            private class AnonymousClassCallable : ICallable
+            private sealed class AnonymousClassCallable : ICallable
             {
-                public AnonymousClassCallable()
-                {
-                }
-
                 #region ICallable Members
 
-                public virtual Object Call()
+                public Object Call()
                 {
                     try
                     {
@@ -68,9 +60,9 @@ namespace Spring.Threading.Execution
             #endregion
         }
 
-        private class AnonymousClassCallable : ICallable
+        private sealed class AnonymousClassCallable : ICallable
         {
-            private ThreadPoolExecutor p;
+            private readonly ThreadPoolExecutor p;
 
             public AnonymousClassCallable(ThreadPoolExecutor p)
             {
@@ -79,7 +71,7 @@ namespace Spring.Threading.Execution
 
             #region ICallable Members
 
-            public virtual Object Call()
+            public Object Call()
             {
                 try
                 {
@@ -101,9 +93,9 @@ namespace Spring.Threading.Execution
             #endregion
         }
 
-        private class AnonymousClassRunnable1 : IRunnable
+        private sealed class AnonymousClassRunnable1 : IRunnable
         {
-            private ICallable c;
+            private readonly ICallable c;
 
             public AnonymousClassRunnable1(ICallable c)
             {
@@ -112,7 +104,7 @@ namespace Spring.Threading.Execution
 
             #region IRunnable Members
 
-            public virtual void Run()
+            public void Run()
             {
                 try
                 {
@@ -126,11 +118,11 @@ namespace Spring.Threading.Execution
             #endregion
         }
 
-        private class AnonymousClassCallable1 : ICallable
+        private sealed class AnonymousClassCallable1 : ICallable
         {
             #region ICallable Members
 
-            public virtual Object Call()
+            public Object Call()
             {
                 int zero = 0;
                 int i = 5/zero;
@@ -178,10 +170,9 @@ namespace Spring.Threading.Execution
 
 
         [Test]
-        [Ignore("Run test when ThreadPoolExecutor & ArrayBlockingQueue are implemented.")]
         public void Execute1()
         {
-            var p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 0, 1), new ArrayBlockingQueue<IRunnable>(1));
+            var p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 1, 0), new ArrayBlockingQueue<IRunnable>(1));
             try
             {
                 for (int i = 0; i < 5; ++i)
@@ -201,10 +192,9 @@ namespace Spring.Threading.Execution
 
 
         [Test]
-        [Ignore("Run test when ThreadPoolExecutor & ArrayBlockingQueue are implemented.")]
         public void Execute2()
         {
-            var p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 0, 1), new ArrayBlockingQueue<IRunnable>(1));
+            var p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 1, 0), new ArrayBlockingQueue<IRunnable>(1));
             try
             {
                 for (int i = 0; i < 5; ++i)
@@ -241,23 +231,14 @@ namespace Spring.Threading.Execution
 
 
         [Test]
-        [Ignore("Run test when ThreadPoolExecutor & ArrayBlockingQueue are implemented.")]
         public void InterruptedSubmit()
         {
-//			ThreadPoolExecutor p = new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS, new ArrayBlockingQueue(10));
-//			SupportClass.ThreadClass t = new SupportClass.ThreadClass(new System.Threading.ThreadStart(new AnonymousClassRunnable(pthis).Run));
-//			try
-//			{
-//				t.Start();
-//				//UPGRADE_TODO: Method 'java.lang.Thread.sleep' was converted to 'System.Threading.Thread.Sleep' which has a different behavior. 'ms-help://MS.VSCC.2003/commoner/redir/redirect.htm?keyword="jlca1073_javalangThreadsleep_long_3"'
-//				System.Threading.Thread.Sleep(new System.TimeSpan((System.Int64) 10000 * SHORT_DELAY_MS));
-//				t.Interrupt();
-//			}
-//			catch (System.Exception e)
-//			{
-//				throw;
-//			}
-//			JoinPool(p);
+			var p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 1, 0),  new ArrayBlockingQueue<IRunnable>(10));
+			var t = new Thread(new AnonymousClassRunnable(p).Run);
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            JoinPool(p);
         }
 
 
@@ -301,9 +282,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new StringTask());
-                l.Add(null);
+                var l = new ArrayList {new StringTask(), null};
                 e.InvokeAll(l);
             }
             catch (ArgumentNullException)
@@ -322,8 +301,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new NPETask());
+                var l = new ArrayList {new NPETask()};
                 IList result = e.InvokeAll(l);
                 Assert.AreEqual(1, result.Count);
                 foreach (IFuture future in result)
@@ -347,9 +325,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new StringTask());
-                l.Add(new StringTask());
+                var l = new ArrayList {new StringTask(), new StringTask()};
                 IList result = e.InvokeAll(l);
                 Assert.AreEqual(2, result.Count);
                 foreach (IFuture future in result)
@@ -372,7 +348,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                e.InvokeAny((ICollection) null);
+                e.InvokeAny((ICollection)null);
             }
             catch (ArgumentNullException)
             {
@@ -408,9 +384,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new StringTask());
-                l.Add(null);
+                var l = new ArrayList {new StringTask(), null};
                 e.InvokeAny(l);
             }
             catch (ArgumentNullException)
@@ -429,8 +403,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new NPETask());
+                var l = new ArrayList {new NPETask()};
                 e.InvokeAny(l);
             }
             catch (ExecutionException)
@@ -449,9 +422,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new StringTask());
-                l.Add(new StringTask());
+                var l = new ArrayList {new StringTask(), new StringTask()};
                 var result = (String) e.InvokeAny(l);
                 Assert.AreSame(TEST_STRING, result);
             }
@@ -495,32 +466,19 @@ namespace Spring.Threading.Execution
         }
 
         [Test]
-        [Ignore("Run test when ThreadPoolExecutor & ArrayBlockingQueue are implemented.")]
         public void SubmitIE()
         {
-//			//UPGRADE_NOTE: Final was removed from the declaration of 'p '. 'ms-help://MS.VSCC.2003/commoner/redir/redirect.htm?keyword="jlca1003_3"'
-//			ThreadPoolExecutor p = new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS, new ArrayBlockingQueue(10));
-//		
-//			//UPGRADE_NOTE: Final was removed from the declaration of 'c '. 'ms-help://MS.VSCC.2003/commoner/redir/redirect.htm?keyword="jlca1003_3"'
-//			Callable c = new AnonymousClassCallable(pthis);
-//		
-//		
-//		
-//			SupportClass.ThreadClass t = new SupportClass.ThreadClass(new System.Threading.ThreadStart(new AnonymousClassRunnable1(c, this).Run));
-//			try
-//			{
-//				t.Start();
-//				//UPGRADE_TODO: Method 'java.lang.Thread.sleep' was converted to 'System.Threading.Thread.Sleep' which has a different behavior. 'ms-help://MS.VSCC.2003/commoner/redir/redirect.htm?keyword="jlca1073_javalangThreadsleep_long_3"'
-//				System.Threading.Thread.Sleep(new System.TimeSpan((System.Int64) 10000 * SHORT_DELAY_MS));
-//				t.Interrupt();
-//				t.Join();
-//			}
-//			catch (System.Threading.ThreadInterruptedException e)
-//			{
-//				throw;
-//			}
-//		
-//			JoinPool(p);
+            var p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 60, 0), new ArrayBlockingQueue<IRunnable>(10));
+
+            ICallable c = new AnonymousClassCallable(p);
+
+            var t = new Thread(new AnonymousClassRunnable1(c).Run);
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+
+            JoinPool(p);
         }
 
         [Test]
@@ -592,9 +550,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new StringTask());
-                l.Add(null);
+                var l = new ArrayList {new StringTask(), null};
                 e.InvokeAll(l, MEDIUM_DELAY_MS);
             }
             catch (ArgumentNullException)
@@ -613,8 +569,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new NPETask());
+                var l = new ArrayList {new NPETask()};
                 IList result = e.InvokeAll(l, MEDIUM_DELAY_MS);
                 Assert.AreEqual(1, result.Count);
                 foreach (IFuture future in result)
@@ -638,9 +593,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new StringTask());
-                l.Add(new StringTask());
+                var l = new ArrayList {new StringTask(), new StringTask()};
                 IList result = e.InvokeAll(l, MEDIUM_DELAY_MS);
                 Assert.AreEqual(2, result.Count);
                 foreach (IFuture future in result)
@@ -659,22 +612,28 @@ namespace Spring.Threading.Execution
 
 
         [Test]
-        [Ignore()]
         public void TimedInvokeAll6()
         {
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var list = new ArrayList();
-                list.Add(new StringTask());
-                list.Add(Executors.CreateCallable(new MediumPossiblyInterruptedRunnable(), TEST_STRING));
-                list.Add(new StringTask());
+                var list = new ArrayList {new StringTask(), Executors.CreateCallable(new MediumPossiblyInterruptedRunnable(), TEST_STRING), new StringTask()};
                 var result = e.InvokeAll(list, SMALL_DELAY_MS);
                 Assert.AreEqual(3, result.Count);
                 var it = result.GetEnumerator();
-                var f1 = (IFuture) it.Current;
-                var f2 = (IFuture) it.Current;
-                var f3 = (IFuture) it.Current;
+                IFuture f1 = null; 
+                IFuture f2 = null; 
+                IFuture f3 = null;
+
+                if (it.MoveNext()) f1 = (IFuture)it.Current;
+                if (it.MoveNext()) f2 = (IFuture)it.Current;
+                if (it.MoveNext()) f3 = (IFuture)it.Current;
+
+                if ( f1 == null || f2 == null || f3 == null )
+                {
+                    Assert.Fail("Missing some futures");
+                }
+
                 Assert.IsTrue(f1.IsDone);
                 Assert.IsFalse(f1.IsCancelled);
                 Assert.IsTrue(f2.IsDone);
@@ -745,9 +704,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new StringTask());
-                l.Add(null);
+                var l = new ArrayList {new StringTask(), null};
                 e.InvokeAny(l, MEDIUM_DELAY_MS);
             }
             catch (ArgumentNullException)
@@ -766,8 +723,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new NPETask());
+                var l = new ArrayList {new NPETask()};
                 e.InvokeAny(l, MEDIUM_DELAY_MS);
             }
             catch (ExecutionException)
@@ -786,9 +742,7 @@ namespace Spring.Threading.Execution
             IExecutorService e = new DirectExecutorService();
             try
             {
-                var l = new ArrayList();
-                l.Add(new StringTask());
-                l.Add(new StringTask());
+                var l = new ArrayList {new StringTask(), new StringTask()};
                 var result = (String) e.InvokeAny(l, MEDIUM_DELAY_MS);
                 Assert.AreSame(TEST_STRING, result);
             }
