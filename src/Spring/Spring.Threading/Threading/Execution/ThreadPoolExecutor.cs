@@ -68,7 +68,7 @@ namespace Spring.Threading.Execution
     ///			By default, even core threads are initially created and
     /// 		started only when new tasks arrive, but this can be overridden
     /// 		dynamically using method
-    /// 		<see cref="PrestartCoreThread"/> or
+    /// 		<see cref="PreStartCoreThread"/> or
     /// 		<see cref="Spring.Threading.Execution.ThreadPoolExecutor.PreStartAllCoreThreads()"/>.
     /// 		You probably want to prestart threads if you construct the
     /// 		pool with a non-empty queue. 
@@ -1120,7 +1120,7 @@ namespace Spring.Threading.Execution
      /// than <see cref="CorePoolSize"/> threads (in which case we always start one),
      /// or when the queue is full (in which case we must bypass queue).
      /// Initially idle threads are usually created via
-     /// <see cref="PrestartCoreThread"/> or to replace other dying workers.
+     /// <see cref="PreStartCoreThread"/> or to replace other dying workers.
      /// </param>
      /// <param name="core">
      /// if true use <see cref="CorePoolSize"/> as bound, else
@@ -1900,7 +1900,7 @@ namespace Spring.Threading.Execution
         ///
         /// @return {@code true} if a thread was started
         /// </summary>
-        public bool PrestartCoreThread()
+        public bool PreStartCoreThread()
         {
             return workerCountOf(_controlState.IntegerValue) < _corePoolSize &&
                    addWorker(null, true);
