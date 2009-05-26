@@ -219,6 +219,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Threading\Collections\PriorityBlockingQueueTest.cs" />
+    <Compile Include="Threading\Collections\SynchronousQueueTest.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicyTests.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutorTests.cs" />
   </ItemGroup>
