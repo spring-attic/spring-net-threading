@@ -792,7 +792,7 @@ namespace Spring.Threading.Collections.Generic
 		}
 
 		[Test]
-		[ExpectedException(typeof (ArgumentException))]
+		[ExpectedException(typeof (InvalidOperationException))]
 		public void AddAll4()
 		{
 			ArrayBlockingQueue<int> q = new ArrayBlockingQueue<int>(1);

@@ -128,7 +128,7 @@ namespace Spring.Collections.Generic
 		/// this <see cref="Spring.Collections.ISet"/> with the specified
 		/// collection. Neither of the input objects is modified by the union.
 		/// </returns>
-		ISet Union(ISet setOne);
+        ISet<T> Union(ISet<T> setOne);
 
 		/// <summary>
 		/// Performs an "intersection" of the two sets, where only the elements
@@ -146,7 +146,7 @@ namespace Spring.Collections.Generic
 		/// <returns>
 		/// The intersection of this set with <paramref name="setOne"/>.
 		/// </returns>
-		ISet Intersect(ISet setOne);
+        ISet<T> Intersect(ISet<T> setOne);
 
 		/// <summary>
 		/// Performs a "minus" of this set from the <paramref name="setOne"/>
@@ -167,7 +167,7 @@ namespace Spring.Collections.Generic
 		/// A set containing the elements from this set with the elements in
 		/// <paramref name="setOne"/> removed.
 		/// </returns>
-		ISet Minus(ISet setOne);
+        ISet<T> Minus(ISet<T> setOne);
 
 		/// <summary>
 		/// Performs an "exclusive-or" of the two sets, keeping only those
@@ -185,7 +185,7 @@ namespace Spring.Collections.Generic
 		/// A set containing the result of
 		/// <c><paramref name="setOne"/> ^ this</c>.
 		/// </returns>
-		ISet ExclusiveOr(ISet setOne);
+        ISet<T> ExclusiveOr(ISet<T> setOne);
 
 		/// <summary>
 		/// Returns <see langword="true"/> if this set contains the specified

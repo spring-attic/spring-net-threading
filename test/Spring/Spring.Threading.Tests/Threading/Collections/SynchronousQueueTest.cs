@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using Spring.Threading.Collections;
@@ -7,47 +8,81 @@ namespace Spring.Threading.Tests.Collections {
     /// <author>Doug Lea>author>
     /// <author>Andreas Döhring (.NET)</author>
     [TestFixture]
-    public class SynchronousQueueTest {
+    public class SynchronousQueueTest : BaseThreadingTestCase {
+
+        private class TestReferenceType {
+        }
 
         /// <summary>
         /// A SynchronousQueue is both empty and full
         /// </summary>
         [Test]
         public void TestEmptyFull() {
-            SynchronousQueue<string> q = new SynchronousQueue<string>();
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             Assert.IsTrue(q.IsEmpty);
             Assert.That(q.Count, Is.EqualTo(0));
             Assert.That(q.RemainingCapacity, Is.EqualTo(0));
-            Assert.IsFalse(q.Offer(String.Empty));
+            Assert.IsFalse(q.Offer(new TestReferenceType()));
         }
+
+        /// <summary>
+        /// A SynchronousQueue is both empty and full
+        /// </summary>
+        [Test]
+        public void TestEmptyFull2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            Assert.IsTrue(q.IsEmpty);
+            Assert.That(q.Count, Is.EqualTo(0));
+            Assert.That(q.RemainingCapacity, Is.EqualTo(0));
+            Assert.IsFalse(q.Offer(1));
+        }
+
         /// <summary>
         /// A fair SynchronousQueue is both empty and full
         /// </summary>
         [Test]
         public void TestFairEmptyFull() {
-            SynchronousQueue<string> q = new SynchronousQueue<string>(true);
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>(true);
             Assert.IsTrue(q.IsEmpty);
             Assert.That(q.Count, Is.EqualTo(0));
             Assert.That(q.RemainingCapacity, Is.EqualTo(0));
-            Assert.IsFalse(q.Offer(String.Empty));
+            Assert.IsFalse(q.Offer(new TestReferenceType()));
         }
 
         /// <summary>
-        /// offer(null) throws NPE
+        /// A fair SynchronousQueue is both empty and full
         /// </summary>
+        [Test]
+        public void TestFairEmptyFull2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>(true);
+            Assert.IsTrue(q.IsEmpty);
+            Assert.That(q.Count, Is.EqualTo(0));
+            Assert.That(q.RemainingCapacity, Is.EqualTo(0));
+            Assert.IsFalse(q.Offer(1));
+        }
+
         [Test, ExpectedException(typeof(ArgumentNullException))]
         public void TestOfferNull() {
-            SynchronousQueue<string> q = new SynchronousQueue<string>();
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             q.Offer(null);
         }
 
-        /// <summary>
-        /// add(null) throws NPE
-        /// </summary>
+        [Test]
+        public void TestOfferNull2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            q.Offer(0);
+        }
+
         [Test, ExpectedException(typeof(ArgumentNullException))]
         public void TestAddNull() {
-            SynchronousQueue<string> q = new SynchronousQueue<string>();
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             q.Add(null);
+        }
+
+        [Test, ExpectedException(typeof(InvalidOperationException))]
+        public void TestAddNull2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            q.Add(0);
         }
 
         /// <summary>
@@ -55,278 +90,411 @@ namespace Spring.Threading.Tests.Collections {
         /// </summary>
         [Test]
         public void TestOffer() {
-            SynchronousQueue<string> q = new SynchronousQueue<string>();
-            Assert.IsFalse(q.Offer(String.Empty));
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+            Assert.IsFalse(q.Offer(new TestReferenceType()));
         }
 
         /// <summary>
-        /// add throws ISE if no active taker
+        /// offer fails if no active taker
+        /// </summary>
+        [Test]
+        public void TestOffer2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            Assert.IsFalse(q.Offer(0));
+        }
+
+        /// <summary>
+        /// add fails if no active taker
         /// </summary>
         [Test, ExpectedException(typeof(InvalidOperationException))]
         public void TestAdd() {
-            SynchronousQueue<string> q = new SynchronousQueue<string>();
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             Assert.That(q.RemainingCapacity, Is.EqualTo(0));
-            q.Add(String.Empty);
+            q.Add(new TestReferenceType());
         }
 
         /// <summary>
-        /// addAll(null) throws NPE
+        /// add fails if no active taker
         /// </summary>
+        [Test, ExpectedException(typeof(InvalidOperationException))]
+        public void TestAdd2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            Assert.That(q.RemainingCapacity, Is.EqualTo(0));
+            q.Add(0);
+        }
+
         [Test, ExpectedException(typeof(ArgumentNullException))]
-        public void TestAddAll1() {
-            SynchronousQueue<string> q = new SynchronousQueue<string>();
+        public void TestAddAllDefaultT() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             q.AddAll(null);
         }
 
-        ///**
-        // * addAll(this) throws IAE
-        // */
-        //public void testAddAllSelf() {
-        //    try {
-        //        SynchronousQueue q = new SynchronousQueue();
-        //        q.addAll(q);
-        //        shouldThrow();
-        //    }
-        //    catch (IllegalArgumentException success) {}
-        //}
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestAddAllDefaultT2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            q.AddAll(null);
+        }
 
-        ///**
-        // * addAll of a collection with null elements throws NPE
-        // */
-        //public void testAddAll2() {
-        //    try {
-        //        SynchronousQueue q = new SynchronousQueue();
-        //        Integer[] ints = new Integer[1];
-        //        q.addAll(Arrays.asList(ints));
-        //        shouldThrow();
-        //    }
-        //    catch (NullPointerException success) {}
-        //}
-        ///**
-        // * addAll throws ISE if no active taker
-        // */
-        //public void testAddAll4() {
-        //    try {
-        //        SynchronousQueue q = new SynchronousQueue();
-        //        Integer[] ints = new Integer[1];
-        //        for (int i = 0; i < 1; ++i)
-        //            ints[i] = new Integer(i);
-        //        q.addAll(Arrays.asList(ints));
-        //        shouldThrow();
-        //    }
-        //    catch (IllegalStateException success) {}
-        //}
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void TestAddAllSelf() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+            q.AddAll(q);
+        }
 
-        ///**
-        // * put(null) throws NPE
-        // */
-        //public void testPutNull() {
-        //try {
-        //        SynchronousQueue q = new SynchronousQueue();
-        //        q.put(null);
-        //        shouldThrow();
-        //    }
-        //    catch (NullPointerException success){
-        //}
-        //    catch (InterruptedException ie) {
-        //    unexpectedException();
-        //    }
-        // }
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void TestAddAllSelf2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            q.AddAll(q);
+        }
 
-        ///**
-        // * put blocks interruptibly if no active taker
-        // */
-        //public void testBlockingPut() {
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
-        //                    SynchronousQueue q = new SynchronousQueue();
-        //                    q.put(zero);
-        //                    threadShouldThrow();
-        //                } catch (InterruptedException ie){
-        //                }
-        //            }});
-        //    t.start();
-        //    try {
-        //       Thread.sleep(SHORT_DELAY_MS);
-        //       t.interrupt();
-        //       t.join();
-        //    }
-        //    catch (InterruptedException ie) {
-        //    unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// addAll of a collection with null elements fails
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestAddAllWithDefaultElements() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+            TestReferenceType[] test = new TestReferenceType[1];
+            q.AddAll(test);
+        }
 
-        ///**
-        // * put blocks waiting for take
-        // */
-        //public void testPutWithTake() {
-        //    final SynchronousQueue q = new SynchronousQueue();
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                int added = 0;
-        //                try {
-        //                    q.put(new Object());
-        //                    ++added;
-        //                    q.put(new Object());
-        //                    ++added;
-        //                    q.put(new Object());
-        //                    ++added;
-        //                    q.put(new Object());
-        //                    ++added;
-        //        threadShouldThrow();
-        //                } catch (InterruptedException e){
-        //                    assertTrue(added >= 1);
-        //                }
-        //            }
-        //        });
-        //    try {
-        //        t.start();
-        //        Thread.sleep(SHORT_DELAY_MS);
-        //        q.take();
-        //        Thread.sleep(SHORT_DELAY_MS);
-        //        t.interrupt();
-        //        t.join();
-        //    } catch (Exception e){
-        //        unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// addAll of a collection with default value type elements fails
+        /// </summary>
+        [Test, ExpectedException(typeof(InvalidOperationException))]
+        public void TestAddAllWithDefaultElements2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            int[] test = new int[1];
+            q.AddAll(test);
+        }
 
-        ///**
-        // * timed offer times out if elements not taken
-        // */
-        //public void testTimedOffer() {
-        //    final SynchronousQueue q = new SynchronousQueue();
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
+        /// <summary>
+        /// addAll fails if no active taker
+        /// </summary>
+        [Test, ExpectedException(typeof(InvalidOperationException))]
+        public void TestAddAllWithoutActiveTaker() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+            TestReferenceType[] test = new TestReferenceType[1];
+            for(int i = 0; i < 1; ++i)
+                test[i] = new TestReferenceType();
+            q.AddAll(test);
+        }
 
-        //                    threadAssertFalse(q.offer(new Object(), SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
-        //                    q.offer(new Object(), LONG_DELAY_MS, TimeUnit.MILLISECONDS);
-        //        threadShouldThrow();
-        //                } catch (InterruptedException success){}
-        //            }
-        //        });
+        /// <summary>
+        /// put fails if no active taker
+        /// </summary>
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestPutDefault() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+            q.Put(null);
+        }
 
-        //    try {
-        //        t.start();
-        //        Thread.sleep(SMALL_DELAY_MS);
-        //        t.interrupt();
-        //        t.join();
-        //    } catch (Exception e){
-        //        unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// put blocks interruptibly if no active taker
+        /// </summary>
+        [Test]
+        public void TestBlockingPut() {
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+                    q.Put(new TestReferenceType());
+                }
+                catch(ThreadInterruptedException) { }
+            }));
+            t.Start();
+            Thread.Sleep(50);
+            t.Interrupt();
+            t.Join();
+        }
 
+        /// <summary>
+        /// put blocks interruptibly if no active taker
+        /// </summary>
+        [Test]
+        public void TestBlockingPut2() {
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    SynchronousQueue<int> q = new SynchronousQueue<int>();
+                    q.Put(1);
+                }
+                catch(ThreadInterruptedException) { }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
 
-        ///**
-        // * take blocks interruptibly when empty
-        // */
-        //public void testTakeFromEmpty() {
-        //    final SynchronousQueue q = new SynchronousQueue();
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
-        //                    q.take();
-        //        threadShouldThrow();
-        //                } catch (InterruptedException success){ }
-        //            }
-        //        });
-        //    try {
-        //        t.start();
-        //        Thread.sleep(SHORT_DELAY_MS);
-        //        t.interrupt();
-        //        t.join();
-        //    } catch (Exception e){
-        //        unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// put blocks waiting for take
+        /// </summary>
+        [Test]
+        public void TestPutWithTake() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+            Thread t = new Thread(new ThreadStart(delegate {
+                int added = 0;
+                try {
+                    q.Put(new TestReferenceType());
+                    ++added;
+                    q.Put(new TestReferenceType());
+                    ++added;
+                    q.Put(new TestReferenceType());
+                    ++added;
+                    q.Put(new TestReferenceType());
+                    ++added;
+                }
+                catch(ThreadInterruptedException) {
+                    Assert.IsTrue(added >= 1);
+                }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            q.Take();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
 
+        /// <summary>
+        /// put blocks waiting for take
+        /// </summary>
+        [Test]
+        public void TestPutWithTake2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            Thread t = new Thread(new ThreadStart(delegate {
+                int added = 0;
+                try {
+                    q.Put(1);
+                    ++added;
+                    q.Put(2);
+                    ++added;
+                    q.Put(3);
+                    ++added;
+                    q.Put(4);
+                    ++added;
+                }
+                catch(ThreadInterruptedException) {
+                    Assert.IsTrue(added >= 1);
+                }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            q.Take();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
 
-        ///**
-        // * put blocks interruptibly if no active taker
-        // */
-        //public void testFairBlockingPut() {
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
-        //                    SynchronousQueue q = new SynchronousQueue(true);
-        //                    q.put(zero);
-        //                    threadShouldThrow();
-        //                } catch (InterruptedException ie){
-        //                }
-        //            }});
-        //    t.start();
-        //    try {
-        //       Thread.sleep(SHORT_DELAY_MS);
-        //       t.interrupt();
-        //       t.join();
-        //    }
-        //    catch (InterruptedException ie) {
-        //    unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// timed offer times out if elements not taken
+        /// </summary>
+        [Test]
+        public void TestTimedOffer() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    Assert.IsFalse(q.Offer(new TestReferenceType(), SHORT_DELAY_MS));
+                    q.Offer(new TestReferenceType(), LONG_DELAY_MS);
+                }
+                catch(ThreadInterruptedException) { }
+            }));
 
-        ///**
-        // * put blocks waiting for take
-        // */
-        //public void testFairPutWithTake() {
-        //    final SynchronousQueue q = new SynchronousQueue(true);
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                int added = 0;
-        //                try {
-        //                    q.put(new Object());
-        //                    ++added;
-        //                    q.put(new Object());
-        //                    ++added;
-        //                    q.put(new Object());
-        //                    ++added;
-        //                    q.put(new Object());
-        //                    ++added;
-        //        threadShouldThrow();
-        //                } catch (InterruptedException e){
-        //                    assertTrue(added >= 1);
-        //                }
-        //            }
-        //        });
-        //    try {
-        //        t.start();
-        //        Thread.sleep(SHORT_DELAY_MS);
-        //        q.take();
-        //        Thread.sleep(SHORT_DELAY_MS);
-        //        t.interrupt();
-        //        t.join();
-        //    } catch (Exception e){
-        //        unexpectedException();
-        //    }
-        //}
+            t.Start();
+            Thread.Sleep(SMALL_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
 
-        ///**
-        // * timed offer times out if elements not taken
-        // */
-        //public void testFairTimedOffer() {
-        //    final SynchronousQueue q = new SynchronousQueue(true);
-        //    Thread t = new Thread(new Runnable() {
-        //            public void run() {
-        //                try {
+        /// <summary>
+        /// timed offer times out if elements not taken
+        /// </summary>
+        [Test]
+        public void TestTimedOffer2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    Assert.IsFalse(q.Offer(1, SHORT_DELAY_MS));
+                    q.Offer(2, LONG_DELAY_MS);
+                }
+                catch(ThreadInterruptedException) { }
+            }));
 
-        //                    threadAssertFalse(q.offer(new Object(), SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
-        //                    q.offer(new Object(), LONG_DELAY_MS, TimeUnit.MILLISECONDS);
-        //        threadShouldThrow();
-        //                } catch (InterruptedException success){}
-        //            }
-        //        });
+            t.Start();
+            Thread.Sleep(SMALL_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
 
-        //    try {
-        //        t.start();
-        //        Thread.sleep(SMALL_DELAY_MS);
-        //        t.interrupt();
-        //        t.join();
-        //    } catch (Exception e){
-        //        unexpectedException();
-        //    }
-        //}
+        /// <summary>
+        /// take blocks interruptibly when empty
+        /// </summary>
+        [Test]
+        public void TestTakeFromEmpty() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    q.Take();
+                }
+                catch(ThreadInterruptedException) { }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// take blocks interruptibly when empty
+        /// </summary>
+        [Test]
+        public void TestTakeFromEmpty2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>();
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    q.Take();
+                }
+                catch(ThreadInterruptedException) { }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// put blocks interruptibly if no active taker
+        /// </summary>
+        [Test]
+        public void TestFairBlockingPut() {
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>(true);
+                    q.Put(new TestReferenceType());
+                }
+                catch(ThreadInterruptedException) { }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// put blocks interruptibly if no active taker
+        /// </summary>
+        [Test]
+        public void TestFairBlockingPut2() {
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    SynchronousQueue<int> q = new SynchronousQueue<int>(true);
+                    q.Put(1);
+                }
+                catch(ThreadInterruptedException) { }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// put blocks waiting for take
+        /// </summary>
+        [Test]
+        public void TestFairPutWithTake() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>(true);
+            Thread t = new Thread(new ThreadStart(delegate {
+                int added = 0;
+                try {
+                    q.Put(new TestReferenceType());
+                    ++added;
+                    q.Put(new TestReferenceType());
+                    ++added;
+                    q.Put(new TestReferenceType());
+                    ++added;
+                    q.Put(new TestReferenceType());
+                    ++added;
+                }
+                catch(ThreadInterruptedException) {
+                    Assert.IsTrue(added >= 1);
+                }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            q.Take();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// put blocks waiting for take
+        /// </summary>
+        [Test]
+        public void TestFairPutWithTake2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>(true);
+            Thread t = new Thread(new ThreadStart(delegate {
+                int added = 0;
+                try {
+                    q.Put(1);
+                    ++added;
+                    q.Put(2);
+                    ++added;
+                    q.Put(3);
+                    ++added;
+                    q.Put(4);
+                    ++added;
+                }
+                catch(ThreadInterruptedException) {
+                    Assert.IsTrue(added >= 1);
+                }
+            }));
+            t.Start();
+            Thread.Sleep(SHORT_DELAY_MS);
+            q.Take();
+            Thread.Sleep(SHORT_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// timed offer times out if elements not taken
+        /// </summary>
+        [Test]
+        public void TestFairTimedOffer() {
+            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>(true);
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    Assert.IsFalse(q.Offer(new TestReferenceType(), SHORT_DELAY_MS));
+                    q.Offer(new TestReferenceType(), LONG_DELAY_MS);
+                }
+                catch(ThreadInterruptedException) { }
+            }));
+
+            t.Start();
+            Thread.Sleep(SMALL_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
+
+        /// <summary>
+        /// timed offer times out if elements not taken
+        /// </summary>
+        [Test]
+        public void TestFairTimedOffer2() {
+            SynchronousQueue<int> q = new SynchronousQueue<int>(true);
+            Thread t = new Thread(new ThreadStart(delegate {
+                try {
+                    Assert.IsFalse(q.Offer(1, SHORT_DELAY_MS));
+                    q.Offer(2, LONG_DELAY_MS);
+                }
+                catch(ThreadInterruptedException) { }
+            }));
+
+            t.Start();
+            Thread.Sleep(SMALL_DELAY_MS);
+            t.Interrupt();
+            t.Join();
+        }
 
 
         ///**

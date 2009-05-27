@@ -419,6 +419,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\Generic\DictionarySet.cs" />
+    <Compile Include="Collections\Generic\HashedSet.cs" />
+    <Compile Include="Collections\Generic\Set.cs" />
+    <Compile Include="Collections\Generic\SortedSet.cs" />
     <Compile Include="Threading\Collections\PriorityBlockingQueue.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicy.cs" />
   </ItemGroup>

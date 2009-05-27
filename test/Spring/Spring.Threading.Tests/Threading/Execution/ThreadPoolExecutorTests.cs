@@ -1062,9 +1062,10 @@ namespace Spring.Threading.Execution
             Assert.IsTrue(tpe.afterCalled);
             try { tpe.Shutdown(); } catch(SecurityException ok) { return; }
         }
-        catch(Exception ex) {
-            Assert.Fail("Unexpected Exception");
-        } finally {
+        //catch(Exception ex) {
+        //    Assert.Fail("Unexpected Exception");
+        //} 
+        finally {
             JoinPool(tpe);
         }
     }

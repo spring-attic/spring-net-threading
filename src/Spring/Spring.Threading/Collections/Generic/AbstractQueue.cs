@@ -71,10 +71,10 @@ namespace Spring.Collections.Generic
         /// <exception cref="System.ArgumentNullException">
         /// If the supplied <paramref name="collection"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="System.ArgumentException">
-        /// If the collection is the current queue or the collection size is 
-        /// greater than the queue capacity.
-        /// </exception>
+        ///// <exception cref="System.ArgumentException">
+        ///// If the collection is the current queue or the collection size is 
+        ///// greater than the queue capacity.
+        ///// </exception>
         public virtual bool AddAll(ICollection<T> collection)
         {
             if (collection == null)
@@ -85,10 +85,11 @@ namespace Spring.Collections.Generic
             {
                 throw new ArgumentException("Cannot add to itself.");
             }
-            if (collection.Count > RemainingCapacity)
-            {
-                throw new ArgumentException("Collcation size greater than queue capacity.");
-            }
+            // TODO: check with Griffin current backport does not contain this constraint
+            //if (collection.Count > RemainingCapacity)
+            //{
+            //    throw new ArgumentException("Collcation size greater than queue capacity.");
+            //}
             bool modified = false;
             foreach (T element in collection)
             {

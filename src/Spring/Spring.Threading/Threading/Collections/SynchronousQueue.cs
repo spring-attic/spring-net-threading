@@ -326,7 +326,7 @@ namespace Spring.Threading.Collections {
              * continue.
              */
             public bool SetItem(T x) {
-                lock(this) {
+                lock(_lock) {
                     if(_state != 0) return false;
                     _item = x;
                     _state = Ack;
@@ -340,7 +340,7 @@ namespace Spring.Threading.Collections {
              * to continue.
              */
             public bool GetItem(out T item) {
-                lock(this) {
+                lock(_lock) {
                     if(_state != 0) {
                         item = default(T);
                         return false;
@@ -356,7 +356,7 @@ namespace Spring.Threading.Collections {
              * Waits for a consumer to take item placed by producer.
              */
             public void WaitForTake() {
-                lock(this) {
+                lock(_lock) {
                     try {
                         while(_state == 0)
                             Monitor.Wait(_lock);
@@ -371,7 +371,7 @@ namespace Spring.Threading.Collections {
              * Waits for a producer to put item placed by consumer.
              */
             public T WaitForPut() {
-                lock(this) {
+                lock(_lock) {
                     try {
                         while(_state == 0)
                             Monitor.Wait(_lock);
@@ -390,7 +390,7 @@ namespace Spring.Threading.Collections {
                     Monitor.Pulse(_lock);
                     return false;
                 }
-                long deadline = DateTime.Now.Ticks + nanos;
+                long deadline = DateTime.Now.Ticks - nanos;
                 while(true) {
                     //TimeUnit.NANOSECONDS.timedWait(this, nanos);
                     if(_state != 0) return true;
