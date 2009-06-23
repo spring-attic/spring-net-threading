@@ -10,38 +10,71 @@ namespace Spring.Threading
 {
     public class BaseThreadingTestCase
     {
+        [Serializable]
+        public class Integer
+        {
+            internal readonly int Value;
+
+            public Integer(int value)
+            {
+                this.Value = value;
+            }
+
+            public static implicit operator int(Integer integer)
+            {
+                return integer.Value;
+            }
+
+            public static implicit operator Integer(int value)
+            {
+                return new Integer(value);
+            }
+
+            public override string ToString()
+            {
+                return string.Format("Integer({0})", Value);
+            }
+        }
+
+        public const long SHORT_DELAY_MS = 300;
+        public const long SMALL_DELAY_MS = SHORT_DELAY_MS * 5;
+        public const long MEDIUM_DELAY_MS = SHORT_DELAY_MS * 10;
+        public const long LONG_DELAY_MS = SHORT_DELAY_MS * 50;
+        public static readonly TimeSpan SHORT_DELAY = TimeSpan.FromMilliseconds(SHORT_DELAY_MS);
+        public static readonly TimeSpan SMALL_DELAY = TimeSpan.FromMilliseconds(SMALL_DELAY_MS);
+        public static readonly TimeSpan MEDIUM_DELAY = TimeSpan.FromMilliseconds(MEDIUM_DELAY_MS);
+        public static readonly TimeSpan LONG_DELAY = TimeSpan.FromMilliseconds(LONG_DELAY_MS);
+
         public const string TEST_STRING = "a test string";
         public static int DEFAULT_COLLECTION_SIZE = 20;
-        protected static Int32 eight = Int32.Parse("8");
-        protected static Int32 five = Int32.Parse("5");
-        protected static Int32 four = Int32.Parse("4");
-        public static TimeSpan LONG_DELAY_MS;
-        protected static Int32 m1 = Int32.Parse("-1");
-        protected static Int32 m10 = Int32.Parse("-10");
-        protected static Int32 m2 = Int32.Parse("-2");
-        protected static Int32 m3 = Int32.Parse("-3");
-        protected static Int32 m4 = Int32.Parse("-4");
-        protected static Int32 m5 = Int32.Parse("-5");
-        public static TimeSpan MEDIUM_DELAY_MS;
-        protected static Int32 nine = Int32.Parse("9");
-        protected static Int32 one = Int32.Parse("1");
-        protected static Int32 seven = Int32.Parse("7");
+        protected static Integer eight = Int32.Parse("8");
+        protected static Integer five = Int32.Parse("5");
+        protected static Integer four = Int32.Parse("4");
+        protected static Integer m1 = Int32.Parse("-1");
+        protected static Integer m10 = Int32.Parse("-10");
+        protected static Integer m2 = Int32.Parse("-2");
+        protected static Integer m3 = Int32.Parse("-3");
+        protected static Integer m4 = Int32.Parse("-4");
+        protected static Integer m5 = Int32.Parse("-5");
+        protected static Integer nine = Int32.Parse("9");
+        protected static Integer one = Int32.Parse("1");
+        protected static Integer seven = Int32.Parse("7");
 
-        public static TimeSpan SHORT_DELAY_MS;
-        protected static Int32 six = Int32.Parse("6");
-        public static TimeSpan SMALL_DELAY_MS;
-        protected static Int32 three = Int32.Parse("3");
-        protected static Int32 two = Int32.Parse("2");
-        protected static Int32 zero = Int32.Parse("0");
+        protected static Integer six = Int32.Parse("6");
+        protected static Integer three = Int32.Parse("3");
+        protected static Integer two = Int32.Parse("2");
+        protected static Integer zero = Int32.Parse("0");
 
         private volatile bool threadFailed;
+        private TestThreadManager _threadManager;
 
         protected BaseThreadingTestCase()
         {
-            SHORT_DELAY_MS = new TimeSpan(0, 0, 0, 0, 300);
-            SMALL_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*5);
-            MEDIUM_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*10);
-            LONG_DELAY_MS = new TimeSpan(0, 0, 0, 0, SHORT_DELAY_MS.Milliseconds*50);
+        }
+
+        protected internal TestThreadManager ThreadManager
+        {
+            get { return _threadManager; }
         }
 
         public void UnexpectedException()
@@ -54,7 +87,7 @@ namespace Spring.Threading
             try
             {
                 exec.Shutdown();
-                Assert.IsTrue(exec.AwaitTermination(LONG_DELAY_MS));
+                Assert.IsTrue(exec.AwaitTermination(LONG_DELAY));
             }
             catch (ThreadInterruptedException)
             {
@@ -67,6 +100,16 @@ namespace Spring.Threading
             threadFailed = true;
             Assert.Fail("Unexpected exception");
         }
+
+        [SetUp] public void SetUp()
+        {
+            _threadManager = new TestThreadManager();
+        }
+
+        [TearDown] public void TearDown()
+        {
+            _threadManager.TearDown();
+        }
     }
 
     internal class SmallRunnable : IRunnable
@@ -75,7 +118,7 @@ namespace Spring.Threading
 
         public void Run()
         {
-            Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
+            Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY);
         }
 
         #endregion
@@ -87,7 +130,7 @@ namespace Spring.Threading
 
         public virtual void Run()
         {
-            Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY_MS);
+            Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY);
         }
 
         #endregion
@@ -108,7 +151,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY_MS);
+                Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY);
                 done = true;
             }
             catch (Exception)
@@ -119,15 +162,15 @@ namespace Spring.Threading
         #endregion
     }
 
-    internal class SmallCallable : ICallable
+    internal class SmallCallable : ICallable<bool>
     {
         #region ICallable Members
 
-        public Object Call()
+        public bool Call()
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
+                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY);
             }
             catch (Exception e)
             {
@@ -154,7 +197,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.LONG_DELAY_MS);
+                Thread.Sleep(BaseThreadingTestCase.LONG_DELAY);
                 done = true;
             }
             catch (Exception)
@@ -210,7 +253,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
+                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY);
                 done = true;
             }
             catch (Exception)
@@ -221,11 +264,11 @@ namespace Spring.Threading
         #endregion
     }
 
-    internal class StringTask : ICallable
+    internal class StringTask : ICallable<string>
     {
         #region ICallable Members
 
-        public object Call()
+        public string Call()
         {
             return BaseThreadingTestCase.TEST_STRING;
         }
@@ -239,17 +282,17 @@ namespace Spring.Threading
 
         public virtual void Run()
         {
-            Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY_MS);
+            Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY);
         }
 
         #endregion
     }
 
-    internal class NPETask : ICallable
+    internal class NPETask<T> : ICallable<T>
     {
         #region ICallable Members
 
-        public virtual Object Call()
+        public virtual T Call()
         {
             throw new NullReferenceException();
         }
@@ -265,7 +308,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY_MS);
+                Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY);
             }
             catch (ThreadInterruptedException)
             {
@@ -275,17 +318,17 @@ namespace Spring.Threading
         #endregion
     }
 
-    internal class TrackedCallable : ICallable
+    internal class TrackedCallable : ICallable<bool>
     {
         public volatile bool done;
 
         #region ICallable Members
 
-        public Object Call()
+        public bool Call()
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY_MS);
+                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY);
                 done = true;
             }
             catch (Exception)
@@ -299,13 +342,10 @@ namespace Spring.Threading
 
     internal class NoOpREHandler : IRejectedExecutionHandler
     {
-        #region IRejectedExecutionHandler Members
-
-        public void RejectedExecution(IRunnable r, IExecutorService executor)
+        public void RejectedExecution(IRunnable runnable, ThreadPoolExecutor executor)
         {
+            throw new NotImplementedException();
         }
-
-        #endregion
     }
 
     internal class SimpleThreadFactory : IThreadFactory
@@ -330,27 +370,15 @@ namespace Spring.Threading
             return null;
         }
 
-        object IExecutorService.InvokeAny(ICollection tasks)
-        {
-            // TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.InvokeAny implementation
-            return null;
-        }
-
         public IList InvokeAll(ICollection tasks, TimeSpan durationToWait)
         {
             // TODO:  Add NoOpExecutorService.InvokeAll implementation
             return null;
         }
 
-        public IFuture Submit(Task task)
+        public IFuture<object> Submit(Task task)
         {
             throw new NotImplementedException();
-        }
-
-        IList IExecutorService.InvokeAll(ICollection tasks)
-        {
-            // TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.InvokeAll implementation
-            return null;
         }
 
         public IList<IRunnable> ShutdownNow()
@@ -382,26 +410,9 @@ namespace Spring.Threading
             }
         }
 
-        public IFuture Submit(IRunnable task)
+        public IFuture<object> Submit(IRunnable task)
         {
             // TODO:  Add NoOpExecutorService.Submit implementation
-            return null;
-        }
-
-        public IFuture Submit(Task task, object result)
-        {
-            throw new NotImplementedException();
-        }
-
-        IFuture IExecutorService.Submit(IRunnable task, object result)
-        {
-            // TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.Submit implementation
-            return null;
-        }
-
-        IFuture IExecutorService.Submit(ICallable task)
-        {
-            // TODO:  Add NoOpExecutorService.Spring.Threading.Execution.IExecutorService.Submit implementation
             return null;
         }
 
@@ -417,6 +428,71 @@ namespace Spring.Threading
         }
 
         public void Execute(Task task)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region IExecutorService Members
+
+
+        public IFuture<T> Submit<T>(IRunnable runnable, T result)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IFuture<T> Submit<T>(Task task, T result)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IFuture<T> Submit<T>(ICallable<T> callable)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IFuture<T> Submit<T>(Call<T> call)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T InvokeAny<T>(IEnumerable<ICallable<T>> tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T InvokeAny<T>(IEnumerable<Call<T>> tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T InvokeAny<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T InvokeAny<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
         {
             throw new NotImplementedException();
         }

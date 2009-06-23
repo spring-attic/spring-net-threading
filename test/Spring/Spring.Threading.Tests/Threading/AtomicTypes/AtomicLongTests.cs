@@ -24,170 +24,173 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using NUnit.Framework;
 
-namespace Spring.Threading.AtomicTypes {
+namespace Spring.Threading.AtomicTypes
+{
     /// <summary>
     /// Unit tests for the AtomicLong class
     /// </summary>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
+    /// <author>Kenneth Xu (.NET)</author>
     [TestFixture]
     public class AtomicLongTests : BaseThreadingTestCase {
-        private class AnonymousClassRunnable {
-            private readonly AtomicLong ai;
-
-            public AnonymousClassRunnable(AtomicLong ai) {
-                this.ai = ai;
-            }
-
-            public void Run() {
-                while(!ai.CompareAndSet(2, 3))
-                    Thread.Sleep(0);
-            }
-        }
-
         [Test]
         public void Constructor() {
             AtomicLong ai = new AtomicLong(1);
-            Assert.AreEqual(1, ai.LongValue);
+            Assert.AreEqual(1, ai.Value);
         }
 
         [Test]
-        public void Constructor2() {
+        public void DefaultConstructor() {
             AtomicLong ai = new AtomicLong();
-            Assert.AreEqual(0, ai.LongValue);
+            Assert.AreEqual(0, ai.Value);
         }
 
         [Test]
-        public void GetSet() {
+        public void GetLastSetValue()
+        {
             AtomicLong ai = new AtomicLong(1);
-            Assert.AreEqual(1, ai.LongValue);
-            ai.LongValue = 2;
-            Assert.AreEqual(2, ai.LongValue);
-            ai.LongValue = -3;
-            Assert.AreEqual(-3, ai.LongValue);
+            Assert.AreEqual(1, ai.Value);
+            ai.Value = 2;
+            Assert.AreEqual(2, ai.Value);
+            ai.Value = -3;
+            Assert.AreEqual(-3, ai.Value);
         }
 
         [Test]
-        public void LazySet() {
+        public void GetLastLazySetValue()
+        {
             AtomicLong ai = new AtomicLong(1);
-            Assert.AreEqual(1, ai.LongValue);
+            Assert.AreEqual(1, ai.Value);
             ai.LazySet(2);
-            Assert.AreEqual(2, ai.LongValue);
+            Assert.AreEqual(2, ai.Value);
             ai.LazySet(-3);
-            Assert.AreEqual(-3, ai.LongValue);
+            Assert.AreEqual(-3, ai.Value);
         }
 
         [Test]
-        public void CompareAndSet() {
+        public void CompareExpectedValueAndSetNewValue()
+        {
             AtomicLong ai = new AtomicLong(1);
             Assert.IsTrue(ai.CompareAndSet(1, 2));
             Assert.IsTrue(ai.CompareAndSet(2, -4));
-            Assert.AreEqual(-4, ai.LongValue);
+            Assert.AreEqual(-4, ai.Value);
             Assert.IsFalse(ai.CompareAndSet(-5, 7));
-            Assert.IsFalse((7 == ai.LongValue));
+            Assert.IsFalse((7 == ai.Value));
             Assert.IsTrue(ai.CompareAndSet(-4, 7));
-            Assert.AreEqual(7, ai.LongValue);
+            Assert.AreEqual(7, ai.Value);
         }
 
         [Test]
-        public void CompareAndSetInMultipleThreads() {
+        public void CompareExpectedValueAndSetNewValueInMultipleThreads()
+        {
             AtomicLong ai = new AtomicLong(1);
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable(ai).Run));
+            Thread t = new Thread(delegate()
+            {
+                while (!ai.CompareAndSet(2, 3))
+                    Thread.Sleep(0);
+            });
             t.Start();
             Assert.IsTrue(ai.CompareAndSet(1, 2));
-            t.Join(LONG_DELAY_MS);
+            t.Join(LONG_DELAY);
             Assert.IsFalse(t.IsAlive);
-            Assert.AreEqual(ai.LongValue, 3);
+            Assert.AreEqual(ai.Value, 3);
         }
 
         [Test]
-        public void WeakCompareAndSet() {
+        public void WeakCompareExpectedValueAndSetNewValue()
+        {
             AtomicLong ai = new AtomicLong(1);
-            while(!ai.WeakCompareAndSet(1, 2))
-                ;
-            while(!ai.WeakCompareAndSet(2, -4))
-                ;
-            Assert.AreEqual(-4, ai.LongValue);
-            while(!ai.WeakCompareAndSet(-4, 7))
-                ;
-            Assert.AreEqual(7, ai.LongValue);
+            while(!ai.WeakCompareAndSet(1, 2)) {}
+            while(!ai.WeakCompareAndSet(2, -4)) {}
+            Assert.AreEqual(-4, ai.Value);
+            while(!ai.WeakCompareAndSet(-4, 7)) {}
+            Assert.AreEqual(7, ai.Value);
             Assert.IsFalse(ai.WeakCompareAndSet(-4, 7));
         }
 
         [Test]
-        public void GetAndSet() {
+        public void Exchange()
+        {
             AtomicLong ai = new AtomicLong(1);
-            Assert.AreEqual(1, ai.SetNewAtomicValue(0));
-            Assert.AreEqual(0, ai.SetNewAtomicValue(-10));
-            Assert.AreEqual(-10, ai.SetNewAtomicValue(1));
+            Assert.AreEqual(1, ai.Exchange(0));
+            Assert.AreEqual(0, ai.Exchange(-10));
+            Assert.AreEqual(-10, ai.Exchange(1));
         }
 
         [Test]
-        public void GetAndAdd() {
+        public void AddDeltaAndReturnPreviousValue()
+        {
             AtomicLong ai = new AtomicLong(1);
             Assert.AreEqual(1, ai.AddDeltaAndReturnPreviousValue(2));
-            Assert.AreEqual(3, ai.LongValue);
+            Assert.AreEqual(3, ai.Value);
             Assert.AreEqual(3, ai.AddDeltaAndReturnPreviousValue(-4));
-            Assert.AreEqual(-1, ai.LongValue);
+            Assert.AreEqual(-1, ai.Value);
         }
 
 
-		[Test] public void GetReturnValueAndDecrement()
+        [Test]
+        public void ReturnValueAndDecrement()
 		{
 			AtomicLong ai = new AtomicLong(1);
-			Assert.AreEqual(1, ai.ReturnValueAndDecrement);
-			Assert.AreEqual(0, ai.ReturnValueAndDecrement);
-			Assert.AreEqual(- 1, ai.ReturnValueAndDecrement);
+			Assert.AreEqual(1, ai.ReturnValueAndDecrement());
+			Assert.AreEqual(0, ai.ReturnValueAndDecrement());
+			Assert.AreEqual(- 1, ai.ReturnValueAndDecrement());
 		}
 
 
-		[Test] public void GetReturnValueAndIncrement()
+        [Test]
+        public void ReturnValueAndIncrement()
 		{
 			AtomicLong ai = new AtomicLong(1);
-			Assert.AreEqual(1, ai.ReturnValueAndIncrement);
-			Assert.AreEqual(2, ai.LongValue);
-			ai.LongValue = - 2;
-			Assert.AreEqual(- 2, ai.ReturnValueAndIncrement);
-			Assert.AreEqual(- 1, ai.ReturnValueAndIncrement);
-			Assert.AreEqual(0, ai.ReturnValueAndIncrement);
-			Assert.AreEqual(1, ai.LongValue);
+			Assert.AreEqual(1, ai.ReturnValueAndIncrement());
+			Assert.AreEqual(2, ai.Value);
+			ai.Value = - 2;
+			Assert.AreEqual(- 2, ai.ReturnValueAndIncrement());
+			Assert.AreEqual(- 1, ai.ReturnValueAndIncrement());
+			Assert.AreEqual(0, ai.ReturnValueAndIncrement());
+			Assert.AreEqual(1, ai.Value);
 		}
 
         [Test]
-        public void AddAndGet() {
+        public void AddDeltaAndReturnNewValue()
+        {
             AtomicLong ai = new AtomicLong(1);
             Assert.AreEqual(3, ai.AddDeltaAndReturnNewValue(2));
-            Assert.AreEqual(3, ai.LongValue);
+            Assert.AreEqual(3, ai.Value);
             Assert.AreEqual(-1, ai.AddDeltaAndReturnNewValue(-4));
-            Assert.AreEqual(-1, ai.LongValue);
+            Assert.AreEqual(-1, ai.Value);
         }
 
         [Test]
-        public void DecrementAndGet() {
+        public void DecrementValueAndReturn()
+        {
             AtomicLong ai = new AtomicLong(1);
             Assert.AreEqual(0, ai.DecrementValueAndReturn());
             Assert.AreEqual(-1, ai.DecrementValueAndReturn());
             Assert.AreEqual(-2, ai.DecrementValueAndReturn());
-            Assert.AreEqual(-2, ai.LongValue);
+            Assert.AreEqual(-2, ai.Value);
         }
 
         [Test]
-        public void IncrementAndGet() {
+        public void IncrementValueAndReturn()
+        {
             AtomicLong ai = new AtomicLong(1);
             Assert.AreEqual(2, ai.IncrementValueAndReturn());
-            Assert.AreEqual(2, ai.LongValue);
-            ai.LongValue = -2;
+            Assert.AreEqual(2, ai.Value);
+            ai.Value = -2;
             Assert.AreEqual(-1, ai.IncrementValueAndReturn());
             Assert.AreEqual(0, ai.IncrementValueAndReturn());
             Assert.AreEqual(1, ai.IncrementValueAndReturn());
-            Assert.AreEqual(1, ai.LongValue);
+            Assert.AreEqual(1, ai.Value);
         }
 
         [Test]
-        public void Serialization() {
+        public void SerializationAndDeserialization()
+        {
             AtomicLong l = new AtomicLong();
 
-            l.LongValue = -22;
+            l.Value = -22;
             MemoryStream bout = new MemoryStream(10000);
 
             BinaryFormatter formatter = new BinaryFormatter();
@@ -196,28 +199,33 @@ namespace Spring.Threading.AtomicTypes {
             MemoryStream bin = new MemoryStream(bout.ToArray());
             BinaryFormatter formatter2 = new BinaryFormatter();
             AtomicLong r = (AtomicLong)formatter2.Deserialize(bin);
-            Assert.AreEqual(l.LongValue, r.LongValue);
+            Assert.AreEqual(l.Value, r.Value);
         }
 
         [Test]
         public void LongValueToString() {
             AtomicLong ai = new AtomicLong();
             for(long i = -12; i < 6; ++i) {
-                ai.LongValue = i;
+                ai.Value = i;
                 Assert.AreEqual(ai.ToString(), Convert.ToString(i));
             }
         }
 
         [Test]
-        public void IntValue() {
+        public void Value() {
             AtomicLong ai = new AtomicLong(42);
-            Assert.AreEqual(ai.LongValue, 42);
+            Assert.AreEqual(ai.Value, 42L);
         }
 
         [Test]
-        public void LongValue() {
-            AtomicLong ai = new AtomicLong(42);
-            Assert.AreEqual(ai.LongValue, 42L);
+        public void ImplicitConverter()
+        {
+            AtomicLong ai = new AtomicLong(1);
+            long result = ai;
+            Assert.AreEqual(1L, result);
+            ai.Value = -3;
+            result = ai;
+            Assert.AreEqual(-3L, result);
         }
     }
 }

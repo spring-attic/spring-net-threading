@@ -116,7 +116,7 @@ namespace Spring.Threading
                                        });
             t1.Start();
             t2.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t1.Interrupt();
             t1.Join();
             t2.Join();
@@ -132,7 +132,7 @@ namespace Spring.Threading
                                        {
                                            try
                                            {
-                                               c.Await(LONG_DELAY_MS);
+                                               c.Await(LONG_DELAY);
                                                Debug.Fail("should throw exception");
                                            }
                                            catch (ThreadInterruptedException success)
@@ -143,7 +143,7 @@ namespace Spring.Threading
                                        {
                                            try
                                            {
-                                               c.Await(LONG_DELAY_MS);
+                                               c.Await(LONG_DELAY);
                                                Debug.Fail("should throw exception");
                                            }
                                            catch (BrokenBarrierException success)
@@ -152,7 +152,7 @@ namespace Spring.Threading
                                        });
             t1.Start();
             t2.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t1.Interrupt();
             t1.Join();
             t2.Join();
@@ -168,7 +168,7 @@ namespace Spring.Threading
                                       {
                                           try
                                           {
-                                              c.Await(SHORT_DELAY_MS);
+                                              c.Await(SHORT_DELAY);
                                               Debug.Fail("should throw exception");
                                           }
                                           catch (TimeoutException success)
@@ -189,7 +189,7 @@ namespace Spring.Threading
                                        {
                                            try
                                            {
-                                               c.Await(SHORT_DELAY_MS);
+                                               c.Await(SHORT_DELAY);
                                                Debug.Fail("should throw exception");
                                            }
                                            catch (TimeoutException success)
@@ -200,7 +200,7 @@ namespace Spring.Threading
                                        {
                                            try
                                            {
-                                               c.Await(MEDIUM_DELAY_MS);
+                                               c.Await(MEDIUM_DELAY);
                                                Debug.Fail("should throw exception");
                                            }
                                            catch (BrokenBarrierException success)
@@ -224,7 +224,7 @@ namespace Spring.Threading
             {
                 try
                 {
-                    c.Await(SHORT_DELAY_MS);
+                    c.Await(SHORT_DELAY);
                     Debug.Fail("should throw exception");
                 }
                 catch (TimeoutException success)
@@ -276,7 +276,7 @@ namespace Spring.Threading
                                        });
             t1.Start();
             t2.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             c.Reset();
             t1.Join();
             t2.Join();
@@ -330,7 +330,7 @@ namespace Spring.Threading
             t.Start();
             for (int i = 0; i < 4; i++)
             {
-                Thread.Sleep(SHORT_DELAY_MS);
+                Thread.Sleep(SHORT_DELAY);
                 t.Interrupt();
             }
             done.Value = true;
@@ -462,7 +462,7 @@ namespace Spring.Threading
                     {
                         Debug.Fail("Start barrier");
                     }
-                    try { barrier.Await(MEDIUM_DELAY_MS); }
+                    try { barrier.Await(MEDIUM_DELAY); }
                     catch (TimeoutException ok) { }
                     catch (Exception thrown)
                     {

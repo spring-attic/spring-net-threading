@@ -1,443 +1,33 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using NUnit.Framework;
-using Spring.Util;
 
 namespace Spring.Threading.Locks
 {
+    /// <summary>
+    /// Test cases for <see cref="ReentrantLock"/>.
+    /// </summary>
+    /// <author>Doug Lea</author>
+    /// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu (Interlocked)</author>
     [TestFixture]
     public class ReentrantLockTests : BaseThreadingTestCase
     {
-        private class AnonymousClassRunnable : IRunnable
-        {
-            private readonly ReentrantLock _myLock;
+        private ReentrantLock _lock;
 
-            public AnonymousClassRunnable(ReentrantLock myLock)
-            {
-                _myLock = myLock;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                try
-                {
-                    _myLock.TryLock(MEDIUM_DELAY_MS);
-                    Debug.Fail("Should throw an exception.");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable1 : IRunnable
-        {
-            private readonly ReentrantLock _myLock;
-
-            public AnonymousClassRunnable1(ReentrantLock myLock)
-            {
-                _myLock = myLock;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                Debug.Assert(!_myLock.TryLock());
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable2 : IRunnable
-        {
-            private readonly ReentrantLock _myLock;
-
-            public AnonymousClassRunnable2(ReentrantLock myLock)
-            {
-                _myLock = myLock;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                Debug.Assert(!_myLock.TryLock(new TimeSpan(0, 0, 1/1000)));
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable3 : IRunnable
-        {
-            private readonly ReentrantLock _myLock;
-
-            public AnonymousClassRunnable3(ReentrantLock myLock)
-            {
-                _myLock = myLock;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                _myLock.Lock();
-                Thread.Sleep(new TimeSpan(10000*SMALL_DELAY_MS.Milliseconds));
-                _myLock.Unlock();
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable4 : IRunnable
-        {
-            private readonly ReentrantLock _myLock;
-            private readonly ICondition condition;
-
-            public AnonymousClassRunnable4(ReentrantLock myLock, ICondition c)
-            {
-                _myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                _myLock.Lock();
-                condition.Await();
-                _myLock.Unlock();
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable5 : IRunnable
-        {
-            private readonly ReentrantLock _myLock;
-            private readonly ICondition condition;
-
-            public AnonymousClassRunnable5(ReentrantLock myLock, ICondition c)
-            {
-                _myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                _myLock.Lock();
-                Debug.Assert(!_myLock.HasWaiters(condition));
-                Debug.Assert(0 == _myLock.GetWaitQueueLength(condition));
-                condition.Await();
-                _myLock.Unlock();
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable6 : IRunnable
-        {
-            private readonly ReentrantLock _myLock;
-            private readonly ICondition condition;
-
-            public AnonymousClassRunnable6(ReentrantLock myLock, ICondition c)
-            {
-                _myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                _myLock.Lock();
-                Debug.Assert(!_myLock.HasWaiters(condition));
-                Debug.Assert(0 == _myLock.GetWaitQueueLength(condition));
-                condition.Await();
-                _myLock.Unlock();
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable7 : IRunnable
-        {
-            private readonly ICondition condition;
-            private readonly ReentrantLock myLock;
-
-            public AnonymousClassRunnable7(ReentrantLock myLock, ICondition c)
-            {
-                this.myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                myLock.Lock();
-                Debug.Assert(myLock.HasWaiters(condition));
-                Debug.Assert(1 == myLock.GetWaitQueueLength(condition));
-                condition.Await();
-                myLock.Unlock();
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable8 : IRunnable
-        {
-            private readonly ICondition condition;
-            private readonly PublicReentrantLock myLock;
-
-            public AnonymousClassRunnable8(PublicReentrantLock myLock, ICondition c)
-            {
-                this.myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                myLock.Lock();
-                Debug.Assert(myLock.GetWaitingThreads(condition).Count == 0);
-                condition.Await();
-                myLock.Unlock();
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable9 : IRunnable
-        {
-            private readonly ICondition condition;
-            private readonly PublicReentrantLock myLock;
-
-            public AnonymousClassRunnable9(PublicReentrantLock myLock, ICondition c)
-            {
-                this.myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                myLock.Lock();
-                Debug.Assert(myLock.GetWaitingThreads(condition).Count != 0);
-                condition.Await();
-                myLock.Unlock();
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable10 : IRunnable
-        {
-            private readonly ICondition condition;
-            private readonly ReentrantLock myLock;
-
-            public AnonymousClassRunnable10(ReentrantLock myLock, ICondition c)
-            {
-                this.myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                try
-                {
-                    myLock.Lock();
-                    condition.Await();
-                    myLock.Unlock();
-                    Debug.Fail("Should throw an exception.");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable11 : IRunnable
-        {
-            private readonly ICondition condition;
-            private readonly ReentrantLock myLock;
-
-            public AnonymousClassRunnable11(ReentrantLock myLock, ICondition c)
-            {
-                this.myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                try
-                {
-                    myLock.Lock();
-                    condition.Await(new TimeSpan(0, 0, 0, 1));
-                    myLock.Unlock();
-                    Debug.Fail("Should throw an exception.");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable12 : IRunnable
-        {
-            private readonly ICondition _condition;
-            private readonly ReentrantLock _myLock;
-
-            public AnonymousClassRunnable12(ReentrantLock myLock, ICondition c)
-            {
-                _myLock = myLock;
-                _condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                try
-                {
-                    _myLock.Lock();
-                    _condition.AwaitUntil(DateTime.Now.AddMilliseconds(10000));
-                    _myLock.Unlock();
-                    Debug.Fail("Should throw exception.");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable13 : IRunnable
-        {
-            private readonly ICondition condition;
-            private readonly ReentrantLock myLock;
-
-            public AnonymousClassRunnable13(ReentrantLock myLock, ICondition c)
-            {
-                this.myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                myLock.Lock();
-                condition.Await();
-                myLock.Unlock();
-            }
-
-            #endregion
-        }
-
-        private class AnonymousClassRunnable14 : IRunnable
-        {
-            private readonly ICondition condition;
-            private readonly ReentrantLock myLock;
-
-            public AnonymousClassRunnable14(ReentrantLock myLock, ICondition c)
-            {
-                this.myLock = myLock;
-                condition = c;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                myLock.Lock();
-                condition.Await();
-                myLock.Unlock();
-            }
-
-            #endregion
-        }
-
-        internal class InterruptibleLockRunnable : IRunnable
-        {
-            internal ReentrantLock myLock;
-
-            internal InterruptibleLockRunnable(ReentrantLock l)
-            {
-                myLock = l;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                try
-                {
-                    myLock.LockInterruptibly();
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            }
-
-            #endregion
-        }
-
-        internal class InterruptedLockRunnable : IRunnable
-        {
-            internal ReentrantLock myLock;
-
-            internal InterruptedLockRunnable(ReentrantLock l)
-            {
-                myLock = l;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                try
-                {
-                    myLock.LockInterruptibly();
-                    Debug.Fail("Should throw an exception.");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            }
-
-            #endregion
-        }
-
-        internal class UninterruptableThread : IRunnable
+        private class UninterruptableThread
         {
             public readonly Thread InternalThread;
             private readonly ICondition _condition;
             private readonly ReentrantLock _myLock;
 
-            public volatile bool canAwake;
-            public volatile bool interrupted;
-            public volatile bool lockStarted;
+            public volatile bool CanAwake;
+            public volatile bool Interrupted;
+            public volatile bool LockStarted;
 
             public UninterruptableThread(ReentrantLock myLock, ICondition c)
             {
@@ -446,711 +36,858 @@ namespace Spring.Threading.Locks
                 InternalThread = new Thread(Run);
             }
 
-            #region IRunnable Members
-
-            public void Run()
+            private void Run()
             {
-                _myLock.Lock();
-                lockStarted = true;
-
-                while (!canAwake)
+                using(_myLock.Lock())
                 {
-                    _condition.AwaitUninterruptibly();
+                    LockStarted = true;
+
+                    while (!CanAwake)
+                    {
+                        _condition.AwaitUninterruptibly();
+                    }
+                    Interrupted = TestThreadManager.IsCurrentThreadInterrupted();
                 }
-
-                interrupted = InternalThread.IsAlive;
-
-                _myLock.Unlock();
             }
-
-            #endregion
         }
 
         [Serializable]
-        internal class PublicReentrantLock : ReentrantLock
+        private class PublicReentrantLock : ReentrantLock
         {
-            internal PublicReentrantLock()
-            {
-            }
-
             internal PublicReentrantLock(bool fair) : base(fair)
             {
             }
-        }
 
-        [Test]
-        public void Await()
-        {
-            var myLock = new ReentrantLock();
-            ICondition c = myLock.NewCondition();
-            var t = new Thread(new AnonymousClassRunnable4(myLock, c).Run);
-
-            t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
-            myLock.Lock();
-            c.Signal();
-            myLock.Unlock();
-            t.Join(SHORT_DELAY_MS);
-            Assert.IsFalse(t.IsAlive);
-        }
-
-        [Test]
-        [ExpectedException(typeof (SynchronizationLockException))]
-        public void Await_IllegalMonitor()
-        {
-            var myLock = new ReentrantLock();
-            ICondition c = myLock.NewCondition();
-            c.Await();
-        }
-
-        [Test]
-        public void Await_Interrupt()
-        {
-            var myLock = new ReentrantLock();
-
-            ICondition c = myLock.NewCondition();
-            var t = new Thread(new AnonymousClassRunnable10(myLock, c).Run);
-
-            t.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            t.Interrupt();
-            t.Join(SHORT_DELAY_MS);
-            Assert.IsFalse(t.IsAlive);
-        }
-
-        [Test]
-        public void Await_Timeout()
-        {
-            var myLock = new ReentrantLock();
-            var c = myLock.NewCondition();
-            myLock.Lock();
-            c.Await(SHORT_DELAY_MS);
-            myLock.Unlock();
-        }
-
-        [Test]
-        public void AwaitNanos_Interrupt()
-        {
-            var myLock = new ReentrantLock();
-
-            var c = myLock.NewCondition();
-            var t = new Thread(new AnonymousClassRunnable11(myLock, c).Run);
-
-            t.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            t.Interrupt();
-            t.Join(SHORT_DELAY_MS);
-            Assert.IsFalse(t.IsAlive);
-        }
-
-        [Test]
-        public void AwaitNanos_Timeout()
-        {
-            var myLock = new ReentrantLock();
-            var c = myLock.NewCondition();
-            myLock.Lock();
-            Assert.IsTrue(c.Await(new TimeSpan(1)));
-            myLock.Unlock();
-        }
-
-        [Test]
-        public void AwaitUninterruptibly()
-        {
-            var myLock = new ReentrantLock();
-            var c = myLock.NewCondition();
-            var thread = new UninterruptableThread(myLock, c);
-
-            thread.InternalThread.Start();
-
-            while (!thread.lockStarted)
+            public ICollection<Thread> GetWaitingThreadsPublic(ICondition c)
             {
-                Thread.Sleep(new TimeSpan(0, 0, 0, 0, 100));
-            }
-
-            myLock.Lock();
-            try
-            {
-                thread.InternalThread.Interrupt();
-                thread.canAwake = true;
-                c.Signal();
-            }
-            finally
-            {
-                myLock.Unlock();
-            }
-
-            thread.InternalThread.Join();
-            Assert.IsTrue(thread.interrupted);
-            Assert.IsFalse(thread.InternalThread.IsAlive);
-        }
-
-        [Test]
-        public void AwaitUntil_Interrupt()
-        {
-            var myLock = new ReentrantLock();
-
-            var c = myLock.NewCondition();
-            var t = new Thread(new AnonymousClassRunnable12(myLock, c).Run);
-
-            t.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            t.Interrupt();
-            t.Join(SHORT_DELAY_MS);
-            Assert.IsFalse(t.IsAlive);
-        }
-
-        [Test]
-        public void AwaitUntil_Timeout()
-        {
-            var myLock = new ReentrantLock();
-            var c = myLock.NewCondition();
-            myLock.Lock();
-            c.AwaitUntil(DateTime.Now.AddMilliseconds(10));
-            myLock.Unlock();
-        }
-
-        [Test]
-        public void Constructor()
-        {
-            var rl = new ReentrantLock();
-            Assert.IsFalse(rl.IsFair);
-            var r2 = new ReentrantLock(true);
-            Assert.IsTrue(r2.IsFair);
-        }
-
-        [Test]
-        public void GetHoldCount()
-        {
-            var myLock = new ReentrantLock();
-            for (int i = 1; i <= DEFAULT_COLLECTION_SIZE; i++)
-            {
-                myLock.Lock();
-                Assert.AreEqual(i, myLock.HoldCount);
-            }
-            for (int i = DEFAULT_COLLECTION_SIZE; i > 0; i--)
-            {
-                myLock.Unlock();
-                Assert.AreEqual(i - 1, myLock.HoldCount);
+                return base.GetWaitingThreads(c);
             }
         }
 
-        [Test]
-        public void GetQueuedThreads()
+        [Test] public void DefaultConstructorIsNotFair()
         {
-            var myLock = new PublicReentrantLock(true);
-            var t1 = new Thread(new InterruptedLockRunnable(myLock).Run);
-            var t2 = new Thread(new InterruptibleLockRunnable(myLock).Run);
+            Assert.IsFalse(new ReentrantLock().IsFair);
+        }
 
-            Assert.IsTrue((myLock.QueuedThreads.Count == 0));
-            myLock.Lock();
-            Assert.IsTrue((myLock.QueuedThreads.Count == 0));
-            t1.Start();
+        [Test] public void ConstructorSetsGivenFairness()
+        {
+            Assert.IsTrue(new ReentrantLock(true).IsFair);
+            Assert.IsFalse(new ReentrantLock(false).IsFair);
+        }
 
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsTrue(CollectionUtils.Contains(myLock.QueuedThreads, t1));
-            t2.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsTrue(CollectionUtils.Contains(myLock.QueuedThreads, t1));
-            Assert.IsTrue(CollectionUtils.Contains(myLock.QueuedThreads, t2));
+        [Test] public void LockIsNotInterruptibe([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            _lock.Lock();
+            Thread t1 = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        _lock.Lock();
+                        Assert.IsTrue(TestThreadManager.IsCurrentThreadInterrupted());
+                        Assert.IsTrue(_lock.IsLocked);
+                        Assert.IsTrue(_lock.IsHeldByCurrentThread);
+                        _lock.Unlock();
+                    }, "T1");
+            ThreadManager.StartAndVerifyThread(SMALL_DELAY, t1);
             t1.Interrupt();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsFalse(CollectionUtils.Contains(myLock.QueuedThreads, t1));
-            Assert.IsTrue(CollectionUtils.Contains(myLock.QueuedThreads, t2));
-            myLock.Unlock();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsTrue((myLock.QueuedThreads.Count == 0));
-            t1.Join();
-            t2.Join();
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(t1.IsAlive);
+            Assert.IsTrue(_lock.IsLocked);
+            Assert.IsTrue(_lock.IsHeldByCurrentThread);
+            _lock.Unlock();
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t1);
         }
 
-
-        [Test]
-        public void GetQueueLength()
+        [Test] public void LockSucceedsOnUnlockedLock([Values(true, false)] bool isFair)
         {
-            var myLock = new ReentrantLock(true);
-            var t1 = new Thread(new InterruptedLockRunnable(myLock).Run);
-            var t2 = new Thread(new InterruptibleLockRunnable(myLock).Run);
-
-            Assert.AreEqual(0, myLock.QueueLength);
-            myLock.Lock();
-            t1.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.AreEqual(1, myLock.QueueLength);
-            t2.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.AreEqual(2, myLock.QueueLength);
-            t1.Interrupt();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.AreEqual(1, myLock.QueueLength);
-            myLock.Unlock();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.AreEqual(0, myLock.QueueLength);
-            t1.Join();
-            t2.Join();
-        }
-
-
-        [Test]
-        public void GetQueueLength_fair()
-        {
-            var myLock = new ReentrantLock(true);
-            var t1 = new Thread(new InterruptedLockRunnable(myLock).Run);
-            var t2 = new Thread(new InterruptibleLockRunnable(myLock).Run);
-            Assert.AreEqual(0, myLock.QueueLength);
-            myLock.Lock();
-            t1.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.AreEqual(1, myLock.QueueLength);
-            t2.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.AreEqual(2, myLock.QueueLength);
-            t1.Interrupt();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.AreEqual(1, myLock.QueueLength);
-            myLock.Unlock();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.AreEqual(0, myLock.QueueLength);
-            t1.Join();
-            t2.Join();
-        }
-
-        [Test]
-        public void GetWaitingThreads()
-        {
-            var myLock = new PublicReentrantLock(true);
-
-            ICondition c = myLock.NewCondition();
-            var t1 = new Thread(new AnonymousClassRunnable8(myLock, c).Run);
-
-            var t2 = new Thread(new AnonymousClassRunnable9(myLock, c).Run);
-
-            myLock.Lock();
-            Assert.IsTrue((myLock.GetWaitingThreads(c).Count == 0));
-            myLock.Unlock();
-            t1.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            t2.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            myLock.Lock();
-            Assert.IsTrue(myLock.HasWaiters(c));
-            Assert.IsTrue(CollectionUtils.Contains(myLock.GetWaitingThreads(c), t1));
-            Assert.IsTrue(CollectionUtils.Contains(myLock.GetWaitingThreads(c), t2));
-            c.SignalAll();
-            myLock.Unlock();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            myLock.Lock();
-            Assert.IsFalse(myLock.HasWaiters(c));
-            Assert.IsTrue((myLock.GetWaitingThreads(c).Count == 0));
-            myLock.Unlock();
-            t1.Join(SHORT_DELAY_MS);
-            t2.Join(SHORT_DELAY_MS);
-            Assert.IsFalse(t1.IsAlive);
-            Assert.IsFalse(t2.IsAlive);
-        }
-
-        [Test]
-        [ExpectedException(typeof (ArgumentException))]
-        public void GetWaitingThreadsIAE()
-        {
-            var myLock = new PublicReentrantLock(true);
-            ICondition c = (myLock.NewCondition());
-            var lock2 = new PublicReentrantLock(true);
-            lock2.GetWaitingThreads(c);
-        }
-
-
-        [Test]
-        [ExpectedException(typeof (SynchronizationLockException))]
-        public void GetWaitingThreadsIMSE()
-        {
-            var myLock = new PublicReentrantLock(true);
-            ICondition c = (myLock.NewCondition());
-            myLock.GetWaitingThreads(c);
-        }
-
-        [Test]
-        [ExpectedException(typeof (NullReferenceException))]
-        public void GetWaitingThreadsNRE()
-        {
-            var myLock = new PublicReentrantLock(true);
-            myLock.GetWaitingThreads(null);
-        }
-
-        [Test]
-        public void GetWaitQueueLength()
-        {
-            var myLock = new ReentrantLock(true);
-
-            ICondition c = myLock.NewCondition();
-            var t1 = new Thread(new AnonymousClassRunnable6(myLock, c).Run);
-
-            var t2 = new Thread(new AnonymousClassRunnable7(myLock, c).Run);
-
-            t1.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            t2.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            myLock.Lock();
-            Assert.IsTrue(myLock.HasWaiters(c));
-            Assert.AreEqual(2, myLock.GetWaitQueueLength(c));
-            c.SignalAll();
-            myLock.Unlock();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            myLock.Lock();
-            Assert.IsFalse(myLock.HasWaiters(c));
-            Assert.AreEqual(0, myLock.GetWaitQueueLength(c));
-            myLock.Unlock();
-            t1.Join(SHORT_DELAY_MS);
-            t2.Join(SHORT_DELAY_MS);
-            Assert.IsFalse(t1.IsAlive);
-            Assert.IsFalse(t2.IsAlive);
-        }
-
-        [Test]
-        [ExpectedException(typeof (ArgumentException))]
-        public void GetWaitQueueLengthArgumentException()
-        {
-            var myLock = new ReentrantLock(true);
-            ICondition c = (myLock.NewCondition());
-            var lock2 = new ReentrantLock(true);
-            lock2.GetWaitQueueLength(c);
-        }
-
-        [Test]
-        [ExpectedException(typeof (NullReferenceException))]
-        public void GetWaitQueueLengthNRE()
-        {
-            var myLock = new ReentrantLock(true);
-            myLock.GetWaitQueueLength(null);
-        }
-
-        [Test]
-        [ExpectedException(typeof (SynchronizationLockException))]
-        public void GetWaitQueueLengthSLE()
-        {
-            var myLock = new ReentrantLock(true);
-            ICondition c = (myLock.NewCondition());
-            myLock.GetWaitQueueLength(c);
-        }
-
-
-        [Test]
-        public void HasQueuedThread()
-        {
-            var sync = new ReentrantLock(true);
-            var t1 = new Thread(new InterruptedLockRunnable(sync).Run);
-            var t2 = new Thread(new InterruptibleLockRunnable(sync).Run);
-            Assert.IsFalse(sync.IsQueuedThread(t1));
-            Assert.IsFalse(sync.IsQueuedThread(t2));
-            sync.Lock();
-            t1.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsTrue(sync.IsQueuedThread(t1));
-            t2.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsTrue(sync.IsQueuedThread(t1));
-            Assert.IsTrue(sync.IsQueuedThread(t2));
-            t1.Interrupt();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsFalse(sync.IsQueuedThread(t1));
-            Assert.IsTrue(sync.IsQueuedThread(t2));
-            sync.Unlock();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsFalse(sync.IsQueuedThread(t1));
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsFalse(sync.IsQueuedThread(t2));
-            t1.Join();
-            t2.Join();
-        }
-
-        [Test]
-        [ExpectedException(typeof (ArgumentNullException))]
-        public void HasQueuedThreadNPE()
-        {
-            var sync = new ReentrantLock(true);
-            sync.IsQueuedThread(null);
-        }
-
-        [Test]
-        public void HasQueuedThreads()
-        {
-            var myLock = new ReentrantLock(true);
-            var t1 = new Thread(new InterruptedLockRunnable(myLock).Run);
-            var t2 = new Thread(new InterruptibleLockRunnable(myLock).Run);
-
-            Assert.IsFalse(myLock.HasQueuedThreads);
-            myLock.Lock();
-            t1.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsTrue(myLock.HasQueuedThreads);
-            t2.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsTrue(myLock.HasQueuedThreads);
-            t1.Interrupt();
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsTrue(myLock.HasQueuedThreads);
-            myLock.Unlock();
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsFalse(myLock.HasQueuedThreads);
-            t1.Join();
-            t2.Join();
-        }
-
-        [Test]
-        public void HasWaiters()
-        {
-            var myLock = new ReentrantLock(true);
-            ICondition c = myLock.NewCondition();
-            var t = new Thread(new AnonymousClassRunnable5(myLock, c).Run);
-
-            t.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            myLock.Lock();
-            Assert.IsTrue(myLock.HasWaiters(c));
-            Assert.AreEqual(1, myLock.GetWaitQueueLength(c));
-            c.Signal();
-            myLock.Unlock();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            myLock.Lock();
-            Assert.IsFalse(myLock.HasWaiters(c));
-            Assert.AreEqual(0, myLock.GetWaitQueueLength(c));
-            myLock.Unlock();
-            t.Join(SHORT_DELAY_MS);
-            Assert.IsFalse(t.IsAlive);
-        }
-
-        [Test]
-        [ExpectedException(typeof (ArgumentException))]
-        public void HasWaitersIAE()
-        {
-            var myLock = new ReentrantLock(true);
-            ICondition c = myLock.NewCondition();
-            var lock2 = new ReentrantLock(true);
-            lock2.HasWaiters(c);
-        }
-
-
-        [Test]
-        [ExpectedException(typeof (SynchronizationLockException))]
-        public void HasWaitersIMSE()
-        {
-            var myLock = new ReentrantLock(true);
-            ICondition c = myLock.NewCondition();
-            myLock.HasWaiters(c);
-        }
-
-        [Test]
-        [ExpectedException(typeof (NullReferenceException))]
-        public void HasWaitersNRE()
-        {
-            var myLock = new ReentrantLock(true);
-            myLock.HasWaiters(null);
-        }
-
-
-        [Test]
-        public void InterruptedException2()
-        {
-            var myLock = new ReentrantLock();
-            myLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable(myLock).Run);
-            t.Start();
-            t.Interrupt();
-        }
-
-        [Test]
-        public void IsFairLock()
-        {
-            var rl = new ReentrantLock(true);
+            ReentrantLock rl = new ReentrantLock(isFair);
             rl.Lock();
             Assert.IsTrue(rl.IsLocked);
             rl.Unlock();
         }
 
-
-        [Test]
-        public void IsIsLocked()
+        [Test] public void UnlockChokesWhenAttemptOnUnownedLock([Values(true, false)] bool isFair)
         {
-            var myLock = new ReentrantLock();
-            myLock.Lock();
-            Assert.IsTrue(myLock.IsLocked);
-            myLock.Unlock();
-            Assert.IsFalse(myLock.IsLocked);
-            var t = new Thread(new AnonymousClassRunnable3(myLock).Run);
-            t.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            Assert.IsTrue(myLock.IsLocked);
-            t.Join();
-            Assert.IsFalse(myLock.IsLocked);
+            ReentrantLock rl = new ReentrantLock(isFair);
+            Assert.Throws<SynchronizationLockException>(rl.Unlock);
         }
 
-        [Test]
-        public void Lock()
+        [Test] public void TryLockSucceedsOnUnlockedLock([Values(true, false)] bool isFair)
         {
-            var rl = new ReentrantLock();
-            rl.Lock();
-            Assert.IsTrue(rl.IsLocked);
-            rl.Unlock();
-        }
-
-
-        [Test]
-        public void LockInterruptibly1()
-        {
-            var myLock = new ReentrantLock();
-            myLock.Lock();
-            var t = new Thread(new InterruptedLockRunnable(myLock).Run);
-            t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
-            t.Interrupt();
-            Thread.Sleep(SHORT_DELAY_MS);
-            myLock.Unlock();
-            t.Join();
-        }
-
-
-        [Test]
-        public void LockInterruptibly2()
-        {
-            var myLock = new ReentrantLock();
-            myLock.LockInterruptibly();
-            var t = new Thread(new InterruptedLockRunnable(myLock).Run);
-            t.Start();
-            t.Interrupt();
-            Assert.IsTrue(myLock.IsLocked);
-            Assert.IsTrue(myLock.HeldByCurrentThread);
-            t.Join();
-        }
-
-        [Test]
-        public void OutputToString()
-        {
-            var myLock = new ReentrantLock();
-            String us = myLock.ToString();
-            Assert.IsTrue(us.IndexOf("Unlocked") >= 0);
-            myLock.Lock();
-            String ls = myLock.ToString();
-            Assert.IsTrue(ls.IndexOf("Locked by thread") >= 0);
-        }
-
-        [Test]
-        public void Serialization()
-        {
-            var l = new ReentrantLock();
-            l.Lock();
-            l.Unlock();
-            var bout = new MemoryStream(10000);
-
-            var formatter = new BinaryFormatter();
-            formatter.Serialize(bout, l);
-
-            var bin = new MemoryStream(bout.ToArray());
-            var formatter2 = new BinaryFormatter();
-            var r = (ReentrantLock) formatter2.Deserialize(bin);
-            r.Lock();
-            r.Unlock();
-        }
-
-
-        [Test]
-        [ExpectedException(typeof (SynchronizationLockException))]
-        public void Signal_IllegalMonitor()
-        {
-            var myLock = new ReentrantLock();
-            ICondition c = myLock.NewCondition();
-            c.Signal();
-        }
-
-
-        [Test]
-        public void SignalAll()
-        {
-            var myLock = new ReentrantLock();
-
-            ICondition c = myLock.NewCondition();
-            var t1 = new Thread(new AnonymousClassRunnable13(myLock, c).Run);
-
-            var t2 = new Thread(new AnonymousClassRunnable14(myLock, c).Run);
-
-            t1.Start();
-            t2.Start();
-
-            Thread.Sleep(SHORT_DELAY_MS);
-            myLock.Lock();
-            c.SignalAll();
-            myLock.Unlock();
-            t1.Join(SHORT_DELAY_MS);
-            t2.Join(SHORT_DELAY_MS);
-            Assert.IsFalse(t1.IsAlive);
-            Assert.IsFalse(t2.IsAlive);
-        }
-
-        [Test]
-        public void TryLock()
-        {
-            var rl = new ReentrantLock();
+            ReentrantLock rl = new ReentrantLock(isFair);
             Assert.IsTrue(rl.TryLock());
             Assert.IsTrue(rl.IsLocked);
             rl.Unlock();
         }
 
-        [Test]
-        public void TryLock_Timeout()
+        [TestCase(true)]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void HasQueuedThreadsReportsExistenceOfWaitingThreads(bool isFair)
         {
-            var myLock = new ReentrantLock();
-            myLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable2(myLock).Run);
-            t.Start();
-            t.Join();
-            myLock.Unlock();
+            _lock = new ReentrantLock(isFair);
+            Thread t1 = ThreadManager.NewVerifiableThread(InterruptedLock, "T1");
+            Thread t2 = ThreadManager.NewVerifiableThread(InterruptibleLock, "T2");
+
+            Assert.IsFalse(_lock.HasQueuedThreads);
+            _lock.Lock();
+            t1.Start();
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(_lock.HasQueuedThreads);
+            t2.Start();
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(_lock.HasQueuedThreads);
+            t1.Interrupt();
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(_lock.HasQueuedThreads);
+            _lock.Unlock();
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsFalse(_lock.HasQueuedThreads);
+
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t1);
         }
 
-        [Test]
-        public void TryLockWhenIsLocked()
+        [TestCase(true)]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void GetQueueLengthReportsNumberOfWaitingThreads(bool isFair)
         {
-            var myLock = new ReentrantLock();
-            myLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable1(myLock).Run);
-            t.Start();
-            t.Join();
-            myLock.Unlock();
+            _lock = new ReentrantLock(isFair);
+            Thread t1 = ThreadManager.NewVerifiableThread(InterruptedLock, "T1");
+            Thread t2 = ThreadManager.NewVerifiableThread(InterruptibleLock, "T2");
+
+            Assert.AreEqual(0, _lock.QueueLength);
+            _lock.Lock();
+            t1.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.AreEqual(1, _lock.QueueLength);
+            t2.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.AreEqual(2, _lock.QueueLength);
+            t1.Interrupt();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.AreEqual(1, _lock.QueueLength);
+            _lock.Unlock();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.AreEqual(0, _lock.QueueLength);
+
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t1);
         }
 
-        [Test]
-        [ExpectedException(typeof (SynchronizationLockException))]
-        public void Unlock_InvalidOperationException()
+        [TestCase(true, ExpectedException = typeof(ArgumentNullException))]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void IsQueuedThreadChokesOnNullParameter(bool isFair)
         {
-            var rl = new ReentrantLock();
-            rl.Unlock();
-            Assert.Fail("Should throw an exception");
+            ReentrantLock sync = new ReentrantLock(isFair);
+            sync.IsQueuedThread(null);
         }
+
+        [TestCase(true)]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void IsQueuedThreadReportsWhetherThreadIsQueued(bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            Thread t1 = ThreadManager.NewVerifiableThread(InterruptedLock, "T1");
+            Thread t2 = ThreadManager.NewVerifiableThread(InterruptibleLock, "T2");
+            Assert.IsFalse(_lock.IsQueuedThread(t1));
+            Assert.IsFalse(_lock.IsQueuedThread(t2));
+            _lock.Lock();
+            t1.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(_lock.IsQueuedThread(t1));
+            t2.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(_lock.IsQueuedThread(t1));
+            Assert.IsTrue(_lock.IsQueuedThread(t2));
+            t1.Interrupt();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsFalse(_lock.IsQueuedThread(t1));
+            Assert.IsTrue(_lock.IsQueuedThread(t2));
+            _lock.Unlock();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsFalse(_lock.IsQueuedThread(t1));
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsFalse(_lock.IsQueuedThread(t2));
+
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t1);
+        }
+
+        [TestCase(true)]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void GetQueuedThreadsIncludeWaitingThreads(bool isFair)
+        {
+            _lock = new PublicReentrantLock(isFair);
+            Thread t1 = ThreadManager.NewVerifiableThread(InterruptedLock, "T1");
+            Thread t2 = ThreadManager.NewVerifiableThread(InterruptibleLock, "T2");
+
+            Assert.That(_lock.QueuedThreads.Count, Is.EqualTo(0));
+            _lock.Lock();
+            Assert.IsTrue((_lock.QueuedThreads.Count == 0));
+            t1.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(_lock.QueuedThreads.Contains(t1));
+            t2.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(_lock.QueuedThreads.Contains(t1));
+            Assert.IsTrue(_lock.QueuedThreads.Contains(t2));
+            t1.Interrupt();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsFalse(_lock.QueuedThreads.Contains(t1));
+            Assert.IsTrue(_lock.QueuedThreads.Contains(t2));
+            _lock.Unlock();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue((_lock.QueuedThreads.Count == 0));
+
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t1);
+        }
+
+        [Test] public void TimedTryLockIsInterruptible([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            _lock.Lock();
+            Thread t = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        Assert.Throws<ThreadInterruptedException>(
+                            delegate
+                                {
+                                    _lock.TryLock(MEDIUM_DELAY);
+                                });
+                    });
+            t.Start();
+            t.Interrupt();
+
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t);
+        }
+
+        [Test] public void TimedTryLockAllSucceedsFromMultipleThreads([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            _lock.LockInterruptibly();
+            ThreadStart action =
+                delegate
+                    {
+                        Assert.IsTrue(_lock.TryLock(LONG_DELAY));
+                        try
+                        {
+                            Thread.Sleep(SHORT_DELAY);
+                        }
+                        finally
+                        {
+                            _lock.Unlock();
+                        }
+
+                    };
+            Thread t1 = ThreadManager.NewVerifiableThread(action, "T1");
+            Thread t2 = ThreadManager.NewVerifiableThread(action, "T2");
+            ThreadManager.StartAndVerifyThread(SMALL_DELAY, t1, t2);
+            Assert.IsTrue(_lock.IsLocked);
+            Assert.IsTrue(_lock.IsHeldByCurrentThread);
+            _lock.Unlock();
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t1, t2);
+        }
+
+        [Test] public void TryLockChokesWhenIsLocked([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            _lock.Lock();
+            Thread t = new Thread(ThreadManager.NewVerifiableAction(delegate { Assert.IsFalse(_lock.TryLock());}));
+            t.Start();
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t);
+            _lock.Unlock();
+        }
+
+        [Test] public void TimedTryLockTimesOutOnLockedLock([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            _lock.Lock();
+            Thread t = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        Assert.IsFalse(_lock.TryLock(new TimeSpan(0, 0, 1/1000)));
+                    });
+            t.Start();
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t);
+            _lock.Unlock();
+        }
+
+        [Test] public void GetHoldCountReturnsNumberOfRecursiveHolds([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+
+            RecursiveHolds(delegate { _lock.Lock(); });
+            RecursiveHolds((delegate
+            {
+                Assert.IsTrue(_lock.TryLock());
+            }));
+            RecursiveHolds(delegate
+            {
+                Assert.IsTrue(_lock.TryLock(SHORT_DELAY));
+            });
+            RecursiveHolds(delegate { _lock.LockInterruptibly(); });
+        }
+
+        private void RecursiveHolds(Task lockTask)
+        {
+            for (int i = 1; i <= DEFAULT_COLLECTION_SIZE; i++)
+            {
+                lockTask();
+                Assert.AreEqual(i, _lock.HoldCount);
+            }
+            for (int i = DEFAULT_COLLECTION_SIZE; i > 0; i--)
+            {
+                _lock.Unlock();
+                Assert.AreEqual(i - 1, _lock.HoldCount);
+            }
+        }
+
+        [Test] public void IsIsLockedReportsIfLockOwnedByCurrnetThread([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            _lock.Lock();
+            Assert.IsTrue(_lock.IsLocked);
+            _lock.Unlock();
+            Assert.IsFalse(_lock.IsLocked);
+            Thread t = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        _lock.Lock();
+                        Thread.Sleep(new TimeSpan(10000*SMALL_DELAY.Milliseconds));
+                        _lock.Unlock();
+                    });
+            t.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(_lock.IsLocked);
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t);
+            Assert.IsFalse(_lock.IsLocked);
+        }
+
+        [Test] public void LockInterruptiblySucceedsWhenUnlockedElseIsInterruptible([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            _lock.LockInterruptibly();
+            Thread t1 = ThreadManager.NewVerifiableThread(InterruptedLock, "T1");
+            Thread t2 = ThreadManager.NewVerifiableThread(delegate { using (_lock.LockInterruptibly()){}}, "T2");
+            Thread t3 = ThreadManager.NewVerifiableThread(delegate { using (_lock.LockInterruptibly()){}}, "T3");
+            ThreadManager.StartAndVerifyThread(SMALL_DELAY, t1, t2, t3);
+            t1.Interrupt();
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t1);
+            Assert.IsTrue(_lock.IsLocked);
+            Assert.IsTrue(_lock.IsHeldByCurrentThread);
+            _lock.Unlock();
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, t2, t3);
+        }
+
+        [Test, ExpectedException(typeof(SynchronizationLockException))]
+        public void AwaitChokesWhenLockIsNotOwned([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            c.Await();
+        }
+
+        [Test, ExpectedException(typeof(SynchronizationLockException))]
+        public void SignalChokesWhenLockIsNotOwned([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            c.Signal();
+        }
+
+        [Test] public void AwaitTimeoutInNanosWithoutSignal([Values(true, false)] bool isFair)
+        {
+            TimeSpan timeToWait = new TimeSpan(1);
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            _lock.Lock();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            bool result = c.Await(timeToWait);
+            sw.Stop();
+            Assert.IsFalse(result);
+            Assert.That(sw.Elapsed, Is.Not.LessThan(timeToWait));
+            _lock.Unlock();
+        }
+
+        [Test] public void AwaitTimeoutWithoutSignal([Values(true, false)] bool isFair)
+        {
+            TimeSpan timeToWait = SHORT_DELAY;
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            _lock.Lock();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            bool result = c.Await(timeToWait);
+            sw.Stop();
+            Assert.IsFalse(result);
+            Assert.That(sw.Elapsed, Is.Not.LessThan(timeToWait));
+            _lock.Unlock();
+        }
+
+        [Test] public void AwaitUntilTimeoutWithoutSignal([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            _lock.Lock();
+            DateTime until = DateTime.Now.AddMilliseconds(10);
+            bool result = c.AwaitUntil(until);
+            Assert.That(DateTime.Now, Is.GreaterThanOrEqualTo(until));
+            Assert.IsFalse(result);
+            _lock.Unlock();
+        }
+
+        [Test] public void AwaitReturnsWhenSignalled([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            Thread t = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        _lock.Lock();
+                        c.Await();
+                        _lock.Unlock();
+                    });
+
+            t.Start();
+            Thread.Sleep(SHORT_DELAY);
+            _lock.Lock();
+            c.Signal();
+            _lock.Unlock();
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t);
+        }
+
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void HasWaitersChokesOnNullParameter([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            _lock.HasWaiters(null);
+        }
+
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void GetWaitQueueLengthChokesOnNullParameter([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            _lock.GetWaitQueueLength(null);
+        }
+
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void GetWaitingThreadsChokesOnNullParameter([Values(true, false)] bool isFair)
+        {
+            PublicReentrantLock myLock = new PublicReentrantLock(isFair);
+            myLock.GetWaitingThreadsPublic(null);
+        }
+
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void HasWaitersChokesWhenNotOwned([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            ReentrantLock lock2 = new ReentrantLock(isFair);
+            lock2.HasWaiters(c);
+        }
+
+        [TestCase(true, ExpectedException = typeof(SynchronizationLockException))]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void HasWaitersChokesWhenNotLocked(bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            _lock.HasWaiters(c);
+        }
+
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void GetWaitQueueLengthChokesWhenNotOwned([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = (_lock.NewCondition());
+            ReentrantLock lock2 = new ReentrantLock(isFair);
+            lock2.GetWaitQueueLength(c);
+        }
+
+        [TestCase(true, ExpectedException = typeof(SynchronizationLockException))]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void GetWaitQueueLengthChokesWhenNotLocked(bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = (_lock.NewCondition());
+            _lock.GetWaitQueueLength(c);
+        }
+
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void GetWaitingThreadsChokesWhenNotOwned([Values(true, false)] bool isFair)
+        {
+            PublicReentrantLock myLock = new PublicReentrantLock(isFair);
+            ICondition c = (myLock.NewCondition());
+            PublicReentrantLock lock2 = new PublicReentrantLock(isFair);
+            lock2.GetWaitingThreadsPublic(c);
+        }
+
+        [TestCase(true, ExpectedException = typeof(SynchronizationLockException))]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void GetWaitingThreadsChokesWhenNotLocked(bool isFair)
+        {
+            PublicReentrantLock myLock = new PublicReentrantLock(isFair);
+            ICondition c = (myLock.NewCondition());
+            myLock.GetWaitingThreadsPublic(c);
+        }
+
+        [Test] public void HasWaitersReturnTrueWhenThreadIsWaitingElseFalse([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(true);
+            ICondition c = _lock.NewCondition();
+            Thread t = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        using (_lock.Lock())
+                        {
+                            Assert.IsFalse(_lock.HasWaiters(c));
+                            Assert.That(_lock.GetWaitQueueLength(c), Is.EqualTo(0));
+                            c.Await();
+                        }
+                    });
+
+            t.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            _lock.Lock();
+            Assert.IsTrue(_lock.HasWaiters(c));
+            Assert.AreEqual(1, _lock.GetWaitQueueLength(c));
+            c.Signal();
+            _lock.Unlock();
+
+            Thread.Sleep(SHORT_DELAY);
+            _lock.Lock();
+            Assert.IsFalse(_lock.HasWaiters(c));
+            Assert.AreEqual(0, _lock.GetWaitQueueLength(c));
+            _lock.Unlock();
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t);
+        }
+
+        [TestCase(true)]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void GetWaitQueueLengthReturnsNumberOfThreads(bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+
+            ICondition c = _lock.NewCondition();
+            Thread t1 = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        using (_lock.Lock())
+                        {
+                            Assert.IsFalse(_lock.HasWaiters(c));
+                            Assert.AreEqual(0, _lock.GetWaitQueueLength(c));
+                            c.Await();
+                        }
+                    }, "T1");
+
+            Thread t2 = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        using (_lock.Lock())
+                        {
+                            Assert.IsTrue(_lock.HasWaiters(c));
+                            Assert.AreEqual(1, _lock.GetWaitQueueLength(c));
+                            c.Await();
+                        }
+                    }, "T2");
+
+            t1.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            t2.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            _lock.Lock();
+            Assert.IsTrue(_lock.HasWaiters(c));
+            Assert.AreEqual(2, _lock.GetWaitQueueLength(c));
+            c.SignalAll();
+            _lock.Unlock();
+
+            Thread.Sleep(SHORT_DELAY);
+            _lock.Lock();
+            Assert.IsFalse(_lock.HasWaiters(c));
+            Assert.AreEqual(0, _lock.GetWaitQueueLength(c));
+            _lock.Unlock();
+
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t1);
+        }
+
+        [TestCase(true)]
+        [TestCase(false, ExpectedException = typeof(NotSupportedException))]
+        public void GetWaitingThreadsIncludesWaitingThreads(bool isFair)
+        {
+            PublicReentrantLock myLock = new PublicReentrantLock(isFair);
+
+            ICondition c = myLock.NewCondition();
+            Thread t1 = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        myLock.Lock();
+                        Assert.That(myLock.GetWaitingThreadsPublic(c).Count, Is.EqualTo(0));
+                        c.Await();
+                        myLock.Unlock();
+                    });
+
+            Thread t2 = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        myLock.Lock();
+                        Assert.That(myLock.GetWaitingThreadsPublic(c).Count, Is.Not.EqualTo(0));
+                        c.Await();
+                        myLock.Unlock();
+                    });
+
+            myLock.Lock();
+            Assert.That(myLock.GetWaitingThreadsPublic(c).Count, Is.EqualTo(0));
+            myLock.Unlock();
+            t1.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            t2.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            myLock.Lock();
+            Assert.IsTrue(myLock.HasWaiters(c));
+            Assert.IsTrue(myLock.GetWaitingThreadsPublic(c).Contains(t1));
+            Assert.IsTrue(myLock.GetWaitingThreadsPublic(c).Contains(t2));
+            c.SignalAll();
+            myLock.Unlock();
+
+            Thread.Sleep(SHORT_DELAY);
+            myLock.Lock();
+            Assert.IsFalse(myLock.HasWaiters(c));
+            Assert.IsTrue((myLock.GetWaitingThreadsPublic(c).Count == 0));
+            myLock.Unlock();
+
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t1);
+        }
+
+        [Test] public void AwaitUninterruptiblyCannotBeInterrupted([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            UninterruptableThread thread = new UninterruptableThread(_lock, c);
+
+            thread.InternalThread.Start();
+
+            while (!thread.LockStarted)
+            {
+                Thread.Sleep(100);
+            }
+
+            _lock.Lock();
+            try
+            {
+                thread.InternalThread.Interrupt();
+                thread.CanAwake = true;
+                c.Signal();
+            }
+            finally
+            {
+                _lock.Unlock();
+            }
+
+            ThreadManager.JoinAndVerifyThreads(MEDIUM_DELAY, thread.InternalThread);
+            Assert.IsTrue(thread.Interrupted);
+        }
+
+        [Test] public void AwaitIsInterruptible([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+
+            ICondition c = _lock.NewCondition();
+            Thread t = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        Assert.Throws<ThreadInterruptedException>(
+                            delegate
+                                {
+                                    using (_lock.Lock()) c.Await();
+                                });
+                    });
+
+            t.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            t.Interrupt();
+
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t);
+        }
+
+        [Test] public void AwaitNanosIsInterruptible([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+
+            ICondition c = _lock.NewCondition();
+            Thread t = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        Assert.Throws<ThreadInterruptedException>(
+                            delegate
+                                {
+                                    using (_lock.Lock())
+                                        c.Await(new TimeSpan(0, 0, 0, 1));
+                                });
+                    });
+
+            t.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            t.Interrupt();
+
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t);
+        }
+
+        [Test] public void AwaitUntilIsInterruptible([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+
+            ICondition c = _lock.NewCondition();
+            Thread t = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        Assert.Throws<ThreadInterruptedException>(
+                            delegate
+                                {
+                                    using (_lock.Lock())
+                                        c.AwaitUntil(
+                                            DateTime.Now.AddMilliseconds(10000));
+                                });
+                    });
+
+            t.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            t.Interrupt();
+
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t);
+        }
+
+        [Test] public void SignalAllWakesUpAllThreads([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+
+            ICondition c = _lock.NewCondition();
+            Thread t1 = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        using (_lock.Lock()) c.Await();
+                    }, "T1");
+
+            Thread t2 = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        using (_lock.Lock()) c.Await();
+                    }, "T2");
+
+            t1.Start();
+            t2.Start();
+
+            Thread.Sleep(SHORT_DELAY);
+            _lock.Lock();
+            c.SignalAll();
+            _lock.Unlock();
+
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t1);
+        }
+
+        [Test] public void AwaitAfterMultipleReentrantLockingPreservesLockCount([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            ICondition c = _lock.NewCondition();
+            Thread t1 = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        using (_lock.Lock())
+                        {
+                            Assert.That(_lock.HoldCount, Is.EqualTo(1));
+                            c.Await();
+                            Assert.That(_lock.HoldCount, Is.EqualTo(1));
+                        }
+                    }, "T1");
+            Thread t2 = ThreadManager.NewVerifiableThread(
+                delegate
+                    {
+                        using (_lock.Lock())
+                        using (_lock.Lock())
+                        {
+                            Assert.That(_lock.HoldCount, Is.EqualTo(2));
+                            c.Await();
+                            Assert.That(_lock.HoldCount, Is.EqualTo(2));
+                        }
+                    }, "T2");
+
+            t1.Start();
+            t2.Start();
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsFalse(_lock.IsLocked);
+            using(_lock.Lock()) c.SignalAll();
+
+            ThreadManager.JoinAndVerifyThreads(SHORT_DELAY, t1);
+        }
+
+        [Test] public void SerializationDeserializesAsUunlocked([Values(true, false)] bool isFair)
+        {
+            ReentrantLock l = new ReentrantLock(isFair);
+            l.Lock();
+            l.Unlock();
+            MemoryStream bout = new MemoryStream(10000);
+
+            BinaryFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(bout, l);
+
+            MemoryStream bin = new MemoryStream(bout.ToArray());
+            BinaryFormatter formatter2 = new BinaryFormatter();
+            ReentrantLock r = (ReentrantLock)formatter2.Deserialize(bin);
+            r.Lock();
+            r.Unlock();
+        }
+
+        [Test] public void ToStringVerification([Values(true, false)] bool isFair)
+        {
+            _lock = new ReentrantLock(isFair);
+            StringAssert.Contains("Unlocked", _lock.ToString());
+            using (_lock.Lock())
+            {
+                StringAssert.Contains("Locked by thread", _lock.ToString());
+            }
+            StringAssert.Contains("Unlocked", _lock.ToString());
+        }
+
+        #region Private Methods
+
+        private void InterruptedLock()
+        {
+            Assert.Throws<ThreadInterruptedException>(delegate
+            {
+                _lock.LockInterruptibly();
+            });
+        }
+
+        private void InterruptibleLock()
+        {
+            try
+            {
+                _lock.LockInterruptibly();
+            }
+            catch (ThreadInterruptedException)
+            {
+            }
+        }
+
+        #endregion
     }
 }

@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spring.Threading.2008", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spring.Threading.Tests.2008", "test\Spring\Spring.Threading.Tests\Spring.Threading.Tests.2008.csproj", "{CFBFDB73-1391-45ED-87A7-6F28146319BA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spring.Threading.Loops.2008", "test\Spring\Spring.Threading.Loops\Spring.Threading.Loops.2008.csproj", "{884A2A9E-E587-4651-A683-9855FB50C926}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{884A2A9E-E587-4651-A683-9855FB50C926}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{884A2A9E-E587-4651-A683-9855FB50C926}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{884A2A9E-E587-4651-A683-9855FB50C926}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{884A2A9E-E587-4651-A683-9855FB50C926}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

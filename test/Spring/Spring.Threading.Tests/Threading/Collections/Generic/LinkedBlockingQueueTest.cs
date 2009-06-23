@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
-using Spring.Threading.Collections;
-using Spring.Threading.Collections.Generic;
 
-namespace Spring.Threading.Tests.Collections {
+namespace Spring.Threading.Collections.Generic
+{
     [TestFixture]
     public class LinkedBlockingQueueTest {
         [Test]

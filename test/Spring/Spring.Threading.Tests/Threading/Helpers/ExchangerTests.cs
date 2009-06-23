@@ -55,9 +55,9 @@ namespace Spring.Threading.Helpers
 
             public void Run()
             {
-                Object v = e.Exchange(one, SHORT_DELAY_MS);
+                Object v = e.Exchange(one, SHORT_DELAY);
                 Assert.AreEqual(v, two);
-                Object w = e.Exchange(v, SHORT_DELAY_MS);
+                Object w = e.Exchange(v, SHORT_DELAY);
                 Assert.AreEqual(w, one);
             }
         }
@@ -73,9 +73,9 @@ namespace Spring.Threading.Helpers
 
             public void Run()
             {
-                Object v = e.Exchange(two, SHORT_DELAY_MS);
+                Object v = e.Exchange(two, SHORT_DELAY);
                 Assert.AreEqual(v, one);
-                Object w = e.Exchange(v, SHORT_DELAY_MS);
+                Object w = e.Exchange(v, SHORT_DELAY);
                 Assert.AreEqual(w, two);
             }
         }
@@ -115,7 +115,7 @@ namespace Spring.Threading.Helpers
             {
                 try
                 {
-                    e.Exchange(null, MEDIUM_DELAY_MS);
+                    e.Exchange(null, MEDIUM_DELAY);
                     Debug.Fail("Should throw an exception");
                 }
                 catch (ThreadInterruptedException)
@@ -137,7 +137,7 @@ namespace Spring.Threading.Helpers
             {
                 try
                 {
-                    e.Exchange(null, SHORT_DELAY_MS);
+                    e.Exchange(null, SHORT_DELAY);
                     Debug.Fail("Should throw an exception.");
                 }
                 catch (TimeoutException)
@@ -184,7 +184,7 @@ namespace Spring.Threading.Helpers
             {
                 Object v = e.Exchange(two);
                 Assert.AreEqual(v, one);
-                Thread.Sleep(SMALL_DELAY_MS);
+                Thread.Sleep(SMALL_DELAY);
                 Object w = e.Exchange(v);
                 Assert.AreEqual(w, three);
             }
@@ -201,7 +201,7 @@ namespace Spring.Threading.Helpers
 
             public void Run()
             {
-                Thread.Sleep(SMALL_DELAY_MS);
+                Thread.Sleep(SMALL_DELAY);
                 Object w = e.Exchange(three);
                 Assert.AreEqual(w, one);
             }
@@ -242,7 +242,7 @@ namespace Spring.Threading.Helpers
             Exchanger e = new Exchanger();
             Thread t = new Thread(new AnonymousClassRunnable4(e).Run);
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -280,7 +280,7 @@ namespace Spring.Threading.Helpers
             t1.Start();
             t2.Start();
             t3.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t1.Interrupt();
             t1.Join();
             t2.Join();

@@ -1,36 +1,59 @@
+using System;
+using System.Threading;
 using NUnit.Framework;
 using Rhino.Mocks;
+using Spring.Threading.Collections.Generic;
 
 namespace Spring.Threading.Execution.ExecutionPolicy
 {
     [TestFixture]
-    public class CallerRunsPolicyTests : BaseMockTestCase
+    public class CallerRunsPolicyTests
     {
+        private MockRepository _mockery;
+        private IBlockingQueue<IRunnable> _queue;
+        private IRunnable _runnable;
+        private CallerRunsPolicy _callerRunsPolicy;
+        private ThreadPoolExecutor _threadPoolExecutor;
+
+        [SetUp] public void SetUp()
+        {
+            _mockery = new MockRepository();
+            _queue = _mockery.Stub<IBlockingQueue<IRunnable>>();
+            _runnable = _mockery.StrictMock<IRunnable>();
+            _callerRunsPolicy = new CallerRunsPolicy();
+            _threadPoolExecutor = new ThreadPoolExecutor(1, 1, TimeSpan.FromSeconds(1), _queue);
+        }
+
         [Test]
         public void RunsRunnableWithNonShutdownExecutorService()
         {
-            IExecutorService executorServiceMock =  _repository.StrictMock<IExecutorService>();
-            Expect.On(executorServiceMock).Call(executorServiceMock.IsShutdown).Return(false);
+            Thread callerThread = Thread.CurrentThread;
 
-            IRunnable runnableMock = _repository.StrictMock<IRunnable>();
-            runnableMock.Run();
+            _runnable.Run();
+            LastCall.Callback(delegate
+                {
+                    return ReferenceEquals(Thread.CurrentThread, callerThread);
+                });
 
-            _repository.ReplayAll();
+            _mockery.ReplayAll();
 
-            CallerRunsPolicy callerRunsPolicy = new CallerRunsPolicy();
-            callerRunsPolicy.RejectedExecution(runnableMock, executorServiceMock);
+            _callerRunsPolicy.RejectedExecution(_runnable, _threadPoolExecutor);
+
+            _mockery.VerifyAll();
         }
+
         [Test]
         public void DoesNotRunRunnableWithShutdownExecutorService()
         {
-            IExecutorService executorServiceMock =  _repository.StrictMock<IExecutorService>();
-            Expect.On(executorServiceMock).Call(executorServiceMock.IsShutdown).Return(true);
+            _runnable.Run();
+            LastCall.Repeat.Never();
 
-            IRunnable runnableMock =  _repository.StrictMock<IRunnable>();
-            _repository.ReplayAll();
+            _mockery.ReplayAll();
 
-            CallerRunsPolicy callerRunsPolicy = new CallerRunsPolicy();
-            callerRunsPolicy.RejectedExecution(runnableMock, executorServiceMock );
+            _threadPoolExecutor.ShutdownNow();
+            _callerRunsPolicy.RejectedExecution(_runnable, _threadPoolExecutor);
+
+            _mockery.VerifyAll();
         }
     }
 }

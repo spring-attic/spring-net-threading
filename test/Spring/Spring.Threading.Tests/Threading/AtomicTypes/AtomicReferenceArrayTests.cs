@@ -30,30 +30,8 @@ namespace Spring.Threading.AtomicTypes
 	[TestFixture]
 	public class AtomicReferenceArrayTests : BaseThreadingTestCase
 	{
-		private class AnonymousClassRunnable
-		{
-			private AtomicReferenceArray<int> a;
-
-			public AnonymousClassRunnable(AtomicReferenceArray<int> a)
-			{
-				InitBlock(a);
-			}
-
-            private void InitBlock(AtomicReferenceArray<int> a)
-			{
-				this.a = a;
-			}
-
-			[Test]
-			public void Run()
-			{
-				while (!a.CompareAndSet(0, two, three))
-					Thread.Sleep(SHORT_DELAY_MS);
-			}
-		}
-
-		[Test]
-		public void DefaultConstructor()
+	    [Test]
+        public void ConstructAtomicIntegerArryWithGivenSize()
 		{
             AtomicReferenceArray<object> ai = new AtomicReferenceArray<object>(DEFAULT_COLLECTION_SIZE);
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
@@ -64,80 +42,58 @@ namespace Spring.Threading.AtomicTypes
 
 		[ExpectedException(typeof (ArgumentNullException))]
 		[Test]
-		public void NullReferenceExceptionForConstructor()
+        public void ConstructorChokesOnNullArgument()
 		{
 			object[] a = null;
 			new AtomicReferenceArray<object>(a);
 		}
 
 		[Test]
-		public void NewAtomicReferenceArrayFromExistingArrayConstructor()
+        public void ConstructFromExistingArray()
 		{
-			int[] a = new int[] {two, one, three, four, seven};
-            AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(a);
-			Assert.AreEqual(a.Length, ai.Length());
+			object[] a = new object[] {two, one, three, four, seven};
+            AtomicReferenceArray<object> ai = new AtomicReferenceArray<object>(a);
+			Assert.AreEqual(a.Length, ai.Count);
 			for (int i = 0; i < a.Length; ++i)
 				Assert.AreEqual(a[i], ai[i]);
 		}
 
 
 		[Test]
-		public void OutOfBoundsIndexingException()
+        public void IndexerChokesOnOutOfRangeIndex()
 		{
-            AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(DEFAULT_COLLECTION_SIZE);
-			try
-			{
-				int a = ai[DEFAULT_COLLECTION_SIZE];
-			}
-			catch (IndexOutOfRangeException success)
-			{
-                string s = success.Message;
-			}
-			try
-			{
-				int a = ai[- 1];
-			}
-			catch (IndexOutOfRangeException success)
-			{
-                string s = success.Message;
-			}
-			try
-			{
-				ai.SetNewAtomicValue(DEFAULT_COLLECTION_SIZE, 0);
-			}
-			catch (IndexOutOfRangeException success)
-			{
-                string s = success.Message;
-			}
-			try
-			{
-				ai.SetNewAtomicValue(- 1, 0);
-			}
-			catch (IndexOutOfRangeException success)
-			{
-                string s = success.Message;
-			}
+            AtomicReferenceArray<object> ai = new AtomicReferenceArray<object>(DEFAULT_COLLECTION_SIZE);
+		    object a = null;
+            TestHelper.AssertException<IndexOutOfRangeException>(
+                delegate { a = ai[DEFAULT_COLLECTION_SIZE]; });
+            TestHelper.AssertException<IndexOutOfRangeException>(
+                delegate { a = ai[-1]; });
+            TestHelper.AssertException<IndexOutOfRangeException>(
+                delegate { ai.Exchange(DEFAULT_COLLECTION_SIZE, 0); });
+            TestHelper.AssertException<IndexOutOfRangeException>(
+                delegate { ai.Exchange(-1, 0); });
+            Assert.IsNull(a);
 		}
 
 		[Test]
 		public void GetReturnsLastValueSetAtIndex()
 		{
-            AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(DEFAULT_COLLECTION_SIZE);
+            AtomicReferenceArray<object> ai = new AtomicReferenceArray<object>(DEFAULT_COLLECTION_SIZE);
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
-				ai.SetNewAtomicValue(i, one);
+                ai[i] = one;
 				Assert.AreEqual(one, ai[i]);
-				ai.SetNewAtomicValue(i, two);
+                ai[i] = two;
 				Assert.AreEqual(two, ai[i]);
-				ai.SetNewAtomicValue(i, m3);
+                ai[i] = m3;
 				Assert.AreEqual(m3, ai[i]);
 			}
 		}
 
-		[Test]
+        [Test]
 		public void GetReturnsLastValueLazySetAtIndex()
 		{
-            AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(DEFAULT_COLLECTION_SIZE);
+            AtomicReferenceArray<object> ai = new AtomicReferenceArray<object>(DEFAULT_COLLECTION_SIZE);
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
 				ai.LazySet(i, one);
@@ -152,10 +108,10 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareExistingValueAndSetNewValue()
 		{
-            AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(DEFAULT_COLLECTION_SIZE);
+            AtomicReferenceArray<object> ai = new AtomicReferenceArray<object>(DEFAULT_COLLECTION_SIZE);
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
-				ai.SetNewAtomicValue(i, one);
+                ai.Exchange(i, one);
 				Assert.IsTrue(ai.CompareAndSet(i, one, two));
 				Assert.IsTrue(ai.CompareAndSet(i, two, m4));
 				Assert.AreEqual(m4, ai[i]);
@@ -169,13 +125,17 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreads()
 		{
-            AtomicReferenceArray<int> a = new AtomicReferenceArray<int>(1);
-			a.SetNewAtomicValue(0, one);
-			Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable(a).Run));
+            AtomicReferenceArray<object> a = new AtomicReferenceArray<object>(1);
+            a.Exchange(0, one);
+            Thread t = new Thread(delegate()
+            {
+                while (!a.CompareAndSet(0, two, three))
+                    Thread.Sleep(SHORT_DELAY);
+            });
 
 			t.Start();
 			Assert.IsTrue(a.CompareAndSet(0, one, two));
-			t.Join(LONG_DELAY_MS);
+			t.Join(LONG_DELAY);
 			Assert.IsFalse(t.IsAlive);
 			Assert.AreEqual(a[0], three);
 		}
@@ -183,41 +143,38 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void WeakCompareAndSet()
 		{
-            AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(DEFAULT_COLLECTION_SIZE);
+            AtomicReferenceArray<object> ai = new AtomicReferenceArray<object>(DEFAULT_COLLECTION_SIZE);
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
-				ai.SetNewAtomicValue(i, one);
-				while (!ai.WeakCompareAndSet(i, one, two))
-					;
-				while (!ai.WeakCompareAndSet(i, two, m4))
-					;
+                ai.Exchange(i, one);
+				while (!ai.WeakCompareAndSet(i, one, two)) {}
+				while (!ai.WeakCompareAndSet(i, two, m4)) {}
 				Assert.AreEqual(m4, ai[i]);
-				while (!ai.WeakCompareAndSet(i, m4, seven))
-					;
+				while (!ai.WeakCompareAndSet(i, m4, seven)) {}
 				Assert.AreEqual(seven, ai[i]);
 			}
 		}
 
 		[Test]
-		public void GetExistingValueAndSetNewValue()
+        public void Exchange()
 		{
-            AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(DEFAULT_COLLECTION_SIZE);
+            AtomicReferenceArray<Integer> ai = new AtomicReferenceArray<Integer>(DEFAULT_COLLECTION_SIZE);
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
-				ai.SetNewAtomicValue(i, one);
-				Assert.AreEqual(one, ai.SetNewAtomicValue(i, zero));
-				Assert.AreEqual(0, ((int) ai.SetNewAtomicValue(i, m10)));
-				Assert.AreEqual(m10, ai.SetNewAtomicValue(i, one));
+                ai.Exchange(i, one);
+                Assert.AreEqual(one, ai.Exchange(i, zero));
+                Assert.AreEqual(0, ai.Exchange(i, m10));
+                Assert.AreEqual(m10, ai.Exchange(i, one));
 			}
 		}
 
 		[Test]
 		public void SerializeAndDeserialize()
 		{
-            AtomicReferenceArray<int> atomicReferenceArray = new AtomicReferenceArray<int>(DEFAULT_COLLECTION_SIZE);
+            AtomicReferenceArray<object> atomicReferenceArray = new AtomicReferenceArray<object>(DEFAULT_COLLECTION_SIZE);
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
-				atomicReferenceArray.SetNewAtomicValue(i, -i);
+                atomicReferenceArray.Exchange(i, -i);
 			}
 			MemoryStream bout = new MemoryStream(10000);
 
@@ -226,9 +183,9 @@ namespace Spring.Threading.AtomicTypes
 
 			MemoryStream bin = new MemoryStream(bout.ToArray());
 			BinaryFormatter formatter2 = new BinaryFormatter();
-            AtomicReferenceArray<int> r = (AtomicReferenceArray<int>)formatter2.Deserialize(bin);
+            AtomicReferenceArray<object> r = (AtomicReferenceArray<object>)formatter2.Deserialize(bin);
 
-			Assert.AreEqual(atomicReferenceArray.Length(), r.Length());
+			Assert.AreEqual(atomicReferenceArray.Count, r.Count);
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
 				Assert.AreEqual(r[i], atomicReferenceArray[i]);
@@ -237,14 +194,15 @@ namespace Spring.Threading.AtomicTypes
 		}
 
 		[Test]
-		public void ReferenceArrayToString()
+		public void ToStringTest()
 		{
-			int[] a = new int[] {two, one, three, four, seven};
-            AtomicReferenceArray<int> ai = new AtomicReferenceArray<int>(a);
-			Assert.AreEqual(convertArrayToString(a), ai.ToString());
-		}
+			object[] a = new object[] {two, one, three, four, seven};
+            AtomicReferenceArray<object> ai = new AtomicReferenceArray<object>(a);
+			Assert.AreEqual(ConvertArrayToString(a), ai.ToString());
+            Assert.AreEqual("[]", new AtomicReferenceArray<object>(0).ToString());
+        }
 
-		private static string convertArrayToString(int[] array)
+		private static string ConvertArrayToString(object[] array)
 		{
 			if (array.Length == 0)
 				return "[]";
@@ -255,7 +213,7 @@ namespace Spring.Threading.AtomicTypes
 
 			for (int i = 1; i < array.Length; i++)
 			{
-				buf.Append(",");
+				buf.Append(", ");
 				buf.Append(array[i]);
 			}
 

@@ -12,7 +12,7 @@ using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
 {
-    [TestFixture]
+    [TestFixture, Ignore]
     public class ThreadPoolExecutorTests : BaseThreadingTestCase
     {
         private class ExtendedTPE : ThreadPoolExecutor
@@ -22,21 +22,21 @@ namespace Spring.Threading.Execution
             public volatile bool terminatedCalled;
 
             public ExtendedTPE()
-                : base(1, 1, LONG_DELAY_MS, new SynchronousQueue<IRunnable>())
+                : base(1, 1, LONG_DELAY, new SynchronousQueue<IRunnable>())
             {
             }
 
-            protected override void beforeExecute(Thread t, IRunnable r)
+            protected internal override void beforeExecute(Thread t, IRunnable r)
             {
                 beforeCalled = true;
             }
 
-            protected void afterExecute(IRunnable r)
+            protected internal override void afterExecute(IRunnable r, Exception e)
             {
                 afterCalled = true;
             }
 
-            protected override void terminated()
+            protected internal override void terminated()
             {
                 terminatedCalled = true;
             }
@@ -72,7 +72,7 @@ namespace Spring.Threading.Execution
             {
                 try
                 {
-                    Thread.Sleep(SHORT_DELAY_MS);
+                    Thread.Sleep(SHORT_DELAY);
                 }
                 catch (ThreadInterruptedException)
                 {
@@ -85,11 +85,11 @@ namespace Spring.Threading.Execution
 
         [Test] public void Execute()
         {
-            var p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+            ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
             try
             {
                 p1.Execute(new AnonymousClassRunnable(p1));
-                Thread.Sleep(SMALL_DELAY_MS);
+                Thread.Sleep(SMALL_DELAY);
             }
             catch (ThreadInterruptedException)
             {
@@ -99,12 +99,12 @@ namespace Spring.Threading.Execution
         }
         [Test] public void GetActiveCount()
         {
-            ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+            ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
             Assert.AreEqual(0, p2.ActiveCount);
             p2.Execute(new MediumRunnable());
             try
             {
-                Thread.Sleep(SHORT_DELAY_MS);
+                Thread.Sleep(SHORT_DELAY);
             }
             catch (Exception)
             {
@@ -116,7 +116,7 @@ namespace Spring.Threading.Execution
 
 
     [Test] public void testPreStartCoreThread() {
-        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         Assert.AreEqual(0, p2.PoolSize);
         Assert.IsTrue(p2.PreStartCoreThread());
         Assert.AreEqual(1, p2.PoolSize);
@@ -129,7 +129,7 @@ namespace Spring.Threading.Execution
 
    
     [Test] public void testPreStartAllCoreThreads() {
-        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         Assert.AreEqual(0, p2.PoolSize);
         p2.PreStartAllCoreThreads();
         Assert.AreEqual(2, p2.PoolSize);
@@ -141,12 +141,12 @@ namespace Spring.Threading.Execution
    
     [Test] public void testGetCompletedTaskCount()
     {
-        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         Assert.AreEqual(0, p2.CompletedTaskCount);
         p2.Execute(new ShortRunnable());
         try
         {
-            Thread.Sleep(SMALL_DELAY_MS);
+            Thread.Sleep(SMALL_DELAY);
         }
         catch (Exception e)
         {
@@ -165,7 +165,7 @@ namespace Spring.Threading.Execution
     }
     
     [Test] public void testGetCorePoolSize() {
-        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         Assert.AreEqual(1, p1.CorePoolSize);
         JoinPool(p1);
         }
@@ -180,14 +180,14 @@ namespace Spring.Threading.Execution
       
     [Test] public void testGetIThreadFactory() {
         IThreadFactory tf = new SimpleThreadFactory();
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10), tf, new NoOpREHandler());
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10), tf, new NoOpREHandler());
         Assert.AreEqual(tf, p.ThreadFactory);
         JoinPool(p);
     }
 
    
     [Test] public void testSetIThreadFactory() {
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         IThreadFactory tf = new SimpleThreadFactory();
         p.ThreadFactory=tf;
         Assert.AreEqual(tf, p.ThreadFactory);
@@ -199,7 +199,7 @@ namespace Spring.Threading.Execution
      * setIThreadFactory(null) throws NPE
      */
     [Test] public void testSetIThreadFactoryNull() {
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
             p.ThreadFactory = null;
             Assert.Fail("Should throw exception");
@@ -215,7 +215,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testGetIRejectedExecutionHandler() {
         IRejectedExecutionHandler h = new NoOpREHandler();
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10), h);
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10), h);
         Assert.AreEqual(h, p.RejectedExecutionHandler);
         JoinPool(p);
     }
@@ -225,7 +225,7 @@ namespace Spring.Threading.Execution
      * getIRejectedExecutionHandler
      */
     [Test] public void testSetIRejectedExecutionHandler() {
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         IRejectedExecutionHandler h = new NoOpREHandler();
         p.RejectedExecutionHandler=h;
         Assert.AreEqual(h, p.RejectedExecutionHandler);
@@ -237,7 +237,7 @@ namespace Spring.Threading.Execution
      * setIRejectedExecutionHandler(null) throws NPE
      */
     [Test] public void testSetIRejectedExecutionHandlerNull() {
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,2,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
             p.RejectedExecutionHandler=null;
             Assert.Fail("Should throw exception");
@@ -254,12 +254,12 @@ namespace Spring.Threading.Execution
      *   multiple threads active
      */
     [Test] public void testGetLargestPoolSize() {
-        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
             Assert.AreEqual(0, p2.LargestPoolSize);
             p2.Execute(new MediumRunnable());
             p2.Execute(new MediumRunnable());
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             Assert.AreEqual(2, p2.LargestPoolSize);
         } catch(Exception e){
             Assert.Fail("Unexpected Exception");
@@ -272,7 +272,7 @@ namespace Spring.Threading.Execution
      *   otherwise set
      */
     [Test] public void testGetMaximumPoolSize() {
-        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p2 = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         Assert.AreEqual(2, p2.MaximumPoolSize);
         JoinPool(p2);
     }
@@ -282,7 +282,7 @@ namespace Spring.Threading.Execution
      *   become active
      */
     [Test] public void testGetPoolSize() {
-        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         Assert.AreEqual(0, p1.PoolSize);
         p1.Execute(new MediumRunnable());
         Assert.AreEqual(1, p1.PoolSize);
@@ -293,11 +293,11 @@ namespace Spring.Threading.Execution
      *  getTaskCount increases, but doesn't overestimate, when tasks Submitted
      */
     [Test] public void testGetTaskCount() {
-        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
             Assert.AreEqual(0, p1.TaskCount);
             p1.Execute(new MediumRunnable());
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             Assert.AreEqual(1, p1.TaskCount);
         } catch(Exception e){
             Assert.Fail("Unexpected Exception");
@@ -310,7 +310,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testIsShutdown() {
 
-	ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+	ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         Assert.IsFalse(p1.IsShutdown);
         try { p1.Shutdown(); } catch(SecurityException ok) { return; }
 	Assert.IsTrue(p1.IsShutdown);
@@ -322,7 +322,7 @@ namespace Spring.Threading.Execution
      *  isTerminated is false before termination, true after
      */
     [Test] public void testIsTerminated() {
-	ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+	ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         Assert.IsFalse(p1.IsTerminated);
         try {
             p1.Execute(new MediumRunnable());
@@ -330,7 +330,7 @@ namespace Spring.Threading.Execution
             try { p1.Shutdown(); } catch(SecurityException ok) { }
         }
 	try {
-	    Assert.IsTrue(p1.AwaitTermination(LONG_DELAY_MS));
+	    Assert.IsTrue(p1.AwaitTermination(LONG_DELAY));
             Assert.IsTrue(p1.IsTerminated);
 	} catch(Exception e){
             Assert.Fail("Unexpected Exception");
@@ -341,7 +341,7 @@ namespace Spring.Threading.Execution
      *  isTerminating is not true when running or when terminated
      */
     [Test] public void testIsTerminating() {
-	ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+	ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         Assert.IsFalse(p1.IsTerminating);
         try {
             p1.Execute(new SmallRunnable());
@@ -350,7 +350,7 @@ namespace Spring.Threading.Execution
             try { p1.Shutdown(); } catch(SecurityException ok) { }
         }
         try {
-	    Assert.IsTrue(p1.AwaitTermination(LONG_DELAY_MS));
+	    Assert.IsTrue(p1.AwaitTermination(LONG_DELAY));
             Assert.IsTrue(p1.IsTerminated);
             Assert.IsFalse(p1.IsTerminating);
 	} catch(Exception e){
@@ -363,14 +363,14 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testGetQueue() {
         IBlockingQueue<IRunnable> q = new ArrayBlockingQueue<IRunnable>(10);
-        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, q);
-        FutureTask[] tasks = new FutureTask[5];
+        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, q);
+        FutureTask<bool>[] tasks = new FutureTask<bool>[5];
         for(int i = 0; i < 5; i++){
-            tasks[i] = new FutureTask(new MediumPossiblyInterruptedRunnable(), true);
+            tasks[i] = new FutureTask<bool>(new MediumPossiblyInterruptedRunnable(), true);
             p1.Execute(tasks[i]);
         }
         try {
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             IBlockingQueue<IRunnable> wq = p1.Queue;
             Assert.AreEqual(q, wq);
             Assert.IsFalse(wq.Contains(tasks[0]));
@@ -390,14 +390,14 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testRemove() {
         IBlockingQueue<IRunnable> q = new ArrayBlockingQueue<IRunnable>(10);
-        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, q);
-        FutureTask[] tasks = new FutureTask[5];
+        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, q);
+        FutureTask<bool>[] tasks = new FutureTask<bool>[5];
         for(int i = 0; i < 5; i++){
-            tasks[i] = new FutureTask(new MediumPossiblyInterruptedRunnable(), true);
+            tasks[i] = new FutureTask<bool>(new MediumPossiblyInterruptedRunnable(), true);
             p1.Execute(tasks[i]);
         }
         try {
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             Assert.IsFalse(p1.Remove(tasks[0]));
             Assert.IsTrue(q.Contains(tasks[4]));
             Assert.IsTrue(q.Contains(tasks[3]));
@@ -418,10 +418,10 @@ namespace Spring.Threading.Execution
      *   Purge Removes Cancelled tasks from the queue
      */
     [Test] public void testPurge() {
-        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
-        FutureTask[] tasks = new FutureTask[5];
+        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
+        FutureTask<bool>[] tasks = new FutureTask<bool>[5];
         for(int i = 0; i < 5; i++){
-            tasks[i] = new FutureTask(new MediumPossiblyInterruptedRunnable(), true);
+            tasks[i] = new FutureTask<bool>(new MediumPossiblyInterruptedRunnable(), true);
             p1.Execute(tasks[i]);
         }
         tasks[4].Cancel(true);
@@ -437,7 +437,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testShutdownNow()
     {
-        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        ThreadPoolExecutor p1 = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         IList<IRunnable> l = null;
         try
         {
@@ -468,7 +468,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor1() {
         try {
-            new ThreadPoolExecutor(-1,1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+            new ThreadPoolExecutor(-1,1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -479,7 +479,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor2() {
         try {
-            new ThreadPoolExecutor(1,-1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+            new ThreadPoolExecutor(1,-1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -490,7 +490,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor3() {
         try {
-            new ThreadPoolExecutor(1,0,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+            new ThreadPoolExecutor(1,0,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -512,7 +512,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor5() {
         try {
-            new ThreadPoolExecutor(2,1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+            new ThreadPoolExecutor(2,1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -523,7 +523,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructorNullReferenceException() {
         try {
-            new ThreadPoolExecutor(1,2,LONG_DELAY_MS,null);
+            new ThreadPoolExecutor(1,2,LONG_DELAY,null);
             Assert.Fail("Should throw exception");
         }
         catch(ArgumentNullException success) { }
@@ -536,7 +536,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor6() {
         try {
-            new ThreadPoolExecutor(-1,1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory());
+            new ThreadPoolExecutor(-1,1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory());
             Assert.Fail("Should throw exception");
         } catch (ArgumentException success){}
     }
@@ -546,7 +546,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor7() {
         try {
-            new ThreadPoolExecutor(1,-1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory());
+            new ThreadPoolExecutor(1,-1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -557,7 +557,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor8() {
         try {
-            new ThreadPoolExecutor(1,0,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory());
+            new ThreadPoolExecutor(1,0,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -579,7 +579,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor10() {
         try {
-            new ThreadPoolExecutor(2,1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory());
+            new ThreadPoolExecutor(2,1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -590,7 +590,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructorNullReferenceException2() {
         try {
-            new ThreadPoolExecutor(1,2,LONG_DELAY_MS,null,new SimpleThreadFactory());
+            new ThreadPoolExecutor(1,2,LONG_DELAY,null,new SimpleThreadFactory());
             Assert.Fail("Should throw exception");
         }
         catch(ArgumentNullException success) { }
@@ -602,7 +602,7 @@ namespace Spring.Threading.Execution
     [Test] public void testConstructorNullReferenceException3() {
         try {
             IThreadFactory f = null;
-            new ThreadPoolExecutor(1,2,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(10),f);
+            new ThreadPoolExecutor(1,2,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(10),f);
             Assert.Fail("Should throw exception");
         }
         catch(ArgumentNullException success) { }
@@ -614,7 +614,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor11() {
         try {
-            new ThreadPoolExecutor(-1,1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new NoOpREHandler());
+            new ThreadPoolExecutor(-1,1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -625,7 +625,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor12() {
         try {
-            new ThreadPoolExecutor(1,-1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new NoOpREHandler());
+            new ThreadPoolExecutor(1,-1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -636,7 +636,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor13() {
         try {
-            new ThreadPoolExecutor(1,0,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new NoOpREHandler());
+            new ThreadPoolExecutor(1,0,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -658,7 +658,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor15() {
         try {
-            new ThreadPoolExecutor(2,1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new NoOpREHandler());
+            new ThreadPoolExecutor(2,1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -669,7 +669,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructorNullReferenceException4() {
         try {
-            new ThreadPoolExecutor(1,2,LONG_DELAY_MS,null,new NoOpREHandler());
+            new ThreadPoolExecutor(1,2,LONG_DELAY,null,new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch(ArgumentNullException success) { }
@@ -681,7 +681,7 @@ namespace Spring.Threading.Execution
     [Test] public void testConstructorNullReferenceException5() {
         try {
             IRejectedExecutionHandler r = null;
-            new ThreadPoolExecutor(1,2,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(10),r);
+            new ThreadPoolExecutor(1,2,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(10),r);
             Assert.Fail("Should throw exception");
         }
         catch(ArgumentNullException success) { }
@@ -693,7 +693,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor16() {
         try {
-            new ThreadPoolExecutor(-1,1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),new NoOpREHandler());
+            new ThreadPoolExecutor(-1,1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -704,7 +704,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor17() {
         try {
-            new ThreadPoolExecutor(1,-1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),new NoOpREHandler());
+            new ThreadPoolExecutor(1,-1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -715,7 +715,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor18() {
         try {
-            new ThreadPoolExecutor(1,0,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),new NoOpREHandler());
+            new ThreadPoolExecutor(1,0,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -737,7 +737,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructor20() {
         try {
-            new ThreadPoolExecutor(2,1,LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),new NoOpREHandler());
+            new ThreadPoolExecutor(2,1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch (ArgumentException success){}
@@ -748,7 +748,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testConstructorNullReferenceException6() {
         try {
-            new ThreadPoolExecutor(1,2,LONG_DELAY_MS,null,new SimpleThreadFactory(),new NoOpREHandler());
+            new ThreadPoolExecutor(1,2,LONG_DELAY,null,new SimpleThreadFactory(),new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch(ArgumentNullException success) { }
@@ -760,7 +760,7 @@ namespace Spring.Threading.Execution
     [Test] public void testConstructorNullReferenceException7() {
         try {
             IRejectedExecutionHandler r = null;
-            new ThreadPoolExecutor(1,2,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),r);
+            new ThreadPoolExecutor(1,2,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(10),new SimpleThreadFactory(),r);
             Assert.Fail("Should throw exception");
         }
         catch(ArgumentNullException success) { }
@@ -772,7 +772,7 @@ namespace Spring.Threading.Execution
     [Test] public void testConstructorNullReferenceException8() {
         try {
             IThreadFactory f = null;
-            new ThreadPoolExecutor(1,2,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(10),f,new NoOpREHandler());
+            new ThreadPoolExecutor(1,2,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(10),f,new NoOpREHandler());
             Assert.Fail("Should throw exception");
         }
         catch(ArgumentNullException successdn8) { }
@@ -784,7 +784,7 @@ namespace Spring.Threading.Execution
      *  if saturated.
      */
     [Test] public void testSaturatedExecute() {
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(1));
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1));
         try {
 
             for(int i = 0; i < 5; ++i){
@@ -800,7 +800,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testSaturatedExecute2() {
         IRejectedExecutionHandler h = new CallerRunsPolicy();
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(1), h);
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
         try {
 
             TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
@@ -828,7 +828,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testSaturatedExecute3() {
         IRejectedExecutionHandler h = new DiscardPolicy();
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(1), h);
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
         try {
 
             TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
@@ -855,7 +855,7 @@ namespace Spring.Threading.Execution
      */
     [Test,Ignore("ReentrantLock runs into a stack overflow")] public void testSaturatedExecute4() {
         IRejectedExecutionHandler h = new DiscardOldestPolicy();
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(1), h);
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
         try {
             p.Execute(new TrackedLongRunnable());
             TrackedLongRunnable r2 = new TrackedLongRunnable();
@@ -878,7 +878,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testRejectedExecutionExceptionOnShutdown() {
         ThreadPoolExecutor tpe =
-            new ThreadPoolExecutor(1,1,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(1));
+            new ThreadPoolExecutor(1,1,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(1));
         try { tpe.Shutdown(); } catch(SecurityException ok) { return; }
 	try {
 	    tpe.Execute(new NoOpRunnable());
@@ -893,7 +893,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testCallerRunsOnShutdown() {
         IRejectedExecutionHandler h = new CallerRunsPolicy();
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(1), h);
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
 
         try { p.Shutdown(); } catch(SecurityException ok) { return; }
 	try {
@@ -912,7 +912,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testDiscardOnShutdown() {
         IRejectedExecutionHandler h = new DiscardPolicy();
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(1), h);
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
 
         try { p.Shutdown(); } catch(SecurityException ok) { return; }
 	try {
@@ -932,7 +932,7 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testDiscardOldestOnShutdown() {
         IRejectedExecutionHandler h = new DiscardOldestPolicy();
-        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(1), h);
+        ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
 
         try { p.Shutdown(); } catch(SecurityException ok) { return; }
 	try {
@@ -953,7 +953,7 @@ namespace Spring.Threading.Execution
     [Test] public void testExecuteNull() {
         ThreadPoolExecutor tpe = null;
         try {
-	    tpe = new ThreadPoolExecutor(1,2,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(10));
+	    tpe = new ThreadPoolExecutor(1,2,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(10));
 	    tpe.Execute((IRunnable)null);
             Assert.Fail("Should throw exception");
 	} catch(ArgumentNullException success){}
@@ -967,7 +967,7 @@ namespace Spring.Threading.Execution
     [Test] public void testCorePoolSizeArgumentException() {
 	ThreadPoolExecutor tpe = null;
 	try {
-	    tpe = new ThreadPoolExecutor(1,2,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(10));
+	    tpe = new ThreadPoolExecutor(1,2,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(10));
 	} catch(Exception e){}
 	try {
 	    tpe.CorePoolSize=-1;
@@ -986,7 +986,7 @@ namespace Spring.Threading.Execution
     [Test] public void testMaximumPoolSizeArgumentException() {
         ThreadPoolExecutor tpe = null;
         try {
-            tpe = new ThreadPoolExecutor(2,3,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(10));
+            tpe = new ThreadPoolExecutor(2,3,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(10));
         } catch(Exception e){}
         try {
             tpe.MaximumPoolSize=1;
@@ -1005,7 +1005,7 @@ namespace Spring.Threading.Execution
     [Test] public void testMaximumPoolSizeArgumentException2() {
         ThreadPoolExecutor tpe = null;
         try {
-            tpe = new ThreadPoolExecutor(2,3,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(10));
+            tpe = new ThreadPoolExecutor(2,3,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(10));
         } catch(Exception e){}
         try {
             tpe.MaximumPoolSize=-1;
@@ -1025,7 +1025,7 @@ namespace Spring.Threading.Execution
     [Test] public void testKeepAliveTimeArgumentException() {
 	ThreadPoolExecutor tpe = null;
         try {
-            tpe = new ThreadPoolExecutor(2,3,LONG_DELAY_MS,new ArrayBlockingQueue<IRunnable>(10));
+            tpe = new ThreadPoolExecutor(2,3,LONG_DELAY,new ArrayBlockingQueue<IRunnable>(10));
         } catch(Exception e){}
 
 	try {
@@ -1056,16 +1056,12 @@ namespace Spring.Threading.Execution
         try {
             TrackedNoOpRunnable r = new TrackedNoOpRunnable();
             tpe.Execute(r);
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             Assert.IsTrue(r.IsDone);
             Assert.IsTrue(tpe.beforeCalled);
             Assert.IsTrue(tpe.afterCalled);
             try { tpe.Shutdown(); } catch(SecurityException ok) { return; }
-        }
-        //catch(Exception ex) {
-        //    Assert.Fail("Unexpected Exception");
-        //} 
-        finally {
+        } finally {
             JoinPool(tpe);
         }
     }
@@ -1074,10 +1070,10 @@ namespace Spring.Threading.Execution
      * completed Submit of callable returns result
      */
     [Test] public void testSubmitCallable() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            IFuture future = e.Submit(new StringTask());
-            String result = (String)future.GetResult();
+            IFuture<string> future = e.Submit(new StringTask());
+            String result = future.GetResult();
             Assert.AreEqual(TEST_STRING, result);
         }
         catch (ExecutionException ex) {
@@ -1094,9 +1090,9 @@ namespace Spring.Threading.Execution
      * completed Submit of runnable returns successfully
      */
     [Test] public void testSubmitRunnable() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            IFuture future = e.Submit(new NoOpRunnable());
+            IFuture<object> future = e.Submit(new NoOpRunnable());
             future.GetResult();
             Assert.IsTrue(future.IsDone);
         }
@@ -1114,10 +1110,10 @@ namespace Spring.Threading.Execution
      * completed Submit of (runnable, result) returns result
      */
     [Test] public void testSubmitRunnable2() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            IFuture future = e.Submit(new NoOpRunnable(), TEST_STRING);
-            String result = (String)future.GetResult();
+            IFuture<string> future = e.Submit(new NoOpRunnable(), TEST_STRING);
+            String result = future.GetResult();
             Assert.AreEqual(TEST_STRING, result);
         }
         catch (ExecutionException ex) {
@@ -1138,12 +1134,10 @@ namespace Spring.Threading.Execution
      * InvokeAny(null) throws NPE
      */
     [Test] public void testInvokeAny1() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAny(null);
+            e.InvokeAny((IEnumerable<Call<bool>>)null);
         } catch (ArgumentNullException success) {
-        } catch(Exception ex) {
-            Assert.Fail("Unexpected Exception");
         } finally {
             JoinPool(e);
         }
@@ -1153,9 +1147,9 @@ namespace Spring.Threading.Execution
      * InvokeAny(empty collection) throws IAE
      */
     [Test] public void testInvokeAny2() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAny(new ArrayList());
+            e.InvokeAny(new ICallable<bool>[0]);
         } catch (ArgumentException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1168,9 +1162,9 @@ namespace Spring.Threading.Execution
      * InvokeAny(c) throws NPE if c has null elements
      */
     [Test] public void testInvokeAny3() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
+            List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(null);
             e.InvokeAny(l);
@@ -1186,10 +1180,10 @@ namespace Spring.Threading.Execution
      * InvokeAny(c) throws ExecutionException if no task completes
      */
     [Test] public void testInvokeAny4() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
-            l.Add(new NPETask());
+            List<ICallable<string>> l = new List<ICallable<string>>();
+            l.Add(new NPETask<string>());
             e.InvokeAny(l);
         } catch (ExecutionException success) {
         } catch(Exception ex) {
@@ -1203,9 +1197,9 @@ namespace Spring.Threading.Execution
      * InvokeAny(c) returns result of some task
      */
     [Test] public void testInvokeAny5() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
+            List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(new StringTask());
             String result = (String)e.InvokeAny(l);
@@ -1222,12 +1216,10 @@ namespace Spring.Threading.Execution
      * InvokeAll(null) throws NPE
      */
     [Test] public void testInvokeAll1() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAll(null);
+            e.InvokeAll((IEnumerable<Call<bool>>)null);
         } catch (ArgumentNullException success) {
-        } catch(Exception ex) {
-            Assert.Fail("Unexpected Exception");
         } finally {
             JoinPool(e);
         }
@@ -1237,9 +1229,9 @@ namespace Spring.Threading.Execution
      * InvokeAll(empty collection) returns empty collection
      */
     [Test] public void testInvokeAll2() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            IList r = e.InvokeAll(new ArrayList());
+            IList<IFuture<string>> r = e.InvokeAll(new List<ICallable<string>>());
             Assert.IsTrue(r.Count == 0);
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1252,9 +1244,9 @@ namespace Spring.Threading.Execution
      * InvokeAll(c) throws NPE if c has null elements
      */
     [Test] public void testInvokeAll3() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
+            List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(null);
             e.InvokeAll(l);
@@ -1271,16 +1263,16 @@ namespace Spring.Threading.Execution
      */
     [Test] public void testInvokeAll4()
     {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try
         {
-            ArrayList l = new ArrayList();
-            l.Add(new NPETask());
-            IList result = e.InvokeAll(l);
+            List<ICallable<string>> l = new List<ICallable<string>>();
+            l.Add(new NPETask<string>());
+            IList<IFuture<string>> result = e.InvokeAll(l);
             Assert.AreEqual(1, result.Count);
-            IEnumerator it = result.GetEnumerator();
+            IEnumerator<IFuture<string>> it = result.GetEnumerator();
             while (it.MoveNext())
-                ((IFuture) it.Current).GetResult();
+                it.Current.GetResult();
         }
         catch (ExecutionException success)
         {
@@ -1299,16 +1291,16 @@ namespace Spring.Threading.Execution
      * InvokeAll(c) returns results of all completed tasks
      */
     [Test] public void testInvokeAll5() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
+            List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(new StringTask());
-            IList result = e.InvokeAll(l);
+            IList<IFuture<string>> result = e.InvokeAll(l);
             Assert.AreEqual(2, result.Count);
-            IEnumerator it = result.GetEnumerator();
+            IEnumerator<IFuture<string>> it = result.GetEnumerator();
             while (it.MoveNext())
-                Assert.AreEqual(TEST_STRING, ((IFuture)it.Current).GetResult());
+                Assert.AreEqual(TEST_STRING, it.Current.GetResult());
         } catch (ExecutionException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1323,12 +1315,10 @@ namespace Spring.Threading.Execution
      * timed InvokeAny(null) throws NPE
      */
     [Test] public void testTimedInvokeAny1() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAny(null, MEDIUM_DELAY_MS);
+            e.InvokeAny((IEnumerable<ICallable<bool>>)null, MEDIUM_DELAY);
         } catch (ArgumentNullException success) {
-        } catch(Exception ex) {
-            Assert.Fail("Unexpected Exception");
         } finally {
             JoinPool(e);
         }
@@ -1338,9 +1328,9 @@ namespace Spring.Threading.Execution
      * timed InvokeAny(empty collection) throws IAE
      */
     [Test] public void testTimedInvokeAny2() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAny(new ArrayList(), MEDIUM_DELAY_MS);
+            e.InvokeAny(new List<ICallable<bool>>(), MEDIUM_DELAY);
         } catch (ArgumentException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1353,12 +1343,12 @@ namespace Spring.Threading.Execution
      * timed InvokeAny(c) throws NPE if c has null elements
      */
     [Test] public void testTimedInvokeAny3() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
+            List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(null);
-            e.InvokeAny(l, MEDIUM_DELAY_MS);
+            e.InvokeAny(l, MEDIUM_DELAY);
         } catch (ArgumentNullException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1371,11 +1361,11 @@ namespace Spring.Threading.Execution
      * timed InvokeAny(c) throws ExecutionException if no task completes
      */
     [Test] public void testTimedInvokeAny4() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
-            l.Add(new NPETask());
-            e.InvokeAny(l, MEDIUM_DELAY_MS);
+            List<ICallable<string>> l = new List<ICallable<string>>();
+            l.Add(new NPETask<string>());
+            e.InvokeAny(l, MEDIUM_DELAY);
         } catch(ExecutionException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1388,12 +1378,12 @@ namespace Spring.Threading.Execution
      * timed InvokeAny(c) returns result of some task
      */
     [Test] public void testTimedInvokeAny5() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
+            List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(new StringTask());
-            String result = (String)e.InvokeAny(l, MEDIUM_DELAY_MS);
+            String result = (String)e.InvokeAny(l, MEDIUM_DELAY);
             Assert.AreEqual(TEST_STRING, result);
         } catch (ExecutionException success) {
         } catch(Exception ex) {
@@ -1407,12 +1397,10 @@ namespace Spring.Threading.Execution
      * timed InvokeAll(null) throws NPE
      */
     [Test] public void testTimedInvokeAll1() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAll(null, MEDIUM_DELAY_MS);
+            e.InvokeAll((IEnumerable<ICallable<bool>>)null, MEDIUM_DELAY);
         } catch (ArgumentNullException success) {
-        } catch(Exception ex) {
-            Assert.Fail("Unexpected Exception");
         } finally {
             JoinPool(e);
         }
@@ -1421,9 +1409,9 @@ namespace Spring.Threading.Execution
      * timed InvokeAll(empty collection) returns empty collection
      */
     [Test] public void testTimedInvokeAll2() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            IList r = e.InvokeAll(new ArrayList(), MEDIUM_DELAY_MS);
+            IList<IFuture<string>> r = e.InvokeAll(new List<ICallable<string>>(), MEDIUM_DELAY);
             Assert.IsTrue(r.Count== 0);
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1436,12 +1424,12 @@ namespace Spring.Threading.Execution
      * timed InvokeAll(c) throws NPE if c has null elements
      */
     [Test] public void testTimedInvokeAll3() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
+            List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(null);
-            e.InvokeAll(l, MEDIUM_DELAY_MS);
+            e.InvokeAll(l, MEDIUM_DELAY);
         } catch (ArgumentNullException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1454,15 +1442,15 @@ namespace Spring.Threading.Execution
      * get of element of InvokeAll(c) throws exception on failed task
      */
     [Test] public void testTimedInvokeAll4() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
-            l.Add(new NPETask());
-            IList result = e.InvokeAll(l, MEDIUM_DELAY_MS);
+            List<ICallable<string>> l = new List<ICallable<string>>();
+            l.Add(new NPETask<string>());
+            IList<IFuture<string>> result = e.InvokeAll(l, MEDIUM_DELAY);
             Assert.AreEqual(1, result.Count);
-            IEnumerator it = result.GetEnumerator();
+            IEnumerator<IFuture<string>> it = result.GetEnumerator();
             while ( it.MoveNext())
-                ((IFuture)it.Current).GetResult();
+                it.Current.GetResult();
         } catch(ExecutionException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1475,16 +1463,16 @@ namespace Spring.Threading.Execution
      * timed InvokeAll(c) returns results of all completed tasks
      */
     [Test] public void testTimedInvokeAll5() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
+            List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(new StringTask());
-            IList result = e.InvokeAll(l, MEDIUM_DELAY_MS);
+            IList<IFuture<string>> result = e.InvokeAll(l, MEDIUM_DELAY);
             Assert.AreEqual(2, result.Count);
-            foreach (var next in result)
+            foreach (IFuture<string> next in result)
             {
-                Assert.AreEqual(TEST_STRING, ((IFuture)next).GetResult());
+                Assert.AreEqual(TEST_STRING, next.GetResult());
             }
         } catch (ExecutionException success) {
         } catch(Exception ex) {
@@ -1498,22 +1486,22 @@ namespace Spring.Threading.Execution
      * timed InvokeAll(c) Cancels tasks not completed by timeout
      */
     [Test] public void testTimedInvokeAll6() {
-        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY_MS, new ArrayBlockingQueue<IRunnable>(10));
+        IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            ArrayList l = new ArrayList();
+            List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(Executors.CreateCallable(new MediumPossiblyInterruptedRunnable(), TEST_STRING));
             l.Add(new StringTask());
-            IList result = e.InvokeAll(l, SHORT_DELAY_MS);
+            IList<IFuture<string>> result = e.InvokeAll(l, SHORT_DELAY);
             Assert.AreEqual(3, result.Count);
-            IEnumerator it = result.GetEnumerator();
-            IFuture f1 = null;
-            IFuture f2 = null;
-            IFuture f3 = null; 
+            IEnumerator<IFuture<string>> it = result.GetEnumerator();
+            IFuture<string> f1 = null;
+            IFuture<string> f2 = null;
+            IFuture<string> f3 = null; 
            
-            if ( it.MoveNext() ) f1 = (IFuture)it.Current;
-            if ( it.MoveNext() ) f2 = (IFuture)it.Current;
-            if ( it.MoveNext() ) f3 = (IFuture)it.Current;
+            if ( it.MoveNext() ) f1 = it.Current;
+            if ( it.MoveNext() ) f2 = it.Current;
+            if ( it.MoveNext() ) f3 = it.Current;
             Assert.IsNotNull(f1);
             Assert.IsNotNull(f2);
             Assert.IsNotNull(f3);
@@ -1534,13 +1522,12 @@ namespace Spring.Threading.Execution
      * thread factory fails to create more
      */
     [Test] public void testFailingIThreadFactory() {
-        IExecutorService e = new ThreadPoolExecutor(100, 100, LONG_DELAY_MS, new LinkedBlockingQueue<IRunnable>(), new FailingIThreadFactory());
+        IExecutorService e = new ThreadPoolExecutor(100, 100, LONG_DELAY, new LinkedBlockingQueue<IRunnable>(), new FailingIThreadFactory());
         try {
-            ArrayList l = new ArrayList();
             for (int k = 0; k < 100; ++k) {
                 e.Execute(new NoOpRunnable());
             }
-            Thread.Sleep(LONG_DELAY_MS);
+            Thread.Sleep(LONG_DELAY);
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
         } finally {
@@ -1565,7 +1552,7 @@ namespace Spring.Threading.Execution
         tpe.AllowsCoreThreadsToTimeOut = true;
         tpe.Execute(new NoOpRunnable());
         try {
-            Thread.Sleep(MEDIUM_DELAY_MS);
+            Thread.Sleep(MEDIUM_DELAY);
             Assert.AreEqual(0, tpe.PoolSize);
         } catch(ThreadInterruptedException e){
             Assert.Fail("Unexpected Exception");
@@ -1582,7 +1569,7 @@ namespace Spring.Threading.Execution
         tpe.AllowsCoreThreadsToTimeOut = false;
         tpe.Execute(new NoOpRunnable());
         try {
-            Thread.Sleep(MEDIUM_DELAY_MS);
+            Thread.Sleep(MEDIUM_DELAY);
             Assert.IsTrue(tpe.PoolSize >= 1);
         } catch(ThreadInterruptedException e){
             Assert.Fail("Unexpected Exception");
@@ -1626,7 +1613,7 @@ namespace Spring.Threading.Execution
                 }
             }
             Thread.Sleep(5000); // enough time to run all tasks
-            Assert.AreEqual(nRun.IntegerValue, nTasks);
+            Assert.AreEqual(nRun.Value, nTasks);
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
         } finally {

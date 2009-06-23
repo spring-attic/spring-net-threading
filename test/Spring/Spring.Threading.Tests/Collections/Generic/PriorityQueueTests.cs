@@ -52,7 +52,7 @@ namespace Spring.Collections.Generic
         public void testAddAll1()
         {
             var q = new PriorityQueue<int>(1);
-            q.AddAll(null);
+            q.AddRange(null);
         }
 
 
@@ -62,7 +62,7 @@ namespace Spring.Collections.Generic
         {
             var q = new PriorityQueue<object>(DEFAULT_COLLECTION_SIZE);
             var ints = new object[DEFAULT_COLLECTION_SIZE];
-            q.AddAll(ints);
+            q.AddRange(ints);
         }
 
         [Test]
@@ -73,7 +73,7 @@ namespace Spring.Collections.Generic
             var ints = new object[DEFAULT_COLLECTION_SIZE];
             for (int i = 0; i < DEFAULT_COLLECTION_SIZE - 1; ++i)
                 ints[i] = i;
-            q.AddAll(ints);
+            q.AddRange(ints);
         }
 
         [Test]
@@ -84,8 +84,8 @@ namespace Spring.Collections.Generic
             for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
                 ints[i] = DEFAULT_COLLECTION_SIZE - 1 - i;
             var q = new PriorityQueue<int>(DEFAULT_COLLECTION_SIZE);
-            Assert.IsFalse(q.AddAll(empty));
-            Assert.IsTrue(q.AddAll(ints));
+            Assert.IsFalse(q.AddRange(empty));
+            Assert.IsTrue(q.AddRange(ints));
             for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
             {
                 int output;
@@ -169,7 +169,7 @@ namespace Spring.Collections.Generic
             var ints = new int[DEFAULT_COLLECTION_SIZE];
             for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
                 ints[i] = i;
-            q.AddAll(ints);
+            q.AddRange(ints);
             for (int i = DEFAULT_COLLECTION_SIZE - 1; i >= 0; --i)
             {
                 int output;

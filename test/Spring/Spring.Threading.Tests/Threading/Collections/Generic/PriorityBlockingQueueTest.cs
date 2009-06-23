@@ -12,13 +12,12 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 using Spring.Collections;
 using Spring.Threading.AtomicTypes;
-using Spring.Threading.Collections.Generic;
 using Spring.Threading.Execution;
 
-namespace Spring.Threading.Tests.Collections {
+namespace Spring.Threading.Collections.Generic
+{
     /// <author>Doug Lea>author>
     /// <author>Andreas Döhring (.NET)</author>
     [TestFixture]
@@ -123,7 +122,7 @@ namespace Spring.Threading.Tests.Collections {
             int[] ints = new int[SIZE];
             for(int i = 0; i < SIZE; ++i)
                 ints[i] = i;
-            q.AddAll(ints);
+            q.AddRange(ints);
             for(int i = SIZE - 1; i >= 0; --i) {
                 int result;
                 Assert.IsTrue(q.Poll(out result));
@@ -223,7 +222,7 @@ namespace Spring.Threading.Tests.Collections {
         [Test, ExpectedException(typeof(ArgumentNullException))]
         public void TestAddAll1() {
             PriorityBlockingQueue<object> q = new PriorityBlockingQueue<object>(1);
-            q.AddAll(null);
+            q.AddRange(null);
         }
 
         /// <summary>
@@ -232,7 +231,7 @@ namespace Spring.Threading.Tests.Collections {
         [Test, ExpectedException(typeof(ArgumentException))]
         public void TestAddAllSelf() {
             PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
-            q.AddAll(q);
+            q.AddRange(q);
         }
 
         /// <summary>
@@ -242,7 +241,7 @@ namespace Spring.Threading.Tests.Collections {
         public void TestAddAll2() {
             PriorityBlockingQueue<object> q = new PriorityBlockingQueue<object>(SIZE);
             object[] objs = new object[SIZE];
-            q.AddAll(objs);
+            q.AddRange(objs);
         }
 
         /// <summary>
@@ -254,7 +253,7 @@ namespace Spring.Threading.Tests.Collections {
             string[] objs = new string[SIZE];
             for(int i = 0; i < SIZE - 1; ++i)
                 objs[i] = "";
-            q.AddAll(objs);
+            q.AddRange(objs);
         }
 
         /// <summary>
@@ -267,8 +266,8 @@ namespace Spring.Threading.Tests.Collections {
             for(int i = SIZE - 1; i >= 0; --i)
                 ints[i] = i;
             PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(SIZE);
-            Assert.IsFalse(q.AddAll(empty));
-            Assert.IsTrue(q.AddAll(ints));
+            Assert.IsFalse(q.AddRange(empty));
+            Assert.IsTrue(q.AddRange(ints));
             for(int i = 0; i < SIZE; ++i) {
                 int result;
                 Assert.IsTrue(q.Poll(out result));
@@ -305,23 +304,23 @@ namespace Spring.Threading.Tests.Collections {
         public void TestPutWithTake() {
             PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
             Thread t = new Thread(new ThreadStart(delegate {
-                int added = 0;
-                try {
-                    q.Put(0);
-                    ++added;
-                    q.Put(0);
-                    ++added;
-                    q.Put(0);
-                    ++added;
-                    q.Put(0);
-                    ++added;
-                    Assert.IsTrue(added == 4);
-                }
-                finally { }
+                                                               int added = 0;
+                                                               try {
+                                                                   q.Put(0);
+                                                                   ++added;
+                                                                   q.Put(0);
+                                                                   ++added;
+                                                                   q.Put(0);
+                                                                   ++added;
+                                                                   q.Put(0);
+                                                                   ++added;
+                                                                   Assert.IsTrue(added == 4);
+                                                               }
+                                                               finally { }
             }));
 
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             q.Take();
             t.Interrupt();
             t.Join();
@@ -334,17 +333,17 @@ namespace Spring.Threading.Tests.Collections {
         public void TestTimedOffer() {
             PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    q.Put(0);
-                    q.Put(0);
-                    Assert.IsTrue(q.Offer(0, SHORT_DELAY_MS));
-                    Assert.IsTrue(q.Offer(0, LONG_DELAY_MS));
-                }
-                finally { }
+                                                               try {
+                                                                   q.Put(0);
+                                                                   q.Put(0);
+                                                                   Assert.IsTrue(q.Offer(0, SHORT_DELAY));
+                                                                   Assert.IsTrue(q.Offer(0, LONG_DELAY));
+                                                               }
+                                                               finally { }
             }));
 
             t.Start();
-            Thread.Sleep(SMALL_DELAY_MS);
+            Thread.Sleep(SMALL_DELAY);
             q.Take();
             t.Interrupt();
             t.Join();
@@ -368,14 +367,14 @@ namespace Spring.Threading.Tests.Collections {
         public void TestTakeFromEmpty() {
             PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    q.Take();
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   q.Take();
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
 
             t.Start();
-            Thread.Sleep(SMALL_DELAY_MS);
+            Thread.Sleep(SMALL_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -387,19 +386,19 @@ namespace Spring.Threading.Tests.Collections {
         public void TestBlockingTake() {
             AtomicBoolean isInterupted = new AtomicBoolean(false);
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
-                    for(int i = 0; i < SIZE; ++i) {
-                        Assert.That(q.Take(), Is.EqualTo(i));
-                    }
-                    q.Take();
-                }
-                catch(ThreadInterruptedException success) {
-                    isInterupted.Value = true;
-                }
+                                                               try {
+                                                                   PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+                                                                   for(int i = 0; i < SIZE; ++i) {
+                                                                       Assert.That(q.Take(), Is.EqualTo(i));
+                                                                   }
+                                                                   q.Take();
+                                                               }
+                                                               catch(ThreadInterruptedException success) {
+                                                                   isInterupted.Value = true;
+                                                               }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
             Assert.IsTrue(isInterupted.Value);
@@ -443,10 +442,10 @@ namespace Spring.Threading.Tests.Collections {
             int item;
             PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
             for(int i = 0; i < SIZE; ++i) {
-                Assert.IsTrue(q.Poll(SHORT_DELAY_MS, out item));
+                Assert.IsTrue(q.Poll(SHORT_DELAY, out item));
                 Assert.That(item, Is.EqualTo(i));
             }
-            Assert.IsFalse(q.Poll(SHORT_DELAY_MS, out item));
+            Assert.IsFalse(q.Poll(SHORT_DELAY, out item));
         }
 
         /// <summary>
@@ -456,21 +455,21 @@ namespace Spring.Threading.Tests.Collections {
         public void TestInterruptedTimedPoll() {
             AtomicBoolean isInterupted = new AtomicBoolean(false);
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    int item;
-                    PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
-                    for(int i = 0; i < SIZE; ++i) {
-                        Assert.IsTrue(q.Poll(SHORT_DELAY_MS, out item));
-                        Assert.That(item, Is.EqualTo(i));
-                    }
-                    Assert.IsFalse(q.Poll(SHORT_DELAY_MS, out item));
-                }
-                catch(ThreadInterruptedException) {
-                    isInterupted.Value = true;
-                }
+                                                               try {
+                                                                   int item;
+                                                                   PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
+                                                                   for(int i = 0; i < SIZE; ++i) {
+                                                                       Assert.IsTrue(q.Poll(SHORT_DELAY, out item));
+                                                                       Assert.That(item, Is.EqualTo(i));
+                                                                   }
+                                                                   Assert.IsFalse(q.Poll(SHORT_DELAY, out item));
+                                                               }
+                                                               catch(ThreadInterruptedException) {
+                                                                   isInterupted.Value = true;
+                                                               }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -483,19 +482,19 @@ namespace Spring.Threading.Tests.Collections {
             AtomicBoolean isInterupted = new AtomicBoolean(false);
             PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    int item;
-                    Assert.IsFalse(q.Poll(SHORT_DELAY_MS, out item));
-                    q.Poll(LONG_DELAY_MS, out item);
-                    q.Poll(LONG_DELAY_MS, out item);
-                }
-                catch(ThreadInterruptedException) {
-                    isInterupted.Value = true;
-                }
+                                                               try {
+                                                                   int item;
+                                                                   Assert.IsFalse(q.Poll(SHORT_DELAY, out item));
+                                                                   q.Poll(LONG_DELAY, out item);
+                                                                   q.Poll(LONG_DELAY, out item);
+                                                               }
+                                                               catch(ThreadInterruptedException) {
+                                                                   isInterupted.Value = true;
+                                                               }
             }));
             t.Start();
-            Thread.Sleep(SMALL_DELAY_MS);
-            Assert.IsTrue(q.Offer(0, SHORT_DELAY_MS));
+            Thread.Sleep(SMALL_DELAY);
+            Assert.IsTrue(q.Offer(0, SHORT_DELAY));
             t.Interrupt();
             t.Join();
         }
@@ -712,25 +711,25 @@ namespace Spring.Threading.Tests.Collections {
             PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);
             IExecutorService executor = Executors.NewFixedThreadPool(2);
             executor.Execute(delegate {
-                int item;
-                Assert.IsFalse(q.Poll(out item));
-                try {
-                    Assert.IsTrue(q.Poll(MEDIUM_DELAY_MS, out item));
-                    Assert.IsTrue(q.IsEmpty);
-                }
-                catch(ThreadInterruptedException) {
-                    isInterupted.Value = true;
-                }
+                                          int item;
+                                          Assert.IsFalse(q.Poll(out item));
+                                          try {
+                                              Assert.IsTrue(q.Poll(MEDIUM_DELAY, out item));
+                                              Assert.IsTrue(q.IsEmpty);
+                                          }
+                                          catch(ThreadInterruptedException) {
+                                              isInterupted.Value = true;
+                                          }
             });
 
             executor.Execute(delegate {
-                try {
-                    Thread.Sleep(SMALL_DELAY_MS);
-                    q.Put(1);
-                }
-                catch(ThreadInterruptedException e) {
-                    isInterupted.Value = true;
-                }
+                                          try {
+                                              Thread.Sleep(SMALL_DELAY);
+                                              q.Put(1);
+                                          }
+                                          catch(ThreadInterruptedException e) {
+                                              isInterupted.Value = true;
+                                          }
             });
 
             JoinPool(executor);
@@ -809,17 +808,17 @@ namespace Spring.Threading.Tests.Collections {
         public void TestDrainToWithActivePut() {
             PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
             Thread t = new Thread(new ThreadStart(delegate {
-                                                      q.Put(SIZE + 1);
-                                                  }));
+                                                               q.Put(SIZE + 1);
+            }));
 
-                t.Start();
-                IList<int> l = new List<int>();
-                q.DrainTo(l);
-                Assert.IsTrue(l.Count >= SIZE);
-                for (int i = 0; i < SIZE; ++i)
-                    Assert.That(l[i], Is.EqualTo((i)));
-                t.Join();
-                Assert.IsTrue(q.Count + l.Count >= SIZE);
+            t.Start();
+            IList<int> l = new List<int>();
+            q.DrainTo(l);
+            Assert.IsTrue(l.Count >= SIZE);
+            for (int i = 0; i < SIZE; ++i)
+                Assert.That(l[i], Is.EqualTo((i)));
+            t.Join();
+            Assert.IsTrue(q.Count + l.Count >= SIZE);
         }
 
         /// <summary>
@@ -828,7 +827,7 @@ namespace Spring.Threading.Tests.Collections {
         [Test, ExpectedException(typeof(ArgumentNullException))]
         public void TestDrainToNullN() {
             PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
-                q.DrainTo(null, 0);
+            q.DrainTo(null, 0);
         }
 
         /// <summary>
@@ -837,7 +836,7 @@ namespace Spring.Threading.Tests.Collections {
         [Test, ExpectedException(typeof(ArgumentException))]
         public void testDrainToSelfN() {
             PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
-                q.DrainTo(q, 0);
+            q.DrainTo(q, 0);
         }
 
         /// <summary>

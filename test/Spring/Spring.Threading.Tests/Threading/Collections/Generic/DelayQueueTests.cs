@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using Spring.Collections;
-using Spring.Threading.Collections.Generic;
 using Spring.Threading.Execution;
 using Spring.Threading.Future;
 
-namespace Spring.Threading.Collections
+namespace Spring.Threading.Collections.Generic
 {
     [TestFixture]
     public class DelayQueueTests : BaseThreadingTestCase
@@ -56,8 +55,8 @@ namespace Spring.Threading.Collections
                 {
                     q.Put( new PDelay( new TimeSpan( 0 ) ) );
                     q.Put( new PDelay( new TimeSpan( 0 ) ) );
-                    Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), SHORT_DELAY_MS ) );
-                    Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), LONG_DELAY_MS ) );
+                    Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), SHORT_DELAY ) );
+                    Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), LONG_DELAY ) );
                 }
                 finally {}
             }
@@ -125,10 +124,10 @@ namespace Spring.Threading.Collections
                     PDelay pDelay;
                     for ( int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i )
                     {
-                        q.Poll(SHORT_DELAY_MS, out pDelay);
+                        q.Poll(SHORT_DELAY, out pDelay);
                         Assert.AreEqual( new PDelay( new TimeSpan( i ) ), pDelay  );
                     }
-                    q.Poll(SHORT_DELAY_MS, out pDelay);
+                    q.Poll(SHORT_DELAY, out pDelay);
                     Assert.IsNull( null );
                 }
                 catch ( ThreadInterruptedException ) {}
@@ -149,10 +148,10 @@ namespace Spring.Threading.Collections
                 try
                 {
                     PDelay pDelay;
-                    q.Poll(SHORT_DELAY_MS, out pDelay);
+                    q.Poll(SHORT_DELAY, out pDelay);
                     Assert.IsNull( pDelay  );
-                    q.Poll(SHORT_DELAY_MS, out pDelay);
-                    q.Poll(SHORT_DELAY_MS, out pDelay);
+                    q.Poll(SHORT_DELAY, out pDelay);
+                    q.Poll(SHORT_DELAY, out pDelay);
                     Assert.Fail( "Should block" );
                 }
                 catch ( ThreadInterruptedException ) {}
@@ -173,7 +172,7 @@ namespace Spring.Threading.Collections
                 PDelay pDelay;
                 q.Poll(out pDelay);
                 Assert.IsNull( pDelay );
-                q.Poll(MEDIUM_DELAY_MS, out pDelay);
+                q.Poll(MEDIUM_DELAY, out pDelay);
                 Assert.IsTrue( null != pDelay );
                 Assert.IsTrue( q.IsEmpty );
             }
@@ -190,7 +189,7 @@ namespace Spring.Threading.Collections
 
             public void Run()
             {
-                Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY_MS.Milliseconds ) );
+                Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
                 q.Put( new PDelay( new TimeSpan( 1 ) ) );
             }
         }
@@ -513,7 +512,7 @@ namespace Spring.Threading.Collections
             try
             {
                 DelayQueue<PDelay> q = new DelayQueue<PDelay>();
-                q.AddAll( null );
+                q.AddRange( null );
                 Assert.Fail( "should throw exception" );
             }
             catch ( ArgumentNullException ) {}
@@ -525,7 +524,7 @@ namespace Spring.Threading.Collections
             try
             {
                 DelayQueue<PDelay> q = populatedQueue( DEFAULT_COLLECTION_SIZE );
-                q.AddAll( q );
+                q.AddRange( q );
                 Assert.Fail( "should throw exception" );
             }
             catch ( ArgumentException ) {}
@@ -539,7 +538,7 @@ namespace Spring.Threading.Collections
                 DelayQueue<PDelay> q = new DelayQueue<PDelay>();
                 PDelay[] ints = new PDelay[DEFAULT_COLLECTION_SIZE];
 
-                q.AddAll( new List<PDelay>( ints ) );
+                q.AddRange( new List<PDelay>( ints ) );
                 Assert.Fail( "should throw exception" );
             }
             catch ( ArgumentNullException ) {}
@@ -557,7 +556,7 @@ namespace Spring.Threading.Collections
                     ints[i] = new PDelay( new TimeSpan( i ) );
                 }
 
-                q.AddAll( new List<PDelay>( ints ) );
+                q.AddRange( new List<PDelay>( ints ) );
                 Assert.Fail( "should throw exception" );
             }
             catch ( ArgumentNullException ) {}
@@ -576,9 +575,9 @@ namespace Spring.Threading.Collections
                 }
                 DelayQueue<PDelay> q = new DelayQueue<PDelay>();
 
-                Assert.IsFalse( q.AddAll( new List<PDelay>( empty ) ) );
+                Assert.IsFalse( q.AddRange( new List<PDelay>( empty ) ) );
 
-                Assert.IsTrue( q.AddAll( new List<PDelay>( ints ) ) );
+                Assert.IsTrue( q.AddRange( new List<PDelay>( ints ) ) );
                
                 for ( int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i )
                 {
@@ -625,7 +624,7 @@ namespace Spring.Threading.Collections
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable( q ).Run ) );
             t.Start();
 
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY_MS.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
             q.Take();
             t.Interrupt();
             t.Join();
@@ -639,7 +638,7 @@ namespace Spring.Threading.Collections
 
             t.Start();
 
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SMALL_DELAY_MS.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*SMALL_DELAY.Milliseconds ) );
             t.Interrupt();
             t.Join();
         }
@@ -661,7 +660,7 @@ namespace Spring.Threading.Collections
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable2( q ).Run ) );
             t.Start();
 
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY_MS.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
             t.Interrupt();
             t.Join();
         }
@@ -671,7 +670,7 @@ namespace Spring.Threading.Collections
         {
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable3( this ).Run ) );
             t.Start();
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY_MS.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
             t.Interrupt();
             t.Join();
         }
@@ -686,7 +685,7 @@ namespace Spring.Threading.Collections
                 q.Poll(out pDelay);
                 Assert.AreEqual( new PDelay( new TimeSpan( i ) ), pDelay );
             }
-                q.Poll(out pDelay);
+            q.Poll(out pDelay);
             Assert.IsNull( pDelay);
         }
 
@@ -712,10 +711,10 @@ namespace Spring.Threading.Collections
             PDelay pDelay;
             for ( int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i )
             {
-                q.Poll(SHORT_DELAY_MS, out pDelay);
+                q.Poll(SHORT_DELAY, out pDelay);
                 Assert.AreEqual( new PDelay( new TimeSpan( i ) ), pDelay );
             }
-                q.Poll(SHORT_DELAY_MS, out pDelay);
+            q.Poll(SHORT_DELAY, out pDelay);
             Assert.IsNull( pDelay );
         }
 
@@ -724,7 +723,7 @@ namespace Spring.Threading.Collections
         {
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable4( this ).Run ) );
             t.Start();
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY_MS.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
             t.Interrupt();
             t.Join();
         }
@@ -736,8 +735,8 @@ namespace Spring.Threading.Collections
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable5( q ).Run ) );
             t.Start();
 
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SMALL_DELAY_MS.Milliseconds ) );
-            Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), SHORT_DELAY_MS ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*SMALL_DELAY.Milliseconds ) );
+            Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), SHORT_DELAY ) );
             t.Interrupt();
             t.Join();
         }
@@ -951,7 +950,7 @@ namespace Spring.Threading.Collections
         public void PeekDelayed()
         {
             DelayQueue<IDelayed> q = new DelayQueue<IDelayed>();
-            q.Add( new NanoDelay( LONG_DELAY_MS ) );
+            q.Add( new NanoDelay( LONG_DELAY ) );
             IDelayed nd;
             Assert.IsFalse( q.Peek(out nd) );
         }
@@ -960,7 +959,7 @@ namespace Spring.Threading.Collections
         public void PollDelayed()
         {
             DelayQueue<IDelayed> q = new DelayQueue<IDelayed>();
-            q.Add( new NanoDelay( LONG_DELAY_MS ) );
+            q.Add( new NanoDelay( LONG_DELAY ) );
             IDelayed nd;
             Assert.IsFalse( q.Poll(out nd) );
         }

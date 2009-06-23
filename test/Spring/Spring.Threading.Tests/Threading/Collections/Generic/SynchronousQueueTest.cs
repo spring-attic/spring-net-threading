@@ -1,10 +1,9 @@
 using System;
 using System.Threading;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
-using Spring.Threading.Collections;
 
-namespace Spring.Threading.Tests.Collections {
+namespace Spring.Threading.Collections.Generic
+{
     /// <author>Doug Lea>author>
     /// <author>Andreas Döhring (.NET)</author>
     [TestFixture]
@@ -126,25 +125,25 @@ namespace Spring.Threading.Tests.Collections {
         [Test, ExpectedException(typeof(ArgumentNullException))]
         public void TestAddAllDefaultT() {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
-            q.AddAll(null);
+            q.AddRange(null);
         }
 
         [Test, ExpectedException(typeof(ArgumentNullException))]
         public void TestAddAllDefaultT2() {
             SynchronousQueue<int> q = new SynchronousQueue<int>();
-            q.AddAll(null);
+            q.AddRange(null);
         }
 
         [Test, ExpectedException(typeof(ArgumentException))]
         public void TestAddAllSelf() {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
-            q.AddAll(q);
+            q.AddRange(q);
         }
 
         [Test, ExpectedException(typeof(ArgumentException))]
         public void TestAddAllSelf2() {
             SynchronousQueue<int> q = new SynchronousQueue<int>();
-            q.AddAll(q);
+            q.AddRange(q);
         }
 
         /// <summary>
@@ -154,7 +153,7 @@ namespace Spring.Threading.Tests.Collections {
         public void TestAddAllWithDefaultElements() {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             TestReferenceType[] test = new TestReferenceType[1];
-            q.AddAll(test);
+            q.AddRange(test);
         }
 
         /// <summary>
@@ -164,7 +163,7 @@ namespace Spring.Threading.Tests.Collections {
         public void TestAddAllWithDefaultElements2() {
             SynchronousQueue<int> q = new SynchronousQueue<int>();
             int[] test = new int[1];
-            q.AddAll(test);
+            q.AddRange(test);
         }
 
         /// <summary>
@@ -176,7 +175,7 @@ namespace Spring.Threading.Tests.Collections {
             TestReferenceType[] test = new TestReferenceType[1];
             for(int i = 0; i < 1; ++i)
                 test[i] = new TestReferenceType();
-            q.AddAll(test);
+            q.AddRange(test);
         }
 
         /// <summary>
@@ -194,11 +193,11 @@ namespace Spring.Threading.Tests.Collections {
         [Test]
         public void TestBlockingPut() {
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
-                    q.Put(new TestReferenceType());
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
+                                                                   q.Put(new TestReferenceType());
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
             t.Start();
             Thread.Sleep(50);
@@ -212,14 +211,14 @@ namespace Spring.Threading.Tests.Collections {
         [Test]
         public void TestBlockingPut2() {
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    SynchronousQueue<int> q = new SynchronousQueue<int>();
-                    q.Put(1);
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   SynchronousQueue<int> q = new SynchronousQueue<int>();
+                                                                   q.Put(1);
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -231,25 +230,25 @@ namespace Spring.Threading.Tests.Collections {
         public void TestPutWithTake() {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             Thread t = new Thread(new ThreadStart(delegate {
-                int added = 0;
-                try {
-                    q.Put(new TestReferenceType());
-                    ++added;
-                    q.Put(new TestReferenceType());
-                    ++added;
-                    q.Put(new TestReferenceType());
-                    ++added;
-                    q.Put(new TestReferenceType());
-                    ++added;
-                }
-                catch(ThreadInterruptedException) {
-                    Assert.IsTrue(added >= 1);
-                }
+                                                               int added = 0;
+                                                               try {
+                                                                   q.Put(new TestReferenceType());
+                                                                   ++added;
+                                                                   q.Put(new TestReferenceType());
+                                                                   ++added;
+                                                                   q.Put(new TestReferenceType());
+                                                                   ++added;
+                                                                   q.Put(new TestReferenceType());
+                                                                   ++added;
+                                                               }
+                                                               catch(ThreadInterruptedException) {
+                                                                   Assert.IsTrue(added >= 1);
+                                                               }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             q.Take();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -261,25 +260,25 @@ namespace Spring.Threading.Tests.Collections {
         public void TestPutWithTake2() {
             SynchronousQueue<int> q = new SynchronousQueue<int>();
             Thread t = new Thread(new ThreadStart(delegate {
-                int added = 0;
-                try {
-                    q.Put(1);
-                    ++added;
-                    q.Put(2);
-                    ++added;
-                    q.Put(3);
-                    ++added;
-                    q.Put(4);
-                    ++added;
-                }
-                catch(ThreadInterruptedException) {
-                    Assert.IsTrue(added >= 1);
-                }
+                                                               int added = 0;
+                                                               try {
+                                                                   q.Put(1);
+                                                                   ++added;
+                                                                   q.Put(2);
+                                                                   ++added;
+                                                                   q.Put(3);
+                                                                   ++added;
+                                                                   q.Put(4);
+                                                                   ++added;
+                                                               }
+                                                               catch(ThreadInterruptedException) {
+                                                                   Assert.IsTrue(added >= 1);
+                                                               }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             q.Take();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -291,15 +290,15 @@ namespace Spring.Threading.Tests.Collections {
         public void TestTimedOffer() {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    Assert.IsFalse(q.Offer(new TestReferenceType(), SHORT_DELAY_MS));
-                    q.Offer(new TestReferenceType(), LONG_DELAY_MS);
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   Assert.IsFalse(q.Offer(new TestReferenceType(), SHORT_DELAY));
+                                                                   q.Offer(new TestReferenceType(), LONG_DELAY);
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
 
             t.Start();
-            Thread.Sleep(SMALL_DELAY_MS);
+            Thread.Sleep(SMALL_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -311,15 +310,15 @@ namespace Spring.Threading.Tests.Collections {
         public void TestTimedOffer2() {
             SynchronousQueue<int> q = new SynchronousQueue<int>();
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    Assert.IsFalse(q.Offer(1, SHORT_DELAY_MS));
-                    q.Offer(2, LONG_DELAY_MS);
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   Assert.IsFalse(q.Offer(1, SHORT_DELAY));
+                                                                   q.Offer(2, LONG_DELAY);
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
 
             t.Start();
-            Thread.Sleep(SMALL_DELAY_MS);
+            Thread.Sleep(SMALL_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -331,13 +330,13 @@ namespace Spring.Threading.Tests.Collections {
         public void TestTakeFromEmpty() {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    q.Take();
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   q.Take();
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -349,13 +348,13 @@ namespace Spring.Threading.Tests.Collections {
         public void TestTakeFromEmpty2() {
             SynchronousQueue<int> q = new SynchronousQueue<int>();
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    q.Take();
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   q.Take();
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -366,14 +365,14 @@ namespace Spring.Threading.Tests.Collections {
         [Test]
         public void TestFairBlockingPut() {
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>(true);
-                    q.Put(new TestReferenceType());
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>(true);
+                                                                   q.Put(new TestReferenceType());
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -384,14 +383,14 @@ namespace Spring.Threading.Tests.Collections {
         [Test]
         public void TestFairBlockingPut2() {
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    SynchronousQueue<int> q = new SynchronousQueue<int>(true);
-                    q.Put(1);
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   SynchronousQueue<int> q = new SynchronousQueue<int>(true);
+                                                                   q.Put(1);
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -403,25 +402,25 @@ namespace Spring.Threading.Tests.Collections {
         public void TestFairPutWithTake() {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>(true);
             Thread t = new Thread(new ThreadStart(delegate {
-                int added = 0;
-                try {
-                    q.Put(new TestReferenceType());
-                    ++added;
-                    q.Put(new TestReferenceType());
-                    ++added;
-                    q.Put(new TestReferenceType());
-                    ++added;
-                    q.Put(new TestReferenceType());
-                    ++added;
-                }
-                catch(ThreadInterruptedException) {
-                    Assert.IsTrue(added >= 1);
-                }
+                                                               int added = 0;
+                                                               try {
+                                                                   q.Put(new TestReferenceType());
+                                                                   ++added;
+                                                                   q.Put(new TestReferenceType());
+                                                                   ++added;
+                                                                   q.Put(new TestReferenceType());
+                                                                   ++added;
+                                                                   q.Put(new TestReferenceType());
+                                                                   ++added;
+                                                               }
+                                                               catch(ThreadInterruptedException) {
+                                                                   Assert.IsTrue(added >= 1);
+                                                               }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             q.Take();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -433,25 +432,25 @@ namespace Spring.Threading.Tests.Collections {
         public void TestFairPutWithTake2() {
             SynchronousQueue<int> q = new SynchronousQueue<int>(true);
             Thread t = new Thread(new ThreadStart(delegate {
-                int added = 0;
-                try {
-                    q.Put(1);
-                    ++added;
-                    q.Put(2);
-                    ++added;
-                    q.Put(3);
-                    ++added;
-                    q.Put(4);
-                    ++added;
-                }
-                catch(ThreadInterruptedException) {
-                    Assert.IsTrue(added >= 1);
-                }
+                                                               int added = 0;
+                                                               try {
+                                                                   q.Put(1);
+                                                                   ++added;
+                                                                   q.Put(2);
+                                                                   ++added;
+                                                                   q.Put(3);
+                                                                   ++added;
+                                                                   q.Put(4);
+                                                                   ++added;
+                                                               }
+                                                               catch(ThreadInterruptedException) {
+                                                                   Assert.IsTrue(added >= 1);
+                                                               }
             }));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             q.Take();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -463,15 +462,15 @@ namespace Spring.Threading.Tests.Collections {
         public void TestFairTimedOffer() {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>(true);
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    Assert.IsFalse(q.Offer(new TestReferenceType(), SHORT_DELAY_MS));
-                    q.Offer(new TestReferenceType(), LONG_DELAY_MS);
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   Assert.IsFalse(q.Offer(new TestReferenceType(), SHORT_DELAY));
+                                                                   q.Offer(new TestReferenceType(), LONG_DELAY);
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
 
             t.Start();
-            Thread.Sleep(SMALL_DELAY_MS);
+            Thread.Sleep(SMALL_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -483,15 +482,15 @@ namespace Spring.Threading.Tests.Collections {
         public void TestFairTimedOffer2() {
             SynchronousQueue<int> q = new SynchronousQueue<int>(true);
             Thread t = new Thread(new ThreadStart(delegate {
-                try {
-                    Assert.IsFalse(q.Offer(1, SHORT_DELAY_MS));
-                    q.Offer(2, LONG_DELAY_MS);
-                }
-                catch(ThreadInterruptedException) { }
+                                                               try {
+                                                                   Assert.IsFalse(q.Offer(1, SHORT_DELAY));
+                                                                   q.Offer(2, LONG_DELAY);
+                                                               }
+                                                               catch(ThreadInterruptedException) { }
             }));
 
             t.Start();
-            Thread.Sleep(SMALL_DELAY_MS);
+            Thread.Sleep(SMALL_DELAY);
             t.Interrupt();
             t.Join();
         }
@@ -512,7 +511,7 @@ namespace Spring.Threading.Tests.Collections {
         //        });
         //    try {
         //        t.start();
-        //        Thread.sleep(SHORT_DELAY_MS);
+        //        Thread.sleep(SHORT_DELAY);
         //        t.interrupt();
         //        t.join();
         //    } catch (Exception e){
@@ -546,7 +545,7 @@ namespace Spring.Threading.Tests.Collections {
         //public void testTimedPoll() {
         //    try {
         //        SynchronousQueue q = new SynchronousQueue();
-        //        assertNull(q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
+        //        assertNull(q.poll(SHORT_DELAY, TimeUnit.MILLISECONDS));
         //    } catch (InterruptedException e){
         //    unexpectedException();
         //}
@@ -561,13 +560,13 @@ namespace Spring.Threading.Tests.Collections {
         //            public void run() {
         //                try {
         //                    SynchronousQueue q = new SynchronousQueue();
-        //                    assertNull(q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
+        //                    assertNull(q.poll(SHORT_DELAY, TimeUnit.MILLISECONDS));
         //                } catch (InterruptedException success){
         //                }
         //            }});
         //    t.start();
         //    try {
-        //       Thread.sleep(SHORT_DELAY_MS);
+        //       Thread.sleep(SHORT_DELAY);
         //       t.interrupt();
         //       t.join();
         //    }
@@ -585,17 +584,17 @@ namespace Spring.Threading.Tests.Collections {
         //    Thread t = new Thread(new Runnable() {
         //            public void run() {
         //                try {
-        //                    threadAssertNull(q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
-        //                    q.poll(LONG_DELAY_MS, TimeUnit.MILLISECONDS);
-        //                    q.poll(LONG_DELAY_MS, TimeUnit.MILLISECONDS);
+        //                    threadAssertNull(q.poll(SHORT_DELAY, TimeUnit.MILLISECONDS));
+        //                    q.poll(LONG_DELAY, TimeUnit.MILLISECONDS);
+        //                    q.poll(LONG_DELAY, TimeUnit.MILLISECONDS);
         //        threadShouldThrow();
         //                } catch (InterruptedException success) { }
         //            }
         //        });
         //    try {
         //        t.start();
-        //        Thread.sleep(SMALL_DELAY_MS);
-        //        assertTrue(q.offer(zero, SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
+        //        Thread.sleep(SMALL_DELAY);
+        //        assertTrue(q.offer(zero, SHORT_DELAY, TimeUnit.MILLISECONDS));
         //        t.interrupt();
         //        t.join();
         //    } catch (Exception e){
@@ -612,13 +611,13 @@ namespace Spring.Threading.Tests.Collections {
         //            public void run() {
         //                try {
         //                    SynchronousQueue q = new SynchronousQueue(true);
-        //                    assertNull(q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
+        //                    assertNull(q.poll(SHORT_DELAY, TimeUnit.MILLISECONDS));
         //                } catch (InterruptedException success){
         //                }
         //            }});
         //    t.start();
         //    try {
-        //       Thread.sleep(SHORT_DELAY_MS);
+        //       Thread.sleep(SHORT_DELAY);
         //       t.interrupt();
         //       t.join();
         //    }
@@ -636,17 +635,17 @@ namespace Spring.Threading.Tests.Collections {
         //    Thread t = new Thread(new Runnable() {
         //            public void run() {
         //                try {
-        //                    threadAssertNull(q.poll(SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
-        //                    q.poll(LONG_DELAY_MS, TimeUnit.MILLISECONDS);
-        //                    q.poll(LONG_DELAY_MS, TimeUnit.MILLISECONDS);
+        //                    threadAssertNull(q.poll(SHORT_DELAY, TimeUnit.MILLISECONDS));
+        //                    q.poll(LONG_DELAY, TimeUnit.MILLISECONDS);
+        //                    q.poll(LONG_DELAY, TimeUnit.MILLISECONDS);
         //        threadShouldThrow();
         //                } catch (InterruptedException success) { }
         //            }
         //        });
         //    try {
         //        t.start();
-        //        Thread.sleep(SMALL_DELAY_MS);
-        //        assertTrue(q.offer(zero, SHORT_DELAY_MS, TimeUnit.MILLISECONDS));
+        //        Thread.sleep(SMALL_DELAY);
+        //        assertTrue(q.offer(zero, SHORT_DELAY, TimeUnit.MILLISECONDS));
         //        t.interrupt();
         //        t.join();
         //    } catch (Exception e){
@@ -826,7 +825,7 @@ namespace Spring.Threading.Tests.Collections {
         //        public void run() {
         //            threadAssertFalse(q.offer(one));
         //            try {
-        //                threadAssertTrue(q.offer(one, MEDIUM_DELAY_MS, TimeUnit.MILLISECONDS));
+        //                threadAssertTrue(q.offer(one, MEDIUM_DELAY, TimeUnit.MILLISECONDS));
         //                threadAssertEquals(0, q.remainingCapacity());
         //            }
         //            catch (InterruptedException e) {
@@ -838,7 +837,7 @@ namespace Spring.Threading.Tests.Collections {
         //    executor.execute(new Runnable() {
         //        public void run() {
         //            try {
-        //                Thread.sleep(SMALL_DELAY_MS);
+        //                Thread.sleep(SMALL_DELAY);
         //                threadAssertEquals(one, q.take());
         //            }
         //            catch (InterruptedException e) {
@@ -861,7 +860,7 @@ namespace Spring.Threading.Tests.Collections {
         //        public void run() {
         //            threadAssertNull(q.poll());
         //            try {
-        //                threadAssertTrue(null != q.poll(MEDIUM_DELAY_MS, TimeUnit.MILLISECONDS));
+        //                threadAssertTrue(null != q.poll(MEDIUM_DELAY, TimeUnit.MILLISECONDS));
         //                threadAssertTrue(q.isEmpty());
         //            }
         //            catch (InterruptedException e) {
@@ -873,7 +872,7 @@ namespace Spring.Threading.Tests.Collections {
         //    executor.execute(new Runnable() {
         //        public void run() {
         //            try {
-        //                Thread.sleep(SMALL_DELAY_MS);
+        //                Thread.sleep(SMALL_DELAY);
         //                q.put(new Integer(1));
         //            }
         //            catch (InterruptedException e) {
@@ -960,7 +959,7 @@ namespace Spring.Threading.Tests.Collections {
         //    try {
         //        t.start();
         //        ArrayList l = new ArrayList();
-        //        Thread.sleep(SHORT_DELAY_MS);
+        //        Thread.sleep(SHORT_DELAY);
         //        q.drainTo(l);
         //        assertTrue(l.size() <= 1);
         //        if (l.size() > 0)
@@ -1024,7 +1023,7 @@ namespace Spring.Threading.Tests.Collections {
         //        t1.start();
         //        t2.start();
         //        ArrayList l = new ArrayList();
-        //        Thread.sleep(SHORT_DELAY_MS);
+        //        Thread.sleep(SHORT_DELAY);
         //        q.drainTo(l, 1);
         //        assertTrue(l.size() == 1);
         //        q.drainTo(l, 1);

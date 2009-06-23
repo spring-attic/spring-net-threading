@@ -36,7 +36,7 @@ namespace Spring.Threading.Helpers
             public virtual void Run()
             {
                 Assert.IsTrue(l.Count > 0);
-                Assert.IsTrue(l.Await(SMALL_DELAY_MS));
+                Assert.IsTrue(l.Await(SMALL_DELAY));
             }
         }
 
@@ -77,7 +77,7 @@ namespace Spring.Threading.Helpers
                 try
                 {
                     Assert.IsTrue(l.Count > 0);
-                    l.Await(MEDIUM_DELAY_MS);
+                    l.Await(MEDIUM_DELAY);
                     Assert.Fail("Should throw an exception.");
                 }
                 catch (ThreadInterruptedException)
@@ -98,7 +98,7 @@ namespace Spring.Threading.Helpers
             public virtual void Run()
             {
                 Assert.IsTrue(l.Count > 0);
-                Assert.IsFalse(l.Await(SHORT_DELAY_MS));
+                Assert.IsFalse(l.Await(SHORT_DELAY));
                 Assert.IsTrue(l.Count > 0);
             }
         }
@@ -143,7 +143,7 @@ namespace Spring.Threading.Helpers
             t.Start();
             Assert.AreEqual(l.Count, 2);
 
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             l.CountDown();
             Assert.AreEqual(l.Count, 1);
             l.CountDown();
@@ -161,7 +161,7 @@ namespace Spring.Threading.Helpers
             t.Start();
             Assert.AreEqual(l.Count, 2);
 
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             l.CountDown();
             Assert.AreEqual(l.Count, 1);
             l.CountDown();
@@ -188,7 +188,7 @@ namespace Spring.Threading.Helpers
             CountDownLatch l = new CountDownLatch(1);
             Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable3(l).Run));
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             Assert.AreEqual(l.Count, 1);
             t.Interrupt();
             t.Join();

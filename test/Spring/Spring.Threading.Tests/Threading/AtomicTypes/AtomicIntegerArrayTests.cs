@@ -25,43 +25,23 @@ using System.Text;
 using System.Threading;
 using NUnit.Framework;
 
-namespace Spring.Threading.AtomicTypes {
+namespace Spring.Threading.AtomicTypes
+{
     /// <summary>
     /// Unit tests for the AtomicIntegerArray class
     /// </summary>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
+    /// <author>Kenneth Xu (.NET)</author>
     [TestFixture]
     public class AtomicIntegerArrayTests : BaseThreadingTestCase {
-        private class AnonymousClassRunnable {
-            public AnonymousClassRunnable(AtomicIntegerArray a) {
-                this.a = a;
-            }
-
-            private AtomicIntegerArray a;
-
-            public void Run() {
-                while(!a.CompareAndSet(0, 2, 3))
-                    Thread.Sleep(0);
-            }
-        }
-
         internal const int COUNTDOWN = 100000;
 
         internal class Counter {
             internal AtomicIntegerArray ai;
             internal volatile int counts;
-            private AtomicIntegerArrayTests enclosingInstance;
 
-            private void InitBlock(AtomicIntegerArrayTests enclosingInstance) {
-                this.enclosingInstance = enclosingInstance;
-            }
-            public AtomicIntegerArrayTests Enclosing_Instance {
-                get { return enclosingInstance; }
-
-            }
-            internal Counter(AtomicIntegerArrayTests enclosingInstance, AtomicIntegerArray a) {
-                InitBlock(enclosingInstance);
+            internal Counter(AtomicIntegerArray a) {
                 ai = a;
             }
 
@@ -69,7 +49,7 @@ namespace Spring.Threading.AtomicTypes {
             public void Run() {
                 for(; ; ) {
                     bool done = true;
-                    for(int i = 0; i < ai.Length; ++i) {
+                    for(int i = 0; i < ai.Count; ++i) {
                         int v = ai[i];
                         Assert.IsTrue(v >= 0);
                         if(v != 0) {
@@ -85,7 +65,7 @@ namespace Spring.Threading.AtomicTypes {
         }
 
         [Test]
-        public void Constructor() {
+        public void ConstructAtomicIntegerArryWithGivenSize() {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
                 Assert.AreEqual(0, ai[i]);
@@ -93,50 +73,41 @@ namespace Spring.Threading.AtomicTypes {
 
         [ExpectedException(typeof(ArgumentNullException))]
         [Test]
-        public void Constructor2NPE() {
+        public void ConstructorChokesOnNullArgument() {
             int[] a = null;
             new AtomicIntegerArray(a);
         }
 
 
         [Test]
-        public void Constructor2() {
+        public void ConstructFromExistingArray() {
             int[] a = new int[] { 17, 3, -42, 99, -7 };
             AtomicIntegerArray ai = new AtomicIntegerArray(a);
-            Assert.AreEqual(a.Length, ai.Length);
+            Assert.AreEqual(a.Length, ai.Count);
             for(int i = 0; i < a.Length; ++i)
                 Assert.AreEqual(a[i], ai[i]);
         }
 
 
         [Test]
-        public void Indexing() {
+        public void IndexerChokesOnOutOfRangeIndex() {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
-            try {
-                int a = ai[DEFAULT_COLLECTION_SIZE];
-            }
-            catch(IndexOutOfRangeException) {
-            }
-            try {
-                int a = ai[-1];
-            }
-            catch(IndexOutOfRangeException) {
-            }
-            try {
-                ai[DEFAULT_COLLECTION_SIZE] = 0;
-            }
-            catch(IndexOutOfRangeException) {
-            }
-            try {
-                ai[-1] = 0;
-            }
-            catch(IndexOutOfRangeException) {
-            }
+            int a = 0;
+            TestHelper.AssertException<IndexOutOfRangeException>(
+                delegate { a = ai[DEFAULT_COLLECTION_SIZE]; });
+            TestHelper.AssertException<IndexOutOfRangeException>(
+                delegate { a = ai[-1]; });
+            TestHelper.AssertException<IndexOutOfRangeException>(
+                delegate { ai.Exchange(DEFAULT_COLLECTION_SIZE, 0); });
+            TestHelper.AssertException<IndexOutOfRangeException>(
+                delegate { ai.Exchange(-1, 0); });
+            Assert.AreEqual(0, a);
         }
 
 
         [Test]
-        public void GetSet() {
+        public void GetReturnsLastValueSetAtIndex()
+        {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
@@ -150,7 +121,8 @@ namespace Spring.Threading.AtomicTypes {
 
 
         [Test]
-        public void GetLazySet() {
+        public void GetReturnsLastValueLazySetAtIndex()
+        {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai.LazySet(i, 1);
@@ -163,7 +135,8 @@ namespace Spring.Threading.AtomicTypes {
         }
 
         [Test]
-        public void CompareAndSet() {
+        public void CompareExistingValueAndSetNewValue()
+        {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
@@ -182,10 +155,14 @@ namespace Spring.Threading.AtomicTypes {
         public void CompareAndSetInMultipleThreads() {
             AtomicIntegerArray a = new AtomicIntegerArray(1);
             a[0] = 1;
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable(a).Run));
+            Thread t = new Thread(delegate()
+            {
+                while (!a.CompareAndSet(0, 2, 3))
+                    Thread.Sleep(0);
+            });
             t.Start();
             Assert.IsTrue(a.CompareAndSet(0, 1, 2));
-            t.Join(LONG_DELAY_MS);
+            t.Join(LONG_DELAY);
             Assert.IsFalse(t.IsAlive);
             Assert.AreEqual(a[0], 3);
         }
@@ -196,13 +173,10 @@ namespace Spring.Threading.AtomicTypes {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
-                while(!ai.WeakCompareAndSet(i, 1, 2))
-                    ;
-                while(!ai.WeakCompareAndSet(i, 2, -4))
-                    ;
+                while(!ai.WeakCompareAndSet(i, 1, 2)) {}
+                while(!ai.WeakCompareAndSet(i, 2, -4)) {}
                 Assert.AreEqual(-4, ai[i]);
-                while(!ai.WeakCompareAndSet(i, -4, 7))
-                    ;
+                while(!ai.WeakCompareAndSet(i, -4, 7)) {}
                 Assert.AreEqual(7, ai[i]);
                 Assert.IsFalse(ai.WeakCompareAndSet(i, -4, 7));
             }
@@ -210,19 +184,20 @@ namespace Spring.Threading.AtomicTypes {
 
 
         [Test]
-        public void GetAndSet() {
+        public void Exchange() {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
-                Assert.AreEqual(1, ai.SetNewAtomicValue(i, 0));
-                Assert.AreEqual(0, ai.SetNewAtomicValue(i, -10));
-                Assert.AreEqual(-10, ai.SetNewAtomicValue(i, 1));
+                Assert.AreEqual(1, ai.Exchange(i, 0));
+                Assert.AreEqual(0, ai.Exchange(i, -10));
+                Assert.AreEqual(-10, ai.Exchange(i, 1));
             }
         }
 
 
         [Test]
-        public void GetAndAdd() {
+        public void AddDeltaAndReturnPreviousValue()
+        {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
@@ -235,7 +210,8 @@ namespace Spring.Threading.AtomicTypes {
 
 
         [Test]
-        public void GetAndDecrement() {
+        public void ReturnValueAndDecrement()
+        {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
@@ -247,7 +223,8 @@ namespace Spring.Threading.AtomicTypes {
 
 
         [Test]
-        public void GetAndIncrement() {
+        public void ReturnValueAndIncrement()
+        {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
@@ -263,7 +240,8 @@ namespace Spring.Threading.AtomicTypes {
 
 
         [Test]
-        public void AddAndGet() {
+        public void AddDeltaAndReturnNewValue()
+        {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
@@ -276,7 +254,8 @@ namespace Spring.Threading.AtomicTypes {
 
 
         [Test]
-        public void DecrementAndGet() {
+        public void DecrementValueAndReturn()
+        {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
@@ -289,7 +268,8 @@ namespace Spring.Threading.AtomicTypes {
 
 
         [Test]
-        public void IncrementAndGet() {
+        public void IncrementValueAndReturn()
+        {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i) {
                 ai[i] = 1;
@@ -309,10 +289,10 @@ namespace Spring.Threading.AtomicTypes {
             AtomicIntegerArray ai = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
                 ai[i] = COUNTDOWN;
-            Counter c1 = new Counter(this, ai);
-            Counter c2 = new Counter(this, ai);
-            Thread t1 = new Thread(new ThreadStart(c1.Run));
-            Thread t2 = new Thread(new ThreadStart(c2.Run));
+            Counter c1 = new Counter(ai);
+            Counter c2 = new Counter(ai);
+            Thread t1 = new Thread(c1.Run);
+            Thread t2 = new Thread(c2.Run);
             t1.Start();
             t2.Start();
             t1.Join();
@@ -322,7 +302,8 @@ namespace Spring.Threading.AtomicTypes {
 
 
         [Test]
-        public void Serialization() {
+        public void SerializeAndDeserialize()
+        {
             AtomicIntegerArray l = new AtomicIntegerArray(DEFAULT_COLLECTION_SIZE);
             for(int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
                 l[i] = -i;
@@ -345,13 +326,13 @@ namespace Spring.Threading.AtomicTypes {
         public void ToStringTest() {
             int[] a = new int[] { 17, 3, -42, 99, -7 };
             AtomicIntegerArray ai = new AtomicIntegerArray(a);
-            Assert.AreEqual(toString(a), ai.ToString());
+            Assert.AreEqual(ToString(a), ai.ToString());
 
             int[] b = new int[0];
             Assert.AreEqual("[]", new AtomicIntegerArray(b).ToString());
         }
 
-        private static String toString(int[] array) {
+        private static String ToString(int[] array) {
             if(array.Length == 0)
                 return "[]";
 
@@ -360,7 +341,7 @@ namespace Spring.Threading.AtomicTypes {
             buf.Append(array[0]);
 
             for(int i = 1; i < array.Length; i++) {
-                buf.Append(",");
+                buf.Append(", ");
                 buf.Append(array[i]);
             }
 

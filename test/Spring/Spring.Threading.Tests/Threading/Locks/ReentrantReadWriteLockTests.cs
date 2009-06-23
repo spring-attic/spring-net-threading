@@ -514,7 +514,7 @@ namespace Spring.Threading.Locks
                 try
                 {
                     myLock.WriterLock.Lock();
-                    c.Await(MEDIUM_DELAY_MS);
+                    c.Await(MEDIUM_DELAY);
                     myLock.WriterLock.Unlock();
                     Assert.Fail("Should throw an exception");
                 }
@@ -717,25 +717,25 @@ namespace Spring.Threading.Locks
         [Test]
         public void Await()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             ICondition c = myLock.WriterLock.NewCondition();
-            var t = new Thread(new AnonymousClassRunnable19(myLock, c).Run);
+            Thread t = new Thread(new AnonymousClassRunnable19(myLock, c).Run);
 
             t.Start();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY_MS.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
             myLock.WriterLock.Lock();
             c.Signal();
             myLock.WriterLock.Unlock();
-            t.Join(SHORT_DELAY_MS);
+            t.Join(SHORT_DELAY);
             Assert.IsFalse(t.IsAlive);
         }
 
         [Test]
         public void Await_IllegalMonitor()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             ICondition c = myLock.WriterLock.NewCondition();
             try
@@ -752,25 +752,25 @@ namespace Spring.Threading.Locks
         [Test]
         public void Await_Interrupt()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             ICondition c = myLock.WriterLock.NewCondition();
-            var t = new Thread(new AnonymousClassRunnable20(myLock, c).Run);
+            Thread t = new Thread(new AnonymousClassRunnable20(myLock, c).Run);
 
             t.Start();
 
-            Thread.Sleep(SHORT_DELAY_MS.Milliseconds);
+            Thread.Sleep(SHORT_DELAY.Milliseconds);
             t.Interrupt();
-            t.Join(SHORT_DELAY_MS);
+            t.Join(SHORT_DELAY);
             Assert.IsFalse(t.IsAlive);
         }
 
         [Test]
         public void Await_Timeout()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
-            var c = myLock.WriterLock.NewCondition();
+            ICondition c = myLock.WriterLock.NewCondition();
             myLock.WriterLock.Lock();
             myLock.WriterLock.Unlock();
         }
@@ -778,37 +778,37 @@ namespace Spring.Threading.Locks
         [Test]
         public void AwaitNanos_Interrupt()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             ICondition c = myLock.WriterLock.NewCondition();
-            var t = new Thread(new AnonymousClassRunnable21(myLock, c).Run);
+            Thread t = new Thread(new AnonymousClassRunnable21(myLock, c).Run);
 
             t.Start();
 
-            Thread.Sleep(new TimeSpan((Int64) 10000*SHORT_DELAY_MS.Milliseconds));
+            Thread.Sleep(new TimeSpan((Int64) 10000*SHORT_DELAY.Milliseconds));
             t.Interrupt();
-            t.Join(SHORT_DELAY_MS);
+            t.Join(SHORT_DELAY);
             Assert.IsFalse(t.IsAlive);
         }
 
         [Test]
         public void AwaitNanos_Timeout()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             ICondition c = myLock.WriterLock.NewCondition();
             myLock.WriterLock.Lock();
-            Assert.IsTrue(c.Await(new TimeSpan(1)));
+            Assert.IsFalse(c.Await(new TimeSpan(1)));
             myLock.WriterLock.Unlock();
         }
 
         [Test]
         public void AwaitUninterruptibly()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
-            var c = myLock.WriterLock.NewCondition();
-            var thread = new UninterruptableThread(myLock.WriterLock, c);
+            ICondition c = myLock.WriterLock.NewCondition();
+            UninterruptableThread thread = new UninterruptableThread(myLock.WriterLock, c);
 
             thread.InternalThread.Start();
 
@@ -837,23 +837,23 @@ namespace Spring.Threading.Locks
         [Test]
         public void AwaitUntil_Interrupt()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
-            var c = myLock.WriterLock.NewCondition();
-            var t = new Thread(new AnonymousClassRunnable22(myLock, c).Run);
+            ICondition c = myLock.WriterLock.NewCondition();
+            Thread t = new Thread(new AnonymousClassRunnable22(myLock, c).Run);
 
             t.Start();
 
-            Thread.Sleep(new TimeSpan(SHORT_DELAY_MS.Milliseconds));
+            Thread.Sleep(new TimeSpan(SHORT_DELAY.Milliseconds));
             t.Interrupt();
-            t.Join(SHORT_DELAY_MS);
+            t.Join(SHORT_DELAY);
             Assert.IsFalse(t.IsAlive);
         }
 
         [Test]
         public void AwaitUntil_Timeout()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             ICondition c = myLock.WriterLock.NewCondition();
             myLock.WriterLock.Lock();
@@ -864,7 +864,7 @@ namespace Spring.Threading.Locks
         [Test]
         public void Constructor()
         {
-            var rl = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock rl = new ReentrantReadWriteLock();
             Assert.IsFalse(rl.IsFair);
             Assert.IsFalse(rl.IsWriteLockHeld);
             Assert.AreEqual(0, rl.ReadLockCount);
@@ -873,26 +873,26 @@ namespace Spring.Threading.Locks
         [Test]
         public void GetQueueLength()
         {
-            var myLock = new ReentrantReadWriteLock();
-            var t1 = new Thread(new InterruptedLockRunnable(myLock).Run);
-            var t2 = new Thread(new InterruptibleLockRunnable(myLock).Run);
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
+            Thread t1 = new Thread(new InterruptedLockRunnable(myLock).Run);
+            Thread t2 = new Thread(new InterruptibleLockRunnable(myLock).Run);
             Assert.AreEqual(0, myLock.QueueLength);
             myLock.WriterLock.Lock();
             t1.Start();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY_MS.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
             Assert.AreEqual(1, myLock.QueueLength);
             t2.Start();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY_MS.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
             Assert.AreEqual(2, myLock.QueueLength);
             t1.Interrupt();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY_MS.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
             Assert.AreEqual(1, myLock.QueueLength);
             myLock.WriterLock.Unlock();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY_MS.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
             Assert.AreEqual(0, myLock.QueueLength);
             t1.Join();
             t2.Join();
@@ -902,7 +902,7 @@ namespace Spring.Threading.Locks
         [Test]
         public void GetWriteHoldCount()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             for (int i = 1; i <= DEFAULT_COLLECTION_SIZE; i++)
             {
                 myLock.WriterLock.Lock();
@@ -918,7 +918,7 @@ namespace Spring.Threading.Locks
         [Test]
         public void Lock()
         {
-            var rl = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock rl = new ReentrantReadWriteLock();
             rl.WriterLock.Lock();
             Assert.IsTrue(rl.IsWriteLockHeld);
             Assert.IsTrue(rl.WriterLockedByCurrentThread);
@@ -957,9 +957,9 @@ namespace Spring.Threading.Locks
         [Test]
         public void MultipleReadLocks()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.ReaderLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable6(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable6(myLock).Run);
             t.Start();
             t.Join();
             myLock.ReaderLock.Unlock();
@@ -969,17 +969,17 @@ namespace Spring.Threading.Locks
         [Test]
         public void ReadAfterWriterLock()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
-            var t1 = new Thread(new AnonymousClassRunnable9(myLock).Run);
-            var t2 = new Thread(new AnonymousClassRunnable10(myLock).Run);
+            Thread t1 = new Thread(new AnonymousClassRunnable9(myLock).Run);
+            Thread t2 = new Thread(new AnonymousClassRunnable10(myLock).Run);
 
             t1.Start();
             t2.Start();
-            Thread.Sleep(new TimeSpan(SHORT_DELAY_MS.Milliseconds*10000));
+            Thread.Sleep(new TimeSpan(SHORT_DELAY.Milliseconds*10000));
             myLock.WriterLock.Unlock();
-            t1.Join(MEDIUM_DELAY_MS);
-            t2.Join(MEDIUM_DELAY_MS);
+            t1.Join(MEDIUM_DELAY);
+            t2.Join(MEDIUM_DELAY);
             Assert.IsTrue(!t1.IsAlive);
             Assert.IsTrue(!t2.IsAlive);
         }
@@ -988,21 +988,21 @@ namespace Spring.Threading.Locks
         [Test]
         public void ReadHoldingWriteLock2()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
-            var t1 = new Thread(new AnonymousClassRunnable11(myLock).Run);
-            var t2 = new Thread(new AnonymousClassRunnable12(myLock).Run);
+            Thread t1 = new Thread(new AnonymousClassRunnable11(myLock).Run);
+            Thread t2 = new Thread(new AnonymousClassRunnable12(myLock).Run);
 
             t1.Start();
             t2.Start();
             myLock.ReaderLock.Lock();
             myLock.ReaderLock.Unlock();
-            Thread.Sleep(new TimeSpan(SHORT_DELAY_MS.Milliseconds*10000));
+            Thread.Sleep(new TimeSpan(SHORT_DELAY.Milliseconds*10000));
             myLock.ReaderLock.Lock();
             myLock.ReaderLock.Unlock();
             myLock.WriterLock.Unlock();
-            t1.Join(MEDIUM_DELAY_MS);
-            t2.Join(MEDIUM_DELAY_MS);
+            t1.Join(MEDIUM_DELAY);
+            t2.Join(MEDIUM_DELAY);
             Assert.IsTrue(!t1.IsAlive);
             Assert.IsTrue(!t2.IsAlive);
         }
@@ -1010,7 +1010,7 @@ namespace Spring.Threading.Locks
         [Test]
         public void ReadHoldingWriterLock()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
             Assert.IsTrue(myLock.ReaderLock.TryLock());
             myLock.ReaderLock.Unlock();
@@ -1021,11 +1021,11 @@ namespace Spring.Threading.Locks
         [Test]
         public void ReadLockInterruptibly()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.LockInterruptibly();
-            var t = new Thread(new AnonymousClassRunnable18(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable18(myLock).Run);
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
             t.Join();
             myLock.WriterLock.Unlock();
@@ -1034,13 +1034,13 @@ namespace Spring.Threading.Locks
         [Test]
         public void ReadLockInterruptibly_Interrupted()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable2(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable2(myLock).Run);
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             myLock.WriterLock.Unlock();
             t.Join();
         }
@@ -1048,7 +1048,7 @@ namespace Spring.Threading.Locks
         [Test]
         public void ReadLockToString()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             String us = myLock.ReaderLock.ToString();
             Assert.IsTrue(us.IndexOf("Read locks = 0") >= 0);
@@ -1062,9 +1062,9 @@ namespace Spring.Threading.Locks
         [Test]
         public void ReadTryLock_Interrupted()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable3(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable3(myLock).Run);
             t.Start();
             t.Interrupt();
             t.Join();
@@ -1073,9 +1073,9 @@ namespace Spring.Threading.Locks
         [Test]
         public void ReadTryLock_Timeout()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable16(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable16(myLock).Run);
             t.Start();
             t.Join();
             myLock.WriterLock.Unlock();
@@ -1084,9 +1084,9 @@ namespace Spring.Threading.Locks
         [Test]
         public void ReadTryLockWhenLocked()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable5(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable5(myLock).Run);
             t.Start();
             t.Join();
             myLock.WriterLock.Unlock();
@@ -1095,18 +1095,18 @@ namespace Spring.Threading.Locks
         [Test]
         public void Serialization()
         {
-            var l = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock l = new ReentrantReadWriteLock();
             l.ReaderLock.Lock();
             l.ReaderLock.Unlock();
 
-            var bout = new MemoryStream(10000);
+            MemoryStream bout = new MemoryStream(10000);
 
-            var formatter = new BinaryFormatter();
+            BinaryFormatter formatter = new BinaryFormatter();
             formatter.Serialize(bout, l);
 
-            var bin = new MemoryStream(bout.ToArray());
-            var formatter2 = new BinaryFormatter();
-            var r = (ReentrantReadWriteLock) formatter2.Deserialize(bin);
+            MemoryStream bin = new MemoryStream(bout.ToArray());
+            BinaryFormatter formatter2 = new BinaryFormatter();
+            ReentrantReadWriteLock r = (ReentrantReadWriteLock) formatter2.Deserialize(bin);
             r.ReaderLock.Lock();
             r.ReaderLock.Unlock();
         }
@@ -1115,7 +1115,7 @@ namespace Spring.Threading.Locks
         [Test]
         public void Signal_IllegalMonitor()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             ICondition c = myLock.WriterLock.NewCondition();
             try
@@ -1133,22 +1133,22 @@ namespace Spring.Threading.Locks
         [Test]
         public void SignalAll()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             ICondition c = myLock.WriterLock.NewCondition();
-            var t1 = new Thread(new AnonymousClassRunnable23(myLock, c).Run);
+            Thread t1 = new Thread(new AnonymousClassRunnable23(myLock, c).Run);
 
-            var t2 = new Thread(new AnonymousClassRunnable24(myLock, c).Run);
+            Thread t2 = new Thread(new AnonymousClassRunnable24(myLock, c).Run);
 
             t1.Start();
             t2.Start();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY_MS.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
             myLock.WriterLock.Lock();
             c.SignalAll();
             myLock.WriterLock.Unlock();
-            t1.Join(SHORT_DELAY_MS);
-            t2.Join(SHORT_DELAY_MS);
+            t1.Join(SHORT_DELAY);
+            t2.Join(SHORT_DELAY);
             Assert.IsFalse(t1.IsAlive);
             Assert.IsFalse(t2.IsAlive);
         }
@@ -1157,7 +1157,7 @@ namespace Spring.Threading.Locks
         [Test]
         public void ToStringTest()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             String us = myLock.ToString();
             Assert.IsTrue(us.IndexOf("Write locks = 0") >= 0);
             Assert.IsTrue(us.IndexOf("Read locks = 0") >= 0);
@@ -1176,9 +1176,9 @@ namespace Spring.Threading.Locks
         [Test]
         public void TryLockWhenReadLocked()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.ReaderLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable13(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable13(myLock).Run);
             t.Start();
             t.Join();
             myLock.ReaderLock.Unlock();
@@ -1187,7 +1187,7 @@ namespace Spring.Threading.Locks
         [Test]
         public void Unlock_IllegalMonitorStateException()
         {
-            var rl = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock rl = new ReentrantReadWriteLock();
             try
             {
                 rl.WriterLock.Unlock();
@@ -1201,17 +1201,17 @@ namespace Spring.Threading.Locks
         [Test]
         public void WriteAfterMultipleReadLocks()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.ReaderLock.Lock();
-            var t1 = new Thread(new AnonymousClassRunnable7(myLock).Run);
-            var t2 = new Thread(new AnonymousClassRunnable8(myLock).Run);
+            Thread t1 = new Thread(new AnonymousClassRunnable7(myLock).Run);
+            Thread t2 = new Thread(new AnonymousClassRunnable8(myLock).Run);
 
             t1.Start();
             t2.Start();
-            Thread.Sleep(new TimeSpan(SHORT_DELAY_MS.Milliseconds*10000));
+            Thread.Sleep(new TimeSpan(SHORT_DELAY.Milliseconds*10000));
             myLock.ReaderLock.Unlock();
-            t1.Join(MEDIUM_DELAY_MS);
-            t2.Join(MEDIUM_DELAY_MS);
+            t1.Join(MEDIUM_DELAY);
+            t2.Join(MEDIUM_DELAY);
             Assert.IsTrue(!t1.IsAlive);
             Assert.IsTrue(!t2.IsAlive);
         }
@@ -1219,13 +1219,13 @@ namespace Spring.Threading.Locks
         [Test]
         public void WriteLockInterruptibly()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.LockInterruptibly();
-            var t = new Thread(new AnonymousClassRunnable17(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable17(myLock).Run);
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Join();
             myLock.WriterLock.Unlock();
         }
@@ -1233,13 +1233,13 @@ namespace Spring.Threading.Locks
         [Test]
         public void WriteLockInterruptibly_Interrupted()
         {
-            var myLock = new ReentrantReadWriteLock();
-            var t = new Thread(new AnonymousClassRunnable(myLock).Run);
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
+            Thread t = new Thread(new AnonymousClassRunnable(myLock).Run);
             myLock.WriterLock.Lock();
             t.Start();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
-            Thread.Sleep(SHORT_DELAY_MS);
+            Thread.Sleep(SHORT_DELAY);
             myLock.WriterLock.Unlock();
             t.Join();
         }
@@ -1248,7 +1248,7 @@ namespace Spring.Threading.Locks
         [Test]
         public void WriteLockToString()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
 
             String us = myLock.WriterLock.ToString();
             Assert.IsTrue(us.IndexOf("Unlocked") >= 0);
@@ -1261,9 +1261,9 @@ namespace Spring.Threading.Locks
         [Test]
         public void WriteTryLock_Interrupted()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable1(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable1(myLock).Run);
             t.Start();
             t.Interrupt();
             myLock.WriterLock.Unlock();
@@ -1273,9 +1273,9 @@ namespace Spring.Threading.Locks
         [Test]
         public void WriteTryLock_Timeout()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable15(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable15(myLock).Run);
             t.Start();
             t.Join();
             myLock.WriterLock.Unlock();
@@ -1284,9 +1284,9 @@ namespace Spring.Threading.Locks
         [Test]
         public void WriteTryLockWhenLocked()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.WriterLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable4(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable4(myLock).Run);
             t.Start();
             t.Join();
             myLock.WriterLock.Unlock();
@@ -1295,9 +1295,9 @@ namespace Spring.Threading.Locks
         [Test]
         public void WriteTryLockWhenReadLocked()
         {
-            var myLock = new ReentrantReadWriteLock();
+            ReentrantReadWriteLock myLock = new ReentrantReadWriteLock();
             myLock.ReaderLock.Lock();
-            var t = new Thread(new AnonymousClassRunnable14(myLock).Run);
+            Thread t = new Thread(new AnonymousClassRunnable14(myLock).Run);
             t.Start();
             t.Join();
             myLock.ReaderLock.Unlock();

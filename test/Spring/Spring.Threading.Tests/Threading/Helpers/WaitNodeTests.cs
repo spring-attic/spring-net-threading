@@ -1,5 +1,5 @@
-using DotNetMock.Dynamic;
 using NUnit.Framework;
+using Rhino.Mocks;
 
 namespace Spring.Threading.Helpers
 {
@@ -10,10 +10,9 @@ namespace Spring.Threading.Helpers
 		public void SignalOnWaitingThread()
 		{
 			WaitNode node = new WaitNode();
-			DynamicMock mock = new DynamicMock(typeof (IQueuedSync));
-			mock.Expect("TakeOver", new object[] {node});
-			node.Signal((IQueuedSync) mock.Object);
-			mock.Verify();
+            IQueuedSync mockQueuedSync = MockRepository.GenerateMock<IQueuedSync>();
+		    node.Signal(mockQueuedSync);
+            mockQueuedSync.AssertWasCalled(m=>m.TakeOver(node));
 		}
 	}
 }

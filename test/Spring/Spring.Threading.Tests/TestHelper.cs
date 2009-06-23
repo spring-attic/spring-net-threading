@@ -164,10 +164,10 @@ namespace Spring
         /// </remarks>
         /// <typeparam name="T">type of exception</typeparam>
         /// <param name="call">the code to be executed that throws exception</param>
-        public static void AssertException<T>(ThreadStart call)
+        public static Exception AssertException<T>(ThreadStart call)
             where T: Exception
         {
-            AssertException<T>(call, MessageMatch.Exact, null);
+            return AssertException<T>(call, MessageMatch.Exact, null);
         }
 
         /// <summary>
@@ -193,17 +193,15 @@ namespace Spring
         /// <param name="match">To specify how the message is matched</param>
         /// <param name="message">The message to match. <see langword="null"/>
         /// or empty string will not cause assertion.</param>
-        public static void AssertException<T>(ThreadStart call, MessageMatch match, string message)
+        public static Exception AssertException<T>(ThreadStart call, MessageMatch match, string message)
             where T : Exception
         {
-            bool hasException = false;
             try
             {
                 call();
             }
             catch (T e)
             {
-                hasException = true;
                 if (!String.IsNullOrEmpty(message))
                 {
                     switch (match)
@@ -227,9 +225,11 @@ namespace Spring
                             break;
                     }
                 }
+                return e;
             }
 
-            Assert.IsTrue(hasException, "Expecting " + typeof(T).FullName + ", but no exception was throw.");
+            Assert.Fail("Expecting " + typeof(T).FullName + ", but no exception was throw.");
+            return null;
         }
 
         /// <summary>
