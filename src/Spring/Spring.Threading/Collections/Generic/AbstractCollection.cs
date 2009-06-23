@@ -133,16 +133,39 @@ namespace Spring.Collections.Generic
         /// </exception>
         public virtual void CopyTo(T[] array, int arrayIndex)
         {
-            if (arrayIndex<0) throw new ArgumentOutOfRangeException("arrayIndex: " + arrayIndex);
             if (array == null) throw new ArgumentNullException("array");
+            if (arrayIndex<array.GetLowerBound(0))
+            {
+                throw new ArgumentOutOfRangeException("arrayIndex", arrayIndex,
+                    "arrayIndex must not be less then the lower bound of the array.");
+            }
             try
             {
-                foreach (T e in this) array[arrayIndex++] = e;
+                DoCopyTo(array, arrayIndex);
             }
             catch (IndexOutOfRangeException e)
             {
                 throw new ArgumentException("array is too small to fit the collection.", "array", e);
             }
+        }
+
+        /// <summary>
+        /// Does the actual work of copying to array. Subclass is recommended to 
+        /// override this method instead of <see cref="CopyTo(T[], int)"/> method, which 
+        /// does all neccessary parameter checking and raises proper exception
+        /// before calling this method.
+        /// </summary>
+        /// <param name="array">
+        /// The one-dimensional <see cref="Array"/> that is the 
+        /// destination of the elements copied from <see cref="ICollection{T}"/>. 
+        /// The <see cref="Array"/> must have zero-based indexing.
+        /// </param>
+        /// <param name="arrayIndex">
+        /// The zero-based index in array at which copying begins.
+        /// </param>
+        protected virtual void DoCopyTo(T[] array, int arrayIndex)
+        {
+            foreach (T e in this) array[arrayIndex++] = e;
         }
 
         /// <summary>
@@ -358,8 +381,12 @@ namespace Spring.Collections.Generic
         /// <filterpriority>2</filterpriority>
         protected virtual void CopyTo(Array array, int index)
         {
-            if (index < 0) throw new ArgumentOutOfRangeException("index: " + index);
             if (array == null) throw new ArgumentNullException("array");
+            if (index < array.GetLowerBound(0))
+            {
+                throw new ArgumentOutOfRangeException("index", index, 
+                    "index must not be less then lower bound of the array");
+            }
             try
             {
                 foreach (T e in this) array.SetValue(e, index++);
@@ -391,7 +418,7 @@ namespace Spring.Collections.Generic
         /// </summary>
         /// <remarks>This implementaiton always return <see langword="false"/>.</remarks>
         /// <returns>
-        /// true if access to the <see cref="T:System.Collections.ICollection"></see> 
+        /// true if access to the <see cref="ICollection"/> 
         /// is synchronized (thread safe); otherwise, false.
         /// </returns>
         /// <filterpriority>2</filterpriority>

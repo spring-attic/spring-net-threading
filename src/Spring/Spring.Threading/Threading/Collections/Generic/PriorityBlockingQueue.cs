@@ -1,8 +1,9 @@
-/*
+﻿/*
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/licenses/publicdomain
  */
+
 #region License
 
 /*
@@ -83,9 +84,9 @@ namespace Spring.Threading.Collections.Generic {
     /// }</pre>
     /// </summary>
     /// <author>Doug Lea</author>
-    /// <author>Andreas D�hring (.NET)</author>
+    /// <author>Andreas Döhring (.NET)</author>
     [Serializable]
-    public class PriorityBlockingQueue<T> : AbstractQueue<T>, IBlockingQueue<T>, ISerializable  { //}, java.io.Serializable {
+    public class PriorityBlockingQueue<T> : AbstractBlockingQueue<T>, ISerializable  { //}, java.io.Serializable {
 
         private readonly PriorityQueue<T> _innerQueue;
         private readonly ReentrantLock _lock = new ReentrantLock(true);
@@ -203,7 +204,7 @@ namespace Spring.Threading.Collections.Generic {
         /// unbounded this method will never block. Only calls <see cref="Offer(T)"/>
         /// </summary>
         /// <param name="element">the element to add</param>
-        public void Put(T element) {
+        public override void Put(T element) {
             Offer(element); // never need to block
         }
 
@@ -214,7 +215,7 @@ namespace Spring.Threading.Collections.Generic {
         /// <param name="element">the element to add</param>
         /// <param name="timeout">This parameter is ignored as the method never blocks</param>
         /// <returns></returns>
-        public bool Offer(T element, TimeSpan timeout) {
+        public override bool Offer(T element, TimeSpan timeout) {
             return Offer(element); // never need to block
         }
 
@@ -244,7 +245,7 @@ namespace Spring.Threading.Collections.Generic {
         /// until an element becomes available.
         /// </summary>
         /// <returns> the head of this queue</returns>
-        public T Take() {
+        public override T Take() {
             ReentrantLock rl = _lock;
             rl.LockInterruptibly();
             try {
@@ -252,9 +253,9 @@ namespace Spring.Threading.Collections.Generic {
                     while(_innerQueue.Count == 0)
                         notEmpty.Await();
                 }
-                catch(ThreadInterruptedException) {
+                catch(ThreadInterruptedException e) {
                     notEmpty.Signal(); // propagate to non-interrupted thread
-                    throw;
+                    throw ExceptionExtensions.PreserveStackTrace(e);
                 }
                 T element;
                 if(!_innerQueue.Poll(out element))
@@ -276,7 +277,7 @@ namespace Spring.Threading.Collections.Generic {
         /// the head of this queue, or <see lang="default(T)"/> if the
         /// specified waiting time elapses before an element is available.
         /// </returns>
-        public bool Poll(TimeSpan timeout, out T element) {
+        public override bool Poll(TimeSpan timeout, out T element) {
             ReentrantLock rl = _lock;
             rl.LockInterruptibly();
             try {
@@ -290,9 +291,9 @@ namespace Spring.Threading.Collections.Generic {
                         notEmpty.Await(timeout);
                         timeout = deadline - DateTime.Now;
                     }
-                    catch(ThreadInterruptedException) {
+                    catch(ThreadInterruptedException e) {
                         notEmpty.Signal(); // propagate to non-interrupted thread
-                        throw;
+                        throw ExceptionExtensions.PreserveStackTrace(e);
                     }
                 }
             }
@@ -459,7 +460,8 @@ namespace Spring.Threading.Collections.Generic {
          * @throws NullPointerException          {@inheritDoc}
          * @throws IllegalArgumentException      {@inheritDoc}
          */
-        public int DrainTo(ICollection<T> collection) {
+        //TODO: do we really need this? can we leave it to base class?
+        public override int DrainTo(ICollection<T> collection) {
             if(collection == null)
                 throw new ArgumentNullException("collection", "must not be null");
             if(collection == this)
@@ -480,26 +482,24 @@ namespace Spring.Threading.Collections.Generic {
             }
         }
 
-        /**
-         * @throws UnsupportedOperationException {@inheritDoc}
-         * @throws ClassCastException            {@inheritDoc}
-         * @throws NullPointerException          {@inheritDoc}
-         * @throws IllegalArgumentException      {@inheritDoc}
-         */
-        public int DrainTo(ICollection<T> collection, int maxElements) {
-            if(collection == null)
-                throw new ArgumentNullException("collection", "must not be null");
-            if(collection == this)
-                throw new ArgumentException("cannot DrainTo this");
-            if(maxElements <= 0)
-                return 0;
+        /// <summary> 
+        /// Does the real work for all <c>Drain</c> methods. Caller must
+        /// guarantee the <paramref name="action"/> is not <c>null</c> and
+        /// <paramref name="maxElements"/> is greater then zero (0).
+        /// </summary>
+        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T})"/>
+        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T}, int)"/>
+        /// <seealso cref="IBlockingQueue{T}.Drain(System.Action{T})"/>
+        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T},int)"/>
+        internal protected override int DoDrainTo(Action<T> action, int maxElements)
+        {
             ReentrantLock rl = _lock;
             rl.Lock();
             try {
                 int n = 0;
                 T element;
                 while(n < maxElements && _innerQueue.Poll(out element)) {
-                    collection.Add(element);
+                    action(element);
                     ++n;
                 }
                 return n;

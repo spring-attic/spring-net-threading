@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace Spring.Threading.Helpers
@@ -9,56 +9,40 @@ namespace Spring.Threading.Helpers
 	/// Methods are not locked; they depend on synch of callers.
 	/// Must be public, since it is used by Semaphore (outside this package).
 	/// </summary>
+	/// <author>Doug Lea</author>
+	/// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu</author>
 	[Serializable]
-	public class FIFOWaitNodeQueue : IWaitNodeQueue
+	internal class FIFOWaitNodeQueue : IWaitNodeQueue
 	{
-		/// <summary>
-		/// 
-		/// </summary>
-		[NonSerialized] protected WaitNode head;
-		/// <summary>
-		/// 
-		/// </summary>
-		[NonSerialized] protected WaitNode tail;
-		/// <summary>
-		/// 
-		/// </summary>
-		public FIFOWaitNodeQueue()
-		{
-		}
-		/// <summary>
-		/// 
-		/// </summary>
+
+		[NonSerialized] protected WaitNode _head;
+		[NonSerialized] protected WaitNode _tail;
+
 		public int Count
 		{
 			get
 			{
 				int count = 0;
-				WaitNode node = head;
+				WaitNode node = _head;
 				while (node != null)
 				{
-					if (node.IsWaiting)
-						count++;
+					if (node.IsWaiting) count++;
 					node = node.NextWaitNode;
 				}
 				return count;
 			}
-
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public ICollection WaitingThreads
+		public ICollection<Thread> WaitingThreads
 		{
 			get
 			{
-				IList list = new ArrayList();
-				WaitNode node = head;
+				IList<Thread> list = new List<Thread>();
+				WaitNode node = _head;
 				while (node != null)
 				{
-					if (node.IsWaiting)
-						list.Add(node.Owner);
+					if (node.IsWaiting) list.Add(node.Owner);
 					node = node.NextWaitNode;
 				}
 				return list;
@@ -66,65 +50,42 @@ namespace Spring.Threading.Helpers
 
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="waitNode"></param>
 		public void Enqueue(WaitNode waitNode)
 		{
-			if (tail == null)
-			    head = tail = waitNode;
+			if (_tail == null)
+			    _head = _tail = waitNode;
 			else
 			{
-			    tail.NextWaitNode = waitNode;
-			    tail = waitNode;
+			    _tail.NextWaitNode = waitNode;
+			    _tail = waitNode;
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
 		public WaitNode Dequeue()
 		{
-			if (head == null)
-				return null;
-			else
-			{
-				WaitNode w = head;
-			    head = w.NextWaitNode;
-				if (head == null)
-				    tail = null;
-				w.NextWaitNode = null;
-				return w;
-			}
+			if (_head == null) return null;
+
+		    WaitNode w = _head;
+		    _head = w.NextWaitNode;
+		    if (_head == null) _tail = null;
+		    w.NextWaitNode = null;
+		    return w;
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		public bool HasNodes
 		{
 			get
 			{
-				return head != null;
+				return _head != null;
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="thread"></param>
-		/// <returns></returns>
-		/// <exception cref="System.ArgumentNullException">If <paramref name="thread"/> is null.</exception>
 		public bool IsWaiting(Thread thread)
 		{
-			if (thread == null)
-				throw new ArgumentNullException("thread", "Thread cannot be null.");
-			for (WaitNode node = head; node != null; node = node.NextWaitNode)
+			if (thread == null) throw new ArgumentNullException("thread");
+			for (WaitNode node = _head; node != null; node = node.NextWaitNode)
 			{
-				if (node.IsWaiting && node.Owner == thread)
-					return true;
+				if (node.IsWaiting && node.Owner == thread) return true;
 			}
 			return false;
 		}

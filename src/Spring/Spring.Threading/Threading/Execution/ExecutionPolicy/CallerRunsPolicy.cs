@@ -17,7 +17,7 @@
         /// <param name="executor">the executor attempting to execute this task</param>
         /// <param name="runnable">the runnable task requested to be executed</param>
         /// </summary>
-        public void RejectedExecution(IRunnable runnable, IExecutorService executor)
+        public void RejectedExecution(IRunnable runnable, ThreadPoolExecutor executor)
         {
             if (executor.IsShutdown) return;
             runnable.Run();

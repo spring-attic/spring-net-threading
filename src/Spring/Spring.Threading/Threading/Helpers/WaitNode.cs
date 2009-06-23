@@ -6,11 +6,14 @@ namespace Spring.Threading.Helpers
 	/// <summary>
 	/// 
 	/// </summary>
-	public class WaitNode
+	/// <author>Doug Lea</author>
+	/// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu</author>
+	internal class WaitNode
 	{
 		internal Thread _owner;
 		internal bool _waiting = true;
-		internal WaitNode _nextWaitNode = null;
+		internal WaitNode _nextWaitNode;
 		/// <summary>
 		/// 
 		/// </summary>
@@ -73,7 +76,7 @@ namespace Spring.Threading.Helpers
 				{
 					return true;
 				}
-				else if (duration.TotalMilliseconds <= 0)
+				else if (duration.Ticks <= 0)
 				{
 					_waiting = false;
 					return false;
@@ -90,7 +93,8 @@ namespace Spring.Threading.Helpers
 								return true;
 							else
 							{
-								if (deadline.Subtract(DateTime.Now).TotalMilliseconds <= 0)
+							    duration = deadline.Subtract(DateTime.Now);
+								if (duration.Ticks <= 0)
 								{
 									_waiting = false;
 									return false;

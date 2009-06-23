@@ -1,6 +1,6 @@
 #region License
 /*
-* Copyright © 2002-2005 the original author or authors.
+* Copyright ?2002-2005 the original author or authors.
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ namespace Spring.Threading
 		
         When a put or take waiting for the actions of its counterpart
         aborts due to interruption or timeout, it marks the node
-        it created as "CANCELLED", which causes its counterpart to retry
+        it created as "Cancelled", which causes its counterpart to retry
         the entire put or take sequence.
         */
 		
@@ -213,7 +213,7 @@ namespace Spring.Threading
                             else
                             {
                                 item.Value = Cancelled;
-                                throw ie;
+                                throw ExceptionExtensions.PreserveStackTrace(ie);
                             }
                         }
                     }
@@ -287,7 +287,7 @@ namespace Spring.Threading
                             else
                             {
                                 slot.Value = Cancelled;
-                                throw ie;
+                                throw ExceptionExtensions.PreserveStackTrace(ie);
                             }
                         }
                     }
@@ -376,7 +376,7 @@ namespace Spring.Threading
                             else
                             {
                                 item.Value = Cancelled;
-                                throw ie;
+                                throw ExceptionExtensions.PreserveStackTrace(ie);
                             }
                         }
                     }
@@ -468,7 +468,7 @@ namespace Spring.Threading
                             else
                             {
                                 slot.Value = Cancelled;
-                                throw ie;
+                                throw ExceptionExtensions.PreserveStackTrace(ie);
                             }
                         }
                     }

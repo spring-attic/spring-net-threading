@@ -147,7 +147,7 @@ namespace Spring.Threading.Locks
 		/// The circumstances and the exception type must be documented by that
 		/// <see cref="Spring.Threading.Locks.ILock"/> implementation.
 		/// </summary>
-		void Lock();
+		IDisposable Lock();
 
 		/// <summary> 
 		/// Acquires the lock unless the current thread is
@@ -198,7 +198,7 @@ namespace Spring.Threading.Locks
 		/// if the current thread is interrupted while acquiring the lock 
 		/// ( and interruption of lock acquisition is supported )
 		/// </exception>
-		void LockInterruptibly();
+		IDisposable LockInterruptibly();
 
 		/// <summary> 
 		/// Acquires the lock only if it is free at the time of invocation.

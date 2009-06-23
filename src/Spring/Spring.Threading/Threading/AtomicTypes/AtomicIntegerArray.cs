@@ -20,9 +20,10 @@
 
 using System;
 using System.Text;
-using Spring.Util;
+using System.Threading;
 
-namespace Spring.Threading.AtomicTypes {
+namespace Spring.Threading.AtomicTypes
+{
     /// <summary> A <see lang="int"/> array in which elements may be updated atomically.
     /// <p/>
     /// Based on the on the back port of JCP JSR-166.
@@ -30,12 +31,14 @@ namespace Spring.Threading.AtomicTypes {
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring(.NET)</author>
+    /// <author>Kenneth Xu (Interlock)</author>
     [Serializable]
-    public class AtomicIntegerArray {
+    public class AtomicIntegerArray : AbstractAtomicArray<int>, IAtomicArray<int>
+    {
         private readonly int[] _intArray;
 
         /// <summary> 
-        /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicIntegerArray"/> of given length.
+        /// Creates a new <see cref="AtomicIntegerArray"/> of given length.
         /// </summary>
         /// <param name="length">
         /// The length of the array
@@ -45,7 +48,7 @@ namespace Spring.Threading.AtomicTypes {
         }
 
         /// <summary> 
-        /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicIntegerArray"/> with the same length as, and
+        /// Creates a new <see cref="AtomicIntegerArray"/> with the same length as, and
         /// all elements copied from <paramref name="array"/>.
         /// </summary>
         /// <param name="array">
@@ -53,11 +56,9 @@ namespace Spring.Threading.AtomicTypes {
         /// </param>
         /// <exception cref="ArgumentNullException"> if the array is null</exception>
         public AtomicIntegerArray(int[] array) {
-            if(array == null)
-                throw new ArgumentNullException();
-            int length = array.Length;
-            _intArray = new int[length];
-            Array.Copy(array, 0, _intArray, 0, array.Length);
+            if(array == null) throw new ArgumentNullException("array");
+            _intArray = (int[]) array.Clone();
+            if (array.Length > 0) Thread.MemoryBarrier();
         }
 
         /// <summary> 
@@ -66,10 +67,10 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The length of the array
         /// </returns>
-        public int Length {
+        public override int Count {
             get { return _intArray.Length; }
         }
-
+        
         /// <summary> 
         /// Gets / Sets the current value at position index.
         /// </summary>
@@ -79,13 +80,9 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The current value
         /// </returns>
-        public int this[int index] {
-            get {
-                lock(this) {
-                    return _intArray[index];
-                }
-            }
-            set { _intArray[index] = value; }
+        public override int this[int index] {
+            get { return Thread.VolatileRead(ref _intArray[index]); }
+            set { Thread.VolatileWrite(ref _intArray[index], value); }
         }
 
         /// <summary> 
@@ -97,9 +94,8 @@ namespace Spring.Threading.AtomicTypes {
         /// <param name="newValue">
         /// The new value
         /// </param>
-        [Obsolete("This method will be removed.  Please use AtomicintArray indexer instead.")]
         public void LazySet(int index, int newValue) {
-            this[index] = newValue;
+            Thread.VolatileWrite(ref _intArray[index], newValue);
         }
 
         /// <summary> 
@@ -115,12 +111,8 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The previous value
         /// </returns>
-        public int SetNewAtomicValue(int index, int newValue) {
-            lock(this) {
-                int old = _intArray[index];
-                _intArray[index] = newValue;
-                return old;
-            }
+        public int Exchange(int index, int newValue) {
+            return Interlocked.Exchange(ref _intArray[index], newValue);
         }
 
         /// <summary>
@@ -140,13 +132,8 @@ namespace Spring.Threading.AtomicTypes {
         /// the actual value was not equal to the expected value.
         /// </returns>
         public bool CompareAndSet(int index, int expectedValue, int newValue) {
-            lock(this) {
-                if(_intArray[index] == expectedValue) {
-                    _intArray[index] = newValue;
-                    return true;
-                }
-                return false;
-            }
+            return expectedValue ==
+                   Interlocked.CompareExchange(ref _intArray[index], newValue, expectedValue);
         }
 
         /// <summary> 
@@ -166,13 +153,8 @@ namespace Spring.Threading.AtomicTypes {
         /// True if successful.
         /// </returns>
         public virtual bool WeakCompareAndSet(int index, int expectedValue, int newValue) {
-            lock(this) {
-                if(_intArray[index] == expectedValue) {
-                    _intArray[index] = newValue;
-                    return true;
-                }
-                return false;
-            }
+            return expectedValue ==
+                   Interlocked.CompareExchange(ref _intArray[index], newValue, expectedValue);
         }
 
         /// <summary> 
@@ -185,9 +167,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The previous value
         /// </returns>
         public int ReturnValueAndIncrement(int index) {
-            lock(this) {
-                return _intArray[index]++;
-            }
+            return Interlocked.Increment(ref _intArray[index]) - 1;
         }
 
         /// <summary> 
@@ -200,9 +180,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The previous value
         /// </returns>
         public int ReturnValueAndDecrement(int index) {
-            lock(this) {
-                return _intArray[index]--;
-            }
+            return Interlocked.Decrement(ref _intArray[index]) + 1;
         }
 
         /// <summary> 
@@ -218,11 +196,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The previous value
         /// </returns>
 		public int AddDeltaAndReturnPreviousValue(int index, int deltaValue){
-            lock(this) {
-                int oldValue = _intArray[index];
-                _intArray[index] += deltaValue;
-                return oldValue;
-            }
+            return Interlocked.Add(ref _intArray[index], deltaValue) - deltaValue;
         }
 
         /// <summary> 
@@ -235,9 +209,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The updated value
         /// </returns>
 		public int IncrementValueAndReturn(int index){
-            lock(this) {
-                return ++_intArray[index];
-            }
+            return Interlocked.Increment(ref _intArray[index]);
         }
 
         /// <summary> 
@@ -250,9 +222,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The updated value
         /// </returns>
 		public int DecrementValueAndReturn(int index){
-            lock(this) {
-                return --_intArray[index];
-            }
+            return Interlocked.Decrement(ref _intArray[index]);
         }
 
         /// <summary> 
@@ -268,9 +238,7 @@ namespace Spring.Threading.AtomicTypes {
         /// The updated value
         /// </returns>
 		public int AddDeltaAndReturnNewValue(int index, int deltaValue){
-            lock(this) {
-                return _intArray[index] += deltaValue;
-            }
+            return Interlocked.Add(ref _intArray[index], deltaValue);
         }
 
         /// <summary> 
@@ -280,12 +248,20 @@ namespace Spring.Threading.AtomicTypes {
         /// The String representation of the current values of array.
         /// </returns>
         public override string ToString() {
-            if(_intArray.Length == 0)
+            if (_intArray.Length == 0)
                 return "[]";
+            // force volatile read
+            Thread.VolatileRead(ref _intArray[0]);
 
             StringBuilder buf = new StringBuilder();
             buf.Append('[');
-            buf.Append(StringUtils.CollectionToCommaDelimitedString(_intArray));
+            buf.Append(_intArray[0]);
+
+            for(int i = 1; i < _intArray.Length; i++) {
+                buf.Append(", ");
+                buf.Append(_intArray[i]);
+            }
+
             buf.Append("]");
             return buf.ToString();
         }

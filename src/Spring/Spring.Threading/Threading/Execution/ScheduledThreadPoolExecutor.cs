@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Timers;
 using Spring.Threading.Collections.Generic;
@@ -122,32 +121,32 @@ namespace Spring.Threading.Execution
 		///		result = exec.Submit(aCallable).GetResult();
 		/// </code> 
 		/// <p/> 
-		/// Note: The <see cref="ICallable"/> class includes a set of methods
+		/// Note: The <see cref="ICallable{T}"/> class includes a set of methods
 		/// that can convert some other common closure-like objects,
-		/// for example, <see cref="IFuture"/> to
+		/// for example, <see cref="IFuture{T}"/> to
 		/// <see cref="RejectedExecutionException"/> form so they can be submitted.
 		/// </remarks>
 		/// <param name="task">the task to submit</param>
-		/// <returns> a <see cref="IFuture.GetResult()"/> representing pending completion of the task</returns>
+		/// <returns> a <see cref="IFuture{T}.GetResult()"/> representing pending completion of the task</returns>
 		/// <exception cref="Executors">if the task cannot be accepted for execution.</exception>
 		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public override IFuture Submit( ICallable task )
+		public override IFuture<T> Submit<T>(ICallable<T> task )
 		{
 			throw new NotImplementedException();
 		}
 
 		/// <summary> 
 		/// Submits a <see cref="RejectedExecutionException"/> task for execution and returns a
-		/// <see cref="Spring.Threading.Future.IFuture"/> 
+		/// <see cref="IFuture{T}"/> 
 		/// representing that task. The <see cref="IRunnable"/> method will
 		/// return the given result upon successful completion.
 		/// </summary>
 		/// <param name="task">the task to submit</param>
 		/// <param name="result">the result to return</param>
 		/// <returns> a <see cref="ArgumentNullException"/> representing pending completion of the task</returns>
-		/// <exception cref="IFuture.GetResult()">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="IFuture">if the command is null</exception>
-		public override IFuture Submit( IRunnable task, object result )
+		/// <exception cref="IFuture{T}.GetResult()">if the task cannot be accepted for execution.</exception>
+		/// <exception cref="IFuture{T}">if the command is null</exception>
+		public override IFuture<T> Submit<T>( IRunnable task, T result )
 		{
 			throw new NotImplementedException();
 		}
@@ -162,7 +161,7 @@ namespace Spring.Threading.Execution
 		/// </returns>
 		/// <exception cref="ArgumentNullException">if the task cannot be accepted for execution.</exception>
 		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public override IFuture Submit( IRunnable task )
+		public override IFuture<object> Submit( IRunnable task )
 		{
 			throw new NotImplementedException();
 		}
@@ -184,9 +183,9 @@ namespace Spring.Threading.Execution
 		/// sequential order as produced by the iterator for the given task
 		/// list, each of which has completed.
 		/// </returns>
-		/// <exception cref="IFuture.IsDone">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="IFuture">if the command is null</exception>
-		public override IList InvokeAll( ICollection tasks )
+		/// <exception cref="ICancellable.IsDone">if the task cannot be accepted for execution.</exception>
+		/// <exception cref="IFuture{T}">if the command is null</exception>
+		public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks )
 		{
 			throw new NotImplementedException();
 		}
@@ -211,9 +210,9 @@ namespace Spring.Threading.Execution
 		/// have completed. If it did time out, some of these tasks will
 		/// not have completed.
 		/// </returns>
-		/// <exception cref="IFuture.IsDone">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="IFuture">if the command is null</exception>
-		public override IList InvokeAll( ICollection tasks, TimeSpan durationToWait )
+		/// <exception cref="ICancellable.IsDone">if the task cannot be accepted for execution.</exception>
+		/// <exception cref="IFuture{T}">if the command is null</exception>
+		public override IList<IFuture<T>> InvokeAll<T>( IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait )
 		{
 			throw new NotImplementedException();
 		}
@@ -232,7 +231,7 @@ namespace Spring.Threading.Execution
 		/// <returns> The result returned by one of the tasks.</returns>
 		/// <exception cref="ArgumentNullException">if the task cannot be accepted for execution.</exception>
 		/// <exception cref="RejectedExecutionException">if the command is null</exception>
-		public override object InvokeAny( ICollection tasks )
+		public override T InvokeAny<T>( IEnumerable<ICallable<T>> tasks )
 		{
 			throw new NotImplementedException();
 		}
@@ -242,26 +241,26 @@ namespace Spring.Threading.Execution
 		/// after the given delay.
 		/// </summary>
 		/// <param name="command">the task to execute.</param>
-		/// <param name="delay">the <see cref="IScheduledFuture"/> from now to delay execution.</param>
+		/// <param name="delay">the <see cref="IScheduledFuture{T}"/> from now to delay execution.</param>
 		/// <returns> 
 		/// a <see cref="TimeSpan"/> representing pending completion of the task,
-		/// and whose <see cref="Spring.Threading.Future.IFuture.GetResult()"/> method will return <see lang="null"/>
+		/// and whose <see cref="IFuture{T}.GetResult()"/> method will return <see lang="null"/>
 		/// upon completion.
 		/// </returns>
-		public IScheduledFuture Schedule( IRunnable command, TimeSpan delay )
+		public IScheduledFuture<object> Schedule( IRunnable command, TimeSpan delay )
 		{
 			throw new NotImplementedException();
 		}
 
 		/// <summary> 
-		/// Creates and executes a <see cref="Spring.Threading.Future.IScheduledFuture"/> that becomes enabled after the
+		/// Creates and executes a <see cref="IScheduledFuture{T}"/> that becomes enabled after the
 		/// given delay.
 		/// </summary>
 		/// <param name="callable">the function to execute.</param>
-		/// <param name="delay">the <see cref="IScheduledFuture"/> from now to delay execution.</param>
+		/// <param name="delay">the <see cref="IScheduledFuture{T}"/> from now to delay execution.</param>
 		/// <returns> a <see cref="TimeSpan"/> that can be used to extract result or cancel.
 		/// </returns>
-		public IScheduledFuture Schedule( ICallable callable, TimeSpan delay )
+		public IScheduledFuture<T> Schedule<T>(ICallable<T> callable, TimeSpan delay )
 		{
 			throw new NotImplementedException();
 		}
@@ -287,11 +286,11 @@ namespace Spring.Threading.Execution
 		/// <param name="command">the task to execute.</param>
 		/// <param name="initialDelay">the time to delay first execution.</param>
 		/// <param name="period">the period between successive executions.</param>
-		/// <returns> a <see cref="Spring.Threading.Future.IFuture"/> representing pending completion of the task,
-		/// and whose <see cref="Spring.Threading.Future.IFuture.GetResult()"/> method will throw an exception upon
+		/// <returns> a <see cref="IFuture{T}"/> representing pending completion of the task,
+		/// and whose <see cref="IFuture{T}.GetResult()"/> method will throw an exception upon
 		/// cancellation.
 		/// </returns>
-		public IScheduledFuture ScheduleAtFixedRate( IRunnable command, TimeSpan initialDelay, TimeSpan period )
+		public IScheduledFuture<object> ScheduleAtFixedRate( IRunnable command, TimeSpan initialDelay, TimeSpan period )
 		{
 			throw new NotImplementedException();
 		}
@@ -311,11 +310,11 @@ namespace Spring.Threading.Execution
 		/// <param name="command">the task to execute.</param>
 		/// <param name="initialDelay">the time to delay first execution.</param>
 		/// <param name="delay">the delay between the termination of one execution and the commencement of the next.</param>
-		/// <returns> a <see cref="IFuture.GetResult()"/>  representing pending completion of the task,
-		/// and whose <see cref="IFuture"/> method will throw an exception upon
+		/// <returns> a <see cref="IFuture{T}.GetResult()"/>  representing pending completion of the task,
+		/// and whose <see cref="IFuture{T}"/> method will throw an exception upon
 		/// cancellation.
 		/// </returns>
-		public IScheduledFuture ScheduleWithFixedDelay( IRunnable command, TimeSpan initialDelay, TimeSpan delay )
+		public IScheduledFuture<object> ScheduleWithFixedDelay( IRunnable command, TimeSpan initialDelay, TimeSpan delay )
 		{
 			throw new NotImplementedException();
 		}
@@ -336,7 +335,7 @@ namespace Spring.Threading.Execution
 		/// </returns>
 		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
 		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public override object InvokeAny( ICollection tasks, TimeSpan durationToWait )
+		public override T InvokeAny<T>( IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait )
 		{
 			throw new NotImplementedException();
 		}

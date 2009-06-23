@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Spring.Collections.Generic;
 
 #endregion
@@ -142,9 +143,8 @@ namespace Spring.Threading.Collections.Generic
 		/// for space to become available.
 		/// </summary>
 		/// <param name="element">the element to add</param>
-		/// <exception cref="System.ArgumentNullException">
-		/// If the specified element is <see langword="null"/> and this queue 
-		/// does not permit <see langword="null"/> elements.
+		/// <exception cref="ThreadInterruptedException">
+        /// if interrupted while waiting.
 		/// </exception>
 		/// <exception cref="System.ArgumentException">
 		/// If some property of the supplied <paramref name="element"/> prevents
@@ -222,40 +222,40 @@ namespace Spring.Threading.Collections.Generic
 		/// <exception cref="System.ArgumentException">
 		/// If <paramref name="collection"/> represents the queue itself.
 		/// </exception>
+		/// <seealso cref="Drain(System.Action{T})"/>
 		/// <seealso cref="DrainTo(ICollection{T},int)"/>
+		/// <seealso cref="Drain(System.Action{T},int)"/>
 		int DrainTo(ICollection<T> collection);
 
-//        / <summary> 
-//        / Removes all available elements from this queue and invoke the given
-//        / <paramref name="action"/> on each element in order.
-//        / </summary>
-//        / <remarks>
-//        / This operation may be more efficient than repeatedly polling this 
-//        / queue.  A failure encountered while attempting to invoke the 
-//        / <paramref name="action"/> on the elements may result in elements 
-//        / being neither, either or both in the queue or processed when the 
-//        / associated exception is thrown.
-//        / <example> Drain to a non-generic list.
-//        / <code language="c#">
-//        / IList c = ...;
-//        / int count = DrainTo(delegate(T e) {c.Add(e);});
-//        / </code>
-//        / </example>
-//        / </remarks>
-//        / <param name="action">The action to performe on each element.</param>
-//        / <returns>The number of elements processed.</returns>
-//        / <exception cref="System.InvalidOperationException">
-//        / If the queue cannot be drained at this time.
-//        / </exception>
-//        / <exception cref="System.ArgumentNullException">
-//        / If the specified action is <see langword="null"/>.
-//        / </exception>
-//        / <seealso cref="DrainTo(ICollection{T})"/>
-//        / <seealso cref="DrainTo(ICollection{T},int)"/>
-//        / <seealso cref="DrainTo(Action{T},int)"/>
-//        / 
-        // TODO: Implement
-//        int DrainTo(Action<T> action);
+        /// <summary> 
+        /// Removes all available elements from this queue and invoke the given
+        /// <paramref name="action"/> on each element in order.
+        /// </summary>
+        /// <remarks>
+        /// This operation may be more efficient than repeatedly polling this 
+        /// queue.  A failure encountered while attempting to invoke the 
+        /// <paramref name="action"/> on the elements may result in elements 
+        /// being neither, either or both in the queue or processed when the 
+        /// associated exception is thrown.
+        /// <example> Drain to a non-generic list.
+        /// <code language="c#">
+        /// IList c = ...;
+        /// int count = Drain(delegate(T e) {c.Add(e);});
+        /// </code>
+        /// </example>
+        /// </remarks>
+        /// <param name="action">The action to performe on each element.</param>
+        /// <returns>The number of elements processed.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// If the queue cannot be drained at this time.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the specified action is <see langword="null"/>.
+        /// </exception>
+        /// <seealso cref="DrainTo(ICollection{T})"/>
+        /// <seealso cref="DrainTo(ICollection{T},int)"/>
+        /// <seealso cref="Drain(System.Action{T},int)"/>
+        int Drain(Action<T> action);
 
 
 		/// <summary> 
@@ -290,34 +290,35 @@ namespace Spring.Threading.Collections.Generic
 		/// If <paramref name="collection"/> represents the queue itself.
 		/// </exception>
         /// <seealso cref="DrainTo(ICollection{T})"/>
+        /// <seealso cref="Drain(System.Action{T})"/>
+        /// <seealso cref="Drain(System.Action{T},int)"/>
         int DrainTo(ICollection<T> collection, int maxElements);
 
-       // /// <summary> 
-        ///// Removes at most the given number of available elements from this 
-        ///// queue and invoke the given <paramref name="action"/> on each 
-        ///// element in order.
-        ///// </summary>
-        ///// <remarks>
-//        / This operation may be more efficient than repeatedly polling this 
-//        / queue.  A failure encountered while attempting to invoke the 
-//        / <paramref name="action"/> on the elements may result in elements 
-//        / being neither, either or both in the queue or processed when the 
-//        / associated exception is thrown.
-//        / </remarks>
-//        / <param name="action">The action to performe on each element.</param>
-//        / <param name="maxElements">the maximum number of elements to transfer</param>
-//        / <returns>The number of elements processed.</returns>
-//        / <exception cref="System.InvalidOperationException">
-//        / If the queue cannot be drained at this time.
-//        / </exception>
-//        / <exception cref="System.ArgumentNullException">
-//        / If the specified action is <see langword="null"/>.
-//        / </exception>
-//        / <seealso cref="DrainTo(ICollection{T})"/>
-//        / <seealso cref="DrainTo(Action{T})"/>
-//        / <seealso cref="DrainTo(ICollection{T},int)"/>
-//         TODO: Implement
-        //int DrainTo(Action<T> action, int maxElements);
+        /// <summary> 
+        /// Removes at most the given number of available elements from this 
+        /// queue and invoke the given <paramref name="action"/> on each 
+        /// element in order.
+        /// </summary>
+        /// <remarks>
+        /// This operation may be more efficient than repeatedly polling this 
+        /// queue.  A failure encountered while attempting to invoke the 
+        /// <paramref name="action"/> on the elements may result in elements 
+        /// being neither, either or both in the queue or processed when the 
+        /// associated exception is thrown.
+        /// </remarks>
+        /// <param name="action">The action to performe on each element.</param>
+        /// <param name="maxElements">the maximum number of elements to transfer</param>
+        /// <returns>The number of elements processed.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// If the queue cannot be drained at this time.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the specified action is <see langword="null"/>.
+        /// </exception>
+        /// <seealso cref="DrainTo(ICollection{T})"/>
+        /// <seealso cref="Drain(System.Action{T})"/>
+        /// <seealso cref="DrainTo(ICollection{T},int)"/>
+        int Drain(Action<T> action, int maxElements);
 
 	}
 }

@@ -28,8 +28,8 @@ using System.Collections.Generic;
 namespace Spring.Collections.Generic
 {
 	/// <summary> 
-	/// This class provides skeletal implementations of some
-	/// <see cref="IQueue{T}"/> and <see cref="IQueue"/>operations.
+	/// This class provides skeletal implementations for some of
+	/// <see cref="IQueue{T}"/> and all of <see cref="IQueue"/> operations.
 	/// </summary>
 	/// <remarks>
 	/// <para>
@@ -52,7 +52,7 @@ namespace Spring.Collections.Generic
         /// </summary>
         /// <remarks>
         /// <para>
-        /// Attempts to <see cref="AddAll"/> of a queue to 
+        /// Attempts to <see cref="AddRange"/> of a queue to 
         /// itself result in <see cref="ArgumentException"/>. Further, the 
         /// behavior of this operation is undefined if the specified
         /// collection is modified while the operation is in progress.
@@ -71,11 +71,10 @@ namespace Spring.Collections.Generic
         /// <exception cref="System.ArgumentNullException">
         /// If the supplied <paramref name="collection"/> is <see langword="null"/>.
         /// </exception>
-        ///// <exception cref="System.ArgumentException">
-        ///// If the collection is the current queue or the collection size is 
-        ///// greater than the queue capacity.
-        ///// </exception>
-        public virtual bool AddAll(ICollection<T> collection)
+        /// <exception cref="System.ArgumentException">
+        /// If the collection is the current queue.
+        /// </exception>
+        public virtual bool AddRange(IEnumerable<T> collection)
         {
             if (collection == null)
             {
@@ -85,11 +84,6 @@ namespace Spring.Collections.Generic
             {
                 throw new ArgumentException("Cannot add to itself.");
             }
-            // TODO: check with Griffin current backport does not contain this constraint
-            //if (collection.Count > RemainingCapacity)
-            //{
-            //    throw new ArgumentException("Collcation size greater than queue capacity.");
-            //}
             bool modified = false;
             foreach (T element in collection)
             {
@@ -238,13 +232,23 @@ namespace Spring.Collections.Generic
 	    public override void Clear()
         {
             T element;
-            while (Poll(out element)) {;}
+            while (Poll(out element)) {}
         }
 
         #endregion
 
         #region IQueue Members
 
+        /// <summary>
+        /// Add differ from <see cref="IQueue.Offer"/> by throwing exception
+        /// When queue is full.
+        /// </summary>
+        /// <param name="objectToAdd"></param>
+        /// <returns>
+        /// TODO: The should be changed to void! in java Queue inherits 
+        /// from Collection, which has abstract method <c>boolean Add(object)</c>, 
+        /// in .Net, there is no such limitation!
+        /// </returns>
         bool IQueue.Add(object objectToAdd)
         {
             Add((T) objectToAdd);
@@ -270,7 +274,26 @@ namespace Spring.Collections.Generic
         /// </summary>
         public abstract int Capacity { get; }
 
-        bool IQueue.Offer(object objectToAdd)
+	    /// <summary>
+	    /// Gets a value indicating whether the <see cref="ICollection{T}"/> is read-only.
+	    /// This implementation always return true;
+	    /// </summary>
+	    /// 
+	    /// <returns>
+	    /// true if the <see cref="ICollection{T}"/> is read-only; otherwise, false.
+	    /// This implementation always return false as typically a queue should not
+	    /// be read only.
+	    /// </returns>
+	    /// 
+	    public override bool IsReadOnly
+	    {
+	        get
+	        {
+	            return false;
+	        }
+	    }
+
+	    bool IQueue.Offer(object objectToAdd)
         {
             return Offer((T) objectToAdd);
         }
@@ -287,6 +310,11 @@ namespace Spring.Collections.Generic
             return Poll(out element) ? (object)element : null;
         }
 
+        /// <summary>
+        /// Remove differ from <see cref="IQueue.Poll"/> by throwing exception
+        /// When queue is empty.
+        /// </summary>
+        /// <returns></returns>
         object IQueue.Remove()
         {
             return Remove();
@@ -294,11 +322,5 @@ namespace Spring.Collections.Generic
 
         #endregion
 
-        /// <summary>
-        /// get whether the elements of the queue are reference types
-        /// </summary>
-        protected bool IsQueueOfReferenceType {
-            get { return !typeof (T).IsValueType; }
-        }
     }
 }

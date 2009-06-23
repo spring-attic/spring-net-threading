@@ -19,12 +19,14 @@
 #endregion
 
 using System;
+using System.Threading;
 
+#pragma warning disable 420
 namespace Spring.Threading.AtomicTypes
 {
 	/// <summary> 
 	/// An <see lang="int"/> value that may be updated atomically.
-	/// An <see cref="Spring.Threading.AtomicTypes.AtomicInteger"/> is used in applications such as atomically
+	/// An <see cref="AtomicInteger"/> is used in applications such as atomically
 	/// incremented counters, and cannot be used as a replacement for an
 	/// <see cref="int"/>. 
 	/// <p/>
@@ -33,13 +35,14 @@ namespace Spring.Threading.AtomicTypes
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
+    /// <author>Kenneth Xu (Interlocked)</author>
 	[Serializable]
-	public class AtomicInteger
+	public class AtomicInteger : IAtomic<int>
 	{
 		private volatile int _integerValue;
 
 		/// <summary> 
-		/// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicInteger"/> with a value of <paramref name="initialValue"/>.
+		/// Creates a new <see cref="AtomicInteger"/> with a value of <paramref name="initialValue"/>.
 		/// </summary>
 		/// <param name="initialValue">
 		/// The initial value
@@ -50,28 +53,22 @@ namespace Spring.Threading.AtomicTypes
 		}
 
 		/// <summary> 
-		/// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicInteger"/> with initial value 0.
+		/// Creates a new <see cref="AtomicInteger"/> with initial value 0.
 		/// </summary>
-		public AtomicInteger() : this(0)
+		public AtomicInteger()
 		{
 		}
 
 		/// <summary> 
-		/// Gets the current value.
+		/// Gets and sets the current value.
 		/// </summary>
 		/// <returns>
 		/// The current value
 		/// </returns>
-		public int IntegerValue
+		public int Value
 		{
 			get { return _integerValue; }
-			set
-			{
-				lock (this)
-				{
-					_integerValue = value;
-				}
-			}
+			set { _integerValue = value; }
 		}
 
 		/// <summary> 
@@ -82,11 +79,7 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public int ReturnValueAndIncrement()
 		{
-			lock (this)
-			{
-				return _integerValue++;
-			}
-
+		    return Interlocked.Increment(ref _integerValue) - 1;
 		}
 
 		/// <summary> 
@@ -97,11 +90,8 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public int ReturnValueAndDecrement()
 		{
-			lock (this)
-			{
-				return _integerValue--;
-			}
-		}
+            return Interlocked.Decrement(ref _integerValue) + 1;
+        }
 
 		/// <summary> 
 		/// Eventually sets to the given value.
@@ -109,12 +99,9 @@ namespace Spring.Threading.AtomicTypes
 		/// <param name="newValue">
 		/// The new value
 		/// </param>
-		/// TODO: This method doesn't differ from the set() method, which was converted to a property.  For now
-		/// the property will be called for this method.
-		[Obsolete("This method will be removed.  Please use AtomicInteger.IntegerValue property instead.")]
 		public void LazySet(int newValue)
 		{
-			IntegerValue = newValue;
+            _integerValue = newValue;
 		}
 
 		/// <summary> 
@@ -126,14 +113,9 @@ namespace Spring.Threading.AtomicTypes
 		/// <returns> 
 		/// The previous value
 		/// </returns>
-		public int SetNewAtomicValue(int newValue)
+		public int Exchange(int newValue)
 		{
-			lock (this)
-			{
-				int oldValue = _integerValue;
-				_integerValue = newValue;
-				return oldValue;
-			}
+		    return Interlocked.Exchange(ref _integerValue, newValue);
 		}
 
 		/// <summary> 
@@ -151,15 +133,8 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public bool CompareAndSet(int expectedValue, int newValue)
 		{
-			lock (this)
-			{
-				if (_integerValue == expectedValue)
-				{
-					_integerValue = newValue;
-					return true;
-				}
-                return false;
-            }
+            return expectedValue == Interlocked.CompareExchange(
+                ref _integerValue, newValue, expectedValue);
         }
 
 		/// <summary> 
@@ -177,15 +152,8 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public virtual bool WeakCompareAndSet(int expectedValue, int newValue)
 		{
-			lock (this)
-			{
-				if (_integerValue == expectedValue)
-				{
-					_integerValue = newValue;
-					return true;
-				}
-                return false;
-            }
+            return expectedValue == Interlocked.CompareExchange(
+                ref _integerValue, newValue, expectedValue);
         }
 
 		/// <summary> 
@@ -199,12 +167,7 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public int AddDeltaAndReturnPreviousValue(int deltaValue)
 		{
-			lock (this)
-			{
-				int oldValue = _integerValue;
-				_integerValue += deltaValue;
-				return oldValue;
-			}
+		    return Interlocked.Add(ref _integerValue, deltaValue) - deltaValue;
 		}
 
 		/// <summary> 
@@ -218,10 +181,7 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public int AddDeltaAndReturnNewValue(int deltaValue)
 		{
-			lock (this)
-			{
-				return _integerValue += deltaValue;
-			}
+		    return Interlocked.Add(ref _integerValue, deltaValue);
 		}
 
 		/// <summary> 
@@ -232,10 +192,7 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public int IncrementValueAndReturn()
 		{
-			lock (this)
-			{
-				return ++_integerValue;
-			}
+		    return Interlocked.Increment(ref _integerValue);
 		}
 
 		/// <summary> 
@@ -246,10 +203,7 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public int DecrementValueAndReturn()
 		{
-			lock (this)
-			{
-				return --_integerValue;
-			}
+		    return Interlocked.Decrement(ref _integerValue);
 		}
 
 		/// <summary> 
@@ -260,7 +214,23 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public override String ToString()
 		{
-			return IntegerValue.ToString();
+			return _integerValue.ToString();
 		}
+
+        /// <summary>
+        /// Implicit converts <see cref="AtomicInteger"/> to int.
+        /// </summary>
+        /// <param name="atomicInteger">
+        /// Instance of <see cref="AtomicInteger"/>.
+        /// </param>
+        /// <returns>
+        /// The converted int value of <paramref name="atomicInteger"/>.
+        /// </returns>
+        public static implicit operator int(AtomicInteger atomicInteger)
+        {
+            return atomicInteger.Value;
+        }
+
 	}
 }
+#pragma warning restore 420

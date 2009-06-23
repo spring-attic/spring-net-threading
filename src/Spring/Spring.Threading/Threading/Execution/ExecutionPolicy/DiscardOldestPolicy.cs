@@ -17,15 +17,11 @@ namespace Spring.Threading.Execution.ExecutionPolicy
         /// </summary>
         /// <param name="runnable">the <see cref="Spring.Threading.IRunnable"/> task requested to be executed</param>
         /// <param name="executor">the <see cref="Spring.Threading.Execution.ThreadPoolExecutor"/> attempting to execute this task</param>
-        public virtual void RejectedExecution(IRunnable runnable, IExecutorService executor)
+        public virtual void RejectedExecution(IRunnable runnable, ThreadPoolExecutor executor)
         {
             if (executor.IsShutdown) return;
-            if (executor is ThreadedExecutor)
-            {
-                var threadPoolExecutor = (ThreadPoolExecutor) executor;
-                IRunnable head;
-                threadPoolExecutor.Queue.Poll(out head);
-            }
+            IRunnable head;
+            executor.Queue.Poll(out head);
             executor.Execute(runnable);
         }
 

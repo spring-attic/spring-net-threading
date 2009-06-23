@@ -4,7 +4,7 @@ namespace Spring.Threading.Helpers
 	/// <summary>
 	/// 
 	/// </summary>
-	public interface IQueuedSync
+	internal interface IQueuedSync
 	{
 		/// <summary>
 		/// invoked with sync on wait node, (atomically) just before enqueuing

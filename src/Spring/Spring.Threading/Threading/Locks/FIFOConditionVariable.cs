@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using Spring.Threading.Helpers;
 
@@ -10,22 +10,22 @@ namespace Spring.Threading.Locks
 	/// </summary>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
+	/// <author>Kenneth Xu</author>
 	[Serializable]
 	internal class FIFOConditionVariable : ConditionVariable
 	{
-		static FIFOConditionVariable()
-		{
-			sync = new AnonymousClassQueuedSync();
-		}
+        private static readonly IQueuedSync _sync = new Sync();
 
-		public class AnonymousClassQueuedSync : IQueuedSync
+        private readonly IWaitNodeQueue _wq = new FIFOWaitNodeQueue();
+
+		private class Sync : IQueuedSync
 		{
-			public virtual bool Recheck(WaitNode node)
+			public bool Recheck(WaitNode node)
 			{
 				return false;
 			}
 
-			public virtual void TakeOver(WaitNode node)
+			public void TakeOver(WaitNode node)
 			{
 			}
 		}
@@ -34,144 +34,105 @@ namespace Spring.Threading.Locks
 		{
 			get
 			{
-				if (!Lock.HeldByCurrentThread)
-				{
-					throw new SynchronizationLockException();
-				}
-				return wq.Count;
+                AssertOwnership();
+                return _wq.Count;
 			}
 
 		}
 
-		protected internal override ICollection WaitingThreads
+		protected internal override ICollection<Thread> WaitingThreads
 		{
 			get
 			{
-				if (!Lock.HeldByCurrentThread)
-				{
-					throw new SynchronizationLockException();
-				}
-				return wq.WaitingThreads;
+                AssertOwnership();
+                return _wq.WaitingThreads;
 			}
 
 		}
-
-		private static readonly IQueuedSync sync;
-
-		private IWaitNodeQueue wq = new FIFOWaitNodeQueue();
 
 		internal FIFOConditionVariable(IExclusiveLock exclusiveLock) : base(exclusiveLock)
 		{
 		}
 
-		public override void AwaitUninterruptibly()
-		{
-			if (!Lock.HeldByCurrentThread)
-			{
-				throw new SynchronizationLockException();
-			}
-			WaitNode n = new WaitNode();
-			wq.Enqueue(n);
-			Lock.Unlock();
-			try
-			{
-				n.DoWaitUninterruptibly(sync);
-			}
-			finally
-			{
-				Lock.Lock();
-			}
-		}
+        public override void AwaitUninterruptibly()
+        {
+            DoWait(delegate(WaitNode n) { n.DoWaitUninterruptibly(_sync); });
+        }
 
-		public override void Await()
+	    public override void Await()
 		{
-			if (!Lock.HeldByCurrentThread)
-			{
-				throw new SynchronizationLockException();
-			}
-			WaitNode n = new WaitNode();
-			wq.Enqueue(n);
-			Lock.Unlock();
-			try
-			{
-				n.DoWait(sync);
-			}
-			finally
-			{
-				Lock.Lock();
-			}
+            DoWait(delegate(WaitNode n) { n.DoWait(_sync); });
 		}
 
 		public override bool Await(TimeSpan timespan)
 		{
-			if (!Lock.HeldByCurrentThread)
-			{
-				throw new SynchronizationLockException();
-			}
-          
-			WaitNode n = new WaitNode();
-			wq.Enqueue(n);
-			bool success;
-			Lock.Unlock();
-			try
-			{
-				success = n.DoTimedWait(sync, timespan);
-			}
-			finally
-			{
-				Lock.Lock();
-			}
-			return success;
+			bool success = false;
+            DoWait(delegate(WaitNode n) { success = n.DoTimedWait(_sync, timespan); });
+            return success;
 		}
 
 		public override bool AwaitUntil(DateTime deadline)
 		{
-			if (deadline == DateTime.MinValue || deadline == DateTime.MaxValue)
-			{
-				throw new NullReferenceException();
-			}
 			return Await(deadline.Subtract(DateTime.Now));
 		}
 
 		public override void Signal()
 		{
-			if (!Lock.HeldByCurrentThread)
+            AssertOwnership();
+            for (; ; )
 			{
-				throw new SynchronizationLockException();
-			}
-			for (;; )
-			{
-				WaitNode w = wq.Dequeue();
-				if (w == null)
-					return;
-				if (w.Signal(sync))
-					return;
+				WaitNode w = _wq.Dequeue();
+                if (w == null) return;  // no one to signal
+                if (w.Signal(_sync)) return; // notify if still waiting, else skip
 			}
 		}
 
 		public override void SignalAll()
 		{
-			if (!Lock.HeldByCurrentThread)
+            AssertOwnership();
+            for (; ; )
 			{
-				throw new SynchronizationLockException();
-			}
-			for (;; )
-			{
-				WaitNode w = wq.Dequeue();
-				if (w == null)
-					return; 
-				w.Signal(sync);
+				WaitNode w = _wq.Dequeue();
+                if (w == null) return;  // no more to signal
+				w.Signal(_sync);
 			}
 		}
 
-		protected internal override bool hasWaiters()
-		{
-			if (!Lock.HeldByCurrentThread)
-			{
-				throw new SynchronizationLockException();
-			}
-			return wq.HasNodes;
-		}
+	    protected internal override bool HasWaiters
+	    {
+	        get
+	        {
+	            AssertOwnership();
+	            return _wq.HasNodes;
+	        }
+	    }
 
+        private void DoWait(Action<WaitNode> action)
+        {
+            int holdCount = Lock.HoldCount;
+            if (holdCount == 0)
+            {
+                throw new SynchronizationLockException();
+            }
+            WaitNode n = new WaitNode();
+            _wq.Enqueue(n);
+            for (int i = holdCount; i > 0; i--) Lock.Unlock();
+            try
+            {
+                action(n);
+            }
+            finally
+            {
+                for (int i = holdCount; i > 0; i--) Lock.Lock();
+            }
+        }
+
+        private void AssertOwnership()
+        {
+            if (!Lock.IsHeldByCurrentThread)
+            {
+                throw new SynchronizationLockException();
+            }
+        }
 	}
 }

@@ -23,7 +23,7 @@ namespace Spring.Threading.Locks
 		/// <summary>
 		/// Queries if the lock is held by the current thread.
 		/// </summary>
-		public bool HeldByCurrentThread
+		public bool IsHeldByCurrentThread
 		{
 			get { return ReentrantReadWriteLock.WriterLockedByCurrentThread; }
 		}
@@ -82,7 +82,7 @@ namespace Spring.Threading.Locks
 		/// 
 		/// </remarks>
 		/// <exception cref="System.Threading.ThreadInterruptedException">if the current thread is interrupted.</exception>
-		public override void LockInterruptibly()
+		public override IDisposable LockInterruptibly()
 		{
 			ThreadInterruptedException ie = null;
 			lock (this)
@@ -95,13 +95,13 @@ namespace Spring.Threading.Locks
 						{
 							Monitor.Wait(this);
 							if (ReentrantReadWriteLock.StartWriteFromWaitingWriter())
-								return;
+								return this;
 						}
 						catch (ThreadInterruptedException ex)
 						{
 							ReentrantReadWriteLock.CancelWaitingWriter();
 							Monitor.Pulse(this);
-							ie = ex;
+							ie = ExceptionExtensions.PreserveStackTrace(ex);
 							break;
 						}
 					}
@@ -115,6 +115,7 @@ namespace Spring.Threading.Locks
 				ReentrantReadWriteLock.SignallerReaderLock.SignalWaiters();
 				throw ie;
 			}
+		    return this;
 		}
 
 		/// <summary> 
@@ -130,7 +131,7 @@ namespace Spring.Threading.Locks
 		/// <exception cref="System.Threading.SynchronizationLockException">if the current thread is not the holder of this lock.</exception>
 		public override void Unlock()
 		{
-		    if (! HeldByCurrentThread)
+		    if (! IsHeldByCurrentThread)
 		    {
 		        throw new SynchronizationLockException("Current thread does not hold this lock.");
 		    }
@@ -272,7 +273,7 @@ namespace Spring.Threading.Locks
 						{
 							ReentrantReadWriteLock.CancelWaitingWriter();
 							Monitor.Pulse(this);
-							ie = ex;
+							ie = ExceptionExtensions.PreserveStackTrace(ex);
 							break;
 						}
 						if (ReentrantReadWriteLock.StartWriteFromWaitingWriter())

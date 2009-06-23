@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.Serialization;
+using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
 {
@@ -7,7 +8,7 @@ namespace Spring.Threading.Execution
 	/// Exception thrown when attempting to retrieve the result of a task
 	/// that aborted by throwing an exception. 
 	/// </summary>
-	/// <seealso cref="Spring.Threading.Future.IFuture"/>
+	/// <seealso cref="IFuture{T}"/>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	[Serializable]

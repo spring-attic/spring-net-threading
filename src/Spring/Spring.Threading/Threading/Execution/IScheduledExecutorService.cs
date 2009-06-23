@@ -8,8 +8,8 @@ namespace Spring.Threading.Execution
 	/// delay, or to execute periodically.
 	/// 
 	/// <p/> 
-	/// The <see cref="Spring.Threading.Execution.IScheduledExecutorService.Schedule(ICallable, TimeSpan)"/> and
-	/// <see cref="Spring.Threading.Execution.IScheduledExecutorService.Schedule(IRunnable, TimeSpan)"/> 
+	/// The <see cref="Schedule{T}(ICallable{T}, TimeSpan)"/> and
+	/// <see cref="Schedule(IRunnable, TimeSpan)"/> 
 	/// methods create tasks with various delays
 	/// and return a task object that can be used to cancel or check
 	/// execution. The <see cref="Spring.Threading.Execution.IScheduledExecutorService.ScheduleAtFixedRate(IRunnable, TimeSpan, TimeSpan)"/> and
@@ -26,6 +26,7 @@ namespace Spring.Threading.Execution
 	/// </summary>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu (.NET)</author>
 	public interface IScheduledExecutorService : IExecutorService
 	{
 		/// <summary> 
@@ -35,21 +36,21 @@ namespace Spring.Threading.Execution
 		/// <param name="command">the task to execute.</param>
 		/// <param name="delay">the <see cref="System.TimeSpan"/> from now to delay execution.</param>
 		/// <returns> 
-		/// a <see cref="Spring.Threading.Future.IScheduledFuture"/> representing pending completion of the task,
-		/// and whose <see cref="Spring.Threading.Future.IFuture.GetResult()"/> method will return <see lang="null"/>
+		/// a <see cref="IScheduledFuture{T}"/> representing pending completion of the task,
+		/// and whose <see cref="IFuture{T}.GetResult()"/> method will return <see lang="null"/>
 		/// upon completion.
 		/// </returns>
-		IScheduledFuture Schedule(IRunnable command, TimeSpan delay);
+		IScheduledFuture<object> Schedule(IRunnable command, TimeSpan delay);
 
 		/// <summary> 
-		/// Creates and executes a <see cref="Spring.Threading.Future.IScheduledFuture"/> that becomes enabled after the
+		/// Creates and executes a <see cref="IScheduledFuture{T}"/> that becomes enabled after the
 		/// given delay.
 		/// </summary>
 		/// <param name="callable">the function to execute.</param>
 		/// <param name="delay">the <see cref="System.TimeSpan"/> from now to delay execution.</param>
-		/// <returns> a <see cref="Spring.Threading.Future.IScheduledFuture"/> that can be used to extract result or cancel.
+		/// <returns> a <see cref="IScheduledFuture{T}"/> that can be used to extract result or cancel.
 		/// </returns>
-		IScheduledFuture Schedule(ICallable callable, TimeSpan delay);
+		IScheduledFuture<T> Schedule<T>(ICallable<T> callable, TimeSpan delay);
 
 		/// <summary> 
 		/// Creates and executes a periodic action that becomes enabled first
@@ -72,11 +73,11 @@ namespace Spring.Threading.Execution
 		/// <param name="command">the task to execute.</param>
 		/// <param name="initialDelay">the time to delay first execution.</param>
 		/// <param name="period">the period between successive executions.</param>
-		/// <returns> a <see cref="Spring.Threading.Future.IFuture"/> representing pending completion of the task,
-		/// and whose <see cref="Spring.Threading.Future.IFuture.GetResult()"/> method will throw an exception upon
+		/// <returns> a <see cref="IFuture{T}"/> representing pending completion of the task,
+		/// and whose <see cref="IFuture{T}.GetResult()"/> method will throw an exception upon
 		/// cancellation.
 		/// </returns>
-		IScheduledFuture ScheduleAtFixedRate(IRunnable command, TimeSpan initialDelay, TimeSpan period);
+		IScheduledFuture<object> ScheduleAtFixedRate(IRunnable command, TimeSpan initialDelay, TimeSpan period);
 
 		/// <summary> 
 		/// Creates and executes a periodic action that becomes enabled first
@@ -93,10 +94,10 @@ namespace Spring.Threading.Execution
 		/// <param name="command">the task to execute.</param>
 		/// <param name="initialDelay">the time to delay first execution.</param>
 		/// <param name="delay">the delay between the termination of one execution and the commencement of the next.</param>
-		/// <returns> a <see cref="Spring.Threading.Future.IFuture"/>  representing pending completion of the task,
-		/// and whose <see cref="Spring.Threading.Future.IFuture.GetResult()"/> method will throw an exception upon
+		/// <returns> a <see cref="IFuture{T}"/>  representing pending completion of the task,
+		/// and whose <see cref="IFuture{T}.GetResult()"/> method will throw an exception upon
 		/// cancellation.
 		/// </returns>
-		IScheduledFuture ScheduleWithFixedDelay(IRunnable command, TimeSpan initialDelay, TimeSpan delay);
+		IScheduledFuture<object> ScheduleWithFixedDelay(IRunnable command, TimeSpan initialDelay, TimeSpan delay);
 	}
 }

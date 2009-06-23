@@ -33,6 +33,7 @@ namespace Spring.Collections.Generic
     /// </summary>
     /// <typeparam name="T">Element type of the collection</typeparam>
     /// <author>Kenneth Xu</author>
+    [Serializable]
     public abstract class AbstractList<T> : AbstractCollection<T>, IList<T>, IList
     {
 

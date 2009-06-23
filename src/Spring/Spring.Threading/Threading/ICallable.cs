@@ -1,4 +1,3 @@
-
 #region License
 
 /*
@@ -19,47 +18,43 @@
 
 #endregion
 
+using Spring.Threading.Execution;
+
 namespace Spring.Threading
 {
-	/// <summary> 
-	/// <p>Interface for runnable actions that bear results and/or throw Exceptions.
-	/// This interface is designed to provide a common protocol for
-	/// result-bearing actions that can be run independently in threads, 
-	/// in which case
-	/// they are ordinarily used as the bases of Runnables that set
-	/// FutureResults
-	/// </p>
-	/// </summary>
-	/// <author>Doug Lea</author>
-	/// <author>Griffin Caprio (.NET)</author>
-	public interface ICallable
-	{
-		/// <summary>Perform some action that returns a result or throws an exception *</summary>
-		object Call();
-	}
 
-#if NET_2_0
     /// <summary> 
-    /// <p>Interface for runnable actions that bear results and/or throw Exceptions.
-    /// This interface is designed to provide a common protocol for
-    /// result-bearing actions that can be run independently in threads, 
-    /// in which case
-    /// they are ordinarily used as the bases of Runnables that set
-    /// FutureResults
-    /// </p>
+    /// A task that returns a result and may throw an exception.
     /// </summary>
-    /// <typeparam name="T">Data type of the result to be returned.</typeparam>
-    /// <seealso cref="FutureResult{T}"/>
-    /// <seealso cref="ICallable"/>
+    /// <remarks>
+    /// <para>
+    /// Implementors define a single method with no arguments called
+    /// <see cref="Call()"/>.
+    /// </para>
+    /// <para>
+    /// The <c>ICallable</c> interface is similar to <see cref="IRunnable"/>, 
+    /// in that both are designed for classes whose
+    /// instances are potentially executed by another thread.  A
+    /// <c>IRunnable</c>, however, does not return a result.
+    /// </para>
+    /// <para>
+    /// The <see cref="Executors"/> class contains utility methods to
+    /// convert from other common forms to <c>ICallable</c> classes.
+    /// </para>
+    /// </remarks>
+    /// <typeparam name="T">
+    /// The result type of method <see cref="Call()"/>.
+    /// </typeparam>
     /// <seealso cref="Spring.Threading.Call{T}"/>
+    /// <author>Doug Lea</author>
+    /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-    public interface ICallable<T> : ICallable
+    public interface ICallable<T>
     {
         /// <summary>
-        /// Perform some action that returns a result or throws an exception.
+        /// Computes a result, or throws an exception if unable to do so.
         /// </summary>
-        ///<returns>The result of the action.</returns>
-        new T Call();
+        ///<returns>Computed result.</returns>
+        T Call();
     }
-#endif
 }

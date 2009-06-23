@@ -1,4 +1,5 @@
-using System.Collections;
+
+using System.Collections.Generic;
 using System.Threading;
 
 namespace Spring.Threading.Helpers
@@ -18,7 +19,7 @@ namespace Spring.Threading.Helpers
 	/// </ol>
 	/// </changes>
 	// TODO: Update XML Comments.
-	public interface IWaitNodeQueue
+	internal interface IWaitNodeQueue
 	{
 		/// <summary>
 		/// 
@@ -28,7 +29,7 @@ namespace Spring.Threading.Helpers
 		/// <summary>
 		/// 
 		/// </summary>
-		ICollection WaitingThreads { get; }
+		ICollection<Thread> WaitingThreads { get; }
 
 		/// <summary>
 		/// 

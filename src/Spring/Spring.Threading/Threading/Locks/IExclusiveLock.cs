@@ -8,7 +8,7 @@ namespace Spring.Threading.Locks
         /// <summary>
         /// Gets value indicating if this lock is current held by the current thread.
         /// </summary>
-        bool HeldByCurrentThread { get; }
+        bool IsHeldByCurrentThread { get; }
 
         int HoldCount { get; }
     }

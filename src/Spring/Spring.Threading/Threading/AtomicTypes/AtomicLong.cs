@@ -19,16 +19,14 @@
 #endregion
 
 using System;
+using System.Threading;
 
 namespace Spring.Threading.AtomicTypes
 {
 	/// <summary> A <see lang="long"/> value that may be updated atomically.  See the
-	/// An <see cref="Spring.Threading.AtomicTypes.AtomicLong"/> is used in applications such as atomically
+	/// An <see cref="AtomicLong"/> is used in applications such as atomically
 	/// incremented sequence numbers, and cannot be used as a replacement
 	/// for a <see cref="long"/>. 
-	/// <p/>
-	/// <b>Note:</b> the volatile keyword cannot be used with a <see lang="Int64"/>, so reading and writing
-	/// of the long value for this class is accomplished using <see lang="lock"/>s explicitly.
 	/// <p/>
 	/// Based on the on the back port of JCP JSR-166.
 	/// </summary>
@@ -36,12 +34,12 @@ namespace Spring.Threading.AtomicTypes
 	/// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
 	[Serializable]
-	public class AtomicLong
+	public class AtomicLong : IAtomic<long>
 	{
 		private long _longValue;
 
 		/// <summary> 
-		/// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicLong"/> with the given initial value.
+		/// Creates a new <see cref="AtomicLong"/> with the given initial value.
 		/// </summary>
 		/// <param name="initialValue">
 		/// The initial value
@@ -52,77 +50,54 @@ namespace Spring.Threading.AtomicTypes
 		}
 
 		/// <summary> 
-		/// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicLong"/> with initial value 0.
+		/// Creates a new <see cref="AtomicLong"/> with initial value 0.
 		/// </summary>
-		public AtomicLong() : this(0)
+		public AtomicLong()
 		{
 		}
 
-		/// <summary> 
-		/// Atomically increments by one the current value.
-		/// </summary>
-		/// <returns> the previous value
-		/// </returns>
-		public long ReturnValueAndIncrement
-		{
-			get
-			{
-				lock (this)
-				{
-					return _longValue++;
-				}
-			}
+	    /// <summary> 
+	    /// Atomically increments by one the current value.
+	    /// </summary>
+	    /// <returns> the previous value
+	    /// </returns>
+	    public long ReturnValueAndIncrement()
+	    {
+	        return Interlocked.Increment(ref _longValue) - 1;
+	    }
 
-		}
+	    /// <summary> 
+	    /// Atomically decrements by one the current value.
+	    /// </summary>
+	    /// <returns> 
+	    /// The previous value
+	    /// </returns>
+	    public long ReturnValueAndDecrement()
+	    {
+	        return Interlocked.Decrement(ref _longValue) + 1;
+	    }
 
-		/// <summary> 
-		/// Atomically decrements by one the current value.
-		/// </summary>
-		/// <returns> 
-		/// The previous value
-		/// </returns>
-		public long ReturnValueAndDecrement
-		{
-			get
-			{
-				lock (this)
-				{
-					return _longValue--;
-				}
-			}
-		}
-
-		/// <summary> 
+	    /// <summary> 
 		/// Gets / Sets the current value.
-		/// <p/>
-		/// <b>Note:</b> the set of this property occurs within a lock.
 		/// </summary>
 		/// <returns> 
 		/// The current value
 		/// </returns>
-		public long LongValue
+		public long Value
 		{
-			get { return _longValue; }
-			set
-			{
-				lock (this)
-				{
-					_longValue = value;
-				}
-			}
+            get { return Interlocked.Read(ref _longValue); }
+			set { Interlocked.Exchange(ref _longValue, value); }
 		}
-		/// <summary> 
+
+        /// <summary> 
 		/// Eventually sets to the given value.
 		/// </summary>
 		/// <param name="newValue">
 		/// The new value
 		/// </param>
-		/// TODO: This method doesn't differ from the set() method, which was converted to a property.  For now
-		/// the property will be called for this method.
-		[Obsolete("This method will be removed.  Please use AtomicLong.LongValue property instead.")]
 		public void LazySet(long newValue)
 		{
-			LongValue = newValue;
+            Interlocked.Exchange(ref _longValue, newValue);
 		}
 		/// <summary> 
 		/// Atomically sets value to <paramref name="newValue"/> and returns the old value.
@@ -133,14 +108,9 @@ namespace Spring.Threading.AtomicTypes
 		/// <returns> 
 		/// The previous value
 		/// </returns>
-		public long SetNewAtomicValue(long newValue)
+		public long Exchange(long newValue)
 		{
-			lock (this)
-			{
-				long old = _longValue;
-				_longValue = newValue;
-				return old;
-			}
+            return Interlocked.Exchange(ref _longValue, newValue);
 		}
 		/// <summary> 
 		/// Atomically sets the value to <paramref name="newValue"/>
@@ -157,18 +127,7 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public bool CompareAndSet(long expectedValue, long newValue)
 		{
-			lock (this)
-			{
-				if (_longValue == expectedValue)
-				{
-					_longValue = newValue;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
+		    return Interlocked.CompareExchange(ref _longValue, newValue, expectedValue) == expectedValue;
 		}
 
 		/// <summary> 
@@ -187,19 +146,9 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public virtual bool WeakCompareAndSet(long expectedValue, long newValue)
 		{
-			lock (this)
-			{
-				if (_longValue == expectedValue)
-				{
-					_longValue = newValue;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-		}
+            return Interlocked.CompareExchange(ref _longValue, newValue, expectedValue) == expectedValue;
+        }
+
 		/// <summary> 
 		/// Atomically adds <paramref name="deltaValue"/> to the current value.
 		/// </summary>
@@ -211,12 +160,7 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public long AddDeltaAndReturnPreviousValue(long deltaValue)
 		{
-			lock (this)
-			{
-				long old = _longValue;
-				_longValue += deltaValue;
-				return old;
-			}
+		    return Interlocked.Add(ref _longValue, deltaValue) - deltaValue;
 		}
 		/// <summary> 
 		/// Atomically increments by one the current value.
@@ -226,10 +170,7 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public long IncrementValueAndReturn()
 		{
-			lock (this)
-			{
-				return ++_longValue;
-			}
+		    return Interlocked.Increment(ref _longValue);
 		}
 
 		/// <summary> 
@@ -240,11 +181,9 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public long DecrementValueAndReturn()
 		{
-			lock (this)
-			{
-				return --_longValue;
-			}
+		    return Interlocked.Decrement(ref _longValue);
 		}
+
 		/// <summary> 
 		/// Atomically adds <paramref name="deltaValue"/> to the current value.
 		/// </summary>
@@ -256,10 +195,7 @@ namespace Spring.Threading.AtomicTypes
 		/// </returns>
 		public long AddDeltaAndReturnNewValue(long deltaValue)
 		{
-			lock (this)
-			{
-				return _longValue += deltaValue;
-			}
+		    return Interlocked.Add(ref _longValue, deltaValue);
 		}
 		/// <summary> 
 		/// Returns the String representation of the current value.
@@ -267,9 +203,24 @@ namespace Spring.Threading.AtomicTypes
 		/// <returns> 
 		/// The String representation of the current value.
 		/// </returns>
-		public override String ToString()
-		{
-			return LongValue.ToString();
+        public override string ToString() 
+        {
+			return Value.ToString();
 		}
+
+        /// <summary>
+        /// Implicit converts <see cref="AtomicInteger"/> to int.
+        /// </summary>
+        /// <param name="atomicLong">
+        /// Instance of <see cref="AtomicInteger"/>.
+        /// </param>
+        /// <returns>
+        /// The converted int value of <paramref name="atomicLong"/>.
+        /// </returns>
+        public static implicit operator long(AtomicLong atomicLong)
+        {
+            return atomicLong.Value;
+        }
+
 	}
 }

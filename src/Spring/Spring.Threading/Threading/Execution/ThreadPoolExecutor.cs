@@ -674,7 +674,7 @@ namespace Spring.Threading.Execution
         {
             get
             {
-                var c = _controlState.IntegerValue;
+                var c = _controlState.Value;
                 return !isRunning(c) && runStateLessThan(c, TERMINATED);
             }
         }
@@ -747,7 +747,7 @@ namespace Spring.Threading.Execution
                     throw new ArgumentException("CorePoolSize cannot be less than 0");
                 var delta = value - _corePoolSize;
                 _corePoolSize = value;
-                if (workerCountOf(_controlState.IntegerValue) > value)
+                if (workerCountOf(_controlState.Value) > value)
                     interruptIdleWorkers();
                 else if (delta > 0)
                 {
@@ -778,7 +778,7 @@ namespace Spring.Threading.Execution
                 {
                     // Remove rare and surprising possibility of
                     // isTerminated() && getPoolSize() > 0
-                    return runStateAtLeast(_controlState.IntegerValue, TIDYING) ? 0
+                    return runStateAtLeast(_controlState.Value, TIDYING) ? 0
                                : _currentWorkerThreads.Count;
                 }
                 finally
@@ -835,7 +835,7 @@ namespace Spring.Threading.Execution
                 if (value <= 0 || value < _corePoolSize)
                     throw new ArgumentException(String.Format("Maximum pool size cannont be less than 1 and cannot be less than Core Pool Size {0}", _corePoolSize));
                 _maximumPoolSize = value;
-                if (workerCountOf(_controlState.IntegerValue) > value)
+                if (workerCountOf(_controlState.Value) > value)
                     interruptIdleWorkers();
             }
         }
@@ -946,7 +946,7 @@ namespace Spring.Threading.Execution
             //        {
             foreach (var runnable in q)
             {
-                if (runnable is IFuture && ((IFuture) runnable).IsCancelled)
+                if (runnable is ICancellable && ((ICancellable) runnable).IsCancelled)
                     _workQueue.Remove(runnable);
             }
             //        }
@@ -1035,8 +1035,8 @@ namespace Spring.Threading.Execution
                         }
                         catch (Exception x)
                         {
-                            thrown = x;
-                            throw;
+                            thrown = ExceptionExtensions.PreserveStackTrace(x);
+                            throw thrown;
                         }
                         finally
                         {
@@ -1089,7 +1089,7 @@ namespace Spring.Threading.Execution
 
             tryTerminate();
 
-            var c = _controlState.IntegerValue;
+            var c = _controlState.Value;
             if (!runStateLessThan(c, STOP)) return;
             if (!completedAbruptly)
             {
@@ -1133,7 +1133,7 @@ namespace Spring.Threading.Execution
             retry:
             for (;;)
             {
-                var c = _controlState.IntegerValue;
+                var c = _controlState.Value;
                 var rs = runStateOf(c);
 
                 // Check if queue empty only if necessary.
@@ -1147,7 +1147,7 @@ namespace Spring.Threading.Execution
                         return false;
                     if (compareAndIncrementWorkerCount(c))
                         goto proceed;
-                    c = _controlState.IntegerValue; // Re-read ctl
+                    c = _controlState.Value; // Re-read ctl
                     if (runStateOf(c) != rs)
                         goto retry;
                 }
@@ -1163,7 +1163,7 @@ namespace Spring.Threading.Execution
                 // Recheck while holding lock.
                 // Back out on ThreadFactory failure or if
                 // shut down before lock acquired.
-                var c = _controlState.IntegerValue;
+                var c = _controlState.Value;
                 var rs = runStateOf(c);
 
                 if (t == null ||
@@ -1193,7 +1193,7 @@ namespace Spring.Threading.Execution
             // STOP, which could result in a rare missed interrupt,
             // because Thread.interrupt is not guaranteed to have any effect
             // on a non-yet-started Thread (see Thread#interrupt).
-            if (runStateOf(_controlState.IntegerValue) == STOP && t.IsAlive)
+            if (runStateOf(_controlState.Value) == STOP && t.IsAlive)
                 t.Interrupt();
 
             return true;
@@ -1224,7 +1224,7 @@ namespace Spring.Threading.Execution
         {
             do
             {
-            } while (! compareAndDecrementWorkerCount(_controlState.IntegerValue));
+            } while (! compareAndDecrementWorkerCount(_controlState.Value));
         }
 
 
@@ -1236,9 +1236,9 @@ namespace Spring.Threading.Execution
         /// </summary>
         private void clearInterruptsForTaskRun()
         {
-            if (runStateLessThan(_controlState.IntegerValue, STOP) &&
+            if (runStateLessThan(_controlState.Value, STOP) &&
                 !Thread.CurrentThread.IsAlive &&
-                runStateAtLeast(_controlState.IntegerValue, STOP))
+                runStateAtLeast(_controlState.Value, STOP))
                 Thread.CurrentThread.Interrupt();
         }
 
@@ -1250,7 +1250,7 @@ namespace Spring.Threading.Execution
         /// <param name="shutdownOK"><see lang="true"> if should return true if SHUTDOWN</see></param>
         private bool isRunningOrShutdown(bool shutdownOK)
         {
-            var rs = runStateOf(_controlState.IntegerValue);
+            var rs = runStateOf(_controlState.Value);
             return rs == RUNNING || (rs == SHUTDOWN && shutdownOK);
         }
 
@@ -1277,7 +1277,7 @@ namespace Spring.Threading.Execution
             retry:
             for (;;)
             {
-                int c = _controlState.IntegerValue;
+                int c = _controlState.Value;
                 var rs = runStateOf(c);
 
                 // Check if queue empty only if necessary.
@@ -1298,7 +1298,7 @@ namespace Spring.Threading.Execution
                         break;
                     if (compareAndDecrementWorkerCount(c))
                         return null;
-                    c = _controlState.IntegerValue; 
+                    c = _controlState.Value; 
                     if (runStateOf(c) != rs)
                         goto retry;
                 }
@@ -1572,7 +1572,7 @@ namespace Spring.Threading.Execution
         /// </returns>
         public override bool IsShutdown
         {
-            get { return !isRunning(_controlState.IntegerValue); }
+            get { return !isRunning(_controlState.Value); }
         }
 
         /// <summary> 
@@ -1586,7 +1586,7 @@ namespace Spring.Threading.Execution
         /// <returns> <see lang="true"/> if all tasks have completed following shut down</returns>
         public override bool IsTerminated
         {
-            get { return runStateAtLeast(_controlState.IntegerValue, TERMINATED); }
+            get { return runStateAtLeast(_controlState.Value, TERMINATED); }
         }
 
         /// <summary> 
@@ -1630,16 +1630,16 @@ namespace Spring.Threading.Execution
              * thread.  If it fails, we know we are shut down or saturated
              * and so reject the task.
              */
-            var c = _controlState.IntegerValue;
+            var c = _controlState.Value;
             if (workerCountOf(c) < _corePoolSize)
             {
                 if (addWorker(command, true))
                     return;
-                c = _controlState.IntegerValue;
+                c = _controlState.Value;
             }
             if (isRunning(c) && _workQueue.Offer(command))
             {
-                int recheck = _controlState.IntegerValue;
+                int recheck = _controlState.Value;
                 if (!isRunning(recheck) && Remove(command))
                     reject(command);
                 else if (workerCountOf(recheck) == 0)
@@ -1682,7 +1682,7 @@ namespace Spring.Threading.Execution
         {
             for (;;)
             {
-                var state = _controlState.IntegerValue;
+                var state = _controlState.Value;
                 if (runStateAtLeast(state, targetState) ||
                     _controlState.CompareAndSet(state, ctlOf(targetState, workerCountOf(state))))
                     break;
@@ -1712,7 +1712,7 @@ namespace Spring.Threading.Execution
         {
             for (;;)
             {
-                var c = _controlState.IntegerValue;
+                var c = _controlState.Value;
                 if (isRunning(c) ||
                     runStateAtLeast(c, TIDYING) ||
                     (runStateOf(c) == SHUTDOWN && _workQueue.Count > 0))
@@ -1735,7 +1735,7 @@ namespace Spring.Threading.Execution
                         }
                         finally
                         {
-                            _controlState.SetNewAtomicValue((ctlOf(TERMINATED, 0)));
+                            _controlState.Exchange((ctlOf(TERMINATED, 0)));
                             termination.SignalAll();
                         }
                         return;
@@ -1867,14 +1867,14 @@ namespace Spring.Threading.Execution
             mainLock.Lock();
             try
             {
-                if (runStateAtLeast(_controlState.IntegerValue, TERMINATED))
+                if (runStateAtLeast(_controlState.Value, TERMINATED))
                 {
                     return true;
                 }
                 while (durationToWait.Ticks > 0)
                 {
                     termination.Await(durationToWait);
-                    if (runStateAtLeast(_controlState.IntegerValue, TERMINATED))
+                    if (runStateAtLeast(_controlState.Value, TERMINATED))
                     {
                         return true;
                     }
@@ -1902,7 +1902,7 @@ namespace Spring.Threading.Execution
         /// </summary>
         public bool PreStartCoreThread()
         {
-            return workerCountOf(_controlState.IntegerValue) < _corePoolSize &&
+            return workerCountOf(_controlState.Value) < _corePoolSize &&
                    addWorker(null, true);
         }
 

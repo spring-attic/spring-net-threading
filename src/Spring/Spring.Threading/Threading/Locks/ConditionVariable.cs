@@ -1,16 +1,19 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace Spring.Threading.Locks
 {
+	/// <author>Doug Lea</author>
+	/// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu</author>
     [Serializable]
     internal class ConditionVariable : ICondition
     {
         protected internal IExclusiveLock _internalExclusiveLock;
 
         /// <summary> 
-        /// Create a new <see cref="Spring.Threading.Locks.ConditionVariable"/> that relies on the given mutual
+        /// Create a new <see cref="ConditionVariable"/> that relies on the given mutual
         /// exclusion lock.
         /// </summary>
         /// <param name="exclusiveLock">
@@ -31,7 +34,12 @@ namespace Spring.Threading.Locks
             get { throw new NotSupportedException("Use FAIR version"); }
         }
 
-        protected internal virtual ICollection WaitingThreads
+        protected internal virtual ICollection<Thread> WaitingThreads
+        {
+            get { throw new NotSupportedException("Use FAIR version"); }
+        }
+
+        protected internal virtual bool HasWaiters
         {
             get { throw new NotSupportedException("Use FAIR version"); }
         }
@@ -40,19 +48,17 @@ namespace Spring.Threading.Locks
 
         public virtual void AwaitUninterruptibly()
         {
-            var holdCount = _internalExclusiveLock.HoldCount;
+            int holdCount = _internalExclusiveLock.HoldCount;
             if (holdCount == 0)
             {
                 throw new SynchronizationLockException();
             }
-            // avoid instant spurious wakeup if thread already interrupted
-            var wasInterrupted = Thread.CurrentThread.IsAlive;
-
+            bool wasInterrupted = false;
             try
             {
                 lock (this)
                 {
-                    for (var i = holdCount; i > 0; i--) _internalExclusiveLock.Unlock();
+                    for (int i = holdCount; i > 0; i--) _internalExclusiveLock.Unlock();
                     try
                     {
                         Monitor.Wait(this);
@@ -68,7 +74,7 @@ namespace Spring.Threading.Locks
             }
             finally
             {
-                for (var i = holdCount; i > 0; i--) _internalExclusiveLock.Lock();
+                for (int i = holdCount; i > 0; i--) _internalExclusiveLock.Lock();
                 if (wasInterrupted)
                 {
                     Thread.CurrentThread.Interrupt();
@@ -78,102 +84,74 @@ namespace Spring.Threading.Locks
 
         public virtual void Await()
         {
+            int holdCount = _internalExclusiveLock.HoldCount;
+            if (holdCount == 0)
+            {
+                throw new SynchronizationLockException();
+            }
             try
             {
                 lock (this)
                 {
-                    _internalExclusiveLock.Unlock();
+                    for (int i = holdCount; i > 0; i--) _internalExclusiveLock.Unlock();
                     try
                     {
                         Monitor.Wait(this);
                     }
-                    catch (ThreadInterruptedException)
+                    catch (ThreadInterruptedException e)
                     {
                         Monitor.Pulse(this);
-                        throw;
+                        throw ExceptionExtensions.PreserveStackTrace(e);
                     }
                 }
             }
             finally
             {
-                _internalExclusiveLock.Lock();
+                for (int i = holdCount; i > 0; i--) _internalExclusiveLock.Lock();
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="durationToWait"></param>
+        /// <returns>
+        /// true if the lock was reacquired before the specified time elapsed; 
+        /// false if the lock was reacquired after the specified time elapsed. 
+        /// The method does not return until the lock is reacquired.
+        /// </returns>
         public virtual bool Await(TimeSpan durationToWait)
         {
-            var duration = durationToWait;
-            var success = false;
+            int holdCount = _internalExclusiveLock.HoldCount;
+            if (holdCount == 0)
+            {
+                throw new SynchronizationLockException();
+            }
             try
             {
                 lock (this)
                 {
-                    _internalExclusiveLock.Unlock();
+                    for (int i = holdCount; i > 0; i--) _internalExclusiveLock.Unlock();
                     try
                     {
-                        if (duration.TotalMilliseconds > 0)
-                        {
-                            var start = DateTime.Now;
-                            Monitor.Wait(this, durationToWait);
-                            success = DateTime.Now.Subtract(start).TotalMilliseconds < duration.TotalMilliseconds;
-                        }
+                        return (durationToWait.Ticks > 0) && Monitor.Wait(this, durationToWait);
                     }
-                    catch (ThreadInterruptedException)
+                    catch (ThreadInterruptedException e)
                     {
                         Monitor.Pulse(this);
-                        throw;
+                        throw ExceptionExtensions.PreserveStackTrace(e);
                     }
                 }
             }
             finally
             {
-                _internalExclusiveLock.Lock();
+                for (int i = holdCount; i > 0; i--) _internalExclusiveLock.Lock();
             }
-            return success;
         }
 
         public virtual bool AwaitUntil(DateTime deadline)
         {
-            if (deadline == DateTime.MinValue || deadline == DateTime.MaxValue)
-            {
-                throw new NullReferenceException();
-            }
-            var abstime = deadline.Ticks;
-            bool deadlineHasPassed;
-            try
-            {
-                lock (this)
-                {
-                    _internalExclusiveLock.Unlock();
-                    try
-                    {
-                        long start = DateTime.Now.Ticks;
-                        long msecs = abstime - start;
-                        if (msecs > 0)
-                        {
-                            Monitor.Wait(this, deadline.Subtract(DateTime.Now));
-                            // DK: due to coarse-grained (millis) clock, it seems
-                            // preferable to acknowledge timeout (success == false)
-                            // when the equality holds (timing is exact)
-                            deadlineHasPassed = (DateTime.Now.Ticks - start) < msecs;
-                        }
-                        else
-                        {
-                            deadlineHasPassed = true;
-                        }
-                    }
-                    catch (ThreadInterruptedException)
-                    {
-                        Monitor.Pulse(this);
-                        throw;
-                    }
-                }
-            }
-            finally
-            {
-                _internalExclusiveLock.Lock();
-            }
-            return deadlineHasPassed;
+            return Await(deadline - DateTime.Now);
         }
 
         public virtual void Signal()
@@ -197,14 +175,9 @@ namespace Spring.Threading.Locks
 
         #endregion
 
-        protected internal virtual bool hasWaiters()
-        {
-            throw new NotSupportedException("Use FAIR version");
-        }
-
         private void checkifLockIsHeldByCurrentThread()
         {
-            if (!_internalExclusiveLock.HeldByCurrentThread)
+            if (!_internalExclusiveLock.IsHeldByCurrentThread)
             {
                 throw new SynchronizationLockException();
             }

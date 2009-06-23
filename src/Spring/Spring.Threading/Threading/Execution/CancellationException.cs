@@ -1,11 +1,12 @@
 using System;
 using System.Runtime.Serialization;
+using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
 {
 	/// <summary> 
 	/// Exception indicating that the result of a value-producing task,
-	/// such as a <see cref="Spring.Threading.Future.FutureTask"/>, cannot be retrieved because the task
+	/// such as a <see cref="FutureTask{T}"/>, cannot be retrieved because the task
 	/// was cancelled.
 	/// </summary>
 	/// <author>Doug Lea</author>

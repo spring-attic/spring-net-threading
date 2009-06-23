@@ -20,9 +20,10 @@
 
 using System;
 using System.Text;
-using Spring.Util;
+using System.Threading;
 
-namespace Spring.Threading.AtomicTypes {
+namespace Spring.Threading.AtomicTypes
+{
     /// <summary> 
     /// An array of object references in which elements may be updated
     /// atomically. 
@@ -32,15 +33,18 @@ namespace Spring.Threading.AtomicTypes {
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
+    /// <author>Kenneth Xu (Interlocked)</author>
     [Serializable]
-    public class AtomicReferenceArray<T> {
+    public class AtomicReferenceArray<T> : AbstractAtomicArray<T>, IAtomicArray<T> where T : class
+    {
         /// <summary>
         /// Holds the object array reference
         /// </summary>
         private readonly T[] _referenceArray;
 
         /// <summary> 
-        /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicReferenceArray{T}"/> of <paramref name="length"/>.</summary>
+        /// Creates a new <see cref="AtomicReferenceArray{T}"/> of <paramref name="length"/>.
+        /// </summary>
         /// <param name="length">
         /// the length of the array
         /// </param>
@@ -49,18 +53,17 @@ namespace Spring.Threading.AtomicTypes {
         }
 
         /// <summary> 
-        /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicReferenceArray{T}"/> with the same length as, and
+        /// Creates a new <see cref="AtomicReferenceArray{T}"/> with the same length as, and
         /// all elements copied from <paramref name="array"/>
         /// </summary>
         /// <param name="array">
         /// The array to copy elements from
         /// </param>
         /// <throws><see cref="ArgumentNullException"/>if array is null</throws>
-        public AtomicReferenceArray(T[] array)
-            : this(array!= null?array.Length:0) {
-            if(array == null)
-                throw new ArgumentNullException();
-            Array.Copy(array, 0, _referenceArray, 0, array.Length);
+        public AtomicReferenceArray(T[] array) {
+            if(array == null) throw new ArgumentNullException("array");
+            _referenceArray = (T[])array.Clone();
+            if (array.Length > 0) Thread.MemoryBarrier();
         }
 
         /// <summary> 
@@ -69,8 +72,9 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// The length of the array
         /// </returns>
-        public int Length() {
-            return _referenceArray.Length;
+        public override int Count
+        {
+            get { return _referenceArray.Length; }
         }
 
         /// <summary> 
@@ -80,16 +84,16 @@ namespace Spring.Threading.AtomicTypes {
         /// <param name="index">
         /// The index to use.
         /// </param>
-        public T this[int index] {
-            get {
-                lock(this) {
-                    return _referenceArray[index];
-                }
+        public override T this[int index] {
+            get
+            {
+                Thread.MemoryBarrier(); 
+                return _referenceArray[index];
             }
-            set {
-                lock(this) {
-                    _referenceArray[index] = value;
-                }
+            set
+            {
+                _referenceArray[index] = value;
+                Thread.MemoryBarrier();
             }
         }
 
@@ -102,11 +106,8 @@ namespace Spring.Threading.AtomicTypes {
         /// <param name="index">
         /// the index to set
         /// </param>
-        /// TODO: This method doesn't differ from the set() method, which was converted to a property.  For now
-        /// the property will be called for this method.
-        [Obsolete("This method will be removed.  Please use indexer instead.")]
         public virtual void LazySet(int index, T newValue) {
-            this[index] = newValue;
+            this[index] = newValue; 
         }
 
 
@@ -120,12 +121,8 @@ namespace Spring.Threading.AtomicTypes {
         /// <param name="newValue">
         /// The new value
         /// </param>
-        public T SetNewAtomicValue(int index, T newValue) {
-            lock(this) {
-                T old = _referenceArray[index];
-                _referenceArray[index] = newValue;
-                return old;
-            }
+        public T Exchange(int index, T newValue) {
+            return Interlocked.Exchange(ref _referenceArray[index], newValue);
         }
 
         /// <summary> 
@@ -146,13 +143,8 @@ namespace Spring.Threading.AtomicTypes {
         /// the actual value was not equal to the expected value.
         /// </returns>
         public bool CompareAndSet(int index, T expectedValue, T newValue) {
-            lock(this) {
-                if(_referenceArray[index].Equals(expectedValue)) {
-                    _referenceArray[index] = newValue;
-                    return true;
-                }
-                return false;
-            }
+            return ReferenceEquals(expectedValue,
+                Interlocked.CompareExchange(ref _referenceArray[index], newValue, expectedValue));
         }
 
         /// <summary> 
@@ -173,13 +165,8 @@ namespace Spring.Threading.AtomicTypes {
         /// True if successful, false otherwise.
         /// </returns>
         public bool WeakCompareAndSet(int index, T expectedValue, T newValue) {
-            lock(this) {
-                if(_referenceArray[index].Equals(expectedValue)) {
-                    _referenceArray[index] = newValue;
-                    return true;
-                }
-                return false;
-            }
+            return ReferenceEquals(expectedValue,
+                Interlocked.CompareExchange(ref _referenceArray[index], newValue, expectedValue));
         }
 
         /// <summary> 
@@ -189,10 +176,20 @@ namespace Spring.Threading.AtomicTypes {
         public override string ToString() {
             if(_referenceArray.Length == 0)
                 return "[]";
+            // force volatile read
+            T dummy = this[0];
 
             StringBuilder buf = new StringBuilder();
-            buf.Append("[");
-            buf.Append(StringUtils.CollectionToCommaDelimitedString(_referenceArray));
+
+            for(int i = 0; i < _referenceArray.Length; i++) {
+                if(i == 0)
+                    buf.Append('[');
+                else
+                    buf.Append(", ");
+
+                buf.Append(_referenceArray[i].ToString());
+            }
+
             buf.Append("]");
             return buf.ToString();
         }

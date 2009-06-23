@@ -55,7 +55,5 @@ using System.Reflection;
 //
 #if STRONG
 [assembly: AssemblyDelaySign(false)]
-#if !NET_2_0
-[assembly: AssemblyKeyFile("Spring.Net.snk")]
-#endif
+//[assembly: AssemblyKeyFile("Spring.Net.snk")]
 #endif

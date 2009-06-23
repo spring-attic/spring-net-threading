@@ -18,40 +18,19 @@
 
 namespace Spring.Threading.Future
 {
-	/// <summary> 
-	/// A <see cref="Spring.Threading.Future.IFuture"/> that is a <see cref="Spring.Threading.IRunnable"/>. Successful execution of
-	/// the <see cref="Spring.Threading.IRunnable.Run()"/> method causes completion of the 
-	/// <see cref="Spring.Threading.Future.IFuture"/> and allows access to its results.
-	/// </summary>
-	/// <remarks>
-	/// Sets this <see cref="Spring.Threading.Future.IFuture"/> to the result of its computation
-	/// unless it has been cancelled.
-	/// </remarks>
-	/// <seealso cref="Spring.Threading.Future.FutureTask"/>
-	/// <seealso cref="Spring.Threading.IExecutor"/>
-	/// <author>Doug Lea</author>
-	/// <author>Griffin Caprio (.NET)</author>
-	public interface IRunnableFuture : IRunnable, IFuture
-	{
-	}
-//
-//#if NET_2_0
-//    /// <summary> 
-//    /// A <see cref="IFuture{T}"/> that is a <see cref="IRunnable"/>. Successful execution of
-//    /// the <see cref="IRunnable.Run()"/> method causes completion of the 
-//    /// <see cref="IFuture{T}"/> and allows access to its results.
-//    /// </summary>
-//    /// <remarks>
-//    /// Sets this <see cref="IFuture{T}"/> to the result of its computation
-//    /// unless it has been cancelled.
-//    /// </remarks>
-//    /// <seealso cref="FutureTask{T}"/>
-//    /// <seealso cref="IExecutor"/>
-//    /// <author>Doug Lea</author>
-//    /// <author>Griffin Caprio (.NET)</author>
-//    /// <author>Kenneth Xu</author>
-//    public interface IRunnableFuture<T> : IRunnableFuture, IFuture
-//    {
-//    }
-//#endif
+    /// <summary> 
+    /// A <see cref="IFuture{T}"/> that is a <see cref="IRunnable"/>. 
+    /// </summary>
+    /// <remarks>
+    /// Successful execution of the <see cref="IRunnable.Run()"/> method causes 
+    /// completion of the <see cref="IFuture{T}"/> and allows access to its results.
+    /// </remarks>
+    /// <seealso cref="FutureTask{T}"/>
+    /// <seealso cref="IExecutor"/>
+    /// <author>Doug Lea</author>
+    /// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu</author>
+    public interface IRunnableFuture<T> : IRunnable, IFuture<T>
+    {
+    }
 }

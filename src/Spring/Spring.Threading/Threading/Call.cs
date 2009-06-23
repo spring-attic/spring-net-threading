@@ -18,20 +18,28 @@
 
 #endregion
 
+using Spring.Threading.Execution;
+
 namespace Spring.Threading
 {
     /// <summary> 
-    /// Delegate for actions that bear results and/or throw Exceptions.
+    /// A delegate that returns a result and may throw an exception.
     /// </summary>
     /// <remarks>
-    /// This delegate is designed to provide a common protocol for
-    /// result-bearing actions that can be run independently in threads, 
-    /// in which case they are ordinarily used as the bases of 
-    /// <see cref="IRunnable"/>s or <see cref="Task"/>s that set
-    /// <see cref="FutureResult{T}"/>.
+    /// <para>
+    /// The <c>Call</c> delegate is similar to <see cref="Task"/>, in that 
+    /// both are designed funcitons are potentially executed by another thread.
+    /// A <c>Task</c>, however, does not return a result.
+    /// </para>
+    /// <para>
+    /// The <see cref="Executors"/> class contains utility methods to
+    /// convert from other common forms to <c>Call</c> delegate.
+    /// </para>
     /// </remarks>
+    /// <typeparam name="T">
+    /// The result type of the delegate.
+    /// </typeparam>
     /// <seealso cref="ICallable{T}"/>
-    /// <seealso cref="FutureResult{T}"/>
     /// <author>Kenneth Xu</author>
     public delegate T Call<T>();
 }

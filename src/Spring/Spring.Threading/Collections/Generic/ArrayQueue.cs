@@ -151,18 +151,16 @@ namespace Spring.Collections.Generic
 		/// <exception cref="ArgumentNullException">
 		/// If <paramref name="collection"/> is <see langword="null"/>.
 		/// </exception> 
-		public ArrayQueue(int capacity, ICollection<T> collection) : this(capacity)
+		public ArrayQueue(int capacity, IEnumerable<T> collection) : this(capacity)
 		{
 			if (collection == null)
 				throw new ArgumentNullException("collection");
-			if (capacity < collection.Count)
-				throw new ArgumentOutOfRangeException(
-                    "collection", "Collection size greater than queue capacity");
 			foreach (T currentObject in collection)
 			{
-                if ( currentObject == null )
+                if(_count >= capacity)
                 {
-                    throw new ArgumentNullException("collection");
+				    throw new ArgumentOutOfRangeException(
+                        "collection", collection, "Collection size greater than queue capacity");
                 }
 				insert(currentObject);
 			}
@@ -273,7 +271,7 @@ namespace Spring.Collections.Generic
 		/// </summary>
 		public override int RemainingCapacity
 		{
-			get { return _capacity; }
+			get { return _capacity - _count; }
 		}
 
 		/// <summary> 
@@ -481,7 +479,7 @@ namespace Spring.Collections.Generic
 		    return new ArrayQueueEnumerator(this);
 		}
 
-	    private class ArrayQueueEnumerator : IEnumerator<T>
+	    private class ArrayQueueEnumerator : AbstractEnumerator<T>
 		{
 			/// <summary> 
 			/// Index of element to be returned by next,
@@ -492,7 +490,7 @@ namespace Spring.Collections.Generic
 			/// Parent <see cref="ArrayQueue{T}"/> 
 			/// for this <see cref="IEnumerator{T}"/>
 			/// </summary>
-			private ArrayQueue<T> _enclosingInstance;
+			private readonly ArrayQueue<T> _enclosingInstance;
 			/// <summary> 
 			/// nextItem holds on to item fields because once we claim
 			/// that an element exists in hasNext(), we must return it in
@@ -501,36 +499,31 @@ namespace Spring.Collections.Generic
 			/// </summary>
 			private T _nextItem;
 
-	        public T Current
+	        protected override T FetchCurrent()
 			{
-				get
-				{
-				    if (_nextIndex < 0)
-				        throw new NoElementsException();
-				    T x = _nextItem;
-				    _nextIndex = _enclosingInstance.increment(_nextIndex);
-				    checkNext();
-				    return x;
-				}
+			    T x = _nextItem;
+			    _nextIndex = _enclosingInstance.increment(_nextIndex);
+			    CheckNext();
+			    return x;
 			}
 				
 			internal ArrayQueueEnumerator(ArrayQueue<T> enclosingInstance)
 			{
 				_enclosingInstance = enclosingInstance;
-				setInitialState();
+				SetInitialState();
 			}
 			
-			public bool MoveNext()
+			protected override bool GoNext()
 			{
 				return _nextIndex >= 0;
 			}
 
-			public void Reset()
+			public override void Reset()
 			{
-				setInitialState();
+				SetInitialState();
 			}
 
-			private void setInitialState()
+			private void SetInitialState()
 			{
 			    if (_enclosingInstance.Count == 0)
 					_nextIndex = - 1;
@@ -545,7 +538,7 @@ namespace Spring.Collections.Generic
 			/// Checks whether nextIndex is valid; if so setting nextItem.
 			/// Stops iterator when either hits putIndex or sees null item.
 			/// </summary>
-			private void checkNext()
+			private void CheckNext()
 			{
 				if (_nextIndex == _enclosingInstance._putIndex)
 				{
@@ -557,23 +550,6 @@ namespace Spring.Collections.Generic
 					_nextItem = _enclosingInstance._items[_nextIndex];
 				}
 			}
-
-            #region IDisposable Members
-
-            public void Dispose()
-            {
-            }
-
-            #endregion
-
-            #region IEnumerator Members
-
-            object System.Collections.IEnumerator.Current
-            {
-                get { return Current; }
-            }
-
-            #endregion
         }
 	}
 }

@@ -48,7 +48,7 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
     [Serializable]
-    public class BlockingQueueWrapper<T> : AbstractQueue<T>, IBlockingQueue<T>
+    public class BlockingQueueWrapper<T> : AbstractBlockingQueue<T>
     {
         /// <summary>Main lock guarding all access </summary>
         private readonly ReentrantLock _lock;
@@ -165,7 +165,7 @@ namespace Spring.Threading.Collections.Generic
         /// </summary>
         public sealed override void Clear()
         {
-            using (_lock.LockAndUse())
+            using (_lock.Lock())
             {
                 _wrapped.Clear();
                 _notFullCondition.SignalAll();
@@ -192,15 +192,9 @@ namespace Spring.Threading.Collections.Generic
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            ReentrantLock currentLock = _lock;
-            currentLock.Lock();
-            try
+            using(_lock.Lock())
             {
                 return base.ToString();
-            }
-            finally
-            {
-                currentLock.Unlock();
             }
         }
 
@@ -222,15 +216,9 @@ namespace Spring.Threading.Collections.Generic
         /// </returns>
         public override bool Contains(T elementToSearchFor)
         {
-            ReentrantLock currentLock = _lock;
-            currentLock.Lock();
-            try
+            using(_lock.Lock())
             {
                 return _wrapped.Contains(elementToSearchFor);
-            }
-            finally
-            {
-                currentLock.Unlock();
             }
         }
 
@@ -249,17 +237,11 @@ namespace Spring.Threading.Collections.Generic
         /// </returns>
         public override bool Remove(T elementToRemove)
         {
-            ReentrantLock currentLock = _lock;
-            currentLock.Lock();
-            try
+            using(_lock.Lock())
             {
                 bool isSuccess = _wrapped.Remove(elementToRemove);
                 if(isSuccess) _notFullCondition.Signal();
                 return isSuccess;
-            }
-            finally
-            {
-                currentLock.Unlock();
             }
         }
 
@@ -296,7 +278,7 @@ namespace Spring.Threading.Collections.Generic
         /// <filterpriority>2</filterpriority>
         protected override void CopyTo(Array array, int index)
         {
-            using(_lock.LockAndUse())
+            using(_lock.Lock())
             {
                 base.CopyTo(array, index);
             }
@@ -332,7 +314,7 @@ namespace Spring.Threading.Collections.Generic
         /// </exception>
         public override void CopyTo(T[] array, int arrayIndex)
         {
-            using(_lock.LockAndUse())
+            using(_lock.Lock())
             {
                 base.CopyTo(array, arrayIndex);
             }
@@ -364,18 +346,11 @@ namespace Spring.Threading.Collections.Generic
         {
             get
             {
-                ReentrantLock lock_Renamed = _lock;
-                lock_Renamed.Lock();
-                try
+                using(_lock.Lock())
                 {
                     return _wrapped.Count;
                 }
-                finally
-                {
-                    lock_Renamed.Unlock();
-                }
             }
-
         }
 
         /// <summary>
@@ -402,21 +377,11 @@ namespace Spring.Threading.Collections.Generic
         /// </exception>
         public override bool Offer(T element)
         {
-            if ( element == null )
-            {
-                throw new ArgumentNullException("element");
-            }
-            ReentrantLock currentLock = _lock;
-            currentLock.Lock();
-            try
+            using(_lock.Lock())
             {
                 bool isSuccess = _wrapped.Offer(element);
                 if (isSuccess) _notEmptyCondition.Signal();
                 return isSuccess;
-            }
-            finally
-            {
-                currentLock.Unlock();
             }
         }
 
@@ -432,17 +397,11 @@ namespace Spring.Threading.Collections.Generic
         /// </returns>
         public override bool Poll(out T element)
         {
-            ReentrantLock currentLock = _lock;
-            currentLock.Lock();
-            try
+            using(_lock.Lock())
             {
                 bool isSuccess = _wrapped.Poll(out element);
                 if (isSuccess) _notFullCondition.Signal();
                 return isSuccess;
-            }
-            finally
-            {
-                currentLock.Unlock();
             }
         }
 
@@ -459,15 +418,9 @@ namespace Spring.Threading.Collections.Generic
         /// If some property of the supplied <paramref name="element"/> prevents
         /// it from being added to this queue.
         /// </exception>
-        public void Put(T element)
+        public override void Put(T element)
         {
-            if ( element == null )
-            {
-                throw new ArgumentNullException("element");
-            }
-            ReentrantLock currentLock = _lock;
-            currentLock.LockInterruptibly();
-            try
+            using(_lock.LockInterruptibly())
             {
                 try
                 {
@@ -475,15 +428,11 @@ namespace Spring.Threading.Collections.Generic
                         _notFullCondition.Await();
                     _notEmptyCondition.Signal();
                 }
-                catch (ThreadInterruptedException)
+                catch (ThreadInterruptedException e)
                 {
                     _notFullCondition.Signal();
-                    throw;
+                    throw ExceptionExtensions.PreserveStackTrace(e);
                 }
-            }
-            finally
-            {
-                currentLock.Unlock();
             }
         }
 
@@ -505,11 +454,9 @@ namespace Spring.Threading.Collections.Generic
         /// If some property of the supplied <paramref name="element"/> prevents
         /// it from being added to this queue.
         /// </exception>
-        public bool Offer(T element, TimeSpan duration)
+        public override bool Offer(T element, TimeSpan duration)
         {
-            ReentrantLock currentLock = _lock;
-            currentLock.LockInterruptibly();
-            try
+            using(_lock.LockInterruptibly())
             {
                 TimeSpan durationToWait = duration;
                 DateTime deadline = DateTime.Now.Add(durationToWait);
@@ -522,18 +469,14 @@ namespace Spring.Threading.Collections.Generic
                         _notFullCondition.Await(durationToWait);
                         durationToWait = deadline.Subtract(DateTime.Now);
                     }
-                    catch (ThreadInterruptedException)
+                    catch (ThreadInterruptedException e)
                     {
                         _notFullCondition.Signal();
-                        throw;
+                        throw ExceptionExtensions.PreserveStackTrace(e);
                     }
                 }
                 _notEmptyCondition.Signal();
                 return true;
-            }
-            finally
-            {
-                currentLock.Unlock();
             }
         }
 
@@ -542,11 +485,9 @@ namespace Spring.Threading.Collections.Generic
         /// until an element becomes available.
         /// </summary>
         /// <returns> the head of this queue</returns>
-        public T Take()
+        public override T Take()
         {
-            ReentrantLock currentLock = _lock;
-            currentLock.LockInterruptibly();
-            try
+            using(_lock.LockInterruptibly())
             {
                 try
                 {
@@ -556,15 +497,11 @@ namespace Spring.Threading.Collections.Generic
                     _notFullCondition.Signal();
                     return element;
                 }
-                catch (ThreadInterruptedException)
+                catch (ThreadInterruptedException e)
                 {
                     _notEmptyCondition.Signal();
-                    throw;
+                    throw ExceptionExtensions.PreserveStackTrace(e);
                 }
-            }
-            finally
-            {
-                currentLock.Unlock();
             }
         }
 
@@ -580,185 +517,47 @@ namespace Spring.Threading.Collections.Generic
         /// <c>false</c> if the queue is still empty after waited for the time 
         /// specified by the <paramref name="duration"/>. Otherwise <c>true</c>.
         /// </returns>
-        public bool Poll(TimeSpan duration,out T element)
+        public override bool Poll(TimeSpan duration,out T element)
         {
-            ReentrantLock currentLock = _lock;
-            currentLock.LockInterruptibly();
-            try
+            using(_lock.LockInterruptibly())
             {
-                TimeSpan durationToWait = duration;
-                DateTime deadline = DateTime.Now.Add(durationToWait);
+                DateTime deadline = DateTime.UtcNow.Add(duration);
                 while (!_wrapped.Poll(out element))
                 {
-                    if (durationToWait.Ticks <= 0)
+                    if (duration.Ticks <= 0)
                     {
                         element = default(T);
                         return false;
                     }
                     try
                     {
-                        _notEmptyCondition.Await(durationToWait);
-                        durationToWait = deadline.Subtract(DateTime.Now);
+                        _notEmptyCondition.Await(duration);
+                        duration = deadline.Subtract(DateTime.UtcNow);
                     }
-                    catch (ThreadInterruptedException)
+                    catch (ThreadInterruptedException e)
                     {
                         _notEmptyCondition.Signal();
-                        throw;
+                        throw ExceptionExtensions.PreserveStackTrace(e);
                     }
                 }
                 _notFullCondition.Signal();
                 return true;
             }
-            finally
-            {
-                currentLock.Unlock();
-            }
         }
 
 
         /// <summary> 
-        /// Removes all available elements from this queue and adds them to the 
-        /// given collection.  
+        /// Does the real work for all <c>Drain</c> methods. Caller must
+        /// guarantee the <paramref name="action"/> is not <c>null</c> and
+        /// <paramref name="maxElements"/> is greater then zero (0).
         /// </summary>
-        /// <remarks>
-        /// This operation may be more efficient than repeatedly polling this 
-        /// queue.  A failure encountered while attempting to add elements to 
-        /// collection <paramref name="collection"/> may result in elements 
-        /// being in neither, either or both collections when the associated 
-        /// exception is thrown.  Attempts to drain a queue to itself result in
-        /// <see cref="System.ArgumentException"/>. Further, the behavior of
-        /// this operation is undefined if the specified collection is
-        /// modified while the operation is in progress.
-        /// </remarks>
-        /// <param name="collection">the collection to transfer elements into</param>
-        /// <returns> the number of elements transferred</returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// If the queue cannot be drained at this time.
-        /// </exception>
-        /// <exception cref="System.InvalidCastException">
-        /// If the class of the supplied <paramref name="collection"/> prevents it
-        /// from being used for the elemetns from the queue.
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the specified collection is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="System.ArgumentException">
-        /// If <paramref name="collection"/> represents the queue itself.
-        /// </exception>
-        /// <seealso cref="DrainTo(Action{T})"/>
-        /// <seealso cref="DrainTo(ICollection{T},int)"/>
-        /// <seealso cref="DrainTo(Action{T},int)"/>
-        public int DrainTo(ICollection<T> collection)
-        {
-            return DrainTo(collection, int.MaxValue);
-        }
-
-        /// <summary> 
-        /// Removes at most the given number of available elements from
-        /// this queue and adds them to the given collection.  
-        /// </summary>
-        /// <remarks> 
-        /// This operation may be more
-        /// efficient than repeatedly polling this queue.  A failure
-        /// encountered while attempting to add elements to
-        /// collection <paramref name="collection"/> may result in elements being in neither,
-        /// either or both collections when the associated exception is
-        /// thrown.  Attempts to drain a queue to itself result in
-        /// <see cref="System.ArgumentException"/>. Further, the behavior of
-        /// this operation is undefined if the specified collection is
-        /// modified while the operation is in progress.
-        /// </remarks>
-        /// <param name="collection">the collection to transfer elements into</param>
-        /// <param name="maxElements">the maximum number of elements to transfer</param>
-        /// <returns> the number of elements transferred</returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// If the queue cannot be drained at this time.
-        /// </exception>
-        /// <exception cref="System.InvalidCastException">
-        /// If the class of the supplied <paramref name="collection"/> prevents it
-        /// from being used for the elemetns from the queue.
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the specified collection is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="System.ArgumentException">
-        /// If <paramref name="collection"/> represents the queue itself.
-        /// </exception>
-        /// <seealso cref="DrainTo(ICollection{T})"/>
-        /// <seealso cref="DrainTo(Action{T})"/>
-        /// <seealso cref="DrainTo(Action{T},int)"/>
-        public int DrainTo(ICollection<T> collection, int maxElements)
-        {
-            if (collection == null)
-                throw new ArgumentNullException("collection");
-            if (collection == this)
-                throw new InvalidOperationException("Cannot drain queue to itself.");
-            return DrainTo(delegate(T e) { collection.Add(e); }, maxElements);
-        }
-
-        /// <summary> 
-        /// Removes all available elements from this queue and invoke the given
-        /// <paramref name="action"/> on each element in order.
-        /// </summary>
-        /// <remarks>
-        /// This operation may be more efficient than repeatedly polling this 
-        /// queue.  A failure encountered while attempting to invoke the 
-        /// <paramref name="action"/> on the elements may result in elements 
-        /// being neither, either or both in the queue or processed when the 
-        /// associated exception is thrown.
-        /// <example> Drain to a non-generic list.
-        /// <code language="c#">
-        /// IList c = ...;
-        /// int count = DrainTo(delegate(T e) {c.Add(e);});
-        /// </code>
-        /// </example>
-        /// </remarks>
-        /// <param name="action">The action to performe on each element.</param>
-        /// <returns>The number of elements processed.</returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// If the queue cannot be drained at this time.
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the specified action is <see langword="null"/>.
-        /// </exception>
         /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T})"/>
+        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T}, int)"/>
+        /// <seealso cref="IBlockingQueue{T}.Drain(System.Action{T})"/>
         /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T},int)"/>
-        public int DrainTo(Action<T> action)
+        internal protected override int DoDrainTo(Action<T> action, int maxElements)
         {
-            return DrainTo(action, int.MaxValue);
-        }
-
-        /// <summary> 
-        /// Removes at most the given number of available elements from this 
-        /// queue and invoke the given <paramref name="action"/> on each 
-        /// element in order.
-        /// </summary>
-        /// <remarks>
-        /// This operation may be more efficient than repeatedly polling this 
-        /// queue.  A failure encountered while attempting to invoke the 
-        /// <paramref name="action"/> on the elements may result in elements 
-        /// being neither, either or both in the queue or processed when the 
-        /// associated exception is thrown.
-        /// </remarks>
-        /// <param name="action">The action to performe on each element.</param>
-        /// <param name="maxElements">the maximum number of elements to transfer</param>
-        /// <returns>The number of elements processed.</returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// If the queue cannot be drained at this time.
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the specified action is <see langword="null"/>.
-        /// </exception>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T},int)"/>
-        public int DrainTo(Action<T> action, int maxElements)
-        {
-            if (maxElements <= 0)
-                return 0;
-
-            ReentrantLock currentLock = _lock;
-            currentLock.Lock();
-            try
+            using(_lock.Lock())
             {
                 T element;
                 int n;
@@ -776,10 +575,6 @@ namespace Spring.Threading.Collections.Generic
                 }
                 return n;
             }
-            finally
-            {
-                currentLock.Unlock();
-            }
         }
 
 
@@ -795,15 +590,9 @@ namespace Spring.Threading.Collections.Generic
         /// </returns>
         public override bool Peek(out T element)
         {
-            ReentrantLock currentLock = _lock;
-            currentLock.Lock();
-            try
+            using(_lock.Lock())
             {
                 return _wrapped.Peek(out element);
-            }
-            finally
-            {
-                currentLock.Unlock();
             }
         }
 
@@ -827,35 +616,25 @@ namespace Spring.Threading.Collections.Generic
         /// <filterpriority>1</filterpriority>
         public override IEnumerator<T> GetEnumerator()
         {
-            ReentrantLock lock_Renamed = _lock;
-            lock_Renamed.Lock();
-            try
+            using(_lock.Lock())
             {
                 return new BlockingQueueEnumeratorWrapper(_wrapped.GetEnumerator(), _lock);
             }
-            finally
-            {
-                lock_Renamed.Unlock();
-            }
         }
 
-        private class BlockingQueueEnumeratorWrapper : IEnumerator<T>
+        private class BlockingQueueEnumeratorWrapper : AbstractEnumerator<T>
         {
 
             private readonly ReentrantLock _lock;
 
             private readonly IEnumerator<T> _wrapped;
 
-            public T Current
+            protected override T FetchCurrent()
             {
-                get
+                using (_lock.Lock())
                 {
-                    using (_lock.LockAndUse())
-                    {
-                        return _wrapped.Current;
-                    }
+                    return _wrapped.Current;
                 }
-
             }
 
             internal BlockingQueueEnumeratorWrapper(
@@ -865,42 +644,21 @@ namespace Spring.Threading.Collections.Generic
                 _lock = reentrantLock;
             }
 
-            public bool MoveNext()
+            protected override bool GoNext()
             {
-                using(_lock.LockAndUse())
+                using(_lock.Lock())
                 {
                     return _wrapped.MoveNext();
                 }
             }
 
-            public void Reset()
+            public override void Reset()
             {
-                using(_lock.LockAndUse())
+                using(_lock.Lock())
                 {
                     _wrapped.Reset();
                 }
             }
-
-            #region IDisposable Members
-
-            public void Dispose()
-            {
-                using (_lock.LockAndUse())
-                {
-                    _wrapped.Dispose();
-                }
-            }
-
-            #endregion
-
-            #region IEnumerator Members
-
-            object IEnumerator.Current
-            {
-                get { return Current; }
-            }
-
-            #endregion
         }
     }
 }

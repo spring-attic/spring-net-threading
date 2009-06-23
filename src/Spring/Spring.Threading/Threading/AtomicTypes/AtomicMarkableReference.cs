@@ -20,7 +20,8 @@
 
 using System;
 
-namespace Spring.Threading.AtomicTypes {
+namespace Spring.Threading.AtomicTypes
+{
     /// <summary> 
     /// An <see cref="AtomicMarkableReference{T}"/> maintains an object reference
     /// along with a mark bit, that can be updated atomically.
@@ -34,188 +35,40 @@ namespace Spring.Threading.AtomicTypes {
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
+    /// <author>Kenneth Xu (.NET)</author>
     [Serializable]
-    public class AtomicMarkableReference<T> {
-        /// <summary>
-        /// Holds the <see cref="Spring.Threading.AtomicTypes.AtomicReference{T}"/> reference
-        /// </summary>
-        private readonly AtomicReference<ReferenceBooleanPair<T>> _atomicReference;
-
-        [Serializable]
-        private class ReferenceBooleanPair<TI> {
-            private readonly TI _reference;
-            private readonly bool _markBit;
-
-            internal ReferenceBooleanPair(TI reference, bool markBit) {
-                _reference = reference;
-                _markBit = markBit;
-            }
-
-            public TI Reference {
-                get { return _reference; }
-            }
-
-            public bool MarkBit {
-                get { return _markBit; }
-            }
-        }
+    public class AtomicMarkableReference<T> : AtomicMarkable<T> where T : class
+    {
 
         /// <summary> 
-        /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicMarkableReference{T}"/> with the given
+        /// Creates a new <see cref="AtomicMarkable{T}"/> with the given
         /// initial values.
         /// </summary>
         /// <param name="initialReference">
-        /// the initial reference
+        /// the initial value of the reference
         /// </param>
         /// <param name="initialMark">
         /// the initial mark
         /// </param>
-        public AtomicMarkableReference(T initialReference, bool initialMark) {
-            _atomicReference = new AtomicReference<ReferenceBooleanPair<T>>(new ReferenceBooleanPair<T>(initialReference, initialMark));
+        public AtomicMarkableReference(T initialReference, bool initialMark)
+            : base(initialReference, initialMark)
+        {
         }
 
         /// <summary>
-        /// Returns the <see cref="ReferenceBooleanPair{TI}"/> held but this instance.
+        /// Determine if two instances are equals. This implementation uses
+        /// <see cref="object.ReferenceEquals(object,object)"/> to determine 
+        /// the equality.
         /// </summary>
-        private ReferenceBooleanPair<T> Pair {
-            get { return _atomicReference.Reference; }
-
-        }
-
-        /// <summary> 
-        /// Returns the current value of the reference.
-        /// </summary>
-        /// <returns> 
-        /// The current value of the reference
+        /// <param name="x">first instance to compare.</param>
+        /// <param name="y">second instance to compare</param>
+        /// <returns>
+        /// <c>true</c> when and only when <paramref name="x"/> equals 
+        /// <paramref name="y"/>.
         /// </returns>
-        public object Reference {
-            get { return Pair.Reference; }
-        }
-
-        /// <summary> 
-        /// Returns the current value of the mark.
-        /// </summary>
-        /// <returns> 
-        /// The current value of the mark
-        /// </returns>
-        public bool IsReferenceMarked {
-            get { return Pair.MarkBit; }
-
-        }
-
-        /// <summary> 
-        /// Returns the current values of both the reference and the mark.
-        /// Typical usage is:
-        /// <code>
-        /// bool[1] holder;
-        /// object reference = v.GetobjectReference(holder);
-        /// </code>
-        /// </summary>
-        /// <param name="markHolder">
-        /// An array of size of at least one. On return,
-        /// markholder[0] will hold the value of the mark.
-        /// </param>
-        /// <returns> 
-        /// The current value of the reference
-        /// </returns>
-        public T GetReference(ref bool[] markHolder) {
-            ReferenceBooleanPair<T> p = Pair;
-            markHolder[0] = p.MarkBit;
-            return p.Reference;
-        }
-
-        /// <summary> 
-        /// Atomically sets the value of both the reference and mark
-        /// to the given update values if the
-        /// current reference is equal to <paramref name="expectedReference"/> 
-        /// and the current mark is equal to the <paramref name="expectedMark"/>.
-        /// </summary>
-        /// <param name="expectedReference">
-        /// The expected value of the reference
-        /// </param>
-        /// <param name="newReference">
-        /// The new value for the reference
-        /// </param>
-        /// <param name="expectedMark">
-        /// The expected value of the mark
-        /// </param>
-        /// <param name="newMark">
-        /// The new value for the mark
-        /// </param>
-        /// <returns> 
-        /// <see lang="true"/> if successful, <see lang="false"/> otherwise
-        /// </returns>
-        public virtual bool WeakCompareAndSet(T expectedReference, T newReference, bool expectedMark, bool newMark) {
-            ReferenceBooleanPair<T> current = Pair;
-
-            return expectedReference.Equals(current.Reference) && expectedMark == current.MarkBit && 
-                ((newReference.Equals(current.Reference) && newMark == current.MarkBit) || _atomicReference.CompareAndSet(current, new ReferenceBooleanPair<T>(newReference, newMark)));
-        }
-
-        /// <summary> 
-        /// Atomically sets the value of both the reference and mark
-        /// to the given update values if the
-        /// current reference is equal to <paramref name="expectedReference"/> 
-        /// and the current mark is equal to the <paramref name="expectedMark"/>.
-        /// </summary>
-        /// <param name="expectedReference">
-        /// The expected value of the reference
-        /// </param>
-        /// <param name="newReference">
-        /// The new value for the reference
-        /// </param>
-        /// <param name="expectedMark">
-        /// The expected value of the mark
-        /// </param>
-        /// <param name="newMark">
-        /// The new value for the mark
-        /// </param>
-        /// <returns> 
-        /// <see lang="true"/> if successful, <see lang="false"/> otherwise
-        /// </returns>
-        public bool CompareAndSet(T expectedReference, T newReference, bool expectedMark, bool newMark) {
-            ReferenceBooleanPair<T> current = Pair;
-
-            return expectedReference.Equals(current.Reference) && expectedMark == current.MarkBit && 
-                ((newReference.Equals(current.Reference) && newMark == current.MarkBit) || _atomicReference.CompareAndSet(current, new ReferenceBooleanPair<T>(newReference, newMark)));
-        }
-
-        /// <summary> 
-        /// Unconditionally sets the value of both the reference and mark.
-        /// </summary>
-        /// <param name="newReference">the new value for the reference
-        /// </param>
-        /// <param name="newMark">the new value for the mark
-        /// </param>
-        public void SetNewAtomicValue(T newReference, bool newMark) {
-            ReferenceBooleanPair<T> current = Pair;
-            if(!newReference.Equals(current.Reference) || newMark != current.MarkBit)
-                _atomicReference.SetNewAtomicValue(new ReferenceBooleanPair<T>(newReference, newMark));
-        }
-
-        /// <summary> 
-        /// Atomically sets the value of the mark to the given update value
-        /// if the current reference is equal to the expected
-        /// reference.  Any given invocation of this operation may fail
-        /// (return false) spuriously, but repeated invocation
-        /// when the current value holds the expected value and no other
-        /// thread is also attempting to set the value will eventually
-        /// succeed.
-        /// </summary>
-        /// <param name="expectedReference">
-        /// The expected value of the reference
-        /// </param>
-        /// <param name="newMark">
-        /// The new value for the mark
-        /// </param>
-        /// <returns> 
-        /// <see lang="true"/> if successful, <see lang="false"/> otherwise
-        /// </returns>
-        public bool AttemptMark(T expectedReference, bool newMark) {
-            ReferenceBooleanPair<T> current = Pair;
-
-            return expectedReference.Equals(current.Reference) 
-                && (newMark == current.MarkBit || _atomicReference.CompareAndSet(current, new ReferenceBooleanPair<T>(expectedReference, newMark)));
+        protected override bool AreEqual(T x, T y)
+        {
+            return ReferenceEquals(x, y);
         }
     }
 }

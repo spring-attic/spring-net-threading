@@ -19,25 +19,31 @@
 #endregion
 
 using System;
+using System.Threading;
 
-namespace Spring.Threading.AtomicTypes {
+#pragma warning disable 420
+namespace Spring.Threading.AtomicTypes
+{
     /// <summary>
-    /// A object reference that may be updated atomically. 
+    /// A object reference that may be updated atomically with the equality
+    /// defined as reference equals.
     /// <p/>
     /// Based on the on the back port of JCP JSR-166.
     /// </summary>
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
+    /// <author>Kenneth Xu (Interlocked)</author>
     [Serializable]
-    public class AtomicReference<T> {
+    public class AtomicReference<T> : IAtomic<T> where T : class 
+    {
         /// <summary>
         /// Holds the object reference.
         /// </summary>
-        private T _reference;
+        private volatile T _reference;
 
         /// <summary> 
-        /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicReference{T}"/> with the given initial value.
+        /// Creates a new <see cref="AtomicReference{T}"/> with the given initial value.
         /// </summary>
         /// <param name="initialValue">
         /// The initial value
@@ -47,26 +53,19 @@ namespace Spring.Threading.AtomicTypes {
         }
 
         /// <summary> 
-        /// Creates a new <see cref="Spring.Threading.AtomicTypes.AtomicReference{T}"/> with null initial value.
+        /// Creates a new <see cref="Atomic{T}"/> with <c>default<typeparamref name="T"/></c> 
+        /// as initial value.
         /// </summary>
         public AtomicReference()
             : this(default(T)) {
         }
 
         /// <summary> 
-        /// Gets / Sets the current value.
+        /// Gets and sets the current value.
         /// </summary>
-        public T Reference {
-            get {
-                lock(this) {
-                    return _reference;
-                }
-            }
-            set {
-                lock(this) {
-                    _reference = value;
-                }
-            }
+        public T Value {
+            get { return _reference; }
+            set { _reference = value; }
         }
 		/// <summary> 
 		/// Eventually sets to the given value.
@@ -74,12 +73,9 @@ namespace Spring.Threading.AtomicTypes {
 		/// <param name="newValue">
 		/// the new value
 		/// </param>
-		/// TODO: This method doesn't differ from the set() method, which was converted to a property.  For now
-		/// the property will be called for this method.
-		[Obsolete("This method will be removed.  Please use AtomicReference.Reference property instead.")]
 		public void LazySet(T newValue)
 		{
-			Reference = newValue;
+			_reference = newValue;
 		}
         /// <summary> 
         /// Atomically sets the value to the <paramref name="newValue"/>
@@ -95,26 +91,8 @@ namespace Spring.Threading.AtomicTypes {
         /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
         /// </returns>
         public bool CompareAndSet(T expectedValue, T newValue) {
-            lock(this) {
-                // it is not possible to call _reference == expected value for a generic. So we have to handle
-                // null if T is not a value type because we can not call _reference.Equals() if _reference is null
-                if (!typeof(T).IsValueType) {
-                    // if T is not a value type handle null 
-                    if (_reference == null) {
-                        if (expectedValue == null) {
-                            _reference = newValue;
-                            return true;
-                        }
-                        return false;
-                    }
-                }
-
-                if(_reference.Equals(expectedValue)) {
-                    _reference = newValue;
-                    return true;
-                }
-                return false;
-            }
+            return ReferenceEquals(expectedValue, 
+                Interlocked.CompareExchange(ref _reference, newValue, expectedValue));
         }
         
         /// <summary> 
@@ -132,13 +110,8 @@ namespace Spring.Threading.AtomicTypes {
         /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
         /// </returns>
         public virtual bool WeakCompareAndSet(T expectedValue, T newValue) {
-            lock(this) {
-                if(_reference.Equals(expectedValue)) {
-                    _reference = newValue;
-                    return true;
-                }
-                return false;
-            }
+            return ReferenceEquals(expectedValue,
+                Interlocked.CompareExchange(ref _reference, newValue, expectedValue));
         }
 
         /// <summary> 
@@ -150,12 +123,8 @@ namespace Spring.Threading.AtomicTypes {
         /// <returns> 
         /// the previous value of the instance.
         /// </returns>
-		public T SetNewAtomicValue(T newValue) {
-            lock(this) {
-                T old = _reference;
-                _reference = newValue;
-                return old;
-            }
+		public T Exchange(T newValue) {
+            return Interlocked.Exchange(ref _reference, newValue);
         }
 
         /// <summary> 
@@ -165,7 +134,23 @@ namespace Spring.Threading.AtomicTypes {
         /// The String representation of the current value.
         /// </returns>
         public override string ToString() {
-            return Convert.ToString(Reference);
+            return _reference.ToString();
+        }
+
+
+        /// <summary>
+        /// Implicit converts <see cref="AtomicReference{T}"/> to <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="atomicReference">
+        /// Instance of <see cref="AtomicReference{T}"/>.
+        /// </param>
+        /// <returns>
+        /// The converted int value of <paramref name="atomicReference"/>.
+        /// </returns>
+        public static implicit operator T(AtomicReference<T> atomicReference)
+        {
+            return atomicReference.Value;
         }
     }
 }
+#pragma warning restore 420

@@ -17,11 +17,10 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Spring.Threading.AtomicTypes;
-using Spring.Threading.Collections;
+using Spring.Threading.Collections.Generic;
 using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
@@ -31,7 +30,7 @@ namespace Spring.Threading.Execution
 	/// <see cref="Spring.Threading.Execution.IExecutorService"/>,
 	/// <see cref="Spring.Threading.Execution.IScheduledExecutorService"/>,
 	/// <see cref="Spring.Threading.IThreadFactory"/>,
-	/// and <see cref="Spring.Threading.ICallable"/> classes defined in this
+	/// and <see cref="ICallable{T}"/> classes defined in this
 	/// package. This class supports the following kinds of methods:
 	/// 
 	/// <ul>
@@ -44,9 +43,9 @@ namespace Spring.Threading.Execution
 	/// inaccessible.</li>
 	/// <li> Methods that create and return a <see cref="Spring.Threading.IThreadFactory"/>
 	/// that sets newly created threads to a known state.</li>
-	/// <li> Methods that create and return a <see cref="Spring.Threading.ICallable"/>
+	/// <li> Methods that create and return a <see cref="ICallable{T}"/>
 	/// out of other closure-like forms, so they can be used
-	/// in execution methods requiring <see cref="Spring.Threading.ICallable"/>.</li>
+	/// in execution methods requiring <see cref="ICallable{T}"/>.</li>
 	/// </ul>
 	/// </summary>
 	/// <author>Doug Lea</author>
@@ -169,6 +168,28 @@ namespace Spring.Threading.Execution
 		}
 
 		/// <summary> 
+		/// Returns an object that delegates all defined 
+		/// <see cref="Spring.Threading.Execution.IExecutorService"/> 
+		/// methods to the given executor, but not any
+		/// other methods that might otherwise be accessible using
+		/// casts. 
+		/// </summary>
+		/// <remarks>
+		/// This provides a way to safely "freeze" configuration and
+		/// disallow tuning of a given concrete implementation.
+		/// </remarks>
+		/// <param name="executor">the underlying implementation</param>
+		/// <returns> an <see cref="Spring.Threading.Execution.IExecutorService"/> instance</returns>
+		/// <exception cref="System.ArgumentNullException">if <paramref name="executor"/> is null</exception>
+		public static IExecutorService UnconfigurableExecutorService(IExecutorService executor)
+		{
+			if (executor == null)
+				throw new ArgumentNullException("executor");
+			return new DelegatedExecutorService(executor);
+		}
+
+#if !PHASED
+		/// <summary> 
 		/// Creates a single-threaded executor that can schedule commands
 		/// to run after a given delay, or to execute periodically.
 		/// </summary>
@@ -232,28 +253,6 @@ namespace Spring.Threading.Execution
 			return new ScheduledThreadPoolExecutor(corePoolSize, threadFactory);
 		}
 
-
-		/// <summary> 
-		/// Returns an object that delegates all defined 
-		/// <see cref="Spring.Threading.Execution.IExecutorService"/> 
-		/// methods to the given executor, but not any
-		/// other methods that might otherwise be accessible using
-		/// casts. 
-		/// </summary>
-		/// <remarks>
-		/// This provides a way to safely "freeze" configuration and
-		/// disallow tuning of a given concrete implementation.
-		/// </remarks>
-		/// <param name="executor">the underlying implementation</param>
-		/// <returns> an <see cref="Spring.Threading.Execution.IExecutorService"/> instance</returns>
-		/// <exception cref="System.ArgumentNullException">if <paramref name="executor"/> is null</exception>
-		public static IExecutorService UnconfigurableExecutorService(IExecutorService executor)
-		{
-			if (executor == null)
-				throw new ArgumentNullException("executor");
-			return new DelegatedExecutorService(executor);
-		}
-
 		/// <summary> 
 		/// Returns an object that delegates all defined <see cref="Spring.Threading.Execution.IScheduledExecutorService"/> 
 		/// methods to the given executor, but not any other methods that might otherwise be accessible using
@@ -269,6 +268,7 @@ namespace Spring.Threading.Execution
 				throw new ArgumentNullException("executor");
 			return new DelegatedScheduledExecutorService(executor);
 		}
+#endif
 
 		/// <summary> 
 		/// Returns a default thread factory used to create new threads.
@@ -287,79 +287,36 @@ namespace Spring.Threading.Execution
 			return new DefaultThreadFactory();
 		}
 
-		/// <summary> 
-		/// Returns a <see cref="Spring.Threading.ICallable"/>  object that, when
-		/// called, runs the given task and returns the given result.  
-		/// </summary>
-		/// <remarks>
-		/// This can be useful when applying methods requiring a
-		/// <see cref="Spring.Threading.ICallable"/> to an otherwise resultless action.
-		/// </remarks>
-		/// <param name="task">the task to run</param>
-		/// <param name="result">the result to return</param>
-		/// <returns>a callable object</returns>
-		/// <exception cref="System.ArgumentNullException">if the task is <see lang="null"/></exception>
-		public static ICallable CreateCallable(IRunnable task, Object result)
-		{
-			if (task == null)
-				throw new ArgumentNullException("task");
-			return new RunnableAdapter(task, result);
-		}
-
         /// <summary> 
-        /// Returns a <see cref="Spring.Threading.ICallable"/> object that, when
+        /// Returns a <see cref="ICallable{T}"/> object that, when
         /// called, runs the given task and returns <see lang="null"/>.
         /// </summary>
-        /// <param name="task">the task to run</param>
+        /// <param name="runnable">the task to run</param>
         /// <returns> a callable object</returns>
         /// <exception cref="System.ArgumentNullException">if the task is <see lang="null"/></exception>
-        public static ICallable CreateCallable(IRunnable task)
+        public static ICallable<object> CreateCallable(IRunnable runnable)
         {
-            if (task == null)
-                throw new ArgumentNullException("task");
-            return CreateCallable(task, null);
+            return CreateCallable<object>(runnable, null);
         }
 
         /// <summary>
-        /// Returns a <see cref="ICallable"/>  object that, when called, 
-        /// runs the given <paramref name="task"/> and returns the given 
-        /// <paramref name="result"/>.  
-        /// </summary>
-        /// <remarks>
-        /// This can be useful when applying methods requiring a
-        /// <see cref="ICallable"/> to an otherwise resultless action.
-        /// </remarks>
-        /// <param name="task">The task to run.</param>
-        /// <param name="result">The resul to return</param>
-        /// <returns>An <see cref="ICallable"/> object.</returns>
-        /// <exception cref="System.ArgumentNullException">
-        /// When the <paramref name="task"/> is <c>null</c>.
-        /// </exception>
-        /// <seealso cref="CreateCallable(IRunnable,object)"/>
-        public static ICallable CreateCallable(Task task, object result)
-        {
-            if (task == null) throw new ArgumentNullException("task");
-            return new RunnableAdapter(task, result);
-        }
-
-        /// <summary>
-        /// Returns a <see cref="ICallable"/> object that, when called, runs 
+        /// Returns a <see cref="ICallable{T}"/> object that, when called, runs 
         /// the given <paramref name="task"/> and returns <c>null</c>.  
         /// </summary>
         /// <param name="task">The task to run.</param>
-        /// <returns>An <see cref="ICallable"/> object.</returns>
+        /// <returns>An <see cref="ICallable{T}"/> object.</returns>
         /// <exception cref="System.ArgumentNullException">
         /// When the <paramref name="task"/> is <c>null</c>.
         /// </exception>
-        /// <seealso cref="CreateCallable(Task,object)"/>
-        public static ICallable CreateCallable(Task task)
+        /// <seealso cref="CreateCallable{T}(Task,T)"/>
+        public static ICallable<object> CreateCallable(Task task)
         {
-            return CreateCallable(task, null);
+            return CreateCallable<object>(task, null);
         }
 
         /// <summary> 
         /// Returns a <see cref="ICallable{T}"/>  object that, when called, 
-        /// runs the given <paramref name="task"/> and returns the given 
+        /// runs the given <paramref name="runnable"/> and returns the given 
         /// <paramref name="result"/>.  
         /// </summary>
         /// <remarks>
@@ -367,17 +324,17 @@ namespace Spring.Threading.Execution
         /// <see cref="ICallable{T}"/> to an otherwise resultless action.
         /// </remarks>
         /// <typeparam name="T">Type of the result.</typeparam>
-        /// <param name="task">the task to run</param>
+        /// <param name="runnable">the task to run</param>
         /// <param name="result">the result to return</param>
         /// <returns>An <see cref="ICallable{T}"/> object.</returns>
         /// <exception cref="System.ArgumentNullException">
-        /// When the <paramref name="task"/> is <c>null</c>.
+        /// When the <paramref name="runnable"/> is <c>null</c>.
         /// </exception>
         /// <seealso cref="CreateCallable{T}(Task,T)"/>
-        public static ICallable<T> CreateCallable<T>(IRunnable task, T result)
+        public static ICallable<T> CreateCallable<T>(IRunnable runnable, T result)
         {
-            if (task == null) throw new ArgumentNullException("task");
-            return CreateCallable(task.Run, result);
+            if (runnable == null) throw new ArgumentNullException("runnable");
+            return CreateCallable(runnable.Run, result);
         }
 
         /// <summary>
@@ -400,39 +357,7 @@ namespace Spring.Threading.Execution
         public static ICallable<T> CreateCallable<T>(Task task, T result)
         {
             if (task == null) throw new ArgumentNullException("task");
-            return new CallableAdapter<T>(task, result);
-        }
-
-        /// <summary>
-        /// Returns a <see cref="ICallable{T}"/> object that, when called, runs 
-        /// the given <paramref name="task"/> and returns <c>default(T)</c>.  
-        /// </summary>
-        /// <typeparam name="T">Type of the result.</typeparam>
-        /// <param name="task">The task to run.</param>
-        /// <returns>An <see cref="ICallable{T}"/> object.</returns>
-        /// <exception cref="System.ArgumentNullException">
-        /// When the <paramref name="task"/> is <c>null</c>.
-        /// </exception>
-        /// <seealso cref="CreateCallable{T}(Task,T)"/>
-        public static ICallable<T> CreateCallable<T>(Task task)
-	    {
-	        return CreateCallable(task, default(T));
-	    }
-
-        /// <summary>
-        /// Returns a <see cref="ICallable{T}"/> object that, when called, runs 
-        /// the given <paramref name="task"/> and returns <c>default(T)</c>.  
-        /// </summary>
-        /// <typeparam name="T">Type of the result.</typeparam>
-        /// <param name="task">The task to run.</param>
-        /// <returns>An <see cref="ICallable{T}"/> object.</returns>
-        /// <exception cref="System.ArgumentNullException">
-        /// When the <paramref name="task"/> is <c>null</c>.
-        /// </exception>
-        /// <seealso cref="CreateCallable{T}(IRunnable,T)"/>
-        public static ICallable<T> CreateCallable<T>(IRunnable task)
-        {
-            return CreateCallable(task, default(T));
+            return new Callable<T>(CreateCall(task, result));
         }
 
         /// <summary>
@@ -447,12 +372,12 @@ namespace Spring.Threading.Execution
         /// <seealso cref="CreateCall{T}(ICallable{T})"/>
         public static ICallable<T> CreateCallable<T>(Call<T> call)
         {
-            return new CallableAdapter<T>(call);
+            return new Callable<T>(call);
         }
 
         /// <summary> 
         /// Returns a <see cref="Call{T}"/> delegate that, when called, 
-        /// runs the given <paramref name="task"/> and returns the given 
+        /// runs the given <paramref name="runnable"/> and returns the given 
         /// <paramref name="result"/>.  
         /// </summary>
         /// <remarks>
@@ -460,17 +385,17 @@ namespace Spring.Threading.Execution
         /// <see cref="Call{T}"/> to an otherwise resultless action.
         /// </remarks>
         /// <typeparam name="T">Type of the result.</typeparam>
-        /// <param name="task">the task to run</param>
+        /// <param name="runnable">the task to run</param>
         /// <param name="result">the result to return</param>
         /// <returns>An <see cref="Call{T}"/> delegate.</returns>
         /// <exception cref="System.ArgumentNullException">
-        /// When the <paramref name="task"/> is <c>null</c>.
+        /// When the <paramref name="runnable"/> is <c>null</c>.
         /// </exception>
         /// <seealso cref="CreateCall{T}(Task,T)"/>
-        public static Call<T> CreateCall<T>(IRunnable task, T result)
+        public static Call<T> CreateCall<T>(IRunnable runnable, T result)
         {
-            if (task == null) throw new ArgumentNullException("task");
-            return delegate { task.Run(); return result; };
+            if (runnable == null) throw new ArgumentNullException("runnable");
+            return delegate { runnable.Run(); return result; };
         }
 
         /// <summary> 
@@ -520,86 +445,13 @@ namespace Spring.Threading.Execution
         public static IRunnable CreateRunnable(Task task)
         {
             if (task == null) throw new ArgumentNullException("task");
-            return new RunableTask(task);
+            return new Runnable(task);
         }
 
 
 		#endregion
 
 		#region Non-public classes supporting the public methods
-
-        internal sealed class RunnableAdapter : ICallable
-		{
-			internal Task task;
-            internal Object result;
-
-            internal RunnableAdapter(IRunnable task, Object result)
-			{
-				this.task = task.Run;
-				this.result = result;
-			}
-
-            internal RunnableAdapter(Task task, Object result)
-            {
-                this.task = task;
-                this.result = result;
-            }
-
-			public Object Call()
-			{
-				task();
-				return result;
-			}
-		}
-
-        internal sealed class RunableTask : IRunnable
-        {
-            internal Task task;
-
-            public RunableTask(Task task)
-            {
-                this.task = task;
-            }
-
-            #region IRunnable Members
-
-            public void Run()
-            {
-                task();
-            }
-
-            #endregion
-        }
-
-        internal sealed class CallableAdapter<T> : ICallable<T>
-        {
-            internal Call<T> call;
-
-            internal CallableAdapter(Call<T> call)
-            {
-                this.call = call;
-            }
-
-            internal CallableAdapter(Task task, T result)
-                : this(CreateCall(task, result))
-            {
-            }
-
-            internal CallableAdapter(IRunnable task, T result)
-                : this(CreateCall(task, result))
-            {
-            }
-
-            public T Call()
-            {
-                return call();
-            }
-
-            object ICallable.Call()
-            {
-                return Call();
-            }
-        }
 
         internal class DefaultThreadFactory : IThreadFactory
 		{
@@ -667,43 +519,77 @@ namespace Spring.Threading.Execution
 				return _executorService.AwaitTermination(duration);
 			}
 
-			public override IFuture Submit(IRunnable task)
+			public override IFuture<object> Submit(IRunnable task)
 			{
 				return _executorService.Submit(task);
 			}
 
-			public override IFuture Submit(ICallable task)
+			public override IFuture<T> Submit<T>(ICallable<T> task)
 			{
 				return _executorService.Submit(task);
 			}
 
-			public override IFuture Submit(IRunnable task, Object result)
+			public override IFuture<T> Submit<T>(IRunnable task, T result)
 			{
 				return _executorService.Submit(task, result);
 			}
 
-			public override IList InvokeAll(ICollection tasks)
-			{
-				return _executorService.InvokeAll(tasks);
-			}
+            public override IFuture<T> Submit<T>(Call<T> call)
+            {
+                return _executorService.Submit(call);
+            }
 
-			public override IList InvokeAll(ICollection tasks, TimeSpan duration)
-			{
-				return _executorService.InvokeAll(tasks, duration);
-			}
+            public override IFuture<T> Submit<T>(Task task, T result)
+            {
+                return _executorService.Submit(task, result);
+            }
 
-			public override Object InvokeAny(ICollection tasks)
-			{
-				return _executorService.InvokeAny(tasks);
-			}
+            public override IFuture<object> Submit(Task task)
+            {
+                return _executorService.Submit(task);
+            }
 
-			public override Object InvokeAny(ICollection tasks, TimeSpan duration)
-			{
-				return _executorService.InvokeAny(tasks, duration);
-			}
+            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks)
+            {
+                return _executorService.InvokeAll(tasks);
+            }
+
+            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+            {
+                return _executorService.InvokeAll(tasks, durationToWait);
+            }
+
+            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks)
+            {
+                return _executorService.InvokeAll(tasks);
+            }
+
+            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+            {
+                return _executorService.InvokeAll(tasks, durationToWait);
+            }
+
+            public override T InvokeAny<T>(IEnumerable<Call<T>> tasks)
+            {
+                return _executorService.InvokeAny(tasks);
+            }
+
+            public override T InvokeAny<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+            {
+                return _executorService.InvokeAny(tasks, durationToWait);
+            }
+
+            public override T InvokeAny<T>(IEnumerable<ICallable<T>> tasks)
+            {
+                return _executorService.InvokeAny(tasks);
+            }
+
+            public override T InvokeAny<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+            {
+                return _executorService.InvokeAny(tasks, durationToWait);
+            }
 		}
-
-
+        
         internal class FinalizableDelegatedExecutorService : DelegatedExecutorService
         {
             internal FinalizableDelegatedExecutorService(IExecutorService executor)
@@ -717,6 +603,7 @@ namespace Spring.Threading.Execution
             }
         }
 
+#if !PHASED
        /// <summary> A wrapper class that exposes only the <see cref="Spring.Threading.Execution.IExecutorService"/> and
 		/// <see cref="Spring.Threading.Execution.IScheduledExecutorService"/> methods of a <see cref="Spring.Threading.Execution.IScheduledExecutorService"/> implementation.
 		/// </summary>
@@ -729,26 +616,27 @@ namespace Spring.Threading.Execution
 				e = executor;
 			}
 
-			public virtual IScheduledFuture Schedule(IRunnable command, TimeSpan delay)
+			public virtual IScheduledFuture<object> Schedule(IRunnable command, TimeSpan delay)
 			{
 				return e.Schedule(command, delay);
 			}
 
-			public virtual IScheduledFuture Schedule(ICallable callable, TimeSpan delay)
+			public virtual IScheduledFuture<T> Schedule<T>(ICallable<T> callable, TimeSpan delay)
 			{
 				return e.Schedule(callable, delay);
 			}
 
-			public virtual IScheduledFuture ScheduleAtFixedRate(IRunnable command, TimeSpan initialDelay, TimeSpan period)
+			public virtual IScheduledFuture<object> ScheduleAtFixedRate(IRunnable command, TimeSpan initialDelay, TimeSpan period)
 			{
 				return e.ScheduleAtFixedRate(command, initialDelay, period);
 			}
 
-			public virtual IScheduledFuture ScheduleWithFixedDelay(IRunnable command, TimeSpan initialDelay, TimeSpan delay)
+			public virtual IScheduledFuture<object> ScheduleWithFixedDelay(IRunnable command, TimeSpan initialDelay, TimeSpan delay)
 			{
 				return e.ScheduleWithFixedDelay(command, initialDelay, delay);
 			}
 		}
+#endif
 		#endregion
 	}
 }
