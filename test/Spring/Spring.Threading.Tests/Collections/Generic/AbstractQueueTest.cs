@@ -24,12 +24,12 @@ namespace Spring.Collections.Generic
 
         [Test] public void NonGenericAddDelegatesToGenericAdd()
         {
-            _testee.Add(TestData<T>.one);
+            _testee.Add(TestData<T>.One);
             LastCall.Repeat.Once();
 
             _mockery.ReplayAll();
 
-            _testeeNonGeneric.Add(TestData<T>.one);
+            _testeeNonGeneric.Add(TestData<T>.One);
 
             _mockery.VerifyAll();
         }
@@ -43,22 +43,22 @@ namespace Spring.Collections.Generic
 
         [Test] public void NonGenericRemoveDelegatesToGenericRemove()
         {
-            Expect.Call(_testee.Remove()).Return(TestData<T>.two);
+            Expect.Call(_testee.Remove()).Return(TestData<T>.Two);
 
             _mockery.ReplayAll();
 
-            Assert.That(_testeeNonGeneric.Remove(), Is.EqualTo(TestData<T>.two));
+            Assert.That(_testeeNonGeneric.Remove(), Is.EqualTo(TestData<T>.Two));
 
             _mockery.VerifyAll();
         }
 
         [Test] public void NonGenericElementDelegatesToGenericElement()
         {
-            Expect.Call(_testee.Element()).Return(TestData<T>.three);
+            Expect.Call(_testee.Element()).Return(TestData<T>.Three);
 
             _mockery.ReplayAll();
 
-            Assert.That(_testeeNonGeneric.Element(), Is.EqualTo(TestData<T>.three));
+            Assert.That(_testeeNonGeneric.Element(), Is.EqualTo(TestData<T>.Three));
 
             _mockery.VerifyAll();
         }
@@ -66,11 +66,11 @@ namespace Spring.Collections.Generic
         [Test] public void NonGenericPeekDelegatesToGenericPeek()
         {
             T result;
-            Expect.Call(_testee.Peek(out result)).Return(true).OutRef(TestData<T>.four);
+            Expect.Call(_testee.Peek(out result)).Return(true).OutRef(TestData<T>.Four);
 
             _mockery.ReplayAll();
 
-            Assert.That(_testeeNonGeneric.Peek(), Is.EqualTo(TestData<T>.four));
+            Assert.That(_testeeNonGeneric.Peek(), Is.EqualTo(TestData<T>.Four));
 
             _mockery.VerifyAll();
         }
@@ -90,11 +90,11 @@ namespace Spring.Collections.Generic
         [Test] public void NonGenericPollDelegatesToGenericPoll()
         {
             T result;
-            Expect.Call(_testee.Poll(out result)).Return(true).OutRef(TestData<T>.five);
+            Expect.Call(_testee.Poll(out result)).Return(true).OutRef(TestData<T>.Five);
 
             _mockery.ReplayAll();
 
-            Assert.That(_testeeNonGeneric.Poll(), Is.EqualTo(TestData<T>.five));
+            Assert.That(_testeeNonGeneric.Poll(), Is.EqualTo(TestData<T>.Five));
 
             _mockery.VerifyAll();
         }
@@ -113,13 +113,13 @@ namespace Spring.Collections.Generic
 
         [Test] public void NonGenericOfferDelegatesToGenericOffer()
         {
-            Expect.Call(_testee.Offer(TestData<T>.one)).Return(true);
-            Expect.Call(_testee.Offer(TestData<T>.two)).Return(false);
+            Expect.Call(_testee.Offer(TestData<T>.One)).Return(true);
+            Expect.Call(_testee.Offer(TestData<T>.Two)).Return(false);
 
             _mockery.ReplayAll();
 
-            Assert.That(_testeeNonGeneric.Offer(TestData<T>.one), Is.True);
-            Assert.That(_testeeNonGeneric.Offer(TestData<T>.two), Is.False);
+            Assert.That(_testeeNonGeneric.Offer(TestData<T>.One), Is.True);
+            Assert.That(_testeeNonGeneric.Offer(TestData<T>.Two), Is.False);
 
             _mockery.VerifyAll();
         }
@@ -133,31 +133,31 @@ namespace Spring.Collections.Generic
 
         [Test] public void AddDelegatesToOffer()
         {
-            Expect.Call(_testee.Offer(TestData<T>.one)).Return(true);
+            Expect.Call(_testee.Offer(TestData<T>.One)).Return(true);
             _mockery.ReplayAll();
-            _testee.Add(TestData<T>.one);
+            _testee.Add(TestData<T>.One);
             _mockery.VerifyAll();
         }
 
         [Test] public void AddChokesWhenOfferReturnFalse()
         {
-            SetupResult.For(_testee.Offer(TestData<T>.one)).IgnoreArguments().Return(false);
+            SetupResult.For(_testee.Offer(TestData<T>.One)).IgnoreArguments().Return(false);
             _mockery.ReplayAll();
             Assert.Throws<InvalidOperationException>(
                 delegate
                     {
-                        _testee.Add(TestData<T>.one);
+                        _testee.Add(TestData<T>.One);
                     });
         }
 
         [Test] public void RemoveDelegatesToPoll()
         {
             T result;
-            Expect.Call(_testee.Poll(out result)).Return(true).OutRef(TestData<T>.two);
+            Expect.Call(_testee.Poll(out result)).Return(true).OutRef(TestData<T>.Two);
 
             _mockery.ReplayAll();
 
-            Assert.That(_testee.Remove(), Is.EqualTo(TestData<T>.two));
+            Assert.That(_testee.Remove(), Is.EqualTo(TestData<T>.Two));
 
             _mockery.VerifyAll();
         }
@@ -177,11 +177,11 @@ namespace Spring.Collections.Generic
         [Test] public void ElementDelegatesToPeek()
         {
             T result;
-            Expect.Call(_testee.Peek(out result)).Return(true).OutRef(TestData<T>.two);
+            Expect.Call(_testee.Peek(out result)).Return(true).OutRef(TestData<T>.Two);
 
             _mockery.ReplayAll();
 
-            Assert.That(_testee.Element(), Is.EqualTo(TestData<T>.two));
+            Assert.That(_testee.Element(), Is.EqualTo(TestData<T>.Two));
 
             _mockery.VerifyAll();
         }

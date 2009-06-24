@@ -82,7 +82,7 @@ namespace Spring.Collections.Generic
             }
             if (collection == this)
             {
-                throw new ArgumentException("Cannot add to itself.");
+                throw new ArgumentException("Cannot add to itself.", "collection");
             }
             bool modified = false;
             foreach (T element in collection)
