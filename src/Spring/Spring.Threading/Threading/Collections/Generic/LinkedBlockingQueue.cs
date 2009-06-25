@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using Spring.Collections;
 using Spring.Collections.Generic;
+using Spring.Utility;
 
 namespace Spring.Threading.Collections.Generic {
     /// <summary> 
@@ -160,22 +161,27 @@ namespace Spring.Threading.Collections.Generic {
         /// </summary>
         /// <param name="info">The <see cref="System.Runtime.Serialization.SerializationInfo"/> to populate with data. </param>
         /// <param name="context">The destination (see <see cref="System.Runtime.Serialization.StreamingContext"/>) for this serialization. </param>
-        protected LinkedBlockingQueue(SerializationInfo info, StreamingContext context) {
+        protected LinkedBlockingQueue(SerializationInfo info, StreamingContext context)
+        {
             MemberInfo[] mi = FormatterServices.GetSerializableMembers(GetType(), context);
-            for(int i = 0; i < mi.Length; i++) {
-                FieldInfo fi = (FieldInfo)mi[i];
+            for (int i = 0; i < mi.Length; i++)
+            {
+                FieldInfo fi = (FieldInfo) mi[i];
                 fi.SetValue(this, info.GetValue(fi.Name, fi.FieldType));
-            }
-            int count;
-            lock(this) {
-                count = _activeCount;
-                _activeCount = 0;
             }
             _last = _head = new Node(default(T));
 
-            while(count-->0) {
-                T item = (T)info.GetValue("Spring.Threading.Collections.LinkedBlockingQueuedata1", typeof(T));
-                Add(item);
+            T[] items = (T[]) info.GetValue("Data", typeof (T[]));
+            lock (_putLock)
+            {
+                lock (_takeLock)
+                {
+                    foreach (var item in items) Insert(item);
+                }
+            }
+            lock (this)
+            {
+                _activeCount = items.Length;
             }
         }
 
@@ -191,15 +197,8 @@ namespace Spring.Threading.Collections.Generic {
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context) {
             lock(_putLock) {
                 lock(_takeLock) {
-
-                    MemberInfo[] mi = FormatterServices.GetSerializableMembers(GetType(), context);
-                    for(int i = 0; i < mi.Length; i++) {
-                        info.AddValue(mi[i].Name, ((FieldInfo)mi[i]).GetValue(this));
-                    }
-
-                    for(Node p = _head.next; p != null; p = p.next) {
-                        info.AddValue("Spring.Threading.Collections.LinkedBlockingQueuedata1", p.item);
-                    }
+                    SerializationUtilities.DefaultWriteObject(info, context, this);
+                    info.AddValue("Data", ToArray());
                 }
             }
         }
@@ -731,6 +730,7 @@ namespace Spring.Threading.Collections.Generic {
         /// elements.
         /// </exception>
         public virtual T[] ToArray(T[] targetArray) {
+            if (targetArray == null) throw new ArgumentNullException("targetArray");
             lock(_putLock) {
                 lock(_takeLock) {
                     int size = _activeCount;
@@ -752,10 +752,7 @@ namespace Spring.Threading.Collections.Generic {
         public override string ToString() {
             lock(_putLock) {
                 lock(_takeLock) {
-                    // TODO: ask Mark whether this method should take IEnumarable
-                    //return StringUtils.CollectionToCommaDelimitedString(this);
-
-                    return null;
+                    return base.ToString();
                 }
             }
         }

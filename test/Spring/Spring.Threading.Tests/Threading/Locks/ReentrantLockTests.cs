@@ -839,7 +839,7 @@ namespace Spring.Threading.Locks
             ThreadManager.JoinAndVerify(SHORT_DELAY, t1, t2);
         }
 
-        [Test] public void SerializationDeserializesAsUunlocked([Values(true, false)] bool isFair)
+        [Test] public void SerializationDeserializesAsUnlocked([Values(true, false)] bool isFair)
         {
             ReentrantLock l = new ReentrantLock(isFair);
             l.Lock();

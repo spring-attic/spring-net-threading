@@ -174,6 +174,7 @@ namespace Spring
                                if (_threadException == null)
                                {
                                    while (e is TargetInvocationException) e = e.InnerException;
+                                   e.Source = Thread.CurrentThread.Name;
                                    _threadException = e;
                                }
                            }
