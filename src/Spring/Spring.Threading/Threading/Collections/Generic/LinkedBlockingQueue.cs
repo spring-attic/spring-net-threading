@@ -1,9 +1,28 @@
+#region License
+
+/*
+ * Copyright (C) 2002-2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading;
-using Spring.Collections;
 using Spring.Collections.Generic;
 using Spring.Utility;
 
@@ -39,11 +58,6 @@ namespace Spring.Threading.Collections.Generic {
 
         #region inner classes
 
-        [Serializable]
-        private class SerializableLock {
-        }
-
-        [Serializable]
         internal class Node {
             internal T item;
 
@@ -61,12 +75,14 @@ namespace Spring.Threading.Collections.Generic {
         /// <summary>
         /// Change version to support enumerator fast fail when queue changes.
         /// </summary>
+        [NonSerialized]
         private volatile int _version;
 
         /// <summary>The capacity bound, or <see cref="int.MaxValue"/> if none </summary>
         private readonly int _capacity;
 
         /// <summary>Current number of elements </summary>
+        [NonSerialized]
         private volatile int _activeCount;
 
         /// <summary>Head of linked list </summary>
@@ -78,10 +94,12 @@ namespace Spring.Threading.Collections.Generic {
         private Node _last;
 
         /// <summary>Lock held by take, poll, etc </summary>
-        private readonly SerializableLock _takeLock = new SerializableLock();
+        [NonSerialized]
+        private readonly object _takeLock = new object();
 
         /// <summary>Lock held by put, offer, etc </summary>
-        private readonly SerializableLock _putLock = new SerializableLock();
+        [NonSerialized]
+        private readonly object _putLock = new object();
 
         /// <summary> 
         /// Signals a waiting take. Called only from put/offer (which do not
@@ -151,9 +169,13 @@ namespace Spring.Threading.Collections.Generic {
             if(collection == null) {
                 throw new ArgumentNullException("collection", "must not be null.");
             }
-            foreach(T currentobject in collection) {
-                Add(currentobject);
+            int count = 0;
+            foreach (var item in collection)
+            {
+                Insert(item);
+                count++; // we must count ourselves, as collection can change.
             }
+            _activeCount = count;
         }
 
         /// <summary> Reconstitute this queue instance from a stream (that is,
@@ -172,17 +194,8 @@ namespace Spring.Threading.Collections.Generic {
             _last = _head = new Node(default(T));
 
             T[] items = (T[]) info.GetValue("Data", typeof (T[]));
-            lock (_putLock)
-            {
-                lock (_takeLock)
-                {
-                    foreach (var item in items) Insert(item);
-                }
-            }
-            lock (this)
-            {
-                _activeCount = items.Length;
-            }
+            foreach (var item in items) Insert(item);
+            _activeCount = items.Length;
         }
 
         #endregion

@@ -25,7 +25,8 @@ namespace Spring.Threading.Future
 	/// <summary>
 	/// Enumeration representing a task execution status.
 	/// </summary>
-	internal enum TaskState
+	[Flags]
+	internal enum TaskState : short 
 	{
 		/// <summary>State value representing that task is ready to run </summary>
         Ready = 0,
@@ -74,7 +75,7 @@ namespace Spring.Threading.Future
     /// <author>Kenneth Xu</author>
     public class FutureTask<T> : IRunnableFuture<T>
     {
-	    private ICallable<T> _callable;
+	    private readonly ICallable<T> _callable;
 	    private T _result;
 	    private Exception _exception;
 	    private TaskState _taskState;
@@ -96,6 +97,7 @@ namespace Spring.Threading.Future
         /// </exception>
         public FutureTask(ICallable<T> callable)
         {
+            if(callable==null) throw new ArgumentNullException("callable");
 	        _callable = callable;
         }
 
@@ -283,19 +285,12 @@ namespace Spring.Threading.Future
 	    {
 	        lock (this)
 	        {
-	            if (RanOrCancelled())
-	                return false;
+	            if (RanOrCancelled()) return false;
 	            _taskState = TaskState.Cancelled;
 	            if (mayInterruptIfRunning)
 	            {
 	                Thread r = _runningThread;
-	                if (r != null)
-	                {
-	                    try
-	                    {
-	                        r.Interrupt();
-	                    } catch ( ThreadInterruptedException ){}
-	                }
+	                if (r != null) r.Interrupt();
 	            }
 	            _runningThread = null;
 	            Monitor.PulseAll(this);
@@ -311,8 +306,7 @@ namespace Spring.Threading.Future
 	    {
 	        lock (this)
 	        {
-	            if (_taskState != TaskState.Ready)
-	                return;
+	            if (_taskState != TaskState.Ready) return;
 	            _taskState = TaskState.Running;
 	            _runningThread = Thread.CurrentThread;
 	        }
@@ -391,8 +385,7 @@ namespace Spring.Threading.Future
 	    {
 	        lock (this)
 	        {
-	            if (_taskState != TaskState.Ready)
-	                return false;
+	            if (_taskState != TaskState.Ready) return false;
 	            _taskState = TaskState.Running;
 	            _runningThread = Thread.CurrentThread;
 	        }
@@ -429,8 +422,7 @@ namespace Spring.Threading.Future
 	    {
 	        lock (this)
 	        {
-	            if (RanOrCancelled())
-	                return;
+	            if (RanOrCancelled()) return;
 	            _taskState = TaskState.Complete;
 	            _result = value;
 	            _runningThread = null;
@@ -451,8 +443,7 @@ namespace Spring.Threading.Future
 	    {
 	        lock (this)
 	        {
-	            if (RanOrCancelled())
-	                return;
+	            if (RanOrCancelled()) return;
 	            _taskState = TaskState.Complete;
 	            _exception = value;
 	            _runningThread = null;
@@ -502,24 +493,24 @@ namespace Spring.Threading.Future
 	    /// </summary>
 	    private void WaitFor(TimeSpan durationToWait)
 	    {
-	        if (durationToWait.TotalMilliseconds <= 0 )
-	            throw new ArgumentException("Duration must be positive value.");
-	        if (IsDone)
+	        if (durationToWait.Ticks <= 0 )
+	            throw new ArgumentOutOfRangeException(
+                    "durationToWait", durationToWait, "Duration must be positive value.");
+	        if (IsDone) return;
+	        DateTime deadline = DateTime.UtcNow.Add(durationToWait);
+	        while (durationToWait.Ticks>0)
 	        {
-	            return;
-	        }
-	        else
-	        {
-	            Monitor.Wait(this, durationToWait);
-	            if (IsDone)
-	                return;
-	        }
+                Monitor.Wait(this, durationToWait);
+                if (IsDone) return;
+                durationToWait = deadline.Subtract(DateTime.UtcNow);
+            }
 	        throw new TimeoutException();
 	    }
 
+	    private const TaskState CompleteOrCancelled = TaskState.Complete | TaskState.Cancelled;
 	    private bool RanOrCancelled()
 	    {
-	        return _taskState == TaskState.Complete || _taskState == TaskState.Cancelled;
+            return (_taskState & CompleteOrCancelled) != 0;
 	    }
     }
 }

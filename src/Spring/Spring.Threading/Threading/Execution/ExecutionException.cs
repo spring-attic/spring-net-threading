@@ -36,7 +36,7 @@ namespace Spring.Threading.Execution
 		/// Constructs a <see cref="Spring.Threading.Execution.ExecutionException"/> with the specified cause.
 		/// </summary>
 		/// <param name="rootCause">The root exception that is being wrapped.</param>
-		public ExecutionException(Exception rootCause) : base(String.Empty, rootCause)
+		public ExecutionException(Exception rootCause) : base(rootCause.Message, rootCause)
 		{
 		}
 		/// <summary>

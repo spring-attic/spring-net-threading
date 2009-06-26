@@ -5,25 +5,26 @@ using Spring.Threading.Execution;
 
 namespace Spring.Threading.Future
 {
-    [TestFixture]
-    public class FutureTaskTest : BaseThreadingTestCase
+    /// <summary>
+    /// Test cases for <see cref="FutureTask{T}"/>
+    /// </summary>
+    /// <author>Doug Lea</author>
+    /// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu</author>
+    [TestFixture(typeof(string))]
+    [TestFixture(typeof(int))]
+    public class FutureTaskTest<T> : BaseThreadingTestCase
     {
-        private class NoOpCallable : ICallable<object>
-        {
-            #region ICallable Members
-
-            public object Call()
-            {
-                return true;
-            }
-
-            #endregion
-        }
+        private readonly Call<T> _noOpCall = () => default(T);
 
 
-        internal class PublicFutureTask<T> : FutureTask<T>
+        internal class PublicFutureTask : FutureTask<T>
         {
             public PublicFutureTask(ICallable<T> r) : base(r)
+            {
+            }
+
+            public PublicFutureTask(Call<T> call) : base(call)
             {
             }
 
@@ -32,13 +33,11 @@ namespace Spring.Threading.Future
                 return base.RunAndReset();
             }
 
-            [Test]
             public void SetupResult(T result)
             {
                 base.SetResult(result);
             }
 
-            [Test]
             public void SetupException(Exception t)
             {
                 base.SetException(t);
@@ -47,27 +46,44 @@ namespace Spring.Threading.Future
 
 
         [Test]
-        [ExpectedException(typeof (ArgumentNullException))]
-        public void Constructor()
+        public void ConstructorChokesOnNullArgumentCall()
         {
-            new FutureTask<bool>((Call<bool>)null);
-            Assert.Fail("Should throw an exception.");
+            var e = Assert.Throws<ArgumentNullException>(()=>
+                new FutureTask<T>((Call<T>)null));
+            Assert.That(e.ParamName, Is.EqualTo("call"));
         }
 
 
         [Test]
-        [ExpectedException(typeof (ArgumentNullException))]
-        public void Constructor2()
+        public void ConstructorChokesOnNullArgumentTask()
         {
-            new FutureTask<bool>((Task)null, true);
-            Assert.Fail("Should throw an exception.");
+            var e = Assert.Throws<ArgumentNullException>(() => 
+                new FutureTask<T>((Task)null, TestData<T>.One));
+            Assert.That(e.ParamName, Is.EqualTo("task"));
+        }
+
+        [Test]
+        public void ConstructorChokesOnNullArgumentCallable()
+        {
+            var e = Assert.Throws<ArgumentNullException>(()=>
+                new FutureTask<T>((ICallable<T>)null));
+            Assert.That(e.ParamName, Is.EqualTo("callable"));
         }
 
 
         [Test]
-        public void IsDone()
+        public void ConstructorChokesOnNullArgumentRunnable()
         {
-            FutureTask<object> task = new FutureTask<object>(new NoOpCallable());
+            var e = Assert.Throws<ArgumentNullException>(() => 
+                new FutureTask<T>((IRunnable)null, TestData<T>.One));
+            Assert.That(e.ParamName, Is.EqualTo("runnable"));
+        }
+
+
+        [Test]
+        public void IsDoneIsTrueWhenTaskCompletes()
+        {
+            FutureTask<T> task = new FutureTask<T>(_noOpCall);
             task.Run();
             Assert.IsTrue(task.IsDone);
             Assert.IsFalse(task.IsCancelled);
@@ -75,18 +91,18 @@ namespace Spring.Threading.Future
 
 
         [Test]
-        public void RunAndReset()
+        public void RunAndResetSucceedsOnNonCancelledTask()
         {
-            PublicFutureTask<object> task = new PublicFutureTask<object>(new NoOpCallable());
+            PublicFutureTask task = new PublicFutureTask(_noOpCall);
             Assert.IsTrue(task.CallRunAndReset());
             Assert.IsFalse(task.IsDone);
         }
 
 
         [Test]
-        public void ResetAfterCancel()
+        public void RunAndResetFaisAfterCancellation()
         {
-            PublicFutureTask<object> task = new PublicFutureTask<object>(new NoOpCallable());
+            PublicFutureTask task = new PublicFutureTask(_noOpCall);
             Assert.IsTrue(task.Cancel(false));
             Assert.IsFalse(task.CallRunAndReset());
             Assert.IsTrue(task.IsDone);
@@ -95,331 +111,182 @@ namespace Spring.Threading.Future
 
 
         [Test]
-        public void Set()
+        public void SetResultWillBeReturned()
         {
-            PublicFutureTask<object> task = new PublicFutureTask<object>(new NoOpCallable());
-            task.SetupResult(one);
-            Assert.AreEqual(task.GetResult(), one);
+            PublicFutureTask task = new PublicFutureTask(_noOpCall);
+            T result = TestData<T>.One;
+            task.SetupResult(result);
+            Assert.That(task.GetResult(), Is.EqualTo(result));
         }
 
 
         [Test]
-        public void SetException()
+        public void SetExceptionCauseGetResultToChoke()
         {
             Exception nse = new ArgumentOutOfRangeException();
-            PublicFutureTask<object> task = new PublicFutureTask<object>(new NoOpCallable());
+            PublicFutureTask task = new PublicFutureTask(_noOpCall);
             task.SetupException(nse);
-            try
-            {
-                task.GetResult();
-                Assert.Fail("Should throw an exception.");
-            }
-            catch (ExecutionException ee)
-            {
-                Exception cause = ee.InnerException;
-                Assert.AreEqual(cause, nse);
-            }
+            var ee = Assert.Throws<ExecutionException>(()=>task.GetResult());
+            Exception cause = ee.InnerException;
+            Assert.That(cause, Is.SameAs(nse));
         }
 
-
         [Test]
-        public void CancelBeforeRun()
+        public void CancelSecceedsBeforeRun([Values(true, false)] bool mayInterruptIfRunning)
         {
-            FutureTask<object> task = new FutureTask<object>(new NoOpCallable());
-            Assert.IsTrue(task.Cancel(false));
+            FutureTask<T> task = new FutureTask<T>(_noOpCall);
+            Assert.IsTrue(task.Cancel(mayInterruptIfRunning));
             task.Run();
             Assert.IsTrue(task.IsDone);
             Assert.IsTrue(task.IsCancelled);
         }
 
-
         [Test]
-        public void CancelBeforeRun2()
+        public void CancelFailsOnCompletedTask([Values(true, false)] bool mayInterruptIfRunning)
         {
-            FutureTask<object> task = new FutureTask<object>(new NoOpCallable());
-            Assert.IsTrue(task.Cancel(true));
+            FutureTask<T> task = new FutureTask<T>(_noOpCall);
             task.Run();
-            Assert.IsTrue(task.IsDone);
-            Assert.IsTrue(task.IsCancelled);
-        }
-
-
-        [Test]
-        public void CancelAfterRun()
-        {
-            FutureTask<object> task = new FutureTask<object>(new NoOpCallable());
-            task.Run();
-            Assert.IsFalse(task.Cancel(false));
+            Assert.IsFalse(task.Cancel(mayInterruptIfRunning));
             Assert.IsTrue(task.IsDone);
             Assert.IsFalse(task.IsCancelled);
         }
 
 
         [Test]
-        public void CancelInterrupt()
+        public void CancelInterruptsRunningTask()
         {
-            FutureTask<bool> task = new FutureTask<bool>(delegate
-            {
-                try
-                {
-                    Thread.Sleep(MEDIUM_DELAY);
-                    Assert.Fail("Should throw an exception");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-                return true;
-            });
-            Thread t = new Thread(task.Run);
-            t.Start();
+            var t = ThreadManager.NewVerifiableTask(
+                delegate
+                    {
+                        Assert.Throws<ThreadInterruptedException>(() => Thread.Sleep(MEDIUM_DELAY));
+                    });
+            FutureTask<T> task = new FutureTask<T>(t, default(T));
+            new Thread(task.Run).Start();
 
             Thread.Sleep(SHORT_DELAY);
             Assert.IsTrue(task.Cancel(true));
-            t.Join();
+            ThreadManager.JoinAndVerify();
             Assert.IsTrue(task.IsDone);
             Assert.IsTrue(task.IsCancelled);
         }
 
 
         [Test]
-        public void CancelNoInterrupt()
+        public void CancelDoesNotInterruptRunningTask()
         {
-            FutureTask<bool> task = new FutureTask<bool>(delegate
-            {
-                Thread.Sleep(SMALL_DELAY);
-                return true;
-            });
-            Thread t = new Thread(new ThreadStart(task.Run));
-            t.Start();
+            var t = ThreadManager.NewVerifiableTask(() => Thread.Sleep(MEDIUM_DELAY));
+            FutureTask<T> task = new FutureTask<T>(t, default(T));
+            new Thread(task.Run).Start();
 
             Thread.Sleep(SHORT_DELAY);
             Assert.IsTrue(task.Cancel());
-            t.Join();
+            ThreadManager.JoinAndVerify();
             Assert.IsTrue(task.IsDone);
             Assert.IsTrue(task.IsCancelled);
         }
 
 
         [Test]
-        public void Get1()
+        public void GetResultRetrievesValueSetFromAnotherThread()
         {
-            FutureTask<bool> ft = new FutureTask<bool>(delegate
-            {
-                Thread.Sleep(SMALL_DELAY);
-                return true;
-            });
-            Thread t = new Thread(delegate()
-            {
-                ft.GetResult();
-            });
+            T result = TestData<T>.One;
+            FutureTask<T> ft = new FutureTask<T>(()=>result);
             Assert.IsFalse(ft.IsDone);
             Assert.IsFalse(ft.IsCancelled);
-            t.Start();
+            ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                    {
+                        Assert.That(ft.GetResult(), Is.EqualTo(result));
+                    });
             Thread.Sleep(SHORT_DELAY);
             ft.Run();
-            t.Join();
-            Assert.IsTrue((bool) ft.GetResult());
+            ThreadManager.JoinAndVerify();
             Assert.IsTrue(ft.IsDone);
             Assert.IsFalse(ft.IsCancelled);
         }
 
 
         [Test]
-        public void TimedGet1()
+        public void TimedGetResultRetrievesValueSetFromAnotherThread()
         {
-            FutureTask<bool> ft = new FutureTask<bool>(delegate
-            {
-                Thread.Sleep(SMALL_DELAY);
-                return true;
-            });
-            Thread t = new Thread(delegate()
-            {
-                try
-                {
-                    ft.GetResult(SHORT_DELAY);
-                }
-                catch (TimeoutException)
-                {
-                }
-            });
+            T result = TestData<T>.One;
+            FutureTask<T> ft = new FutureTask<T>(()=>result);
             Assert.IsFalse(ft.IsDone);
             Assert.IsFalse(ft.IsCancelled);
-            t.Start();
+            ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                    {
+                        Assert.That(ft.GetResult(MEDIUM_DELAY), Is.EqualTo(result));
+                    });
             ft.Run();
-            t.Join();
+            ThreadManager.JoinAndVerify();
             Assert.IsTrue(ft.IsDone);
             Assert.IsFalse(ft.IsCancelled);
         }
 
-
         [Test]
-        public void TimedGet_Cancellation()
+        public void GetChokesWhenTaskIsCancelled([Values(true, false)] bool isTimed)
         {
-            FutureTask<bool> ft = new FutureTask<bool>(delegate
-            {
-                try
-                {
-                    Thread.Sleep(SMALL_DELAY);
-                    Assert.Fail("Should throw an exception");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-                return true;
-            });
-            Thread t1 = new Thread(delegate()
-            {
-                try
-                {
-                    ft.GetResult(MEDIUM_DELAY);
-                    Assert.Fail("Should throw an exception");
-                }
-                catch (CancellationException)
-                {
-                }
-            });
-            Thread t2 = new Thread(ft.Run);
-            t1.Start();
-            t2.Start();
+            FutureTask<T> ft = new FutureTask<T>(
+                () => Thread.Sleep(MEDIUM_DELAY), default(T));
+
+            ThreadStart getter = () => Assert.Throws<CancellationException>(
+                delegate
+                    {
+                        if (isTimed) ft.GetResult(MEDIUM_DELAY);
+                        else ft.GetResult();
+                    });
+
+            ThreadManager.StartAndAssertRegistered("T", getter, ft.Run);
             Thread.Sleep(SHORT_DELAY);
             ft.Cancel(true);
-            t1.Join();
-            t2.Join();
+            ThreadManager.JoinAndVerify();
         }
 
 
         [Test]
-        public void Get_Cancellation()
+        public void GetChokesWhenTaskChokes([Values(true, false)] bool isTimed)
         {
-            // 1. Sleep for SHORT, then return true
-            FutureTask<bool> ft = new FutureTask<bool>(delegate
-            {
-                Thread.Sleep(SMALL_DELAY);
-                return true;
-            });
-            // 2. call GetResult, should throw exception
-            Thread t1 = new Thread(delegate()
-            {
-                try
-                {
-                    ft.GetResult();
-                    Assert.Fail("Should throw an exception.");
-                }
-                catch (CancellationException)
-                {
-                }
-            });
-            Thread t2 = new Thread(new ThreadStart(ft.Run));
-            t1.Start();
-            t2.Start();
-            Thread.Sleep(SHORT_DELAY);
-            ft.Cancel(true);
-            t1.Join();
-            t2.Join();
+            FutureTask<T> ft = new FutureTask<T>(
+                delegate
+                    {
+                        int z = 0;
+                        return TestData<T>.MakeData(5/z);
+                    });
+            ft.Run();
+            Assert.Throws<ExecutionException>(
+                delegate
+                    {
+                        if (isTimed) ft.GetResult(MEDIUM_DELAY);
+                        else ft.GetResult();
+                    });
         }
 
-
         [Test]
-        public void Get_ExecutionException()
+        public void GetChokesWhenInterrupted([Values(true, false)] bool isTimed)
         {
-            FutureTask<bool> ft = new FutureTask<bool>(delegate
-            {
-                int zero = 0;
-                int i = 5 / zero;
-                return true;
-            });
-            try
-            {
-                ft.Run();
-                ft.GetResult();
-                Assert.Fail("Should throw an exception");
-            }
-            catch (ExecutionException)
-            {
-            }
-        }
-
-
-        [Test]
-        public void TimedGet_ExecutionException2()
-        {
-            FutureTask<bool> ft = new FutureTask<bool>(delegate
-            {
-                int zero = 0;
-                int i = 5 / zero;
-                return true;
-            });
-            try
-            {
-                ft.Run();
-                ft.GetResult(SHORT_DELAY);
-                Assert.Fail("Should throw an exception.");
-            }
-            catch (ExecutionException)
-            {
-            }
-            catch (TimeoutException)
-            {
-            }
-        }
-
-
-        [Test]
-        public void Get_InterruptedException()
-        {
-            FutureTask<object> ft = new FutureTask<object>(new NoOpCallable());
-            Thread t = new Thread(delegate()
-            {
-                try
-                {
-                    ft.GetResult();
-                    Assert.Fail("Should throw an exception.");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            });
-            t.Start();
+            FutureTask<T> ft = new FutureTask<T>(_noOpCall);
+            var t = ThreadManager.StartAndAssertRegistered(
+                "T1",
+                () => Assert.Throws<ThreadInterruptedException>(
+                delegate
+                    {
+                        if (isTimed) ft.GetResult(MEDIUM_DELAY);
+                        else ft.GetResult();
+                    }));
             Thread.Sleep(SHORT_DELAY);
             t.Interrupt();
-            t.Join();
+            ThreadManager.JoinAndVerify();
         }
 
-
         [Test]
-        public void TimedGet_InterruptedException2()
+        public void GetChokesWhenTimeout()
         {
-            FutureTask<object> ft = new FutureTask<object>(new NoOpCallable());
-            Thread t = new Thread(delegate()
-            {
-                try
-                {
-                    ft.GetResult(MEDIUM_DELAY);
-                    Assert.Fail("Should throw an exception.");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            });
-            t.Start();
-            Thread.Sleep(SHORT_DELAY);
-            t.Interrupt();
-            t.Join();
-        }
+            FutureTask<T> ft = new FutureTask<T>(_noOpCall);
 
-
-        [Test]
-        public void Get_TimeoutException()
-        {
-            try
-            {
-                FutureTask<object> ft = new FutureTask<object>(new NoOpCallable());
-                ft.GetResult(new TimeSpan(0, 0, 0, 0, 1));
-                Assert.Fail("Should throw an exception.");
-            }
-            catch (TimeoutException)
-            {
-            }
+            Assert.Throws<TimeoutException>(() => ft.GetResult(TimeSpan.FromMilliseconds(1)));
         }
     }
 }

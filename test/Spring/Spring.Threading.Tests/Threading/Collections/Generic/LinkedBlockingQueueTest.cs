@@ -10,6 +10,11 @@ using Spring.Threading.Execution;
 
 namespace Spring.Threading.Collections.Generic
 {
+    /// <summary>
+    /// Test cases for <see cref="LinkedBlockingQueue{T}"/>
+    /// </summary>
+    /// <author>Doug Lea</author>
+    /// <author>Kenneth Xu</author>
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
     public class LinkedBlockingQueueTest<T>
@@ -367,7 +372,7 @@ namespace Spring.Threading.Collections.Generic
 						Assert.AreEqual(_samples[i], value);
 					}
 					Assert.Throws<ThreadInterruptedException>(()=>
-                        q.Poll(TestData.ShortDelay, out value));
+                        q.Poll(TestData.MediumDelay, out value));
                 });
            Thread.Sleep(TestData.ShortDelay);
            t.Interrupt();
