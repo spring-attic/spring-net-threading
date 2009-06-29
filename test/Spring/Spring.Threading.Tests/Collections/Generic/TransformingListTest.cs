@@ -22,13 +22,9 @@ namespace Spring.Collections.Generic
         private IList<string> _nonReversable;
         private IList<string> _reversable;
 
-        private MockRepository _mocks;
-
         [SetUp]
         public void SetUp()
         {
-            _mocks = new MockRepository();
-
             _source = new List<int>(CollectionTestUtils.MakeTestList<int>(_size));
 
             _nonReversable = new TransformingList<int, string>(_source, _intToString);
@@ -163,9 +159,8 @@ namespace Spring.Collections.Generic
         {
             Assert.IsFalse(_reversable.IsReadOnly);
 
-            IList<int> readOnlyList = _mocks.Stub<IList<int>>();
-            SetupResult.For(readOnlyList.IsReadOnly).Return(true);
-            _mocks.ReplayAll();
+            IList<int> readOnlyList = MockRepository.GenerateStub<IList<int>>();
+            readOnlyList.Stub(l => l.IsReadOnly).Return(true);
 
             Assert.IsTrue(new TransformingList<int, string>(readOnlyList, _intToString).IsReadOnly);
         }
@@ -183,15 +178,15 @@ namespace Spring.Collections.Generic
         {
             NonGenericTestFixture fixture = SetupNonGeneric();
 
-            Expect.Call(((IList)fixture.OmniUnsync).IsSynchronized).Return(false);
-            Expect.Call(((IList)fixture.OmniSync).IsSynchronized).Return(true);
-            _mocks.ReplayAll();
+            fixture.OmniUnsync.Expect(l => l.IsSynchronized).Return(false);
+            fixture.OmniSync.Expect(l => l.IsSynchronized).Return(true);
 
             Assert.IsFalse((fixture.FromGeneric).IsSynchronized);
             Assert.IsTrue((fixture.FromOmniSync).IsSynchronized);
             Assert.IsFalse((fixture.FromOmniUnsync).IsSynchronized);
 
-            _mocks.VerifyAll();
+            fixture.OmniUnsync.VerifyAllExpectations();
+            fixture.OmniSync.VerifyAllExpectations();
         }
 
         [Test]
@@ -200,22 +195,21 @@ namespace Spring.Collections.Generic
             NonGenericTestFixture fixture = SetupNonGeneric();
             object syncRoot = new object();
 
-            Expect.Call(((IList)fixture.OmniUnsync).SyncRoot).Return(null);
-            Expect.Call(((IList)fixture.OmniSync).SyncRoot).Return(syncRoot);
-            _mocks.ReplayAll();
+            fixture.OmniUnsync.Expect(unsync => unsync.SyncRoot).Return(null);
+            fixture.OmniSync.Expect(sync => sync.SyncRoot).Return(syncRoot);
 
             Assert.IsNull((fixture.FromGeneric).SyncRoot);
             Assert.AreEqual(syncRoot, (fixture.FromOmniSync).SyncRoot);
             Assert.IsNull((fixture.FromOmniUnsync).SyncRoot);
 
-            _mocks.VerifyAll();
+            fixture.OmniUnsync.VerifyAllExpectations();
+            fixture.OmniSync.VerifyAllExpectations();
         }
 
         [Test]
         public void TryReverseInAbstractClass()
         {
-            IList<string> c = _mocks.PartialMock<AbstractTransformingList<int, string>>(_source);
-            _mocks.ReplayAll();
+            IList<string> c = Mockery.GeneratePartialMock<AbstractTransformingList<int, string>>(_source);
             TestHelper.AssertException<NotSupportedException>(
                 delegate { c.Add(_size.ToString()); }
             );
@@ -224,30 +218,29 @@ namespace Spring.Collections.Generic
         struct NonGenericTestFixture
         {
             public IList<int> Generic;
-            public IList<int> OmniSync;
-            public IList<int> OmniUnsync;
+            public IList OmniSync;
+            public IList OmniUnsync;
 
             public IList FromGeneric;
-
             public IList FromOmniSync;
-
             public IList FromOmniUnsync;
         }
+
 
         private NonGenericTestFixture SetupNonGeneric()
         {
             NonGenericTestFixture fixture = new NonGenericTestFixture();
-            fixture.Generic = _mocks.StrictMock<IList<int>>();
-            fixture.OmniSync = _mocks.StrictMultiMock<IList<int>>(typeof(IList));
-            fixture.OmniUnsync = _mocks.StrictMultiMock<IList<int>>(typeof(IList));
-
+            fixture.Generic = MockRepository.GenerateMock<IList<int>>();
             fixture.FromGeneric = new TransformingList<int, string>(fixture.Generic, _intToString);
 
-            fixture.FromOmniSync = new TransformingList<int, string>(fixture.OmniSync, _intToString);
+            fixture.OmniSync = Mockery.GenerateMultiMock<IList>(typeof(IList<int>));
+            fixture.FromOmniSync = new TransformingList<int, string>((IList<int>)fixture.OmniSync, _intToString);
 
-            fixture.FromOmniUnsync = new TransformingList<int, string>(fixture.OmniUnsync, _intToString);
+            fixture.OmniUnsync = Mockery.GenerateMultiMock<IList>(typeof(IList<int>));
+            fixture.FromOmniUnsync = new TransformingList<int, string>((IList<int>)fixture.OmniUnsync, _intToString);
 
             return fixture;
         }
+
     }
 }

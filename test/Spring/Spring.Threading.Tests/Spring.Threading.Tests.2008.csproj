@@ -126,6 +126,7 @@
     <Compile Include="Collections\TypedQueueTestFixture.cs" />
     <Compile Include="CoreExceptionTests.cs" />
     <Compile Include="ExceptionsTest.cs" />
+    <Compile Include="Mockery.cs" />
     <Compile Include="StandardsComplianceTest.cs" />
     <Compile Include="TestData.cs" />
     <Compile Include="TestHelper.cs" />
@@ -137,6 +138,8 @@
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />
+    <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueAsGenericTest.cs" />
+    <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
@@ -147,6 +150,7 @@
     <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicyTests.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Threading\Execution\ExecutorCompletionServiceTest.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTests.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutorTests.cs" />
     <Compile Include="Threading\ForkJoin\FJTaskRunnerTest.cs" />

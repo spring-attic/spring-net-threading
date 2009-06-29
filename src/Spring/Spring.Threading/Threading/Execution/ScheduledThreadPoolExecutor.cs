@@ -212,7 +212,7 @@ namespace Spring.Threading.Execution
 		/// </returns>
 		/// <exception cref="ICancellable.IsDone">if the task cannot be accepted for execution.</exception>
 		/// <exception cref="IFuture{T}">if the command is null</exception>
-		public override IList<IFuture<T>> InvokeAll<T>( IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait )
+		public override IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
 		{
 			throw new NotImplementedException();
 		}
@@ -335,7 +335,7 @@ namespace Spring.Threading.Execution
 		/// </returns>
 		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
 		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public override T InvokeAny<T>( IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait )
+		public override T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
 		{
 			throw new NotImplementedException();
 		}
