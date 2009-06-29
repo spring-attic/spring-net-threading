@@ -335,7 +335,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait);
+        IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks);
 
         /// <summary> 
         /// Executes the given <paramref name="tasks"/>, returning a 
@@ -379,7 +379,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait);
+        IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks);
 
         /// <summary> 
         /// Executes the given <paramref name="tasks"/>, returning the result
@@ -465,7 +465,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        T InvokeAny<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait);
+        T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks);
 
         /// <summary> 
         /// Executes the given <paramref name="tasks"/>, returning the result
@@ -495,6 +495,6 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        T InvokeAny<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait);
+        T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks);
     }
 }

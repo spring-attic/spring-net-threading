@@ -354,7 +354,7 @@ namespace Spring
         /// <param name="action">Delegate to execute and be exptected to register.</param>
         public Thread StartAndAssertRegistered(TimeSpan timeToWait, string name, ThreadStart action)
         {
-            Thread thread = NewVerifiableThread(action);
+            Thread thread = NewVerifiableThread(action, name);
             thread.Start();
             AssertRegistered(timeToWait, thread);
             return thread;

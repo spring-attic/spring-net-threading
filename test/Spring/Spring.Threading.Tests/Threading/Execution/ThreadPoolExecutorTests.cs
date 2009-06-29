@@ -1317,7 +1317,7 @@ namespace Spring.Threading.Execution
     [Test] public void testTimedInvokeAny1() {
         IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAny((IEnumerable<ICallable<bool>>)null, MEDIUM_DELAY);
+            e.InvokeAny(MEDIUM_DELAY, (IEnumerable<ICallable<bool>>)null);
         } catch (ArgumentNullException success) {
         } finally {
             JoinPool(e);
@@ -1330,7 +1330,7 @@ namespace Spring.Threading.Execution
     [Test] public void testTimedInvokeAny2() {
         IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAny(new List<ICallable<bool>>(), MEDIUM_DELAY);
+            e.InvokeAny(MEDIUM_DELAY, new List<ICallable<bool>>());
         } catch (ArgumentException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1348,7 +1348,7 @@ namespace Spring.Threading.Execution
             List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(null);
-            e.InvokeAny(l, MEDIUM_DELAY);
+            e.InvokeAny(MEDIUM_DELAY, l);
         } catch (ArgumentNullException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1365,7 +1365,7 @@ namespace Spring.Threading.Execution
         try {
             List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new NPETask<string>());
-            e.InvokeAny(l, MEDIUM_DELAY);
+            e.InvokeAny(MEDIUM_DELAY, l);
         } catch(ExecutionException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1383,7 +1383,7 @@ namespace Spring.Threading.Execution
             List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(new StringTask());
-            String result = (String)e.InvokeAny(l, MEDIUM_DELAY);
+            String result = (String)e.InvokeAny(MEDIUM_DELAY, l);
             Assert.AreEqual(TEST_STRING, result);
         } catch (ExecutionException success) {
         } catch(Exception ex) {
@@ -1399,7 +1399,7 @@ namespace Spring.Threading.Execution
     [Test] public void testTimedInvokeAll1() {
         IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAll((IEnumerable<ICallable<bool>>)null, MEDIUM_DELAY);
+            e.InvokeAll(MEDIUM_DELAY, (IEnumerable<ICallable<bool>>)null);
         } catch (ArgumentNullException success) {
         } finally {
             JoinPool(e);
@@ -1411,7 +1411,7 @@ namespace Spring.Threading.Execution
     [Test] public void testTimedInvokeAll2() {
         IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            IList<IFuture<string>> r = e.InvokeAll(new List<ICallable<string>>(), MEDIUM_DELAY);
+            IList<IFuture<string>> r = e.InvokeAll(MEDIUM_DELAY, new List<ICallable<string>>());
             Assert.IsTrue(r.Count== 0);
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1429,7 +1429,7 @@ namespace Spring.Threading.Execution
             List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(null);
-            e.InvokeAll(l, MEDIUM_DELAY);
+            e.InvokeAll(MEDIUM_DELAY, l);
         } catch (ArgumentNullException success) {
         } catch(Exception ex) {
             Assert.Fail("Unexpected Exception");
@@ -1446,7 +1446,7 @@ namespace Spring.Threading.Execution
         try {
             List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new NPETask<string>());
-            IList<IFuture<string>> result = e.InvokeAll(l, MEDIUM_DELAY);
+            IList<IFuture<string>> result = e.InvokeAll(MEDIUM_DELAY, l);
             Assert.AreEqual(1, result.Count);
             IEnumerator<IFuture<string>> it = result.GetEnumerator();
             while ( it.MoveNext())
@@ -1468,7 +1468,7 @@ namespace Spring.Threading.Execution
             List<ICallable<string>> l = new List<ICallable<string>>();
             l.Add(new StringTask());
             l.Add(new StringTask());
-            IList<IFuture<string>> result = e.InvokeAll(l, MEDIUM_DELAY);
+            IList<IFuture<string>> result = e.InvokeAll(MEDIUM_DELAY, l);
             Assert.AreEqual(2, result.Count);
             foreach (IFuture<string> next in result)
             {
@@ -1492,7 +1492,7 @@ namespace Spring.Threading.Execution
             l.Add(new StringTask());
             l.Add(Executors.CreateCallable(new MediumPossiblyInterruptedRunnable(), TEST_STRING));
             l.Add(new StringTask());
-            IList<IFuture<string>> result = e.InvokeAll(l, SHORT_DELAY);
+            IList<IFuture<string>> result = e.InvokeAll(SHORT_DELAY, l);
             Assert.AreEqual(3, result.Count);
             IEnumerator<IFuture<string>> it = result.GetEnumerator();
             IFuture<string> f1 = null;

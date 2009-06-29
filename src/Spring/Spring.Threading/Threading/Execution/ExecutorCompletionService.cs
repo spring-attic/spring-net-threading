@@ -111,22 +111,25 @@ namespace Spring.Threading.Execution
 
         private IRunnableFuture<T> NewTaskFor(ICallable<T> task)
         {
-            if (_aes == null)
-                return new FutureTask<T>(task);
-            else
-                return _aes.NewTaskFor(task);
+            return _aes == null ? new FutureTask<T>(task) : _aes.NewTaskFor(task);
         }
 
-        private IRunnableFuture<T> NewTaskFor(IRunnable task, T result)
-        {
-            if (_aes == null)
-                return new FutureTask<T>(task, result);
-            else
-                return _aes.NewTaskFor(task, result);
-        }
+	    private IRunnableFuture<T> NewTaskFor(Call<T> task)
+	    {
+	        return _aes == null ? new FutureTask<T>(task) : _aes.NewTaskFor(task);
+	    }
 
+	    private IRunnableFuture<T> NewTaskFor(IRunnable task, T result)
+	    {
+	        return _aes == null ? new FutureTask<T>(task, result) : _aes.NewTaskFor(task, result);
+	    }
 
-		/// <summary> 
+	    private IRunnableFuture<T> NewTaskFor(Task task, T result)
+	    {
+	        return _aes == null ? new FutureTask<T>(task, result) : _aes.NewTaskFor(task, result);
+	    }
+
+	    /// <summary> 
 		/// Creates an <see cref="ExecutorCompletionService{T}"/> using the supplied
 		/// executor for base task execution and a
 		/// <see cref="LinkedBlockingQueue{T}"/> as a completion queue.
@@ -163,43 +166,143 @@ namespace Spring.Threading.Execution
 			_completionQueue = completionQueue;
 		}
 
-		/// <summary> 
-		///	Submits a value-returning task for execution and returns a <see cref="IFuture{T}"/>
-		/// representing the pending results of the task. Upon completion,
-		/// this task may be taken or polled.
-		/// </summary>
-		/// <param name="task">the task to submit</param>
-		/// <returns> a <see cref="IFuture{T}"/> representing pending completion of the task</returns>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public virtual IFuture<T> Submit(ICallable<T> task)
+	    /// <summary> 
+	    ///	Submits a value-returning task for execution and returns an instance 
+	    /// of <see cref="IFuture{T}"/> representing the pending results of the 
+	    /// task. The future's <see cref="IFuture{T}.GetResult()"/> method will 
+	    /// return the callable's result upon successful completion.
+	    /// </summary>
+	    /// <remarks>
+	    /// <para>
+	    /// If you would like to immediately block waiting for a callable, you 
+	    /// can use constructions of the form
+	    /// <code language="c#">
+	    ///   result = exec.Submit(aCallable).GetResult();
+	    /// </code>
+	    /// </para>
+	    /// </remarks>
+	    /// <param name="callable">The task to submit.</param>
+	    /// <returns>
+	    /// A <see cref="IFuture{T}"/> representing pending completion of the 
+	    /// task.
+	    /// </returns>
+	    /// <exception cref="RejectedExecutionException">
+	    /// If the task cannot be accepted for execution.
+	    /// </exception>
+	    /// <exception cref="ArgumentNullException">
+	    /// If the command is null.
+	    /// </exception>
+	    public virtual IFuture<T> Submit(ICallable<T> callable)
 		{
-			if (task == null)
-				throw new ArgumentNullException("task", "Task cannot be null.");
-            return DoSubmit(NewTaskFor(task));
+            //if (callable == null)
+            //    throw new ArgumentNullException("task", "Task cannot be null.");
+            return DoSubmit(NewTaskFor(callable));
 		}
 
-		/// <summary> 
-		/// Submits a <see cref="Spring.Threading.IRunnable"/> task for execution 
-		/// and returns a <see cref="IFuture{T}"/>
-		/// representing that task.  Upon completion, this task may be taken or polled.
-		/// </summary>
-		/// <param name="task">the task to submit</param>
-		/// <param name="result">the result to return upon successful completion</param>
-		/// <returns> a <see cref="IFuture{T}"/> representing pending completion of the task,
-		/// and whose <see cref="IFuture{T}.GetResult()"/> method will return the given result value
-		/// upon completion
-		/// </returns>
-		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public virtual IFuture<T> Submit(IRunnable task, T result)
+        public virtual IFuture<T> Submit(Call<T> call)
+        {
+            return DoSubmit(NewTaskFor(call));
+        }
+
+	    /// <summary> 
+	    /// Submits a <see cref="IRunnable"/> task for execution and returns a 
+	    /// <see cref="IFuture{T}"/> representing that task.  Upon completion, 
+	    /// this task may be taken or polled.
+	    /// </summary>
+	    /// <param name="runnable">The task to submit.</param>
+	    /// <param name="result">
+	    /// The result to return upon successful completion.
+	    /// </param>
+	    /// <returns>
+	    /// A <see cref="IFuture{T}"/> representing pending completion of the 
+	    /// task, and whose <see cref="IFuture{T}.GetResult()"/> method will 
+	    /// return the given result value upon completion.
+	    /// </returns>
+	    /// <exception cref="RejectedExecutionException">
+	    /// If the task cannot be accepted for execution.
+	    /// </exception>
+	    /// <exception cref="ArgumentNullException">
+	    /// If the command is null.
+	    /// </exception>
+	    public virtual IFuture<T> Submit(IRunnable runnable, T result)
 		{
-			if (task == null)
-				throw new ArgumentNullException("task", "Task cannot be null.");
+            //if (task == null)
+            //    throw new ArgumentNullException("task", "Task cannot be null.");
+            return DoSubmit(NewTaskFor(runnable, result));
+		}
+
+	    /// <summary> 
+	    /// Submits a <see cref="Task"/> task for execution and returns a 
+	    /// <see cref="IFuture{T}"/> representing that task.  Upon completion, 
+	    /// this task may be taken or polled.
+	    /// </summary>
+	    /// <param name="task">The task to submit.</param>
+	    /// <param name="result">
+	    /// The result to return upon successful completion.
+	    /// </param>
+	    /// <returns>
+	    /// A <see cref="IFuture{T}"/> representing pending completion of the 
+	    /// task, and whose <see cref="IFuture{T}.GetResult()"/> method will 
+	    /// return the given result value upon completion.
+	    /// </returns>
+	    /// <exception cref="RejectedExecutionException">
+	    /// If the task cannot be accepted for execution.
+	    /// </exception>
+	    /// <exception cref="ArgumentNullException">
+	    /// If the command is null.
+	    /// </exception>
+	    public virtual IFuture<T> Submit(Task task, T result)
+        {
             return DoSubmit(NewTaskFor(task, result));
-		}
+        }
 
-        public virtual IFuture<T> Submit(IRunnableFuture<T> runnableFuture)
+	    /// <summary> 
+	    /// Submits a <see cref="IRunnable"/> task for execution and returns 
+	    /// a <see cref="IFuture{T}"/> representing that task.  The future's
+	    /// <see cref="IFuture{T}.GetResult()"/> will return <c>default(T)</c>
+	    /// upon successful completion.
+	    /// </summary>
+	    /// <param name="runnable">The task to submit.</param>
+	    /// <returns>
+	    /// A <see cref="IFuture{T}"/> representing pending completion of the 
+	    /// task, and whose <see cref="IFuture{T}.GetResult()"/> method will 
+	    /// return the given result value upon completion.
+	    /// </returns>
+	    /// <exception cref="RejectedExecutionException">
+	    /// If the task cannot be accepted for execution.
+	    /// </exception>
+	    /// <exception cref="ArgumentNullException">
+	    /// If the command is null.
+	    /// </exception>
+	    public virtual IFuture<T> Submit(IRunnable runnable)
+        {
+            return DoSubmit(NewTaskFor(runnable, default(T)));
+        }
+
+	    /// <summary> 
+	    /// Submits a <see cref="Task"/> task for execution and returns a 
+	    /// <see cref="IFuture{T}"/> representing that task.  The future's
+	    /// <see cref="IFuture{T}.GetResult()"/> will return <c>default(T)</c>
+	    /// upon successful completion.
+	    /// </summary>
+	    /// <param name="task">The task to submit.</param>
+	    /// <returns>
+	    /// A <see cref="IFuture{T}"/> representing pending completion of the 
+	    /// task, and whose <see cref="IFuture{T}.GetResult()"/> method will 
+	    /// return the given result value upon completion.
+	    /// </returns>
+	    /// <exception cref="RejectedExecutionException">
+	    /// If the task cannot be accepted for execution.
+	    /// </exception>
+	    /// <exception cref="ArgumentNullException">
+	    /// If the command is null.
+	    /// </exception>
+	    public virtual IFuture<T> Submit(Task task)
+        {
+            return DoSubmit(NewTaskFor(task, default(T)));
+        }
+
+        internal virtual IFuture<T> Submit(IRunnableFuture<T> runnableFuture)
         {
             if (runnableFuture == null)
                 throw new ArgumentNullException("runnableFuture");
@@ -212,45 +315,49 @@ namespace Spring.Threading.Execution
             return runnableFuture;
         }
 
-		/// <summary> 
-		/// Retrieves and removes the <see cref="IFuture{T}"/> representing the next
-		/// completed task, waiting if none are yet present.
-		/// </summary>
-		/// <returns> the <see cref="IFuture{T}"/> representing the next completed task
-		/// </returns>
-		public virtual IFuture<T> Take()
+	    /// <summary> 
+	    /// Retrieves and removes the <see cref="IFuture{T}"/> representing 
+	    /// the next completed task, waiting if none are yet present.
+	    /// </summary>
+	    /// <returns>
+	    /// The <see cref="IFuture{T}"/> representing the next completed task.
+	    /// </returns>
+	    public virtual IFuture<T> Take()
 		{
 			return _completionQueue.Take();
 		}
 
-		/// <summary> 
-		/// Retrieves and removes the <see cref="IFuture{T}"/> representing the next
-		/// completed task or <see lang="null"/> if none are present.
-		/// </summary>
-		/// <returns> the <see cref="IFuture{T}"/> representing the next completed task, or
-		/// <see lang="null"/> if none are present.
-		/// </returns>
-		public virtual IFuture<T> Poll()
+	    /// <summary> 
+	    /// Retrieves and removes the <see cref="IFuture{T}"/> representing 
+	    /// the next completed task or <c>null</c> if none are present.
+	    /// </summary>
+	    /// <returns>
+	    /// The <see cref="IFuture{T}"/> representing the next completed task, 
+	    /// or <see lang="null"/> if none are present.
+	    /// </returns>
+	    public virtual IFuture<T> Poll()
 		{
 		    IFuture<T> next;
-            return _completionQueue.Poll(out next) ? null : next;
+            return _completionQueue.Poll(out next) ? next : null;
 		}
 
-		/// <summary> 
-		/// Retrieves and removes the <see cref="IFuture{T}"/> representing the next
-		/// completed task, waiting, if necessary, up to the specified duration
-		/// if none are yet present.
-		/// </summary>
-		/// <param name="durationToWait">duration to wait if no completed task is present yet.</param>
-		/// <returns> 
-		/// the <see cref="IFuture{T}"/> representing the next completed task or
-		/// <see lang="null"/> if the specified waiting time elapses before one
-		/// is present.
-		/// </returns>
-		public virtual IFuture<T> Poll(TimeSpan durationToWait)
+	    /// <summary> 
+	    /// Retrieves and removes the <see cref="IFuture{T}"/> representing the 
+	    /// next completed task, waiting, if necessary, up to the specified 
+	    /// duration if none are yet present.
+	    /// </summary>
+        /// <param name="durationToWait">
+	    /// Duration to wait if no completed task is present yet.
+	    /// </param>
+	    /// <returns> 
+	    /// the <see cref="IFuture{T}"/> representing the next completed task or
+	    /// <see lang="null"/> if the specified waiting time elapses before one
+	    /// is present.
+	    /// </returns>
+	    public virtual IFuture<T> Poll(TimeSpan durationToWait)
 		{
 		    IFuture<T> next;
-		    return _completionQueue.Poll(durationToWait, out next) ? null : next;
+		    return _completionQueue.Poll(durationToWait, out next) ? next : null;
 		}
 	}
 }

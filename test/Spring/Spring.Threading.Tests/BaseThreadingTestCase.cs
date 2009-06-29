@@ -84,15 +84,8 @@ namespace Spring.Threading
 
         public void JoinPool(IExecutorService exec)
         {
-            try
-            {
-                exec.Shutdown();
-                Assert.IsTrue(exec.AwaitTermination(LONG_DELAY));
-            }
-            catch (ThreadInterruptedException)
-            {
-                Assert.Fail("Unexpected exception");
-            }
+            exec.Shutdown();
+            Assert.IsTrue(exec.AwaitTermination(LONG_DELAY));
         }
 
         public void ThreadUnexpectedException()
@@ -467,12 +460,12 @@ namespace Spring.Threading
             throw new NotImplementedException();
         }
 
-        public IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+        public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
         {
             throw new NotImplementedException();
         }
 
-        public IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+        public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
         {
             throw new NotImplementedException();
         }
@@ -487,12 +480,12 @@ namespace Spring.Threading
             throw new NotImplementedException();
         }
 
-        public T InvokeAny<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+        public T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
         {
             throw new NotImplementedException();
         }
 
-        public T InvokeAny<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+        public T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
         {
             throw new NotImplementedException();
         }

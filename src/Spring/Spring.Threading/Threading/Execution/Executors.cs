@@ -554,9 +554,9 @@ namespace Spring.Threading.Execution
                 return _executorService.InvokeAll(tasks);
             }
 
-            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+            public override IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
             {
-                return _executorService.InvokeAll(tasks, durationToWait);
+                return _executorService.InvokeAll(durationToWait, tasks);
             }
 
             public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks)
@@ -564,9 +564,9 @@ namespace Spring.Threading.Execution
                 return _executorService.InvokeAll(tasks);
             }
 
-            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+            public override IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
             {
-                return _executorService.InvokeAll(tasks, durationToWait);
+                return _executorService.InvokeAll(durationToWait, tasks);
             }
 
             public override T InvokeAny<T>(IEnumerable<Call<T>> tasks)
@@ -574,9 +574,9 @@ namespace Spring.Threading.Execution
                 return _executorService.InvokeAny(tasks);
             }
 
-            public override T InvokeAny<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+            public override T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
             {
-                return _executorService.InvokeAny(tasks, durationToWait);
+                return _executorService.InvokeAny(durationToWait, tasks);
             }
 
             public override T InvokeAny<T>(IEnumerable<ICallable<T>> tasks)
@@ -584,9 +584,9 @@ namespace Spring.Threading.Execution
                 return _executorService.InvokeAny(tasks);
             }
 
-            public override T InvokeAny<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+            public override T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
             {
-                return _executorService.InvokeAny(tasks, durationToWait);
+                return _executorService.InvokeAny(durationToWait, tasks);
             }
 		}
         

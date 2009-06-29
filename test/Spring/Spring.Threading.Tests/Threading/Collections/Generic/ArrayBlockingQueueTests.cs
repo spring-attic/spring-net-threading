@@ -88,12 +88,12 @@ namespace Spring.Threading.Collections.Generic
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+            public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+            public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -108,12 +108,12 @@ namespace Spring.Threading.Collections.Generic
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public T InvokeAny<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+            public T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public T InvokeAny<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+            public T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
             {
                 throw new Exception("The method or operation is not implemented.");
             }

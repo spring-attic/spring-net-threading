@@ -18,12 +18,8 @@ namespace Spring.Threading.Future
         private readonly Call<T> _noOpCall = () => default(T);
 
 
-        internal class PublicFutureTask : FutureTask<T>
+        private class PublicFutureTask : FutureTask<T>
         {
-            public PublicFutureTask(ICallable<T> r) : base(r)
-            {
-            }
-
             public PublicFutureTask(Call<T> call) : base(call)
             {
             }
@@ -174,17 +170,23 @@ namespace Spring.Threading.Future
         [Test]
         public void CancelDoesNotInterruptRunningTask()
         {
-            var t = ThreadManager.NewVerifiableTask(() => Thread.Sleep(MEDIUM_DELAY));
-            FutureTask<T> task = new FutureTask<T>(t, default(T));
-            new Thread(task.Run).Start();
-
+            var called = false;
+            FutureTask<T> task = new FutureTask<T>(
+                ThreadManager.NewVerifiableTask(
+                    delegate
+                        {
+                            Thread.Sleep(SMALL_DELAY);
+                            called = true;
+                        }),
+                default(T));
+            ThreadManager.StartAndAssertRegistered(new Thread(task.Run){Name="T1"});
             Thread.Sleep(SHORT_DELAY);
             Assert.IsTrue(task.Cancel());
             ThreadManager.JoinAndVerify();
             Assert.IsTrue(task.IsDone);
             Assert.IsTrue(task.IsCancelled);
+            Assert.IsTrue(called);
         }
-
 
         [Test]
         public void GetResultRetrievesValueSetFromAnotherThread()

@@ -65,11 +65,6 @@ namespace Spring.Threading.Execution
     /// <author>Kenneth Xu</author>
     public abstract class AbstractExecutorService : IExecutorService
     {
-        #region Private Static Fields
-
-        private static readonly TimeSpan NoTime = new TimeSpan(0);
-
-        #endregion
 
         #region Abstract Methods
 
@@ -300,7 +295,7 @@ namespace Spring.Threading.Execution
         {
             ICollection<ICallable<T>> collection = tasks as ICollection<ICallable<T>>;
             int count = collection == null ? 0 : collection.Count;
-            return DoInvokeAny(tasks, count, false, NoTime, Call2Future<T>());
+            return DoInvokeAny(tasks, count, false, TimeSpan.Zero, Call2Future<T>());
         }
 
         /// <summary> 
@@ -333,7 +328,7 @@ namespace Spring.Threading.Execution
         {
             ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
             int count = collection == null ? 0 : collection.Count;
-            return DoInvokeAny(tasks, count, false, NoTime, Call2Future<T>());
+            return DoInvokeAny(tasks, count, false, TimeSpan.Zero, Call2Future<T>());
         }
 
         /// <summary> 
@@ -364,7 +359,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        public virtual T InvokeAny<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+        public virtual T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
         {
             ICollection<ICallable<T>> collection = tasks as ICollection<ICallable<T>>;
             int count = collection == null ? 0 : collection.Count;
@@ -399,7 +394,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        public virtual T InvokeAny<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+        public virtual T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
         {
             ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
             int count = collection == null ? 0 : collection.Count;
@@ -536,7 +531,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-	    public virtual IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks, TimeSpan durationToWait)
+        public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
         {
             ICollection<ICallable<T>> collection = tasks as ICollection<ICallable<T>>;
             int count = collection == null ? 0 : collection.Count;
@@ -585,7 +580,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-	    public virtual IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks, TimeSpan durationToWait)
+	    public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
         {
             ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
             int count = collection == null ? 0 : collection.Count;
