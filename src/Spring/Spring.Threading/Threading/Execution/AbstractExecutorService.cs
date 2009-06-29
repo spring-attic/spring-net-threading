@@ -687,7 +687,7 @@ namespace Spring.Threading.Execution
 			    bool hasMoreTasks = it.MoveNext();
                 if (!hasMoreTasks)
                     throw new ArgumentException("No tasks passed in.");
-                futures.Add(ecs.Submit(converter(it.Current)));
+                futures.Add(ecs.DoSubmit(converter(it.Current)));
 				int active = 1;
 
                 for (;;)
@@ -729,7 +729,7 @@ namespace Spring.Threading.Execution
                         {
                             ee =  ExceptionExtensions.PreserveStackTrace(eex);
                         }
-                        catch (SystemException rex)
+                        catch (Exception rex)
                         {
                             ee = new ExecutionException(rex);
                         }

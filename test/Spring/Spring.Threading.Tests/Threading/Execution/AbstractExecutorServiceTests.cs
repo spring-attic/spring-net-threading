@@ -9,7 +9,7 @@ using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
 {
-    [TestFixture]
+    [TestFixture, Ignore]
     public class AbstractExecutorServiceTests : BaseThreadingTestCase
     {
         internal class DirectExecutorService : AbstractExecutorService

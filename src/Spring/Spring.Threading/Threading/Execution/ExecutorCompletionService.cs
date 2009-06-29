@@ -1,5 +1,4 @@
 using System;
-using Spring.Threading.Collections;
 using Spring.Threading.Collections.Generic;
 using Spring.Threading.Future;
 
@@ -302,14 +301,7 @@ namespace Spring.Threading.Execution
             return DoSubmit(NewTaskFor(task, default(T)));
         }
 
-        internal virtual IFuture<T> Submit(IRunnableFuture<T> runnableFuture)
-        {
-            if (runnableFuture == null)
-                throw new ArgumentNullException("runnableFuture");
-            return DoSubmit(runnableFuture);
-        }
-
-        private IFuture<T> DoSubmit(IRunnableFuture<T> runnableFuture)
+        internal IFuture<T> DoSubmit(IRunnableFuture<T> runnableFuture)
         {
             _executor.Execute(new QueueingFuture(this, runnableFuture));
             return runnableFuture;
