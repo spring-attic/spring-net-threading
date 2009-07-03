@@ -33,12 +33,28 @@ namespace Spring
             return MakeAaaMock(m => m.DynamicMultiMock<T>(extraTypes, new object[0]));
         }
 
+        public static T StrickMock<T>(params object[] argumentForConstructor)
+        {
+            return MakeAaaMock(m => m.StrictMock<T>(argumentForConstructor));
+        }
+
         private static T MakeAaaMock<T>(Converter<MockRepository, T> creator)
         {
             var mockery = new MockRepository();
             var mock = creator(mockery);
             mockery.Replay(mock);
             return mock;
+        }
+
+        public void a()
+        {
+            var s = "test string";
+            var mock = StrickMock<System.Collections.Generic.IList<string>>();
+            mock.Expect(l => l.Add(s));
+            mock.Expect(l => l.Remove(s));
+
+            mock.Add(s);
+            mock.VerifyAllExpectations();
         }
     }
 }

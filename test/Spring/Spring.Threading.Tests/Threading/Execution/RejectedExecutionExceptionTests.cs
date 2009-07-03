@@ -12,7 +12,7 @@ namespace Spring.Threading.Execution
             TimeoutException timeoutException = new TimeoutException();
             ExecutionException exception = new ExecutionException(timeoutException);
             Assert.AreEqual(timeoutException, exception.InnerException);
-            Assert.AreEqual(String.Empty, exception.Message);
+            Assert.AreEqual(timeoutException.Message, exception.Message);
         }
     }
 }

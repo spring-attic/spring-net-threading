@@ -1,7 +1,7 @@
 #region License
 
 /*
- * Copyright © 2002-2006 the original author or authors.
+ * Copyright ?2002-2006 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Serialization;
-using Spring.Collections.Generic;
 
-namespace Spring.Threading.Collections {
+namespace Spring.Collections.Generic
+{
     /// <summary> 
     /// An unbounded priority <see cref="Spring.Collections.IQueue"/> based on a priority
     /// heap.  This queue orders elements according to an order specified
@@ -67,6 +67,7 @@ namespace Spring.Threading.Collections {
     /// </summary>
     /// <author>Josh Bloch</author>
     /// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu</author>
     [Serializable]
     public class PriorityQueue<T> : AbstractQueue<T>, ISerializable  {
         private class PriorityQueueEnumerator : IEnumerator<T> {
@@ -177,7 +178,7 @@ namespace Spring.Threading.Collections {
         /// </summary>
         public PriorityQueue()
             : this(DEFAULT_INITIAL_CAPACITY, null) {
-        }
+            }
 
         /// <summary> 
         /// Creates a <see cref="Spring.Collections.PriorityQueue"/> with the specified initial capacity
@@ -189,7 +190,7 @@ namespace Spring.Threading.Collections {
         /// <exception cref="System.ArgumentException">if <paramref name="initialCapacity"/> is less than 1.</exception>
         public PriorityQueue(int initialCapacity)
             : this(initialCapacity, null) {
-        }
+            }
 
         /// <summary> 
         /// Creates a <see cref="Spring.Collections.PriorityQueue"/> with the specified initial capacity
@@ -247,13 +248,13 @@ namespace Spring.Threading.Collections {
         /// if it is possible to do so immediately without violating capacity 
         /// restrictions. Throws an <see cref="InvalidOperationException"/> 
         /// if no space is currently available.
-	    /// </summary>
+        /// </summary>
         /// <param name="element">The element to add.</param>
         /// <exception cref="InvalidOperationException">
         /// If the <paramref name="element"/> cannot be added at this time due 
         /// to capacity restrictions. 
         /// </exception>
-	    public new bool Add(T element)
+        public new bool Add(T element)
         {
             if (!Offer(element))
             {
@@ -653,6 +654,52 @@ namespace Spring.Threading.Collections {
                 }
             }
             return false;
+        }
+
+        /// <summary> 
+        /// Does the real work for all drain methods. Caller must
+        /// guarantee the <paramref name="action"/> is not <c>null</c> and
+        /// <paramref name="maxElements"/> is greater then zero (0).
+        /// </summary>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T})"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int)"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T}, Predicate{T})"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
+        internal protected override int DoDrainTo(Action<T> action, int maxElements, Predicate<T> criteria)
+        {
+
+            return Drain(action, maxElements, criteria, null);
+        }
+
+        public virtual int Drain(Action<T> action, int maxElements, Predicate<T> selectCriteria, Predicate<T> stopCriteria)
+        {
+            int n = 0;
+            int i;
+            for (i = 1; n < maxElements && i <= _priorityQueueSize; i++ )
+            {
+                T element = _queue[i];
+                if (stopCriteria != null && stopCriteria(element)) break;
+
+                if (selectCriteria == null || selectCriteria(element))
+                {
+                    action(element);
+                    n++;
+                }
+                else if (n > 0)
+                {
+                    _queue[i - n] = element;
+                }
+            }
+            if (n>0)
+            {
+                for (int j = i; j <= _priorityQueueSize; j++)
+                {
+                    _queue[j - n] = _queue[j];
+                }
+                _priorityQueueSize -= n;
+            }
+            return n;
+
         }
 
 

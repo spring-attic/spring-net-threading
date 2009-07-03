@@ -104,7 +104,7 @@
     <Compile Include="Collections\Generic\TransformingEnumerator.cs" />
     <Compile Include="Collections\Generic\TransformingList.cs" />
     <Compile Include="CommonAssemblyInfo.cs" />
-    <Compile Include="ExceptionExtensions.cs" />
+    <Compile Include="SystemExtensions.cs" />
     <Compile Include="Threading\BoundedBuffer.cs" />
     <Compile Include="Threading\BoundedLinkedQueue.cs" />
     <Compile Include="Threading\BoundedPriorityQueue.cs" />
@@ -147,6 +147,7 @@
     <Compile Include="Threading\Execution\ScheduledThreadPoolExecutor.cs" />
     <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutor.cs" />
+    <Compile Include="Threading\CompatabilityWith2.0.cs" />
     <Compile Include="Threading\FIFOSemaphore.cs" />
     <Compile Include="Threading\ForkJoin\FJTask.cs" />
     <Compile Include="Threading\ForkJoin\FJTaskRunner.cs" />

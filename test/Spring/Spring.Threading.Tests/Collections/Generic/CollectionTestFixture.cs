@@ -156,7 +156,7 @@ namespace Spring.Collections.Generic
             catch (NotSupportedException e)
             {
                 if (_isReadOnly) return;
-                throw ExceptionExtensions.PreserveStackTrace(e);
+                throw SystemExtensions.PreserveStackTrace(e);
             }
             Assert.That(c.Count, Is.EqualTo(0));
             AssertContainsNoSample(c);
@@ -171,7 +171,7 @@ namespace Spring.Collections.Generic
                 catch (NotSupportedException e)
                 {
                     if (_isReadOnly) return;
-                    throw ExceptionExtensions.PreserveStackTrace(e);
+                    throw SystemExtensions.PreserveStackTrace(e);
                 }
             }
             Assert.That(c.Count, Is.EqualTo(_sampleSize));
@@ -187,7 +187,7 @@ namespace Spring.Collections.Generic
             catch (NotSupportedException e)
             {
                 if (_isReadOnly) return;
-                throw ExceptionExtensions.PreserveStackTrace(e);
+                throw SystemExtensions.PreserveStackTrace(e);
             }
             Assert.That(c.Count, Is.EqualTo(1));
             Assert.IsTrue(c.Contains(sample));
@@ -206,7 +206,7 @@ namespace Spring.Collections.Generic
                 catch (NotSupportedException e)
                 {
                     if (_isReadOnly) return;
-                    throw ExceptionExtensions.PreserveStackTrace(e);
+                    throw SystemExtensions.PreserveStackTrace(e);
                 }
                 Assert.False(c.Contains(sample));
             }
@@ -222,7 +222,7 @@ namespace Spring.Collections.Generic
             catch (NotSupportedException e)
             {
                 if (_isReadOnly) return;
-                throw ExceptionExtensions.PreserveStackTrace(e);
+                throw SystemExtensions.PreserveStackTrace(e);
             }
             Assert.That(c.Count, Is.EqualTo(1));
             Assert.IsTrue(c.Contains(sample));
@@ -232,7 +232,7 @@ namespace Spring.Collections.Generic
             catch (NotSupportedException e)
             {
                 if (_isReadOnly) return;
-                throw ExceptionExtensions.PreserveStackTrace(e);
+                throw SystemExtensions.PreserveStackTrace(e);
             }
             Assert.IsTrue(c.Contains(sample));
             Assert.That(c.Count, Is.EqualTo(1));

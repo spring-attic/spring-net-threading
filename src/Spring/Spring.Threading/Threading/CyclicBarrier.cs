@@ -278,7 +278,7 @@ namespace Spring.Threading
                     catch (ThreadInterruptedException e)
                     {
                         breakBarrier();
-                        throw ExceptionExtensions.PreserveStackTrace(e);
+                        throw SystemExtensions.PreserveStackTrace(e);
                     }
 
                     if (currentGeneration.isBroken)
@@ -391,7 +391,7 @@ namespace Spring.Threading
             catch (ThreadInterruptedException e)
             {
                 breakBarrier();
-                throw ExceptionExtensions.PreserveStackTrace(e);
+                throw SystemExtensions.PreserveStackTrace(e);
             }
         }
 
@@ -455,7 +455,7 @@ namespace Spring.Threading
             catch (ThreadInterruptedException e)
             {
                 breakBarrier();
-                throw ExceptionExtensions.PreserveStackTrace(e);
+                throw SystemExtensions.PreserveStackTrace(e);
             }
         }
 

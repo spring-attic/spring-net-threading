@@ -295,7 +295,7 @@ namespace Spring.Threading.Execution
         {
             ICollection<ICallable<T>> collection = tasks as ICollection<ICallable<T>>;
             int count = collection == null ? 0 : collection.Count;
-            return DoInvokeAny(tasks, count, false, TimeSpan.Zero, Call2Future<T>());
+            return DoInvokeAny(tasks, count, false, TimeSpan.Zero, Callable2Future<T>());
         }
 
         /// <summary> 
@@ -723,11 +723,11 @@ namespace Spring.Threading.Execution
                         }
                         catch (ThreadInterruptedException e)
                         {
-                            throw ExceptionExtensions.PreserveStackTrace(e);
+                            throw SystemExtensions.PreserveStackTrace(e);
                         }
                         catch (ExecutionException eex)
                         {
-                            ee =  ExceptionExtensions.PreserveStackTrace(eex);
+                            ee =  SystemExtensions.PreserveStackTrace(eex);
                         }
                         catch (Exception rex)
                         {

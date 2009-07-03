@@ -370,6 +370,40 @@ namespace Spring.Collections.Generic
 		}
 
 	    /// <summary> 
+	    /// Does the real work for all drain methods. Caller must
+	    /// guarantee the <paramref name="action"/> is not <c>null</c> and
+	    /// <paramref name="maxElements"/> is greater then zero (0).
+	    /// </summary>
+	    /// <seealso cref="IQueue{T}.Drain(System.Action{T})"/>
+	    /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int)"/>
+	    /// <seealso cref="IQueue{T}.Drain(System.Action{T}, Predicate{T})"/>
+	    /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
+	    internal protected override int DoDrainTo(Action<T> action, int maxElements, Predicate<T> criteria)
+        {
+            T[] items = _items;
+
+            int n = 0;
+	        int reject = 0;
+            for (int currentIndex = _takeIndex; n < maxElements && _count > reject; currentIndex = increment(currentIndex))
+            {
+                T element = items[currentIndex];
+                if (criteria == null || criteria(element))
+                {
+                    action(element);
+                    n++;
+                    removeAt(currentIndex);
+                }
+                else
+                {
+                    reject++;
+                }
+                
+            }
+            return n;
+        }
+
+
+	    /// <summary> 
 		/// Returns an array of <typeparamref name="T"/> containing all of the 
 		/// elements in this queue, in proper sequence.
 		/// </summary>

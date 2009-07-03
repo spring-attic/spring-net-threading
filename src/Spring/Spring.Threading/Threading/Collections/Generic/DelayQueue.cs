@@ -15,7 +15,8 @@ namespace Spring.Threading.Collections.Generic
 	/// </summary>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
-    public class DelayQueue<T> : AbstractBlockingQueue<T> //TODO should we include this? where T : IDelayed
+	/// <author>Kenneth Xu</author>
+    public class DelayQueue<T> : AbstractBlockingQueue<T> //TODO: need to add this back where T : IDelayed
     {
         [NonSerialized]
         private object lockObject = new object();
@@ -287,31 +288,20 @@ namespace Spring.Threading.Collections.Generic
             get { return Int32.MaxValue; }
         }
 
-        /// <summary> 
-        /// Does the real work for all <c>Drain</c> methods. Caller must
-        /// guarantee the <paramref name="action"/> is not <c>null</c> and
-        /// <paramref name="maxElements"/> is greater then zero (0).
-        /// </summary>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.Drain(System.Action{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T},int)"/>
-        internal protected override int DoDrainTo(Action<T> action, int maxElements)
+	    /// <summary> 
+	    /// Does the real work for all drain methods. Caller must
+	    /// guarantee the <paramref name="action"/> is not <c>null</c> and
+	    /// <paramref name="maxElements"/> is greater then zero (0).
+	    /// </summary>
+	    /// <seealso cref="IQueue{T}.Drain(System.Action{T})"/>
+	    /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int)"/>
+	    /// <seealso cref="IQueue{T}.Drain(System.Action{T}, Predicate{T})"/>
+	    /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
+	    internal protected override int DoDrainTo(Action<T> action, int maxElements, Predicate<T> criteria)
         {
             lock (lockObject)
             {
-                int n = 0;
-                while (n < maxElements)
-                {
-                    T first;
-                    if (!_queue.Peek(out first) || ((IDelayed)first).GetRemainingDelay().Ticks > 0)
-                    {
-                        break;
-                    }
-                    T head;
-                    _queue.Poll(out head);
-                    action(head);
-                    ++n;
-                }
+                int n = _queue.Drain(action, maxElements, criteria, (e => ((IDelayed)e).GetRemainingDelay().Ticks > 0) );
                 if (n > 0)
                 {
                     Monitor.PulseAll(lockObject);

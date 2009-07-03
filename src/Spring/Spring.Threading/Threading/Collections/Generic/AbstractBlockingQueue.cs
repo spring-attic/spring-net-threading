@@ -36,6 +36,7 @@ namespace Spring.Threading.Collections.Generic
     [Serializable]
     public abstract class AbstractBlockingQueue<T> : AbstractQueue<T>, IBlockingQueue<T>
     {
+        protected static readonly Predicate<T> Pass = delegate { return true; };
         /// <summary> 
         /// Inserts the specified element into this queue, waiting if necessary
         /// for space to become available.
@@ -119,13 +120,18 @@ namespace Spring.Threading.Collections.Generic
         /// <exception cref="System.ArgumentException">
         /// If <paramref name="collection"/> represents the queue itself.
         /// </exception>
-        /// <seealso cref="Drain(System.Action{T})"/>
+        /// <seealso cref="AbstractQueue{T}.Drain(System.Action{T})"/>
         /// <seealso cref="DrainTo(ICollection{T},int)"/>
-        /// <seealso cref="Drain(System.Action{T},int)"/>
+        /// <seealso cref="AbstractQueue{T}.Drain(System.Action{T},int)"/>
         public virtual int DrainTo(ICollection<T> collection)
         {
+            return DrainTo(collection, null);
+        }
+
+        public virtual int DrainTo(ICollection<T> collection, Predicate<T> predicate)
+        {
             CheckCollection(collection);
-            return DoDrainTo(collection.Add);
+            return DoDrainTo(collection.Add, predicate);
         }
 
         /// <summary> 
@@ -160,78 +166,18 @@ namespace Spring.Threading.Collections.Generic
         /// If <paramref name="collection"/> represents the queue itself.
         /// </exception>
         /// <seealso cref="DrainTo(ICollection{T})"/>
-        /// <seealso cref="Drain(System.Action{T})"/>
-        /// <seealso cref="Drain(System.Action{T},int)"/>
+        /// <seealso cref="AbstractQueue{T}.Drain(System.Action{T})"/>
+        /// <seealso cref="AbstractQueue{T}.Drain(System.Action{T},int)"/>
         public virtual int DrainTo(ICollection<T> collection, int maxElements)
+        {
+            return DrainTo(collection, maxElements, null);
+        }
+
+        public virtual int DrainTo(ICollection<T> collection, int maxElements, Predicate<T> predicate)
         {
             CheckCollection(collection);
             if (maxElements <= 0) return 0;
-            return DoDrainTo(collection.Add, maxElements);
-        }
-
-        /// <summary> 
-        /// Removes all available elements from this queue and invoke the given
-        /// <paramref name="action"/> on each element in order.
-        /// </summary>
-        /// <remarks>
-        /// This operation may be more efficient than repeatedly polling this 
-        /// queue.  A failure encountered while attempting to invoke the 
-        /// <paramref name="action"/> on the elements may result in elements 
-        /// being neither, either or both in the queue or processed when the 
-        /// associated exception is thrown.
-        /// <example> Drain to a non-generic list.
-        /// <code language="c#">
-        /// IList c = ...;
-        /// int count = Drain(delegate(T e) {c.Add(e);});
-        /// </code>
-        /// </example>
-        /// </remarks>
-        /// <param name="action">The action to performe on each element.</param>
-        /// <returns>The number of elements processed.</returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// If the queue cannot be drained at this time.
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the specified action is <see langword="null"/>.
-        /// </exception>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T},int)"/>
-        /// <seealso cref="IBlockingQueue{T}.Drain(Action{T}, int)"/>
-        public virtual int Drain(Action<T> action)
-        {
-            if (action == null) throw new ArgumentNullException("action");
-            return DoDrainTo(action);
-        }
-
-        /// <summary> 
-        /// Removes at most the given number of available elements from this 
-        /// queue and invoke the given <paramref name="action"/> on each 
-        /// element in order.
-        /// </summary>
-        /// <remarks>
-        /// This operation may be more efficient than repeatedly polling this 
-        /// queue.  A failure encountered while attempting to invoke the 
-        /// <paramref name="action"/> on the elements may result in elements 
-        /// being neither, either or both in the queue or processed when the 
-        /// associated exception is thrown.
-        /// </remarks>
-        /// <param name="action">The action to performe on each element.</param>
-        /// <param name="maxElements">the maximum number of elements to transfer</param>
-        /// <returns>The number of elements processed.</returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// If the queue cannot be drained at this time.
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the specified action is <see langword="null"/>.
-        /// </exception>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.Drain(System.Action{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T},int)"/>
-        public virtual int Drain(Action<T> action, int maxElements)
-        {
-            if (action==null) throw new ArgumentNullException("action");
-            if (maxElements <= 0) return 0;
-            return DoDrainTo(action, maxElements);
+            return DoDrainTo(collection.Add, maxElements, predicate);
         }
 
         /// <summary>
@@ -248,26 +194,6 @@ namespace Spring.Threading.Collections.Generic
         {
             get { return true; }
         }
-
-        /// <summary>
-        /// Does the real work for the <see cref="Drain(System.Action{T})"/>
-        /// and <see cref="DrainTo(System.Collections.Generic.ICollection{T})"/>.
-        /// </summary>
-        internal protected virtual int DoDrainTo(Action<T> action)
-        {
-            return DoDrainTo(action, int.MaxValue);
-        }
-
-        /// <summary> 
-        /// Does the real work for all drain methods. Caller must
-        /// guarantee the <paramref name="action"/> is not <c>null</c> and
-        /// <paramref name="maxElements"/> is greater then zero (0).
-        /// </summary>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T}, int)"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.Drain(System.Action{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T},int)"/>
-        internal protected abstract int DoDrainTo(Action<T> action, int maxElements);
 
         private void CheckCollection(ICollection<T> collection)
         {

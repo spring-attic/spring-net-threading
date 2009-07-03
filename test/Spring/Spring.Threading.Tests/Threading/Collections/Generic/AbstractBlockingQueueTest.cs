@@ -75,7 +75,7 @@ namespace Spring.Threading.Collections.Generic
         [Test] public void DrainToUnlimitedDelegateToDoDrainToVirtual()
         {
             const int result = 10;
-            Expect.Call(_testee.DoDrainTo(_mockAction)).IgnoreArguments().Return(result);
+            Expect.Call(_testee.DoDrainTo(_mockAction, null)).IgnoreArguments().Return(result);
             _mockery.ReplayAll();
             Assert.That(_testee.DrainTo(_mockCollection), Is.EqualTo(result));
         }
@@ -83,7 +83,7 @@ namespace Spring.Threading.Collections.Generic
         [Test] public void DrainUnlimitedDelegateToDoDrainToVirtual()
         {
             const int result = 10;
-            Expect.Call(_testee.DoDrainTo(_mockAction)).Return(result);
+            Expect.Call(_testee.DoDrainTo(_mockAction, null)).Return(result);
             _mockery.ReplayAll();
             Assert.That(_testee.Drain(_mockAction), Is.EqualTo(result));
         }
@@ -91,7 +91,7 @@ namespace Spring.Threading.Collections.Generic
         [Test] public void DrainToUnlimitedDelegateToDoDrainToAbstract()
         {
             const int result = 10;
-            Expect.Call(_testee.DoDrainTo(_mockAction, int.MaxValue)).IgnoreArguments().Return(result);
+            Expect.Call(_testee.DoDrainTo(_mockAction, int.MaxValue, null)).IgnoreArguments().Return(result);
             _mockery.ReplayAll();
             Assert.That(_testee.DrainTo(_mockCollection), Is.EqualTo(result));
         }
@@ -99,7 +99,7 @@ namespace Spring.Threading.Collections.Generic
         [Test] public void DrainUnlimitedDelegateToDoDrainToAbstract()
         {
             const int result = 10;
-            Expect.Call(_testee.DoDrainTo(_mockAction, int.MaxValue)).Return(result);
+            Expect.Call(_testee.DoDrainTo(_mockAction, int.MaxValue, null)).Return(result);
             _mockery.ReplayAll();
             Assert.That(_testee.Drain(_mockAction), Is.EqualTo(result));
         }
@@ -108,7 +108,7 @@ namespace Spring.Threading.Collections.Generic
         {
             const int result = 10;
             const int limit = 5;
-            Expect.Call(_testee.DoDrainTo(_mockCollection.Add, limit)).Return(result);
+            Expect.Call(_testee.DoDrainTo(_mockCollection.Add, limit, null  )).Return(result);
             _mockery.ReplayAll();
             Assert.That(_testee.DrainTo(_mockCollection, limit), Is.EqualTo(result));
         }
@@ -117,7 +117,7 @@ namespace Spring.Threading.Collections.Generic
         {
             const int result = 10;
             const int limit = 5;
-            Expect.Call(_testee.DoDrainTo(_mockAction, limit)).Return(result);
+            Expect.Call(_testee.DoDrainTo(_mockAction, limit, null)).Return(result);
             _mockery.ReplayAll();
             Assert.That(_testee.Drain(_mockAction, limit), Is.EqualTo(result));
         }

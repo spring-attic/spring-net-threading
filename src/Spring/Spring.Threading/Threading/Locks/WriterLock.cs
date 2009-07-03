@@ -101,7 +101,7 @@ namespace Spring.Threading.Locks
 						{
 							ReentrantReadWriteLock.CancelWaitingWriter();
 							Monitor.Pulse(this);
-							ie = ExceptionExtensions.PreserveStackTrace(ex);
+							ie = SystemExtensions.PreserveStackTrace(ex);
 							break;
 						}
 					}
@@ -273,7 +273,7 @@ namespace Spring.Threading.Locks
 						{
 							ReentrantReadWriteLock.CancelWaitingWriter();
 							Monitor.Pulse(this);
-							ie = ExceptionExtensions.PreserveStackTrace(ex);
+							ie = SystemExtensions.PreserveStackTrace(ex);
 							break;
 						}
 						if (ReentrantReadWriteLock.StartWriteFromWaitingWriter())

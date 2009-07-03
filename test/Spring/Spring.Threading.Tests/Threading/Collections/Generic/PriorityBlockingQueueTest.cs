@@ -705,7 +705,7 @@ namespace Spring.Threading.Collections.Generic
         /// <summary>
         /// Offer transfers elements across Executor tasks
         /// </summary>
-        [Test, Ignore("check JoinPool()")]
+        [Test]
         public void TestPollInExecutor() {
             AtomicBoolean isInterupted = new AtomicBoolean(false);
             PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(2);

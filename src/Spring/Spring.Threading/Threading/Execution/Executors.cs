@@ -275,14 +275,14 @@ namespace Spring.Threading.Execution
 		/// </summary>
 		/// <remarks>
 		/// This factory creates all new threads used by an <see cref="Spring.Threading.IExecutor"/>.
-		/// invoking this <see cref="Spring.Threading.Execution.Executors.GetDefaultThreadFactory()"/> method.
+		/// invoking this <see cref="NewDefaultThreadFactory"/> method.
 		/// New threads have names accessible via <see cref="System.Threading.Thread.Name"/> of
 		/// <i>pool-N-thread-M</i>, where <i>N</i> is the sequence
 		/// number of this factory, and <i>M</i> is the sequence number
 		/// of the thread created by this factory.
 		/// </remarks>
 		/// <returns>a thread factory</returns>
-		public static IThreadFactory GetDefaultThreadFactory()
+		public static IThreadFactory NewDefaultThreadFactory()
 		{
 			return new DefaultThreadFactory();
 		}

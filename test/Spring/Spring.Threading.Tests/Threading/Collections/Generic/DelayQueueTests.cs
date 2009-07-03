@@ -907,7 +907,6 @@ namespace Spring.Threading.Collections.Generic
         }
 
         [Test]
-        [Ignore( "Re-evaluate when tests for ThreadPoolExecutor are created. " )]
         public void PollInExecutor()
         {
             DelayQueue<PDelay> q = new DelayQueue<PDelay>();

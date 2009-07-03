@@ -272,7 +272,7 @@ namespace Spring.Threading.Locks
 				    catch (ThreadInterruptedException e)
 				    {
                         if (_owner == null) Monitor.Pulse(this);
-				        throw ExceptionExtensions.PreserveStackTrace(e);
+				        throw SystemExtensions.PreserveStackTrace(e);
 				    }
 				}
 			}
@@ -306,7 +306,7 @@ namespace Spring.Threading.Locks
 				    catch (ThreadInterruptedException e)
 				    {
 				        if (_owner == null ) Monitor.Pulse(this);
-				        throw ExceptionExtensions.PreserveStackTrace(e);
+				        throw SystemExtensions.PreserveStackTrace(e);
 				    }
 				}
 			}

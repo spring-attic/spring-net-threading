@@ -91,7 +91,7 @@
     <Compile Include="Collections\Generic\IQueue.cs" />
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CommonAssemblyInfo.cs" />
-    <Compile Include="ExceptionExtensions.cs" />
+    <Compile Include="SystemExtensions.cs" />
     <Compile Include="Threading\AtomicTypes\AbstractAtomicArray.cs" />
     <Compile Include="Threading\AtomicTypes\Atomic.cs" />
     <Compile Include="Threading\AtomicTypes\AtomicArray.cs" />

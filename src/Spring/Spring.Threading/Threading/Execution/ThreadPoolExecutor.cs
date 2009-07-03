@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Security;
 using System.Threading;
 using Spring.Threading.AtomicTypes;
-using Spring.Threading.Collections;
 using Spring.Threading.Collections.Generic;
 using Spring.Threading.Execution.ExecutionPolicy;
-using Spring.Threading.Future;
 using Spring.Threading.Locks;
 
 namespace Spring.Threading.Execution
@@ -216,12 +214,12 @@ namespace Spring.Threading.Execution
     /// 
     ///		<dt>Hook methods</dt>
     /// 	<dd>
-    /// 		This class provides <i>protected</i> overridable <see cref="Spring.Threading.Execution.ThreadPoolExecutor.beforeExecute(Thread, IRunnable)"/>
-    /// 		and <see cref="Spring.Threading.Execution.ThreadPoolExecutor.afterExecute(IRunnable, Exception)"/> methods that are called before and
+    /// 		This class provides <i>protected</i> overridable <see cref="BeforeExecute"/>
+    /// 		and <see cref="AfterExecute"/> methods that are called before and
     ///			after execution of each task.  These can be used to manipulate the
     /// 		execution environment; for example, reinitializing ThreadLocals,
     /// 		gathering statistics, or adding log entries. Additionally, method
-    /// 		<see cref="Spring.Threading.Execution.ThreadPoolExecutor.terminated()"/> can be overridden to perform
+    /// 		<see cref="Terminated"/> can be overridden to perform
     /// 		any special processing that needs to be done once the Executor has
     /// 		fully terminated.
     /// 
@@ -261,8 +259,8 @@ namespace Spring.Threading.Execution
     /// 
     /// 		public PausableThreadPoolExecutor(...) : base( ... ) { }
     /// 
-    /// 		protected override void beforeExecute(Thread t, IRunnable r) {
-    /// 				base.beforeExecute(t, r);
+    /// 		protected override void BeforeExecute(Thread t, IRunnable r) {
+    /// 				base.BeforeExecute(t, r);
     /// 				_pauseLock.Lock();
     /// 				try {
     /// 					while (_isPaused) _unpaused.Await();
@@ -296,6 +294,7 @@ namespace Spring.Threading.Execution
     /// </remarks>
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu</author>
     public class ThreadPoolExecutor : AbstractExecutorService, IDisposable
     {
         #region Worker Class
@@ -317,7 +316,7 @@ namespace Spring.Threading.Execution
             /// Per thread completed task counter; accumulated
             /// into completedTaskCount upon termination.
             /// </summary>
-            protected internal volatile int CompletedTasks;
+            protected internal volatile uint CompletedTasks;
 
             /// <summary> 
             /// Initial task to run before entering run loop
@@ -349,8 +348,7 @@ namespace Spring.Threading.Execution
             /// </summary>
             public void Run()
             {
-                // TODO: Not ideal.  
-                _parentThreadPoolExecutor.runWorker(this);
+                _parentThreadPoolExecutor.RunWorker(this);
             }
 
             #endregion
@@ -359,6 +357,14 @@ namespace Spring.Threading.Execution
         #endregion
 
         #region Private Fields
+
+        private static readonly Action<IRunnable> _noAction = (r => { });
+
+        private static readonly Predicate<IRunnable> _checkCancelled = r =>
+        {
+            var c = r as ICancellable;
+            return c != null && c.IsCancelled;
+        };
 
         /// <summary>
         /// The main pool control state, controlState, is an <see cref="AtomicInteger"/> packing
@@ -389,8 +395,8 @@ namespace Spring.Threading.Execution
         ///             and interrupt in-progress tasks
         ///   TIDYING:  All tasks have terminated, workerCount is zero,
         ///             the thread transitioning to state TIDYING
-        ///             will run the <see cref="terminated"/> hook method
-        ///   TERMINATED: <see cref="terminated"/> has completed
+        ///             will run the <see cref="Terminated"/> hook method
+        ///   TERMINATED: <see cref="Terminated"/> has completed
         ///
         /// The numerical order among these values matters, to allow
         /// ordered comparisons. The runState monotonically increases over
@@ -405,7 +411,7 @@ namespace Spring.Threading.Execution
         /// STOP -> TIDYING
         ///    When pool is empty
         /// TIDYING -> TERMINATED
-        ///    When the <see cref="terminated"/> hook method has completed
+        ///    When the <see cref="Terminated"/> hook method has completed
         ///
         /// Threads waiting in <see cref="AwaitTermination"/> will return when the
         /// state reaches TERMINATED.
@@ -417,7 +423,7 @@ namespace Spring.Threading.Execution
         /// that workerCount is 0 (which sometimes entails a recheck -- see
         /// below).
         /// </summary>
-        private readonly AtomicInteger _controlState = new AtomicInteger(ctlOf(RUNNING, 0));
+        private readonly AtomicInteger _controlState = new AtomicInteger(ControlOf(RUNNING, 0));
         private const int COUNT_BITS = 29;
         private const int CAPACITY = (1 << COUNT_BITS) - 1;
 
@@ -427,26 +433,19 @@ namespace Spring.Threading.Execution
         private const int RUNNING = -1 << COUNT_BITS;
         private const int SHUTDOWN = 0 << COUNT_BITS;
         private const int STOP = 1 << COUNT_BITS;
-        private const int TERMINATED = 3 << COUNT_BITS;
         private const int TIDYING = 2 << COUNT_BITS;
-
-        /// <summary> 
-        /// If <see lang="false"/> ( the default), core threads stay alive even when idle.
-        /// If <see lang="true"/>, core threads use <see cref="Spring.Threading.Execution.ThreadPoolExecutor.KeepAliveTime"/> 
-        /// to time out waiting for work.
-        /// </summary>
-        private bool _allowCoreThreadToTimeOut;
+        private const int TERMINATED = 3 << COUNT_BITS;
 
         /// <summary> 
         /// Set containing all worker threads in pool. Accessed only when holding mainLock.
         /// </summary>
-        private readonly IList<Worker> _currentWorkerThreads = new List<Worker>();
+        private readonly IDictionary<Worker, Worker> _currentWorkerThreads = new Dictionary<Worker, Worker>();
 
         /// <summary> 
         /// Lock held on access to workers set and related bookkeeping.
         /// While we could use a concurrent set of some sort, it turns out
         /// to be generally preferable to use a lock. Among the reasons is
-        /// that this serializes interruptIdleWorkers, which avoids
+        /// that this serializes InterruptIdleWorkers, which avoids
         /// unnecessary interrupt storms, especially during shutdown.
         /// Otherwise exiting threads would concurrently interrupt those
         /// that have not yet interrupted. It also simplifies some of the
@@ -473,7 +472,7 @@ namespace Spring.Threading.Execution
         /// <summary>
         /// Wait condition to support AwaitTermination
         /// </summary>
-        private readonly ICondition termination;
+        private readonly ICondition _termination;
 
         /// <summary> 
         /// Counter for completed tasks. Updated only on termination of
@@ -487,6 +486,13 @@ namespace Spring.Threading.Execution
         private int _largestPoolSize;
 
         #region User Control Params
+
+        /*
+         * All user control parameters are declared as volatiles so that
+         * ongoing actions are based on freshest values, but without need
+         * for locking, since no internal invariants depend on them
+         * changing synchronously with respect to other actions.
+         */
 
         /// <summary> 
         /// The default <see cref="Spring.Threading.Execution.IRejectedExecutionHandler"/>
@@ -505,23 +511,32 @@ namespace Spring.Threading.Execution
         private volatile int _corePoolSize;
 
         /// <summary> 
-        /// Timeout for idle threads waiting for work.
-        /// Threads use this timeout when there are more than _corePoolSize
-        /// present or if _allowCoreThreadTimeOut. Otherwise they wait
-        /// forever for new work.
+        /// Timeout for idle threads waiting for work. Threads use this 
+        /// timeout when there are more than _corePoolSize present or 
+        /// if _allowCoreThreadTimeOut. Otherwise they wait forever for 
+        /// new work. We must use long instead of TimeSpan so that we
+        /// can update it atomically. Add access must through property
+        /// <see cref="KeepAliveTime"/>.
         /// </summary>
-        private TimeSpan _keepAliveTime;
+        private long _keepAliveTicks;
+
+        /// <summary> 
+        /// If <see lang="false"/> (the default), core threads stay alive even when idle.
+        /// If <see lang="true"/>, core threads use <see cref="KeepAliveTime"/> 
+        /// to time out waiting for work.
+        /// </summary>
+        private volatile bool _allowCoreThreadToTimeOut;
 
         /// <summary> 
         /// Maximum pool size. Note that the actual maximum is internally
-        ///  bounded by CAPACITY.
+        /// bounded by CAPACITY.
         /// </summary>
         private volatile int _maximumPoolSize;
 
         /// <summary> 
-        /// <see cref="Spring.Threading.Execution.IRejectedExecutionHandler"/> called when
-        /// <see cref="Spring.Threading.Execution.ThreadPoolExecutor"/> is saturated or  
-        /// <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Shutdown()"/> in executed.
+        /// <see cref="IRejectedExecutionHandler"/> called when
+        /// <see cref="ThreadPoolExecutor"/> is saturated or  
+        /// <see cref="Shutdown()"/> in executed.
         /// </summary>
         private volatile IRejectedExecutionHandler _rejectedExecutionHandler;
 
@@ -542,17 +557,17 @@ namespace Spring.Threading.Execution
         #endregion
 
         #region Control State Packing & Unpacking Functions
-        private static int runStateOf(int c)
+        private static int RunStateOf(int c)
         {
             return c & ~CAPACITY;
         }
 
-        private static int workerCountOf(int c)
+        private static int WorkerCountOf(int c)
         {
             return c & CAPACITY;
         }
 
-        private static int ctlOf(int rs, int wc)
+        private static int ControlOf(int rs, int wc)
         {
             return rs | wc;
         }
@@ -563,17 +578,17 @@ namespace Spring.Threading.Execution
         /// Bit field accessors that don't require unpacking _controlState.
         /// These depend on the bit layout and on workerCount being never negative.
         /// </summary>
-        private static bool runStateLessThan(int c, int s)
+        private static bool RunStateLessThan(int c, int s)
         {
             return c < s;
         }
 
-        private static bool runStateAtLeast(int c, int s)
+        private static bool RunStateAtLeast(int c, int s)
         {
             return c >= s;
         }
 
-        private static bool isRunning(int c)
+        private static bool IsRunning(int c)
         {
             return c < SHUTDOWN;
         }
@@ -584,7 +599,7 @@ namespace Spring.Threading.Execution
         #region Public Properties
 
         /// <summary> 
-        /// Gets / Sets the time limit for which threads may remain idle before
+        /// Gets and sets the time limit for which threads may remain idle before
         /// being terminated.  
         /// </summary>
         /// <remarks>
@@ -593,7 +608,7 @@ namespace Spring.Threading.Execution
         /// time without processing a task, excess threads will be
         /// terminated.
         /// </remarks>
-        /// <exception cref="System.ArgumentException">
+        /// <exception cref="ArgumentException">
         /// if <i>value</i> is less than 0 or if <i>value</i> equals 0 and 
         /// <see cref="AllowsCoreThreadsToTimeOut"/> is 
         /// <see lang="true"/>
@@ -604,18 +619,22 @@ namespace Spring.Threading.Execution
             {
                 if (value.Ticks < 0)
                 {
-                    throw new ArgumentException("Keep alive time must be greater than 0.");
+                    throw new ArgumentOutOfRangeException("value", value, "Keep alive time must be greater than 0.");
                 }
                 if (value.Ticks == 0 && AllowsCoreThreadsToTimeOut)
                 {
                     throw new ArgumentException("Core threads must have nonzero keep alive times");
                 }
-                var delta = value - _keepAliveTime;
-                _keepAliveTime = value;
-                if (delta.Ticks < 0)
-                    interruptIdleWorkers();
+                var longValue = value.Ticks;
+                var keepAliveTime = Interlocked.Exchange(ref _keepAliveTicks, longValue);
+                var delta = longValue - keepAliveTime;
+                if (delta < 0)
+                    InterruptIdleWorkers();
             }
-            get { return _keepAliveTime; }
+            get
+            {
+                return new TimeSpan(Interlocked.Read(ref _keepAliveTicks));
+            }
         }
 
         /// <summary>
@@ -639,13 +658,15 @@ namespace Spring.Threading.Execution
         /// greater than zero when setting {@code true}. This method
         /// should in general be called before the pool is actively used.
         /// </returns>
-        /// <exception cref="System.ArgumentException">if <see lang="true"/> and keep alive time is less than or equal to 0</exception>
+        /// <exception cref="System.ArgumentException">
+        /// If <see lang="true"/> and keep alive time is less than or equal to 0
+        /// </exception>
         public bool AllowsCoreThreadsToTimeOut
         {
             get { return _allowCoreThreadToTimeOut; }
             set
             {
-                if (value && _keepAliveTime.Ticks <= 0)
+                if (value && KeepAliveTime.Ticks <= 0)
                 {
                     throw new ArgumentException("Core threads must have nonzero keep alive times");
                 }
@@ -653,7 +674,7 @@ namespace Spring.Threading.Execution
                 if (value == _allowCoreThreadToTimeOut) return;
                 _allowCoreThreadToTimeOut = value;
                 if (value)
-                    interruptIdleWorkers();
+                    InterruptIdleWorkers();
             }
         }
 
@@ -675,7 +696,7 @@ namespace Spring.Threading.Execution
             get
             {
                 var c = _controlState.Value;
-                return !isRunning(c) && runStateLessThan(c, TERMINATED);
+                return !IsRunning(c) && RunStateLessThan(c, TERMINATED);
             }
         }
 
@@ -692,7 +713,7 @@ namespace Spring.Threading.Execution
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("threadfactory");
+                    throw new ArgumentNullException("value");
                 }
                 _threadFactory = value;
             }
@@ -711,7 +732,7 @@ namespace Spring.Threading.Execution
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("rejectedExecutionHandler");
+                    throw new ArgumentNullException("value");
                 }
                 _rejectedExecutionHandler = value;
             }
@@ -744,11 +765,11 @@ namespace Spring.Threading.Execution
             set
             {
                 if (value < 0)
-                    throw new ArgumentException("CorePoolSize cannot be less than 0");
+                    throw new ArgumentOutOfRangeException("value", value, "CorePoolSize cannot be less than 0");
                 var delta = value - _corePoolSize;
                 _corePoolSize = value;
-                if (workerCountOf(_controlState.Value) > value)
-                    interruptIdleWorkers();
+                if (WorkerCountOf(_controlState.Value) > value)
+                    InterruptIdleWorkers();
                 else if (delta > 0)
                 {
                     // We don't really know how many new threads are "needed".
@@ -756,7 +777,7 @@ namespace Spring.Threading.Execution
                     // core size) to handle the current number of tasks in
                     // queue, but stop if queue becomes empty while doing so.
                     var k = Math.Min(delta, _workQueue.Count);
-                    while (k-- > 0 && addWorker(null, true))
+                    while (k-- > 0 && AddWorker(null, true))
                     {
                         if (_workQueue.Count < 1)
                             break;
@@ -772,18 +793,12 @@ namespace Spring.Threading.Execution
         {
             get
             {
-                var mainLock = _mainLock;
-                mainLock.Lock();
-                try
+                using(_mainLock.Lock())
                 {
                     // Remove rare and surprising possibility of
                     // isTerminated() && getPoolSize() > 0
-                    return runStateAtLeast(_controlState.Value, TIDYING) ? 0
-                               : _currentWorkerThreads.Count;
-                }
-                finally
-                {
-                    mainLock.Unlock();
+                    return RunStateAtLeast(_controlState.Value, TIDYING) ? 
+                        0 : _currentWorkerThreads.Count;
                 }
             }
         }
@@ -796,20 +811,14 @@ namespace Spring.Threading.Execution
         {
             get
             {
-                var mainLock = _mainLock;
-                mainLock.Lock();
-                try
+                using(_mainLock.Lock())
                 {
                     var n = 0;
-                    foreach (var worker in _currentWorkerThreads)
+                    foreach (var worker in _currentWorkerThreads.Keys)
                     {
                         if (worker.IsLocked) ++n;
                     }
                     return n;
-                }
-                finally
-                {
-                    mainLock.Unlock();
                 }
             }
         }
@@ -833,10 +842,14 @@ namespace Spring.Threading.Execution
             set
             {
                 if (value <= 0 || value < _corePoolSize)
-                    throw new ArgumentException(String.Format("Maximum pool size cannont be less than 1 and cannot be less than Core Pool Size {0}", _corePoolSize));
+                {
+                    throw new ArgumentOutOfRangeException("value", value, String.Format(
+                        "Maximum pool size cannont be less than 1 and cannot be less than Core Pool Size {0}",
+                        _corePoolSize));
+                }
                 _maximumPoolSize = value;
-                if (workerCountOf(_controlState.Value) > value)
-                    interruptIdleWorkers();
+                if (WorkerCountOf(_controlState.Value) > value)
+                    InterruptIdleWorkers();
             }
         }
 
@@ -849,15 +862,9 @@ namespace Spring.Threading.Execution
         {
             get
             {
-                var mainLock = _mainLock;
-                mainLock.Lock();
-                try
+                using(_mainLock.Lock())
                 {
                     return _largestPoolSize;
-                }
-                finally
-                {
-                    mainLock.Unlock();
                 }
             }
         }
@@ -876,21 +883,16 @@ namespace Spring.Threading.Execution
         {
             get
             {
-                _mainLock.Lock();
-                try
+                using(_mainLock.Lock())
                 {
                     var n = _completedTaskCount;
-                    foreach (var w in _currentWorkerThreads)
+                    foreach (var w in _currentWorkerThreads.Keys)
                     {
                         n += w.CompletedTasks;
                         if (w.IsLocked)
                             ++n;
                     }
                     return n + _workQueue.Count;
-                }
-                finally
-                {
-                    _mainLock.Unlock();
                 }
             }
         }
@@ -910,488 +912,21 @@ namespace Spring.Threading.Execution
         {
             get
             {
-                var mainLock = _mainLock;
-                mainLock.Lock();
-                try
+                using(_mainLock.Lock())
                 {
                     var n = _completedTaskCount;
-                    foreach (var worker in _currentWorkerThreads)
+                    foreach (var worker in _currentWorkerThreads.Keys)
                     {
                         n += worker.CompletedTasks;
                     }
                     return n;
                 }
-                finally
-                {
-                    mainLock.Unlock();
-                }
-            }
-        }
-
-        /// <summary> 
-        /// Tries to remove from the work queue all {@link Future}
-        /// tasks that have been cancelled. This method can be useful as a
-        /// storage reclamation operation, that has no other impact on
-        /// functionality. Cancelled tasks are never executed, but may
-        /// accumulate in work queues until worker threads can actively
-        /// remove them. Invoking this method instead tries to remove them now.
-        /// However, this method may fail to remove tasks in
-        /// the presence of interference by other threads.
-        /// </summary>
-        public void Purge()
-        {
-            var q = _workQueue;
-            // TODO: What should we do w/ the CME exception?
-            //        try
-            //        {
-            foreach (var runnable in q)
-            {
-                if (runnable is ICancellable && ((ICancellable) runnable).IsCancelled)
-                    _workQueue.Remove(runnable);
-            }
-            //        }
-            //    } catch (ConcurrentModificationException fallThrough) {
-            //	    // Take slow path if we encounter interference during traversal.
-            //            // Make copy for traversal and call remove for cancelled entries.
-            //	    // The slow path is more likely to be O(N*N).
-            //            Object[] arr = q.toArray();
-            //            for (int i=0; i<arr.length; i++) {
-            //                Object r = arr[i];
-            //                if (r instanceof Future && ((Future)r).isCancelled())
-            //		    q.remove(r);
-            //            }
-            //        }
-
-            tryTerminate(); // In case SHUTDOWN and now empty
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        private const bool ONLY_ONE = true;
-
-        /// <summary>
-        /// Main worker run loop.  Repeatedly gets tasks from queue and
-        /// executes them, while coping with a number of issues:
-        ///
-        /// 1. We may start out with an initial task, in which case we
-        /// don't need to get the first one. Otherwise, as long as pool is
-        /// running, we get tasks from getTask. If it returns null then the
-        /// worker exits due to changed pool state or configuration
-        /// parameters.  Other exits result from exception throws in
-        /// external code, in which case completedAbruptly holds, which
-        /// usually leads processWorkerExit to replace this thread.
-        ///
-        /// 2. Before running any task, the lock is acquired to prevent
-        /// other pool interrupts while the task is executing, and
-        /// clearInterruptsForTaskRun called to ensure that unless pool is
-        /// stopping, this thread does not have its interrupt set.
-        ///
-        /// 3. Each task run is preceded by a call to beforeExecute, which
-        /// might throw an exception, in which case we cause thread to die
-        /// (breaking loop with completedAbruptly true) without processing
-        /// the task.
-        ///
-        /// 4. Assuming beforeExecute completes normally, we run the task,
-        /// gathering any of its thrown exceptions to send to
-        /// afterExecute. We separately handle RuntimeException, Error
-        /// (both of which the specs guarantee that we trap) and arbitrary
-        /// Throwables.  Because we cannot rethrow Throwables within
-        /// Runnable.run, we wrap them within Errors on the way out (to the
-        /// thread's UncaughtExceptionHandler).  Any thrown exception also
-        /// conservatively causes thread to die.
-        ///
-        /// 5. After task.run completes, we call afterExecute, which may
-        /// also throw an exception, which will also cause thread to
-        /// die. According to JLS Sec 14.20, this exception is the one that
-        /// will be in effect even if task.run throws.
-        ///
-        /// The net effect of the exception mechanics is that afterExecute
-        /// and the thread's UncaughtExceptionHandler have as accurate
-        /// information as we can provide about any problems encountered by
-        /// user code.
-        ///
-        /// <param name="worker">the worker to run</param>
-        /// </summary>
-        protected void runWorker(Worker worker)
-        {
-            var task = worker.FirstTask;
-            worker.FirstTask = null;
-            var completedAbruptly = true;
-            try
-            {
-                while (task != null || (task = getTask()) != null)
-                {
-                    worker.Lock();
-                    clearInterruptsForTaskRun();
-                    try
-                    {
-                        beforeExecute(worker.Thread, task);
-                        Exception thrown = null;
-                        try
-                        {
-                            task.Run();
-                        }
-                        catch (Exception x)
-                        {
-                            thrown = ExceptionExtensions.PreserveStackTrace(x);
-                            throw thrown;
-                        }
-                        finally
-                        {
-                            afterExecute(task, thrown);
-                        }
-                    }
-                    finally
-                    {
-                        task = null;
-                        worker.CompletedTasks++;
-                        worker.Unlock();
-                    }
-                }
-                completedAbruptly = false;
-            }
-            finally
-            {
-                processWorkerExit(worker, completedAbruptly);
-            }
-        }
-
-        /// <summary>
-        /// Performs cleanup and bookkeeping for a dying worker. Called
-        /// only from worker threads. Unless completedAbruptly is set,
-        /// assumes that workerCount has already been adjusted to account
-        /// for exit.  This method removes thread from worker set, and
-        /// possibly terminates the pool or replaces the worker if either
-        /// it exited due to user task exception or if fewer than
-        /// corePoolSize workers are running or queue is non-empty but
-        /// there are no workers.
-        ///
-        /// <param name="w">the worker</param>
-        /// <param name="completedAbruptly">if the worker died to the user exception</param>
-        /// </summary>
-        private void processWorkerExit(Worker w, bool completedAbruptly)
-        {
-            if (completedAbruptly) // If abrupt, then workerCount wasn't adjusted
-                decrementWorkerCount();
-
-            _mainLock.Lock();
-            try
-            {
-                _completedTaskCount += w.CompletedTasks;
-                _currentWorkerThreads.Remove(w);
-            }
-            finally
-            {
-                _mainLock.Unlock();
-            }
-
-            tryTerminate();
-
-            var c = _controlState.Value;
-            if (!runStateLessThan(c, STOP)) return;
-            if (!completedAbruptly)
-            {
-                int min = _allowCoreThreadToTimeOut ? 0 : _corePoolSize;
-                if (min == 0 && _workQueue.Count > 0)
-                    min = 1;
-                if (workerCountOf(c) >= min)
-                    return; // replacement not needed
-            }
-            addWorker(null, false);
-        }
-
-    /// <summary>
-     /// Checks if a new worker can be added with respect to current
-     /// pool state and the given bound (either core or maximum). If so,
-     /// the worker count is adjusted accordingly, and, if possible, a
-     /// new worker is created and started running firstTask as its
-     /// first task. This method returns false if the pool is stopped or
-     /// eligible to shut down. It also returns false if the thread
-     /// factory fails to create a thread when asked, which requires a
-     /// backout of workerCount, and a recheck for termination, in case
-     /// the existence of this worker was holding up termination.
-     /// </summary>
-     ///
-     /// <param name="firstTask"> the task the new thread should run first (or
-     /// null if none). Workers are created with an initial first task
-     /// (in method <see cref="Execute"/>) to bypass queuing when there are fewer
-     /// than <see cref="CorePoolSize"/> threads (in which case we always start one),
-     /// or when the queue is full (in which case we must bypass queue).
-     /// Initially idle threads are usually created via
-     /// <see cref="PreStartCoreThread"/> or to replace other dying workers.
-     /// </param>
-     /// <param name="core">
-     /// if true use <see cref="CorePoolSize"/> as bound, else
-     /// <see cref="MaximumPoolSize"/>. (A bool indicator is used here rather than a
-     /// value to ensure reads of fresh values after checking other pool
-     /// state).</param>
-     /// <returns><see lang="true"/> if successful</returns>
-        private bool addWorker(IRunnable firstTask, bool core)
-        {
-            retry:
-            for (;;)
-            {
-                var c = _controlState.Value;
-                var rs = runStateOf(c);
-
-                // Check if queue empty only if necessary.
-                if (rs >= SHUTDOWN && !(rs == SHUTDOWN & firstTask == null && _workQueue.Count > 0))
-                    return false;
-
-                for (;;)
-                {
-                    int wc = workerCountOf(c);
-                    if (wc >= CAPACITY || wc >= (core ? _corePoolSize : _maximumPoolSize))
-                        return false;
-                    if (compareAndIncrementWorkerCount(c))
-                        goto proceed;
-                    c = _controlState.Value; // Re-read ctl
-                    if (runStateOf(c) != rs)
-                        goto retry;
-                }
-            }
-            proceed:
-
-            var w = new Worker(this, firstTask);
-            var t = w.Thread;
-
-            _mainLock.Lock();
-            try
-            {
-                // Recheck while holding lock.
-                // Back out on ThreadFactory failure or if
-                // shut down before lock acquired.
-                var c = _controlState.Value;
-                var rs = runStateOf(c);
-
-                if (t == null ||
-                    (rs >= SHUTDOWN &&
-                     !(rs == SHUTDOWN &&
-                       firstTask == null)))
-                {
-                    decrementWorkerCount();
-                    tryTerminate();
-                    return false;
-                }
-
-                _currentWorkerThreads.Add(w);
-
-                var s = _currentWorkerThreads.Count;
-                if (s > _largestPoolSize)
-                    _largestPoolSize = s;
-            }
-            finally
-            {
-                _mainLock.Unlock();
-            }
-
-            t.Start();
-            // It is possible (but unlikely) for a thread to have been
-            // added to workers, but not yet started, during transition to
-            // STOP, which could result in a rare missed interrupt,
-            // because Thread.interrupt is not guaranteed to have any effect
-            // on a non-yet-started Thread (see Thread#interrupt).
-            if (runStateOf(_controlState.Value) == STOP && t.IsAlive)
-                t.Interrupt();
-
-            return true;
-        }
-
-        /// <summary>
-        /// Attempt to CAS-increment the workerCount field of control state.
-        /// </summary>
-        private bool compareAndIncrementWorkerCount(int expect)
-        {
-            return _controlState.CompareAndSet(expect, expect + 1);
-        }
-
-        /// <summary>
-        ///Attempt to CAS-decrement the workerCount field of control state.
-        /// </summary>
-        private bool compareAndDecrementWorkerCount(int expect)
-        {
-            return _controlState.CompareAndSet(expect, expect - 1);
-        }
-
-        /// <summary>
-        /// Decrements the workerCount field of ctl. This is called only on
-        /// abrupt termination of a thread (see processWorkerExit). Other
-        /// decrements are performed within getTask.
-        /// </summary>
-        private void decrementWorkerCount()
-        {
-            do
-            {
-            } while (! compareAndDecrementWorkerCount(_controlState.Value));
-        }
-
-
-        /// <summary> 
-        /// Ensures that unless the pool is stopping, the current thread
-        /// does not have its interrupt set. This requires a double-check
-        /// of state in case the interrupt was cleared concurrently with a
-        /// shutdownNow -- if so, the interrupt is re-enabled.
-        /// </summary>
-        private void clearInterruptsForTaskRun()
-        {
-            if (runStateLessThan(_controlState.Value, STOP) &&
-                !Thread.CurrentThread.IsAlive &&
-                runStateAtLeast(_controlState.Value, STOP))
-                Thread.CurrentThread.Interrupt();
-        }
-
-        /// <summary> 
-        /// State check needed by ScheduledThreadPoolExecutor to
-        /// enable running tasks during shutdown.
-        /// </summary>
-        ///
-        /// <param name="shutdownOK"><see lang="true"> if should return true if SHUTDOWN</see></param>
-        private bool isRunningOrShutdown(bool shutdownOK)
-        {
-            var rs = runStateOf(_controlState.Value);
-            return rs == RUNNING || (rs == SHUTDOWN && shutdownOK);
-        }
-
-        /// <summary> 
-        /// Performs blocking or timed wait for a task, depending on
-        /// current configuration settings, or returns null if this worker
-        /// must exit because of any of:
-        /// 1. There are more than maximumPoolSize workers (due to
-        ///    a call to setMaximumPoolSize).
-        /// 2. The pool is stopped.
-        /// 3. The pool is shutdown and the queue is empty.
-        /// 4. This worker timed out waiting for a task, and timed-out
-        ///    workers are subject to termination (that is,
-        ///    {@code allowCoreThreadTimeOut || workerCount > corePoolSize})
-        ///    both before and after the timed wait.
-        /// </summary> 
-        ///<returns><see cref="IRunnable"/> task or <see lang="null"/>
-        /// if the worker must exit, in which case workerCount is decremented
-        /// </returns>
-        private IRunnable getTask()
-        {
-            var timedOut = false; // Did the last poll() time out?
-
-            retry:
-            for (;;)
-            {
-                int c = _controlState.Value;
-                var rs = runStateOf(c);
-
-                // Check if queue empty only if necessary.
-                if (rs >= SHUTDOWN && (rs >= STOP || _workQueue.Count == 0))
-                {
-                    decrementWorkerCount();
-                    return null;
-                }
-
-                bool timed; // Are workers subject to culling?
-
-                for (;;)
-                {
-                    var wc = workerCountOf(c);
-                    timed = _allowCoreThreadToTimeOut || wc > _corePoolSize;
-
-                    if (wc <= _maximumPoolSize && ! (timedOut && timed))
-                        break;
-                    if (compareAndDecrementWorkerCount(c))
-                        return null;
-                    c = _controlState.Value; 
-                    if (runStateOf(c) != rs)
-                        goto retry;
-                }
-
-                try
-                {
-                    IRunnable r;
-                    if (timed)
-                    {
-                        _workQueue.Poll(_keepAliveTime, out r);
-                    }
-                    else
-                    {
-                        r = _workQueue.Take();
-                    }
-                    if (r != null)
-                        return r;
-                    timedOut = true;
-                }
-                catch (ThreadInterruptedException)
-                {
-                    timedOut = false;
-                }
-            }
-        }
-
-        /// <summary> 
-        /// Invokes the rejected execution handler for the given command.
-        /// </summary>
-        private void reject(IRunnable command)
-        {
-            _rejectedExecutionHandler.RejectedExecution(command, this);
-        }
-
-        /// <summary> 
-        /// Interrupts all threads that might be waiting for tasks.
-        /// </summary>
-        private void interruptIdleWorkers()
-        {
-            interruptIdleWorkers(false);
-        }
-
-        /// <summary> 
-        /// Interrupts threads that might be waiting for tasks (as
-        /// indicated by not being locked) so they can check for
-        /// termination or configuration changes. Ignores
-        /// SecurityExceptions (in which case some threads may remain
-        /// uninterrupted).
-        ///
-        /// @param onlyOne If true, interrupt at most one worker. This is
-        /// called only from tryTerminate when termination is otherwise
-        /// enabled but there are still other workers.  In this case, at
-        /// most one waiting worker is interrupted to propagate shutdown
-        /// signals in case all threads are currently waiting.
-        /// Interrupting any arbitrary thread ensures that newly arriving
-        /// workers since shutdown began will also eventually exit.
-        /// To guarantee eventual termination, it suffices to always
-        /// interrupt only one idle worker, but shutdown() interrupts all
-        /// idle workers so that redundant workers exit promptly, not
-        /// waiting for a straggler task to finish.
-        /// </summary>
-        private void interruptIdleWorkers(bool onlyOne)
-        {
-            _mainLock.Lock();
-            try
-            {
-                foreach (var workerThread in _currentWorkerThreads)
-                {
-                    var t = workerThread.Thread;
-                    if (t.IsAlive && workerThread.TryLock())
-                    {
-                        try
-                        {
-                            t.Interrupt();
-                        }
-                        finally
-                        {
-                            workerThread.Unlock();
-                        }
-                    }
-                    if (onlyOne)
-                        break;
-                }
-            }
-            finally
-            {
-                _mainLock.Unlock();
             }
         }
 
         #endregion
 
-        #region Default Constructors
+        #region Constructors
 
         /// <summary> 
         /// Creates a new <see cref="Spring.Threading.Execution.ThreadPoolExecutor"/> with the given initial
@@ -1421,7 +956,7 @@ namespace Spring.Threading.Execution
         /// <throws>  NullPointerException if <tt>workQueue</tt> is null </throws>
         public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, TimeSpan keepAliveTime, IBlockingQueue<IRunnable> workQueue)
             : this(
-                corePoolSize, maximumPoolSize, keepAliveTime, workQueue, Executors.GetDefaultThreadFactory(),
+                corePoolSize, maximumPoolSize, keepAliveTime, workQueue, Executors.NewDefaultThreadFactory(),
                 _defaultRejectedExecutionHandler)
         {
         }
@@ -1487,7 +1022,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">if <paramref name="workQueue"/> or <paramref name="handler"/> is null</exception>
         public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, TimeSpan keepAliveTime, IBlockingQueue<IRunnable> workQueue,
                                   IRejectedExecutionHandler handler)
-            : this(corePoolSize, maximumPoolSize, keepAliveTime, workQueue, Executors.GetDefaultThreadFactory(), handler)
+            : this(corePoolSize, maximumPoolSize, keepAliveTime, workQueue, Executors.NewDefaultThreadFactory(), handler)
         {
         }
 
@@ -1524,16 +1059,18 @@ namespace Spring.Threading.Execution
         {
             if (corePoolSize < 0)
             {
-                throw new ArgumentException("core pool size must be greater than or equal to zero: " + corePoolSize);
+                throw new ArgumentOutOfRangeException("corePoolSize", corePoolSize, 
+                    "core pool size cannot be less than zero.");
             }
             if (maximumPoolSize <= 0)
             {
-                throw new ArgumentException("maximum pool size cannot be less than or equal to zero: " + maximumPoolSize);
+                throw new ArgumentOutOfRangeException("maximumPoolSize", maximumPoolSize, 
+                    "maximum pool size must be greater than zero");
             }
             if (maximumPoolSize < corePoolSize)
             {
-                throw new ArgumentException("maximum pool size, " + maximumPoolSize + " cannot be less than core pool size, " +
-                                            corePoolSize + ".");
+                throw new ArgumentException("maximum pool size, " + maximumPoolSize + 
+                    " cannot be less than core pool size, " + corePoolSize + ".");
             }
             if (keepAliveTime.Ticks < 0)
             {
@@ -1554,10 +1091,10 @@ namespace Spring.Threading.Execution
             _corePoolSize = corePoolSize;
             _maximumPoolSize = maximumPoolSize;
             _workQueue = workQueue;
-            _keepAliveTime = keepAliveTime;
+            KeepAliveTime = keepAliveTime;
             _threadFactory = threadFactory;
             _rejectedExecutionHandler = handler;
-            termination = _mainLock.NewCondition();
+            _termination = _mainLock.NewCondition();
         }
 
         #endregion
@@ -1572,7 +1109,7 @@ namespace Spring.Threading.Execution
         /// </returns>
         public override bool IsShutdown
         {
-            get { return !isRunning(_controlState.Value); }
+            get { return !IsRunning(_controlState.Value); }
         }
 
         /// <summary> 
@@ -1586,7 +1123,7 @@ namespace Spring.Threading.Execution
         /// <returns> <see lang="true"/> if all tasks have completed following shut down</returns>
         public override bool IsTerminated
         {
-            get { return runStateAtLeast(_controlState.Value, TERMINATED); }
+            get { return RunStateAtLeast(_controlState.Value, TERMINATED); }
         }
 
         /// <summary> 
@@ -1615,7 +1152,7 @@ namespace Spring.Threading.Execution
              *
              * 1. If fewer than corePoolSize threads are running, try to
              * start a new thread with the given command as its first
-             * task.  The call to addWorker atomically checks runState and
+             * task.  The call to AddWorker atomically checks runState and
              * workerCount, and so prevents false alarms that would add
              * threads when it shouldn't, by returning false.
              *
@@ -1631,22 +1168,22 @@ namespace Spring.Threading.Execution
              * and so reject the task.
              */
             var c = _controlState.Value;
-            if (workerCountOf(c) < _corePoolSize)
+            if (WorkerCountOf(c) < _corePoolSize)
             {
-                if (addWorker(command, true))
+                if (AddWorker(command, true)) 
                     return;
                 c = _controlState.Value;
             }
-            if (isRunning(c) && _workQueue.Offer(command))
+            if (IsRunning(c) && _workQueue.Offer(command))
             {
                 int recheck = _controlState.Value;
-                if (!isRunning(recheck) && Remove(command))
-                    reject(command);
-                else if (workerCountOf(recheck) == 0)
-                    addWorker(null, false);
+                if (!IsRunning(recheck) && Remove(command))
+                    Reject(command);
+                else if (WorkerCountOf(recheck) == 0)
+                    AddWorker(null, false);
             }
-            else if (!addWorker(command, false))
-                reject(command);
+            else if (!AddWorker(command, false))
+                Reject(command);
         }
 
         /// <summary>
@@ -1668,84 +1205,8 @@ namespace Spring.Threading.Execution
         public bool Remove(IRunnable task)
         {
             var removed = _workQueue.Remove(task);
-            tryTerminate(); // In case SHUTDOWN and now empty
+            TryTerminate(); // In case SHUTDOWN and now empty
             return removed;
-        }
-
-        /// <summary>
-        /// Transitions control state to given target or leaves if alone if
-        /// already at least the given target.
-        /// </summary>
-        /// <param name="targetState">the desired state, either SHUTDOWN or STOP ( but 
-        /// not TIDYING or TERMINATED -- use TryTerminate for that )</param>
-        private void advanceRunState(int targetState)
-        {
-            for (;;)
-            {
-                var state = _controlState.Value;
-                if (runStateAtLeast(state, targetState) ||
-                    _controlState.CompareAndSet(state, ctlOf(targetState, workerCountOf(state))))
-                    break;
-            }
-        }
-
-        /// <summary> 
-        ///Performs any further cleanup following run state transition on
-        /// invocation of shutdown.  A no-op here, but used by
-        /// ScheduledThreadPoolExecutor to cancel delayed tasks.
-        /// </summary>
-        protected void onShutdown()
-        {
-        }
-
-        /// <summary> 
-        /// Transitions to TERMINATED state if either (SHUTDOWN and pool
-        /// and queue empty) or (STOP and pool empty).  If otherwise
-        /// eligible to terminate but workerCount is nonzero, interrupts an
-        /// idle worker to ensure that shutdown signals propagate. This
-        /// method must be called following any action that might make
-        /// termination possible -- reducing worker count or removing tasks
-        /// from the queue during shutdown. The method is non-private to
-        /// allow access from ScheduledThreadPoolExecutor.
-        /// </summary>
-        private void tryTerminate()
-        {
-            for (;;)
-            {
-                var c = _controlState.Value;
-                if (isRunning(c) ||
-                    runStateAtLeast(c, TIDYING) ||
-                    (runStateOf(c) == SHUTDOWN && _workQueue.Count > 0))
-                    return;
-                if (workerCountOf(c) != 0)
-                {
-                    // Eligible to terminate
-                    interruptIdleWorkers(ONLY_ONE);
-                    return;
-                }
-
-                _mainLock.Lock();
-                try
-                {
-                    if (_controlState.CompareAndSet(c, ctlOf(TIDYING, 0)))
-                    {
-                        try
-                        {
-                            terminated();
-                        }
-                        finally
-                        {
-                            _controlState.Exchange((ctlOf(TERMINATED, 0)));
-                            termination.SignalAll();
-                        }
-                        return;
-                    }
-                }
-                finally
-                {
-                    _mainLock.Unlock();
-                }
-            }
         }
 
         /// <summary> 
@@ -1756,18 +1217,14 @@ namespace Spring.Threading.Execution
         /// </summary>
         public override void Shutdown()
         {
-            _mainLock.Lock();
-            try
+            using(_mainLock.Lock())
             {
-                advanceRunState(SHUTDOWN);
-                interruptIdleWorkers();
-                onShutdown(); // hook for ScheduledThreadPoolExecutor
+                //TODO_SECURITY_CHECK
+                AdvanceRunState(SHUTDOWN);
+                InterruptIdleWorkers();
+                OnShutdown(); // hook for ScheduledThreadPoolExecutor
             }
-            finally
-            {
-                _mainLock.Unlock();
-            }
-            tryTerminate();
+            TryTerminate();
         }
 
         /// <summary> 
@@ -1785,68 +1242,14 @@ namespace Spring.Threading.Execution
         public override IList<IRunnable> ShutdownNow()
         {
             IList<IRunnable> tasks;
-            _mainLock.Lock();
-            try
+            using(_mainLock.Lock())
             {
-                advanceRunState(STOP);
-                interruptWorkers();
-                tasks = drainQueue();
+                AdvanceRunState(STOP);
+                InterruptWorkers();
+                tasks = DrainQueue();
             }
-            finally
-            {
-                _mainLock.Unlock();
-            }
-            tryTerminate();
+            TryTerminate();
             return tasks;
-        }
-
-
-        /// <summary> 
-        /// Interrupts all threads, even if active. Ignores SecurityExceptions
-        /// (in which case some threads may remain uninterrupted).
-        /// </summary> 
-        private void interruptWorkers()
-        {
-            _mainLock.Lock();
-            try
-            {
-                foreach (var worker in _currentWorkerThreads)
-                {
-                    try
-                    {
-                        worker.Thread.Interrupt();
-                    }
-                    catch (SecurityException)
-                    {
-                    }
-                }
-            }
-            finally
-            {
-                _mainLock.Unlock();
-            }
-        }
-
-        /// <summary> 
-        /// Drains the task queue into a new list, normally using
-        /// drainTo. But if the queue is a DelayQueue or any other kind of
-        /// queue for which poll or drainTo may fail to remove some
-        /// elements, it deletes them one by one.
-        /// </summary> 
-        private IList<IRunnable> drainQueue()
-        {
-            var q = _workQueue;
-            IList<IRunnable> taskList = new List<IRunnable>();
-            q.DrainTo(taskList);
-            if (q.Count > 0)
-            {
-                foreach (var runnable in q)
-                {
-                    if (q.Remove(runnable))
-                        taskList.Add(runnable);
-                }
-            }
-            return taskList;
         }
 
         /// <summary> 
@@ -1863,18 +1266,16 @@ namespace Spring.Threading.Execution
         {
             var durationToWait = duration;
             var deadline = DateTime.Now.Add(durationToWait);
-            var mainLock = _mainLock;
-            mainLock.Lock();
-            try
+            using(_mainLock.Lock())
             {
-                if (runStateAtLeast(_controlState.Value, TERMINATED))
+                if (RunStateAtLeast(_controlState.Value, TERMINATED))
                 {
                     return true;
                 }
                 while (durationToWait.Ticks > 0)
                 {
-                    termination.Await(durationToWait);
-                    if (runStateAtLeast(_controlState.Value, TERMINATED))
+                    _termination.Await(durationToWait);
+                    if (RunStateAtLeast(_controlState.Value, TERMINATED))
                     {
                         return true;
                     }
@@ -1882,15 +1283,28 @@ namespace Spring.Threading.Execution
                 }
                 return false;
             }
-            finally
-            {
-                mainLock.Unlock();
-            }
         }
 
         #endregion
 
         #region Public Methods
+
+        /// <summary> 
+        /// Tries to remove from the work queue all {@link Future}
+        /// tasks that have been cancelled. This method can be useful as a
+        /// storage reclamation operation, that has no other impact on
+        /// functionality. Cancelled tasks are never executed, but may
+        /// accumulate in work queues until worker threads can actively
+        /// remove them. Invoking this method instead tries to remove them now.
+        /// However, this method may fail to remove tasks in
+        /// the presence of interference by other threads.
+        /// </summary>
+        public void Purge()
+        {
+            _workQueue.Drain(_noAction, _checkCancelled);
+
+            TryTerminate(); // In case SHUTDOWN and now empty
+        }
 
         /// <summary> 
         /// Starts a core thread, causing it to idly wait for work. This
@@ -1902,8 +1316,8 @@ namespace Spring.Threading.Execution
         /// </summary>
         public bool PreStartCoreThread()
         {
-            return workerCountOf(_controlState.Value) < _corePoolSize &&
-                   addWorker(null, true);
+            return WorkerCountOf(_controlState.Value) < _corePoolSize &&
+                   AddWorker(null, true);
         }
 
         /// <summary> 
@@ -1917,9 +1331,504 @@ namespace Spring.Threading.Execution
         public int PreStartAllCoreThreads()
         {
             var n = 0;
-            while (addWorker(null, true))
+            while (AddWorker(null, true))
                 ++n;
             return n;
+        }
+
+        #endregion
+
+        #region Non-public Methods
+
+        private const bool ONLY_ONE = true;
+
+        /// <summary>
+        /// Transitions control state to given target or leaves if alone if
+        /// already at least the given target.
+        /// </summary>
+        /// <param name="targetState">the desired state, either SHUTDOWN or STOP ( but 
+        /// not TIDYING or TERMINATED -- use TryTerminate for that )</param>
+        private void AdvanceRunState(int targetState)
+        {
+            for (; ; )
+            {
+                var state = _controlState.Value;
+                if (RunStateAtLeast(state, targetState) ||
+                    _controlState.CompareAndSet(state, ControlOf(targetState, WorkerCountOf(state))))
+                    break;
+            }
+        }
+
+        /// <summary> 
+        /// Transitions to TERMINATED state if either (SHUTDOWN and pool
+        /// and queue empty) or (STOP and pool empty).  If otherwise
+        /// eligible to terminate but workerCount is nonzero, interrupts an
+        /// idle worker to ensure that shutdown signals propagate. This
+        /// method must be called following any action that might make
+        /// termination possible -- reducing worker count or removing tasks
+        /// from the queue during shutdown. The method is non-private to
+        /// allow access from ScheduledThreadPoolExecutor.
+        /// </summary>
+        private void TryTerminate()
+        {
+            for (; ; )
+            {
+                var c = _controlState.Value;
+                if (IsRunning(c) ||
+                    RunStateAtLeast(c, TIDYING) ||
+                    (RunStateOf(c) == SHUTDOWN && _workQueue.Count > 0))
+                {
+                    return;
+                }
+                if (WorkerCountOf(c) != 0)
+                {
+                    // Eligible to terminate
+                    InterruptIdleWorkers(ONLY_ONE);
+                    return;
+                }
+
+                using(_mainLock.Lock())
+                {
+                    if (_controlState.CompareAndSet(c, ControlOf(TIDYING, 0)))
+                    {
+                        try
+                        {
+                            Terminated();
+                        }
+                        finally
+                        {
+                            _controlState.Value = ControlOf(TERMINATED, 0);
+                            _termination.SignalAll();
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+
+        /// <summary> 
+        /// Interrupts all threads, even if active. Ignores SecurityExceptions
+        /// (in which case some threads may remain uninterrupted).
+        /// </summary> 
+        private void InterruptWorkers()
+        {
+            using(_mainLock.Lock())
+            {
+                foreach (var worker in _currentWorkerThreads.Keys)
+                {
+                    try { worker.Thread.Interrupt(); }
+                    catch (SecurityException) { } // ignore
+                }
+            }
+        }
+
+        /// <summary> 
+        /// Drains the task queue into a new list, normally using
+        /// drainTo. But if the queue is a DelayQueue or any other kind of
+        /// queue for which poll or drainTo may fail to remove some
+        /// elements, it deletes them one by one.
+        /// </summary> 
+        private IList<IRunnable> DrainQueue()
+        {
+            var q = _workQueue;
+            IList<IRunnable> taskList = new List<IRunnable>();
+            q.DrainTo(taskList);
+            if (q.Count > 0)
+            {
+                foreach (var runnable in q)
+                {
+                    if (q.Remove(runnable))
+                        taskList.Add(runnable);
+                }
+            }
+            return taskList;
+        }
+
+        /// <summary>
+        /// Main worker run loop.  Repeatedly gets tasks from queue and
+        /// executes them, while coping with a number of issues:
+        ///
+        /// 1. We may start out with an initial task, in which case we
+        /// don't need to get the first one. Otherwise, as long as pool is
+        /// running, we get tasks from GetTask. If it returns null then the
+        /// worker exits due to changed pool state or configuration
+        /// parameters.  Other exits result from exception throws in
+        /// external code, in which case completedAbruptly holds, which
+        /// usually leads ProcessWorkerExit to replace this thread.
+        ///
+        /// 2. Before running any task, the lock is acquired to prevent
+        /// other pool interrupts while the task is executing, and
+        /// ClearInterruptsForTaskRun called to ensure that unless pool is
+        /// stopping, this thread does not have its interrupt set.
+        ///
+        /// 3. Each task run is preceded by a call to BeforeExecute, which
+        /// might throw an exception, in which case we cause thread to die
+        /// (breaking loop with completedAbruptly true) without processing
+        /// the task.
+        ///
+        /// 4. Assuming BeforeExecute completes normally, we run the task,
+        /// gathering any of its thrown exceptions to send to
+        /// AfterExecute. We separately handle RuntimeException, Error
+        /// (both of which the specs guarantee that we trap) and arbitrary
+        /// Throwables.  Because we cannot rethrow Throwables within
+        /// Runnable.run, we wrap them within Errors on the way out (to the
+        /// thread's UncaughtExceptionHandler).  Any thrown exception also
+        /// conservatively causes thread to die.
+        ///
+        /// 5. After task.run completes, we call AfterExecute, which may
+        /// also throw an exception, which will also cause thread to
+        /// die. According to JLS Sec 14.20, this exception is the one that
+        /// will be in effect even if task.run throws.
+        ///
+        /// The net effect of the exception mechanics is that AfterExecute
+        /// and the thread's UncaughtExceptionHandler have as accurate
+        /// information as we can provide about any problems encountered by
+        /// user code.
+        ///
+        /// <param name="worker">the worker to run</param>
+        /// </summary>
+        private void RunWorker(Worker worker)
+        {
+            var task = worker.FirstTask;
+            worker.FirstTask = null;
+            var completedAbruptly = true;
+            try
+            {
+                while (task != null || (task = GetTask()) != null)
+                {
+                    worker.Lock();
+                    ClearInterruptsForTaskRun();
+                    try
+                    {
+                        BeforeExecute(worker.Thread, task);
+                        Exception thrown = null;
+                        try
+                        {
+                            task.Run();
+                        }
+                        catch (Exception x)
+                        {
+                            thrown = SystemExtensions.PreserveStackTrace(x);
+                            throw thrown;
+                        }
+                        finally
+                        {
+                            AfterExecute(task, thrown);
+                        }
+                    }
+                    finally
+                    {
+                        task = null;
+                        worker.CompletedTasks++;
+                        worker.Unlock();
+                    }
+                }
+                completedAbruptly = false;
+            }
+            finally
+            {
+                ProcessWorkerExit(worker, completedAbruptly);
+            }
+        }
+
+        /// <summary>
+        /// Performs cleanup and bookkeeping for a dying worker. Called
+        /// only from worker threads. Unless completedAbruptly is set,
+        /// assumes that workerCount has already been adjusted to account
+        /// for exit.  This method removes thread from worker set, and
+        /// possibly terminates the pool or replaces the worker if either
+        /// it exited due to user task exception or if fewer than
+        /// corePoolSize workers are running or queue is non-empty but
+        /// there are no workers.
+        ///
+        /// <param name="w">the worker</param>
+        /// <param name="completedAbruptly">if the worker died to the user exception</param>
+        /// </summary>
+        private void ProcessWorkerExit(Worker w, bool completedAbruptly)
+        {
+            if (completedAbruptly) // If abrupt, then workerCount wasn't adjusted
+                DecrementWorkerCount();
+
+            using(_mainLock.Lock())
+            {
+                _completedTaskCount += w.CompletedTasks;
+                _currentWorkerThreads.Remove(w);
+            }
+
+            TryTerminate();
+
+            var c = _controlState.Value;
+            if (!RunStateLessThan(c, STOP)) return;
+            if (!completedAbruptly)
+            {
+                int min = _allowCoreThreadToTimeOut ? 0 : _corePoolSize;
+                if (min == 0 && _workQueue.Count > 0)
+                    min = 1;
+                if (WorkerCountOf(c) >= min)
+                    return; // replacement not needed
+            }
+            AddWorker(null, false);
+        }
+
+        /// <summary>
+        /// Checks if a new worker can be added with respect to current
+        /// pool state and the given bound (either core or maximum). If so,
+        /// the worker count is adjusted accordingly, and, if possible, a
+        /// new worker is created and started running firstTask as its
+        /// first task. This method returns false if the pool is stopped or
+        /// eligible to shut down. It also returns false if the thread
+        /// factory fails to create a thread when asked, which requires a
+        /// backout of workerCount, and a recheck for termination, in case
+        /// the existence of this worker was holding up termination.
+        /// </summary>
+        ///
+        /// <param name="firstTask"> the task the new thread should run first (or
+        /// null if none). Workers are created with an initial first task
+        /// (in method <see cref="Execute"/>) to bypass queuing when there are fewer
+        /// than <see cref="CorePoolSize"/> threads (in which case we always start one),
+        /// or when the queue is full (in which case we must bypass queue).
+        /// Initially idle threads are usually created via
+        /// <see cref="PreStartCoreThread"/> or to replace other dying workers.
+        /// </param>
+        /// <param name="core">
+        /// if true use <see cref="CorePoolSize"/> as bound, else
+        /// <see cref="MaximumPoolSize"/>. (A bool indicator is used here rather than a
+        /// value to ensure reads of fresh values after checking other pool
+        /// state).</param>
+        /// <returns><see lang="true"/> if successful</returns>
+        private bool AddWorker(IRunnable firstTask, bool core)
+        {
+            retry:
+            for (;;)
+            {
+                var c = _controlState.Value;
+                var rs = RunStateOf(c);
+
+                // Check if queue empty only if necessary.
+                if (rs >= SHUTDOWN && !(rs == SHUTDOWN && firstTask == null && _workQueue.Count > 0))
+                    return false;
+
+                for (;;)
+                {
+                    int wc = WorkerCountOf(c);
+                    if (wc >= CAPACITY || wc >= (core ? _corePoolSize : _maximumPoolSize))
+                        return false;
+                    if (CompareAndIncrementWorkerCount(c)) 
+                        goto proceed;
+                    c = _controlState.Value; // Re-read control state
+                    if (RunStateOf(c) != rs)
+                        goto retry;
+                    // else CAS failed due to workerCount change; retry inner loop
+                }
+            }
+            proceed:
+
+            var w = new Worker(this, firstTask);
+            var t = w.Thread;
+
+            using(_mainLock.Lock())
+            {
+                // Recheck while holding lock.
+                // Back out on ThreadFactory failure or if
+                // shut down before lock acquired.
+                var c = _controlState.Value;
+                var rs = RunStateOf(c);
+
+                if (t == null || (rs >= SHUTDOWN && !(rs == SHUTDOWN && firstTask == null)))
+                {
+                    DecrementWorkerCount();
+                    TryTerminate();
+                    return false;
+                }
+
+                _currentWorkerThreads[w] = w;
+
+                var s = _currentWorkerThreads.Count;
+                if (s > _largestPoolSize)
+                    _largestPoolSize = s;
+            }
+
+            t.Start();
+            // It is possible (but unlikely) for a thread to have been
+            // added to workers, but not yet started, during transition to
+            // STOP, which could result in a rare missed interrupt,
+            // because Thread.interrupt is not guaranteed to have any effect
+            // on a non-yet-started Thread (see Thread#interrupt).
+            if (RunStateOf(_controlState.Value) == STOP && t.IsAlive)
+                t.Interrupt();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Attempt to CAS-increment the workerCount field of control state.
+        /// </summary>
+        private bool CompareAndIncrementWorkerCount(int expect)
+        {
+            return _controlState.CompareAndSet(expect, expect + 1);
+        }
+
+        /// <summary>
+        ///Attempt to CAS-decrement the workerCount field of control state.
+        /// </summary>
+        private bool CompareAndDecrementWorkerCount(int expect)
+        {
+            return _controlState.CompareAndSet(expect, expect - 1);
+        }
+
+        /// <summary>
+        /// Decrements the workerCount field of ctl. This is called only on
+        /// abrupt termination of a thread (see ProcessWorkerExit). Other
+        /// decrements are performed within GetTask.
+        /// </summary>
+        private void DecrementWorkerCount()
+        {
+            do { } while (! CompareAndDecrementWorkerCount(_controlState.Value));
+        }
+
+        /// <summary> 
+        /// Ensures that unless the pool is stopping, the current thread
+        /// does not have its interrupt set. This requires a double-check
+        /// of state in case the interrupt was cleared concurrently with a
+        /// shutdownNow -- if so, the interrupt is re-enabled.
+        /// </summary>
+        private void ClearInterruptsForTaskRun()
+        {
+            if (RunStateLessThan(_controlState.Value, STOP) &&
+                SystemExtensions.IsCurrentThreadInterrupted() &&
+                RunStateAtLeast(_controlState.Value, STOP))
+            {
+                Thread.CurrentThread.Interrupt();
+            }
+        }
+
+        /// <summary> 
+        /// State check needed by ScheduledThreadPoolExecutor to
+        /// enable running tasks during shutdown.
+        /// </summary>
+        ///
+        /// <param name="shutdownOK"><see lang="true"> if should return true if SHUTDOWN</see></param>
+        internal virtual bool IsRunningOrShutdown(bool shutdownOK)
+        {
+            var rs = RunStateOf(_controlState.Value);
+            return rs == RUNNING || (rs == SHUTDOWN && shutdownOK);
+        }
+
+        /// <summary> 
+        /// Performs blocking or timed wait for a task, depending on
+        /// current configuration settings, or returns null if this worker
+        /// must exit because of any of:
+        /// 1. There are more than maximumPoolSize workers (due to
+        ///    a call to setMaximumPoolSize).
+        /// 2. The pool is stopped.
+        /// 3. The pool is shutdown and the queue is empty.
+        /// 4. This worker timed out waiting for a task, and timed-out
+        ///    workers are subject to termination (that is,
+        ///    {@code allowCoreThreadTimeOut || workerCount > corePoolSize})
+        ///    both before and after the timed wait.
+        /// </summary> 
+        ///<returns><see cref="IRunnable"/> task or <see lang="null"/>
+        /// if the worker must exit, in which case workerCount is decremented
+        /// </returns>
+        private IRunnable GetTask()
+        {
+            var timedOut = false; // Did the last Poll() time out?
+
+            retry:
+            for (;;)
+            {
+                int c = _controlState.Value;
+                var rs = RunStateOf(c);
+
+                // Check if queue empty only if necessary.
+                if (rs >= SHUTDOWN && (rs >= STOP || _workQueue.Count == 0))
+                {
+                    DecrementWorkerCount();
+                    return null;
+                }
+
+                bool timed; // Are workers subject to culling?
+
+                for (;;)
+                {
+                    var wc = WorkerCountOf(c);
+                    timed = _allowCoreThreadToTimeOut || wc > _corePoolSize;
+
+                    if (wc <= _maximumPoolSize && ! (timedOut && timed))
+                        break;
+                    if (CompareAndDecrementWorkerCount(c))
+                        return null;
+                    c = _controlState.Value; // Re-read control state
+                    if (RunStateOf(c) != rs)
+                        goto retry;
+                }
+
+                try
+                {
+                    if (!timed) return _workQueue.Take();
+                    IRunnable r;
+                    if(_workQueue.Poll(KeepAliveTime, out r)) return r;
+                    timedOut = true;
+                }
+                catch (ThreadInterruptedException)
+                {
+                    timedOut = false;
+                }
+            }
+        }
+
+        /// <summary> 
+        /// Invokes the rejected execution handler for the given command.
+        /// </summary>
+        private void Reject(IRunnable command)
+        {
+            _rejectedExecutionHandler.RejectedExecution(command, this);
+        }
+
+        /// <summary> 
+        /// Interrupts all threads that might be waiting for tasks.
+        /// </summary>
+        private void InterruptIdleWorkers()
+        {
+            InterruptIdleWorkers(false);
+        }
+
+        /// <summary> 
+        /// Interrupts threads that might be waiting for tasks (as
+        /// indicated by not being locked) so they can check for
+        /// termination or configuration changes. Ignores
+        /// SecurityExceptions (in which case some threads may remain
+        /// uninterrupted).
+        ///
+        /// @param onlyOne If true, interrupt at most one worker. This is
+        /// called only from TryTerminate when termination is otherwise
+        /// enabled but there are still other workers.  In this case, at
+        /// most one waiting worker is interrupted to propagate shutdown
+        /// signals in case all threads are currently waiting.
+        /// Interrupting any arbitrary thread ensures that newly arriving
+        /// workers since shutdown began will also eventually exit.
+        /// To guarantee eventual termination, it suffices to always
+        /// interrupt only one idle worker, but shutdown() interrupts all
+        /// idle workers so that redundant workers exit promptly, not
+        /// waiting for a straggler task to finish.
+        /// </summary>
+        private void InterruptIdleWorkers(bool onlyOne)
+        {
+            using(_mainLock.Lock())
+            {
+                foreach (var worker in _currentWorkerThreads.Keys)
+                {
+                    var t = worker.Thread;
+                    if (t.IsAlive && worker.TryLock())
+                    {
+                        try { t.Interrupt(); } 
+                        catch (SecurityException) { } //ignore
+                        finally { worker.Unlock(); }
+                    }
+                    if (onlyOne)
+                        break;
+                }
+            }
         }
 
         #endregion
@@ -1936,11 +1845,11 @@ namespace Spring.Threading.Execution
         /// ThreadLocals, or to perform logging. This implementation does
         /// nothing, but may be customized in subclasses. <b>Note:</b> To properly
         /// nest multiple overridings, subclasses should generally invoke
-        /// <i>base.beforeExecute</i> at the end of this method.
+        /// <i>base.BeforeExecute</i> at the end of this method.
         /// </remarks>
         /// <param name="thread">the thread that will run <paramref name="runnable"/>.</param>
         /// <param name="runnable">the task that will be executed.</param>
-        protected internal virtual void beforeExecute(Thread thread, IRunnable runnable)
+        protected internal virtual void BeforeExecute(Thread thread, IRunnable runnable)
         {
         }
 
@@ -1952,7 +1861,7 @@ namespace Spring.Threading.Execution
         ///
         /// <p/>This implementation does nothing, but may be customized in
         /// subclasses. Note: To properly nest multiple overridings, subclasses
-        /// should generally invoke {@code super.afterExecute} at the
+        /// should generally invoke {@code super.AfterExecute} at the
         /// beginning of this method.
         ///
         /// <p/><b>Note:</b> When actions are enclosed in tasks (such as
@@ -1968,8 +1877,8 @@ namespace Spring.Threading.Execution
         ///  <pre> {@code
         /// class ExtendedExecutor extends ThreadPoolExecutor {
         ///   // ...
-        ///   protected void afterExecute(Runnable r, Throwable t) {
-        ///     super.afterExecute(r, t);
+        ///   protected void AfterExecute(Runnable r, Throwable t) {
+        ///     super.AfterExecute(r, t);
         ///     if (t == null &amp;&amp; r instanceof Future) {
         ///       try {
         ///         Object result = ((Future) r).get();
@@ -1989,7 +1898,16 @@ namespace Spring.Threading.Execution
         /// @param r the runnable that has completed
         /// @param t the exception that caused termination, or null if
         /// execution completed normally
-        protected internal virtual void afterExecute(IRunnable runnable, Exception exception)
+        protected internal virtual void AfterExecute(IRunnable runnable, Exception exception)
+        {
+        }
+
+        /// <summary> 
+        ///Performs any further cleanup following run state transition on
+        /// invocation of shutdown.  A no-op here, but used by
+        /// ScheduledThreadPoolExecutor to cancel delayed tasks.
+        /// </summary>
+        protected void OnShutdown()
         {
         }
 
@@ -2001,7 +1919,7 @@ namespace Spring.Threading.Execution
         /// overridings, subclasses should generally invoke
         /// <i>base.terminated</i> within this method.
         /// </summary>
-        protected internal virtual void terminated()
+        protected internal virtual void Terminated()
         {
         }
 
@@ -2027,10 +1945,7 @@ namespace Spring.Threading.Execution
         /// <see lang="false"/> if being called from finalizer.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                Shutdown();
-            }
+            if (_termination != null) Shutdown();
         }
 
         #region Finalizer

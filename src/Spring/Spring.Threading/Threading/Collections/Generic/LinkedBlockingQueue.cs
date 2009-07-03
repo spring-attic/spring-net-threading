@@ -247,7 +247,7 @@ namespace Spring.Threading.Collections.Generic {
                 }
                 catch(ThreadInterruptedException e) {
                     Monitor.Pulse(_putLock);
-                    throw ExceptionExtensions.PreserveStackTrace(e);
+                    throw SystemExtensions.PreserveStackTrace(e);
                 }
                 Insert(element);
                 lock(this) {
@@ -302,7 +302,7 @@ namespace Spring.Threading.Collections.Generic {
                     }
                     catch(ThreadInterruptedException e) {
                         Monitor.Pulse(_putLock);
-                        throw ExceptionExtensions.PreserveStackTrace(e);
+                        throw SystemExtensions.PreserveStackTrace(e);
                     }
                 }
             }
@@ -361,7 +361,7 @@ namespace Spring.Threading.Collections.Generic {
                 }
                 catch(ThreadInterruptedException e) {
                     Monitor.Pulse(_takeLock);
-                    throw ExceptionExtensions.PreserveStackTrace(e);
+                    throw SystemExtensions.PreserveStackTrace(e);
                 }
 
                 x = Extract();
@@ -417,7 +417,7 @@ namespace Spring.Threading.Collections.Generic {
                     }
                     catch(ThreadInterruptedException e) {
                         Monitor.Pulse(_takeLock);
-                        throw ExceptionExtensions.PreserveStackTrace(e);
+                        throw SystemExtensions.PreserveStackTrace(e);
                     }
                 }
             }
@@ -546,10 +546,14 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary>
-        /// Does the real work for the <see cref="AbstractBlockingQueue{T}.Drain(System.Action{T})"/>
-        /// and <see cref="AbstractBlockingQueue{T}.DrainTo(System.Collections.Generic.ICollection{T})"/>.
+        /// Does the real work for the <see cref="AbstractQueue{T}.Drain(System.Action{T})"/>
+        /// and <see cref="AbstractQueue{T}.Drain(System.Action{T},Predicate{T})"/>.
         /// </summary>
-        protected internal override int DoDrainTo(Action<T> action) {
+        protected internal override int DoDrainTo(Action<T> action, Predicate<T> criteria) {
+            if (criteria!=null)
+            {
+                return DoDrainTo(action, int.MaxValue, criteria);
+            }
             Node first;
             lock(_putLock) {
                 lock(_takeLock) {
@@ -578,30 +582,38 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary> 
-        /// Does the real work for all <c>Drain</c> methods. Caller must
+        /// Does the real work for all drain methods. Caller must
         /// guarantee the <paramref name="action"/> is not <c>null</c> and
         /// <paramref name="maxElements"/> is greater then zero (0).
         /// </summary>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T}, int)"/>
-        /// <seealso cref="IBlockingQueue{T}.Drain(System.Action{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T},int)"/>
-        internal protected override int DoDrainTo(Action<T> action, int maxElements)
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T})"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int)"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T}, Predicate{T})"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
+        internal protected override int DoDrainTo(Action<T> action, int maxElements, Predicate<T> criteria)
         {
             lock(_putLock) {
                 lock(_takeLock) {
                     int n = 0;
-                    Node p = _head.next;
-                    while(p != null && n < maxElements) {
-                        action(p.item);
-                        p.item = default(T);
-                        p = p.next;
-                        ++n;
+                    Node p = _head;
+                    Node c = p.next;
+                    while(c != null && n < maxElements) {
+                        if (criteria == null || criteria(c.item))
+                        {
+                            action(c.item);
+                            c.item = default(T);
+                            p.next = c.next;
+                            ++n;
+                        }
+                        else
+                        {
+                            p = c;
+                        }
+                        c = c.next;
                     }
                     if(n != 0) {
-                        _head.next = p;
-                        if(p == null)
-                            _last = _head;
+                        if(c == null)
+                            _last = p;
                         int cold;
                         lock(this) {
                             cold = _activeCount;

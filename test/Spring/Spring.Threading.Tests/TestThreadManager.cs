@@ -251,7 +251,7 @@ namespace Spring
             {
                 Exception e = _threadException;
                 _threadException = null;
-                throw ExceptionExtensions.PreserveStackTrace(e);
+                throw SystemExtensions.PreserveStackTrace(e);
             }
         }
 

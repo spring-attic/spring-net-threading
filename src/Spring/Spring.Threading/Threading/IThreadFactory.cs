@@ -1,6 +1,6 @@
 #region License
 /*
-* Copyright © 2002-2005 the original author or authors.
+* Copyright ?2002-2005 the original author or authors.
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 */
 #endregion
 using System.Threading;
+using Spring.Threading.Execution;
 
 namespace Spring.Threading
 {
@@ -36,7 +37,7 @@ namespace Spring.Threading
 	/// }
 	/// </code>
 	/// 
-	/// The <see cref="Spring.Threading.Execution.Executors.GetDefaultThreadFactory()"/> method provides a more
+	/// The <see cref="Executors.NewDefaultThreadFactory"/> method provides a more
 	/// useful simple implementation, that sets the created thread context
 	/// to known values before returning it.
 	/// </remarks>

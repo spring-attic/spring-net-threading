@@ -62,7 +62,7 @@ namespace Spring.Threading.Locks
 						catch (ThreadInterruptedException ex)
 						{
 							ReentrantReadWriteLock.CancelWaitingReader();
-							ie = ExceptionExtensions.PreserveStackTrace(ex);
+							ie = SystemExtensions.PreserveStackTrace(ex);
 							break;
 						}
 					}
@@ -201,7 +201,7 @@ namespace Spring.Threading.Locks
 						catch (ThreadInterruptedException ex)
 						{
 							ReentrantReadWriteLock.CancelWaitingReader();
-							ie = ExceptionExtensions.PreserveStackTrace(ex);
+							ie = SystemExtensions.PreserveStackTrace(ex);
 							break;
 						}
 						if (ReentrantReadWriteLock.StartReadFromWaitingReader())

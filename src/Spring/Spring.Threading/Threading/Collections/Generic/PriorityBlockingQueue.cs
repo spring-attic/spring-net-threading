@@ -85,6 +85,7 @@ namespace Spring.Threading.Collections.Generic {
     /// </summary>
     /// <author>Doug Lea</author>
     /// <author>Andreas Döhring (.NET)</author>
+    /// <author>Kenneth Xu</author>
     [Serializable]
     public class PriorityBlockingQueue<T> : AbstractBlockingQueue<T>, ISerializable  { //}, java.io.Serializable {
 
@@ -255,7 +256,7 @@ namespace Spring.Threading.Collections.Generic {
                 }
                 catch(ThreadInterruptedException e) {
                     notEmpty.Signal(); // propagate to non-interrupted thread
-                    throw ExceptionExtensions.PreserveStackTrace(e);
+                    throw SystemExtensions.PreserveStackTrace(e);
                 }
                 T element;
                 if(!_innerQueue.Poll(out element))
@@ -293,7 +294,7 @@ namespace Spring.Threading.Collections.Generic {
                     }
                     catch(ThreadInterruptedException e) {
                         notEmpty.Signal(); // propagate to non-interrupted thread
-                        throw ExceptionExtensions.PreserveStackTrace(e);
+                        throw SystemExtensions.PreserveStackTrace(e);
                     }
                 }
             }
@@ -483,29 +484,19 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary> 
-        /// Does the real work for all <c>Drain</c> methods. Caller must
+        /// Does the real work for all drain methods. Caller must
         /// guarantee the <paramref name="action"/> is not <c>null</c> and
         /// <paramref name="maxElements"/> is greater then zero (0).
         /// </summary>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T}, int)"/>
-        /// <seealso cref="IBlockingQueue{T}.Drain(System.Action{T})"/>
-        /// <seealso cref="IBlockingQueue{T}.DrainTo(ICollection{T},int)"/>
-        internal protected override int DoDrainTo(Action<T> action, int maxElements)
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T})"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int)"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T}, Predicate{T})"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
+        internal protected override int DoDrainTo(Action<T> action, int maxElements, Predicate<T> criteria)
         {
-            ReentrantLock rl = _lock;
-            rl.Lock();
-            try {
-                int n = 0;
-                T element;
-                while(n < maxElements && _innerQueue.Poll(out element)) {
-                    action(element);
-                    ++n;
-                }
-                return n;
-            }
-            finally {
-                rl.Unlock();
+            using(_lock.Lock())
+            {
+                return _innerQueue.DoDrainTo(action, maxElements, criteria);
             }
         }
 

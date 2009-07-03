@@ -12,7 +12,7 @@ using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
 {
-    [TestFixture, Ignore]
+    [TestFixture]
     public class ThreadPoolExecutorTests : BaseThreadingTestCase
     {
         private class ExtendedTPE : ThreadPoolExecutor
@@ -26,17 +26,17 @@ namespace Spring.Threading.Execution
             {
             }
 
-            protected internal override void beforeExecute(Thread t, IRunnable r)
+            protected internal override void BeforeExecute(Thread t, IRunnable r)
             {
                 beforeCalled = true;
             }
 
-            protected internal override void afterExecute(IRunnable r, Exception e)
+            protected internal override void AfterExecute(IRunnable r, Exception e)
             {
                 afterCalled = true;
             }
 
-            protected internal override void terminated()
+            protected internal override void Terminated()
             {
                 terminatedCalled = true;
             }
@@ -378,8 +378,6 @@ namespace Spring.Threading.Execution
             for (int i = 1; i < 5; ++i)
                 tasks[i].Cancel(true);
             p1.ShutdownNow();
-        } catch(Exception e) {
-            Assert.Fail("Unexpected Exception");
         } finally {
             JoinPool(p1);
         }
@@ -853,7 +851,7 @@ namespace Spring.Threading.Execution
     /**
      *  executor using DiscardOldestPolicy drops oldest task if saturated.
      */
-    [Test,Ignore("ReentrantLock runs into a stack overflow")] public void testSaturatedExecute4() {
+    [Test] public void testSaturatedExecute4() {
         IRejectedExecutionHandler h = new DiscardOldestPolicy();
         ThreadPoolExecutor p = new ThreadPoolExecutor(1,1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
         try {
@@ -1049,7 +1047,7 @@ namespace Spring.Threading.Execution
     }
 
     /**
-     * beforeExecute and afterExecute are called when executing task
+     * BeforeExecute and AfterExecute are called when executing task
      */
     [Test] public void testBeforeAfter() {
         ExtendedTPE tpe = new ExtendedTPE();
@@ -1169,8 +1167,6 @@ namespace Spring.Threading.Execution
             l.Add(null);
             e.InvokeAny(l);
         } catch (ArgumentNullException success) {
-        } catch(Exception ex) {
-            Assert.Fail("Unexpected Exception");
         } finally {
             JoinPool(e);
         }
@@ -1186,8 +1182,6 @@ namespace Spring.Threading.Execution
             l.Add(new NPETask<string>());
             e.InvokeAny(l);
         } catch (ExecutionException success) {
-        } catch(Exception ex) {
-            Assert.Fail("Unexpected Exception");
         } finally {
             JoinPool(e);
         }
@@ -1205,8 +1199,6 @@ namespace Spring.Threading.Execution
             String result = (String)e.InvokeAny(l);
             Assert.AreEqual(TEST_STRING, result);
         } catch (ExecutionException success) {
-        } catch(Exception ex) {
-            Assert.Fail("Unexpected Exception");
         } finally {
             JoinPool(e);
         }

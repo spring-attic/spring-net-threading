@@ -22,7 +22,7 @@
 
 using System;
 using System.Collections.Generic;
-using Spring.Collections;
+using Spring.Threading.Collections.Generic;
 
 #endregion
 
@@ -173,5 +173,115 @@ namespace Spring.Collections.Generic
         /// If this queue is empty.
         /// </exception>
         T Remove();
+
+        /// <summary> 
+        /// Removes all available elements from this queue and invoke the given
+        /// <paramref name="action"/> on each element in order.
+        /// </summary>
+        /// <remarks>
+        /// This operation may be more efficient than repeatedly polling this 
+        /// queue.  A failure encountered while attempting to invoke the 
+        /// <paramref name="action"/> on the elements may result in elements 
+        /// being neither, either or both in the queue or processed when the 
+        /// associated exception is thrown.
+        /// <example> Drain to a non-generic list.
+        /// <code language="c#">
+        /// IList c = ...;
+        /// int count = Drain(delegate(T e) {c.Add(e);});
+        /// </code>
+        /// </example>
+        /// </remarks>
+        /// <param name="action">The action to performe on each element.</param>
+        /// <returns>The number of elements processed.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// If the queue cannot be drained at this time.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the specified action is <see langword="null"/>.
+        /// </exception>
+        /// <seealso cref="IBlockingQueue{T}.DrainTo(System.Collections.Generic.ICollection{T})"/>
+        /// <seealso cref="IBlockingQueue{T}.DrainTo(System.Collections.Generic.ICollection{T},int)"/>
+        /// <seealso cref="Drain(System.Action{T},int)"/>
+        int Drain(Action<T> action);
+
+        /// <summary> 
+        /// Removes all available elements that meet the criteria defined by 
+        /// <paramref name="criteria"/> from this queue and invoke the given
+        /// <paramref name="action"/> on each element in order.
+        /// </summary>
+        /// <remarks>
+        /// This operation may be more efficient than repeatedly polling this 
+        /// queue.  A failure encountered while attempting to invoke the 
+        /// <paramref name="action"/> on the elements may result in elements 
+        /// being neither, either or both in the queue or processed when the 
+        /// associated exception is thrown.
+        /// <example> Drain to a non-generic list.
+        /// <code language="c#">
+        /// IList c = ...;
+        /// int count = Drain(delegate(T e) {c.Add(e);});
+        /// </code>
+        /// </example>
+        /// </remarks>
+        /// <param name="action">The action to performe on each element.</param>
+        /// <param name="criteria">The criteria to filter the elements.</param>
+        /// <returns>The number of elements processed.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// If the queue cannot be drained at this time.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the specified action is <see langword="null"/>.
+        /// </exception>
+        /// <seealso cref="Drain(System.Action{T},int)"/>
+        int Drain(Action<T> action, Predicate<T> criteria);
+
+        /// <summary> 
+        /// Removes at most the given number of available elements from this 
+        /// queue and invoke the given <paramref name="action"/> on each 
+        /// element in order.
+        /// </summary>
+        /// <remarks>
+        /// This operation may be more efficient than repeatedly polling this 
+        /// queue.  A failure encountered while attempting to invoke the 
+        /// <paramref name="action"/> on the elements may result in elements 
+        /// being neither, either or both in the queue or processed when the 
+        /// associated exception is thrown.
+        /// </remarks>
+        /// <param name="action">The action to performe on each element.</param>
+        /// <param name="maxElements">the maximum number of elements to transfer</param>
+        /// <returns>The number of elements processed.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// If the queue cannot be drained at this time.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the specified action is <see langword="null"/>.
+        /// </exception>
+        /// <seealso cref="Drain(System.Action{T})"/>
+        int Drain(Action<T> action, int maxElements);
+
+        /// <summary> 
+        /// Removes at most the given number of available elements that meet 
+        /// the criteria defined by <paramref name="criteria"/> from this 
+        /// queue and invoke the given <paramref name="action"/> on each 
+        /// element in order.
+        /// </summary>
+        /// <remarks>
+        /// This operation may be more efficient than repeatedly polling this 
+        /// queue.  A failure encountered while attempting to invoke the 
+        /// <paramref name="action"/> on the elements may result in elements 
+        /// being neither, either or both in the queue or processed when the 
+        /// associated exception is thrown.
+        /// </remarks>
+        /// <param name="action">The action to performe on each element.</param>
+        /// <param name="maxElements">the maximum number of elements to transfer</param>
+        /// <param name="criteria">The criteria to filter the elements.</param>
+        /// <returns>The number of elements processed.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// If the queue cannot be drained at this time.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the specified action is <see langword="null"/>.
+        /// </exception>
+        /// <seealso cref="Drain(System.Action{T})"/>
+        int Drain(Action<T> action, int maxElements, Predicate<T> criteria);
     }
 }

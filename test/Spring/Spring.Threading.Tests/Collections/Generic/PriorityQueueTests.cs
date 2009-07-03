@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Spring.Threading;
-using Spring.Threading.Collections;
 
 namespace Spring.Collections.Generic
 {

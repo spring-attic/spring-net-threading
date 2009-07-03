@@ -213,7 +213,7 @@ namespace Spring.Threading
                             else
                             {
                                 item.Value = Cancelled;
-                                throw ExceptionExtensions.PreserveStackTrace(ie);
+                                throw SystemExtensions.PreserveStackTrace(ie);
                             }
                         }
                     }
@@ -287,7 +287,7 @@ namespace Spring.Threading
                             else
                             {
                                 slot.Value = Cancelled;
-                                throw ExceptionExtensions.PreserveStackTrace(ie);
+                                throw SystemExtensions.PreserveStackTrace(ie);
                             }
                         }
                     }
@@ -376,7 +376,7 @@ namespace Spring.Threading
                             else
                             {
                                 item.Value = Cancelled;
-                                throw ExceptionExtensions.PreserveStackTrace(ie);
+                                throw SystemExtensions.PreserveStackTrace(ie);
                             }
                         }
                     }
@@ -468,7 +468,7 @@ namespace Spring.Threading
                             else
                             {
                                 slot.Value = Cancelled;
-                                throw ExceptionExtensions.PreserveStackTrace(ie);
+                                throw SystemExtensions.PreserveStackTrace(ie);
                             }
                         }
                     }
