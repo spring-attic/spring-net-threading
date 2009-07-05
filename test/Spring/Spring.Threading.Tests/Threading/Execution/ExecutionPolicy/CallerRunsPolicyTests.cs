@@ -9,7 +9,6 @@ namespace Spring.Threading.Execution.ExecutionPolicy
     [TestFixture]
     public class CallerRunsPolicyTests
     {
-        private MockRepository _mockery;
         private IBlockingQueue<IRunnable> _queue;
         private IRunnable _runnable;
         private CallerRunsPolicy _callerRunsPolicy;
@@ -17,9 +16,8 @@ namespace Spring.Threading.Execution.ExecutionPolicy
 
         [SetUp] public void SetUp()
         {
-            _mockery = new MockRepository();
-            _queue = _mockery.Stub<IBlockingQueue<IRunnable>>();
-            _runnable = _mockery.StrictMock<IRunnable>();
+            _queue = MockRepository.GenerateStub<IBlockingQueue<IRunnable>>();
+            _runnable = MockRepository.GenerateMock<IRunnable>();
             _callerRunsPolicy = new CallerRunsPolicy();
             _threadPoolExecutor = new ThreadPoolExecutor(1, 1, TimeSpan.FromSeconds(1), _queue);
         }
@@ -28,32 +26,23 @@ namespace Spring.Threading.Execution.ExecutionPolicy
         public void RunsRunnableWithNonShutdownExecutorService()
         {
             Thread callerThread = Thread.CurrentThread;
-
-            _runnable.Run();
-            LastCall.Callback(delegate
+            _runnable.Expect(r => r.Run()).Callback(delegate
                 {
                     return ReferenceEquals(Thread.CurrentThread, callerThread);
                 });
 
-            _mockery.ReplayAll();
-
             _callerRunsPolicy.RejectedExecution(_runnable, _threadPoolExecutor);
 
-            _mockery.VerifyAll();
+            _runnable.VerifyAllExpectations();
         }
 
         [Test]
         public void DoesNotRunRunnableWithShutdownExecutorService()
         {
-            _runnable.Run();
-            LastCall.Repeat.Never();
-
-            _mockery.ReplayAll();
-
             _threadPoolExecutor.ShutdownNow();
             _callerRunsPolicy.RejectedExecution(_runnable, _threadPoolExecutor);
 
-            _mockery.VerifyAll();
+            _runnable.AssertWasNotCalled(r=>r.Run());
         }
     }
 }

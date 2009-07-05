@@ -11,13 +11,13 @@ namespace Spring
             return MakeAaaMock(m=>m.PartialMock<T>(argumentsForConstructor));
         }
 
-        public static T GenerateMultiPartialMock<T>(params Type[] extraTypes)
+        public static T GeneratePartialMultiMock<T>(params Type[] extraTypes)
             where T : class
         {
             return MakeAaaMock(m => m.PartialMultiMock<T>(extraTypes));
         }
 
-        public static T GenerateMultiPartialMock<T>(Type[] extraTypes, params object[] argumentsForConstructor)
+        public static T GeneratePartialMultiMock<T>(Type[] extraTypes, params object[] argumentsForConstructor)
             where T : class
         {
             return MakeAaaMock(m => m.PartialMultiMock<T>(extraTypes, argumentsForConstructor));
@@ -33,9 +33,14 @@ namespace Spring
             return MakeAaaMock(m => m.DynamicMultiMock<T>(extraTypes, new object[0]));
         }
 
-        public static T StrickMock<T>(params object[] argumentForConstructor)
+        public static T GenerateStrickMock<T>(params object[] argumentForConstructor)
         {
             return MakeAaaMock(m => m.StrictMock<T>(argumentForConstructor));
+        }
+
+        public static T GenerateStricMultikMock<T>(Type[] extraTypes, params object[] argumentForConstructor)
+        {
+            return MakeAaaMock(m => m.StrictMultiMock<T>(extraTypes, argumentForConstructor));
         }
 
         private static T MakeAaaMock<T>(Converter<MockRepository, T> creator)
@@ -44,17 +49,6 @@ namespace Spring
             var mock = creator(mockery);
             mockery.Replay(mock);
             return mock;
-        }
-
-        public void a()
-        {
-            var s = "test string";
-            var mock = StrickMock<System.Collections.Generic.IList<string>>();
-            mock.Expect(l => l.Add(s));
-            mock.Expect(l => l.Remove(s));
-
-            mock.Add(s);
-            mock.VerifyAllExpectations();
         }
     }
 }

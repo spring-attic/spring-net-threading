@@ -156,7 +156,6 @@
     <Compile Include="Threading\Locks\IExclusiveLock.cs" />
     <Compile Include="Threading\Locks\ILock.cs" />
     <Compile Include="Threading\Locks\ReentrantLock.cs" />
-    <Compile Include="Threading\NullRunnable.cs" />
     <Compile Include="Threading\Runnable.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
   </ItemGroup>

@@ -285,18 +285,18 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                     {
-                        Func<T>[] calls = new Func<T>[] { null };
-                        if (!isTimed) _sut.InvokeAny(calls);
-                        else _sut.InvokeAny(TestData.ShortDelay, calls);
+                        Func<T>[] calls = new Func<T>[] {_call, null };
+                        if (!isTimed) _sut.InvokeAll(calls);
+                        else _sut.InvokeAll(TestData.ShortDelay, calls);
                     });
             Assert.That(e.ParamName, Is.EqualTo("call"));
 
             e = Assert.Throws<ArgumentNullException>(
                 delegate
                 {
-                    ICallable<T>[] calls = new ICallable<T>[] { null };
-                    if (!isTimed) _sut.InvokeAny(calls);
-                    else _sut.InvokeAny(TestData.ShortDelay, calls);
+                    ICallable<T>[] calls = new ICallable<T>[] {_callable, null };
+                    if (!isTimed) _sut.InvokeAll(calls);
+                    else _sut.InvokeAll(TestData.ShortDelay, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("callable"));
         }
