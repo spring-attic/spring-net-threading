@@ -1,725 +1,46 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using Rhino.Mocks;
-using Spring.Threading.Collections.Generic;
-using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
 {
-    [TestFixture]
-    public class AbstractExecutorServiceTests : BaseThreadingTestCase
-    {
-        internal class DirectExecutorService : AbstractExecutorService
-        {
-            private volatile bool _shutdown;
-
-            public override bool IsShutdown
-            {
-                get { return _shutdown; }
-            }
-
-            public override bool IsTerminated
-            {
-                get { return IsShutdown; }
-            }
-
-            public override void Execute(IRunnable r)
-            {
-                r.Run();
-            }
-
-            public override void Shutdown()
-            {
-                _shutdown = true;
-            }
-
-            public override IList<IRunnable> ShutdownNow()
-            {
-                _shutdown = true;
-                return (IList<IRunnable>) ArrayList.ReadOnly(new List<IRunnable>());
-            }
-
-            public override bool AwaitTermination(TimeSpan duration)
-            {
-                return IsShutdown;
-            }
-        }
-
-        [Test]
-        public void Execute1()
-        {
-            ThreadPoolExecutor p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 1, 0), new ArrayBlockingQueue<IRunnable>(1));
-            try
-            {
-                for (int i = 0; i < 5; ++i)
-                {
-                    p.Submit(new MediumRunnable());
-                }
-                Assert.Fail("Should throw an exception.");
-            }
-            catch (RejectedExecutionException)
-            {
-            }
-            finally
-            {
-                JoinPool(p);
-            }
-        }
-
-
-        [Test]
-        public void Execute2()
-        {
-            ThreadPoolExecutor p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 1, 0), new ArrayBlockingQueue<IRunnable>(1));
-            try
-            {
-                for (int i = 0; i < 5; ++i)
-                {
-                    p.Submit(new SmallCallable());
-                }
-                Assert.Fail("Should throw an exception.");
-            }
-            catch (RejectedExecutionException)
-            {
-            }
-            JoinPool(p);
-        }
-
-        [Test]
-        [ExpectedException(typeof (ArgumentNullException))]
-        public void ExecuteNullRunnable()
-        {
-            IExecutorService e = new DirectExecutorService();
-            TrackedShortRunnable task = null;
-            e.Submit(task);
-        }
-
-        [Test]
-        public void ExecuteRunnable()
-        {
-            IExecutorService e = new DirectExecutorService();
-            TrackedShortRunnable task = new TrackedShortRunnable();
-            Assert.IsFalse(task.IsDone);
-            IFuture<object> future = e.Submit(task);
-            future.GetResult();
-            Assert.IsTrue(task.IsDone);
-        }
-
-
-        [Test]
-        public void InterruptedSubmit()
-        {
-			ThreadPoolExecutor p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 1, 0),  new ArrayBlockingQueue<IRunnable>(10));
-            Thread t = new Thread(delegate()
-            {
-                try
-                {
-                    p.Submit(new Task(delegate
-                         {
-                             try
-                             {
-                                 Thread.Sleep(MEDIUM_DELAY);
-                                 Assert.Fail("Should throw an exception");
-                             }
-                             catch (ThreadInterruptedException)
-                             {
-                             }
-
-                         })).GetResult();
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            });
-            t.Start();
-            Thread.Sleep(SHORT_DELAY);
-            t.Interrupt();
-            JoinPool(p);
-        }
-
-
-        [Test] 
-        public void InvokeAll1()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                e.InvokeAll((IEnumerable<ICallable<string>>)null);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void InvokeAll2()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                IList<IFuture<bool>> r = e.InvokeAll(new List<ICallable<bool>>());
-                Assert.IsTrue((r.Count == 0));
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void InvokeAll3()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new StringTask(), null };
-                e.InvokeAll(l);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void InvokeAll4()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new NPETask<string>() };
-                IList<IFuture<string>> result = e.InvokeAll(l);
-                Assert.AreEqual(1, result.Count);
-                foreach (IFuture<string> future in result)
-                {
-                    future.GetResult();
-                }
-            }
-            catch (ExecutionException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void InvokeAll5()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] {new StringTask(), new StringTask()};
-                IList<IFuture<string>> result = e.InvokeAll(l);
-                Assert.AreEqual(2, result.Count);
-                foreach (IFuture<string> future in result)
-                {
-                    Assert.AreSame(TEST_STRING, future.GetResult());
-                }
-            }
-            catch (ExecutionException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-        [Test]
-        public void InvokeAny1()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                e.InvokeAny((IEnumerable<Call<bool>>)null);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void InvokeAny2()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                e.InvokeAny(new ICallable<bool>[0]);
-            }
-            catch (ArgumentException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void InvokeAny3()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] {new StringTask(), null};
-                e.InvokeAny(l);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        public void InvokeAny4()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new NPETask<string>() };
-                e.InvokeAny(l);
-            }
-            catch (ExecutionException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void InvokeAny5()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new StringTask(), new StringTask() };
-                string result = e.InvokeAny(l);
-                Assert.AreSame(TEST_STRING, result);
-            }
-            catch (ExecutionException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-        [Test]
-        public void SubmitCallable()
-        {
-            IExecutorService e = new DirectExecutorService();
-            IFuture<string> future = e.Submit(new StringTask());
-            string result = future.GetResult();
-            Assert.AreSame(TEST_STRING, result);
-        }
-
-        [Test]
-        public void SubmitEE()
-        {
-			ThreadPoolExecutor p = new ThreadPoolExecutor(1, 1, new TimeSpan(0,0,0,60), new ArrayBlockingQueue<IRunnable>(10));
-		
-			try
-			{
-			    Callable<bool> c = new Call<bool>(
-			        delegate
-			            {
-                            int zero = 0;
-                            int i = 5 / zero;
-                            return true;
-                        });
-			
-				for (int i = 0; i < 5; i++)
-				{
-					p.Submit(c).GetResult();
-				}
-				Assert.Fail("Should throw an exception.");
-			}
-			catch (ExecutionException)
-			{
-			}
-			JoinPool(p);
-        }
-
-        [Test]
-        public void SubmitIE()
-        {
-            ThreadPoolExecutor p = new ThreadPoolExecutor(1, 1, new TimeSpan(0, 60, 0), new ArrayBlockingQueue<IRunnable>(10));
-
-            Callable<bool> c = new Call<bool>(
-                delegate
-                    {
-                        try
-                        {
-                            p.Submit(new SmallCallable()).GetResult();
-                            Assert.Fail("Should throw an exception.");
-                        }
-                        catch (ThreadInterruptedException)
-                        {
-                        }
-                        catch (RejectedExecutionException)
-                        {
-                        }
-                        catch (ExecutionException)
-                        {
-                        }
-                        return true;
-                    });
-
-            Thread t = new Thread(delegate() { try { c.Call(); } catch (Exception) {} });
-            t.Start();
-            Thread.Sleep(SHORT_DELAY);
-            t.Interrupt();
-            t.Join();
-
-            JoinPool(p);
-        }
-
-        [Test]
-        [ExpectedException(typeof (ArgumentNullException))]
-        public void SubmitNullCallable()
-        {
-            IExecutorService e = new DirectExecutorService();
-            StringTask t = null;
-            e.Submit(t);
-        }
-
-        [Test]
-        public void SubmitRunnable()
-        {
-            IExecutorService e = new DirectExecutorService();
-            IFuture<object> future = e.Submit(new NullRunnable());
-            future.GetResult();
-            Assert.IsTrue(future.IsDone);
-        }
-
-
-        [Test]
-        public void SubmitRunnable2()
-        {
-            IExecutorService e = new DirectExecutorService();
-            IFuture<string> future = e.Submit(new NullRunnable(), TEST_STRING);
-            string result = future.GetResult();
-            Assert.AreSame(TEST_STRING, result);
-        }
-
-
-        [Test]
-        public void TimedInvokeAll1()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                e.InvokeAll(MEDIUM_DELAY, (ICollection<Call<bool>>)null);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void TimedInvokeAll2()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                IList<IFuture<bool>> r = e.InvokeAll(MEDIUM_DELAY, new ICallable<bool>[0]);
-                Assert.IsTrue((r.Count == 0));
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void TimedInvokeAll3()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new StringTask(), null };
-                e.InvokeAll(MEDIUM_DELAY, l);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test] public void TimedInvokeAll4()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new NPETask<string>() };
-                IList<IFuture<string>> result = e.InvokeAll(MEDIUM_DELAY, l);
-                Assert.AreEqual(1, result.Count);
-                foreach (IFuture<string> future in result)
-                {
-                    future.GetResult();
-                }
-            }
-            catch (ExecutionException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void TimedInvokeAll5()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new StringTask(), new StringTask() };
-                IList<IFuture<string>> result = e.InvokeAll(MEDIUM_DELAY, l);
-                Assert.AreEqual(2, result.Count);
-                foreach (IFuture<string> future in result)
-                {
-                    Assert.AreSame(TEST_STRING, future.GetResult());
-                }
-            }
-            catch (ExecutionException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void TimedInvokeAll6()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] list = new ICallable<string>[] { new StringTask(), Executors.CreateCallable(new MediumPossiblyInterruptedRunnable(), TEST_STRING), new StringTask() };
-                IList<IFuture<string>> result = e.InvokeAll(SMALL_DELAY, list);
-                Assert.AreEqual(3, result.Count);
-                IEnumerator<IFuture<string>> it = result.GetEnumerator();
-                IFuture<string> f1 = null; 
-                IFuture<string> f2 = null; 
-                IFuture<string> f3 = null;
-
-                if (it.MoveNext()) f1 = it.Current;
-                if (it.MoveNext()) f2 = it.Current;
-                if (it.MoveNext()) f3 = it.Current;
-
-                if ( f1 == null || f2 == null || f3 == null )
-                {
-                    Assert.Fail("Missing some futures");
-                }
-
-                Assert.IsTrue(f1.IsDone);
-                Assert.IsFalse(f1.IsCancelled);
-                Assert.IsTrue(f2.IsDone);
-                Assert.IsTrue(f3.IsDone);
-                Assert.IsTrue(f3.IsCancelled);
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-        [Test]
-        public void TimedInvokeAllNullTimeUnit()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                e.InvokeAll(MEDIUM_DELAY, (IEnumerable<Call<bool>>)null);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-        [Test]
-        public void TimedInvokeAny1()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                e.InvokeAny(MEDIUM_DELAY, (IEnumerable<Call<bool>>)null);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-        [Test]
-        public void TimedInvokeAny2()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                e.InvokeAny(MEDIUM_DELAY, new ICallable<bool>[0]);
-            }
-            catch (ArgumentException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void TimedInvokeAny3()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new StringTask(), null };
-                e.InvokeAny(MEDIUM_DELAY, l);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void TimedInvokeAny4()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new NPETask<string>() };
-                e.InvokeAny(MEDIUM_DELAY, l);
-            }
-            catch (ExecutionException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-
-        [Test]
-        public void TimedInvokeAny5()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                ICallable<string>[] l = new ICallable<string>[] { new StringTask(), new StringTask() };
-                string result = e.InvokeAny(MEDIUM_DELAY, l);
-                Assert.AreSame(TEST_STRING, result);
-            }
-            catch (ExecutionException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-
-        [Test]
-        public void TimedInvokeAnyNull()
-        {
-            IExecutorService e = new DirectExecutorService();
-            try
-            {
-                e.InvokeAny(new TimeSpan(0), (IEnumerable<Call<bool>>)null);
-            }
-            catch (ArgumentNullException)
-            {
-            }
-            finally
-            {
-                JoinPool(e);
-            }
-        }
-    }
-
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
     public class AbstractExecutorServiceTests<T>
     {
-        private MockRepository _mockery;
         private AbstractExecutorService _sut;
         private IRunnable _runnable;
         private Task _task;
         private Call<T> _call;
         private ICallable<T> _callable;
+        private Action<IRunnable> _actionOnExecute;
         TestThreadManager ThreadManager { get; set; }
+
+        private void Execute(IRunnable runnable)
+        {
+            _actionOnExecute(runnable);
+        }
 
         [SetUp] public void SetUp()
         {
-            _mockery = new MockRepository();
-            _sut = _mockery.PartialMock<AbstractExecutorService>();
-            _runnable = _mockery.StrictMock<IRunnable>();
-            _task = _mockery.StrictMock<Task>();
-            _call = _mockery.StrictMock<Call<T>>();
-            _callable = _mockery.StrictMock<ICallable<T>>();
+            _sut = Mockery.GeneratePartialMock<AbstractExecutorService>();
+            _runnable = MockRepository.GenerateMock<IRunnable>();
+            _task = MockRepository.GenerateMock<Task>();
+            _call = MockRepository.GenerateMock<Call<T>>();
+            _callable = MockRepository.GenerateMock<ICallable<T>>();
+
+            _sut.Stub(x => x.Execute(Arg<IRunnable>.Is.NotNull))
+                .Do(new Action<IRunnable>(Execute));
+
+            _actionOnExecute = r => r.Run(); // Default run it.
+
             ThreadManager = new TestThreadManager();
         }
 
         [Test] public void ExecuteTaskChokesOnNullArgument()
         {
-            _mockery.ReplayAll();
             var e = Assert.Throws<ArgumentNullException>(
                 () => _sut.Execute((Task) null));
             Assert.That(e.ParamName, Is.EqualTo("task"));
@@ -727,18 +48,14 @@ namespace Spring.Threading.Execution
 
         [Test] public void ExecuteTaskCallsExecuteCallable()
         {
-            _sut.Execute((IRunnable)null);
-            LastCall.IgnoreArguments().Do(new Action<IRunnable>(r => r.Run()));
-            _task();
-            _mockery.ReplayAll();
-
             _sut.Execute(_task);
-            _mockery.VerifyAll();
+
+            _task.AssertWasCalled(x => x());
+            _sut.AssertWasCalled(x => x.Execute(Arg<IRunnable>.Is.NotNull));
         }
 
         [Test] public void SubmitChokesOnNullArgument()
         {
-            _mockery.ReplayAll();
             var e = Assert.Throws<ArgumentNullException>(
                 () => _sut.Submit((IRunnable)null, TestData<T>.One));
             Assert.That(e.ParamName, Is.EqualTo("runnable"));
@@ -755,92 +72,69 @@ namespace Spring.Threading.Execution
 
         [Test] public void SubmitExecutesTheRunnable()
         {
-            _sut.Execute((IRunnable)null);
-            LastCall.IgnoreArguments().Do(new Action<IRunnable>(r=>r.Run()));
-            _runnable.Run();
-            _mockery.ReplayAll();
-
             var future = _sut.Submit(_runnable);
             Assert.IsTrue(future.IsDone);
-            _mockery.VerifyAll();
+            _runnable.AssertWasCalled(x => x.Run());
         }
 
         [Test] public void SubmitExecutesTheRunnableAndSetFutureResult()
         {
-            _sut.Execute((IRunnable)null);
-            LastCall.IgnoreArguments().Do(new Action<IRunnable>(r=>r.Run()));
-            _runnable.Run();
-            _mockery.ReplayAll();
-
             var future = _sut.Submit(_runnable, TestData<T>.One);
             Assert.IsTrue(future.IsDone);
             Assert.That(future.GetResult(), Is.EqualTo(TestData<T>.One));
-            _mockery.VerifyAll();
+
+            _runnable.AssertWasCalled(x => x.Run());
         }
 
         [Test] public void SubmitExecutesTheTask()
         {
-            _sut.Execute((IRunnable)null);
-            LastCall.IgnoreArguments().Do(new Action<IRunnable>(r=>r.Run()));
-            _task();
-            _mockery.ReplayAll();
-
             var future = _sut.Submit(_task);
             Assert.IsTrue(future.IsDone);
-            _mockery.VerifyAll();
+            _task.AssertWasCalled(t => t());
         }
 
         [Test] public void SubmitExecutesTheTaskAndSetFutureResult()
         {
-            _sut.Execute((IRunnable)null);
-            LastCall.IgnoreArguments().Do(new Action<IRunnable>(r => r.Run()));
-            _task();
-            _mockery.ReplayAll();
-
             var future = _sut.Submit(_task, TestData<T>.One);
+
             Assert.IsTrue(future.IsDone);
             Assert.That(future.GetResult(), Is.EqualTo(TestData<T>.One));
-            _mockery.VerifyAll();
+            _task.AssertWasCalled(t => t());
         }
 
         [Test] public void SubmitExecutesTheCallAndSetFutureResult()
         {
-            _sut.Execute((IRunnable)null);
-            LastCall.IgnoreArguments().Do(new Action<IRunnable>(r => r.Run()));
-            Expect.Call(_call()).Return(TestData<T>.Two);
-            _mockery.ReplayAll();
+            _call.Stub(c=>c()).Return(TestData<T>.Two);
 
             var future = _sut.Submit(_call);
+
             Assert.IsTrue(future.IsDone);
             Assert.That(future.GetResult(), Is.EqualTo(TestData<T>.Two));
-            _mockery.VerifyAll();
+
+            _call.AssertWasCalled(c => c());
         }
 
         [Test] public void SubmitExecutesTheCallableAndSetFutureResult()
         {
-            _sut.Execute((IRunnable)null);
-            LastCall.IgnoreArguments().Do(new Action<IRunnable>(r => r.Run()));
-            Expect.Call(_callable.Call()).Return(TestData<T>.Two);
-            _mockery.ReplayAll();
+            _callable.Stub(c=>c.Call()).Return(TestData<T>.Two);
 
             var future = _sut.Submit(_callable);
+
             Assert.IsTrue(future.IsDone);
             Assert.That(future.GetResult(), Is.EqualTo(TestData<T>.Two));
-            _mockery.VerifyAll();
+            _sut.AssertWasCalled(x => x.Execute(Arg<IRunnable>.Is.NotNull))
+                .Before(_callable.AssertWasCalled(c => c.Call()));
         }
 
         [Test] public void SubmitReturnsFutureCanBeInterruptedOnGetResult()
         {
-            _sut.Execute((IRunnable)null);
-            LastCall.IgnoreArguments().Do(new Action<IRunnable>(
-                r => ThreadManager.StartAndAssertRegistered("T2", r.Run)));
-            Expect.Call(_callable.Call()).Do(new Delegates.Function<T>(
+            _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T2", r.Run);
+            _callable.Stub(x=>x.Call()).Do(new Delegates.Function<T>(
                 delegate
-                    {
-                        Thread.Sleep(TestData.SmallDelay);
-                        return TestData<T>.One;
-                    }));
-            _mockery.ReplayAll();
+                {
+                    Thread.Sleep(TestData.SmallDelay);
+                    return TestData<T>.One;
+                }));
 
             var t = ThreadManager.StartAndAssertRegistered(
                 "T1", 
@@ -852,42 +146,325 @@ namespace Spring.Threading.Execution
             Thread.Sleep(TestData.ShortDelay);
             t.Interrupt();
             ThreadManager.JoinAndVerify();
-            _mockery.VerifyAll();
+            _callable.AssertWasCalled(c => c.Call());
         }
 
         [Test] public void SubmitReturnsFutureChokesOnGetResultWhenTaskChokes()
         {
             var exception = new Exception();
-            _sut.Execute((IRunnable)null);
-            LastCall.IgnoreArguments().Do(new Action<IRunnable>(
-                r => ThreadManager.StartAndAssertRegistered("T2", r.Run)));
-            Expect.Call(_callable.Call()).Do(new Delegates.Function<T>(
+            _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T2", r.Run);
+            _callable.Stub(c=>c.Call()).Do(new Delegates.Function<T>(
                 delegate
                 {
                     Thread.Sleep(TestData.ShortDelay);
                     throw exception;
                 }));
-            _mockery.ReplayAll();
 
             var future = _sut.Submit(_callable);
             var e = Assert.Throws<ExecutionException>(() => future.GetResult());
             Assert.That(e.InnerException, Is.SameAs(exception));
             ThreadManager.JoinAndVerify();
-            _mockery.VerifyAll();
+            _callable.AssertWasCalled(c => c.Call());
         }
 
-        //[Test] 
-        public void InvokeAnyChokesOnNullArgument([Values(true, false)] bool isTimed)
+        [Test] public void InvokeAnyChokesOnNullArgument([Values(true, false)] bool isTimed)
         {
-            _mockery.ReplayAll();
-            //var e = Assert.Throws<ArgumentNullException>(
-            //    delegate
-            //        {
-                        IEnumerable<Call<T>> calls = null;
+            var e = Assert.Throws<ArgumentNullException>(
+                delegate
+                    {
+                        const IEnumerable<Call<T>> calls = null;
                         if (!isTimed) _sut.InvokeAny(calls);
                         else _sut.InvokeAny(TestData.ShortDelay, calls);
-                    //});
-            //Assert.That(e.ParamName, Is.EqualTo("tasks"));
+                    });
+            Assert.That(e.ParamName, Is.EqualTo("tasks"));
+
+            e = Assert.Throws<ArgumentNullException>(
+                delegate
+                {
+                    const IEnumerable<ICallable<T>> calls = null;
+                    if (!isTimed) _sut.InvokeAny(calls);
+                    else _sut.InvokeAny(TestData.ShortDelay, calls);
+                });
+            Assert.That(e.ParamName, Is.EqualTo("tasks"));
         }
+
+        [Test] public void InvokeAnyChokesOnEmptyTaskCollection([Values(true, false)] bool isTimed)
+        {
+            var e = Assert.Throws<ArgumentException>(
+                delegate
+                    {
+                        IEnumerable<Call<T>> calls = new Call<T>[0];
+                        if (!isTimed) _sut.InvokeAny(calls);
+                        else _sut.InvokeAny(TestData.ShortDelay, calls);
+                    });
+            Assert.That(e.ParamName, Is.EqualTo("tasks"));
+
+            e = Assert.Throws<ArgumentException>(
+                delegate
+                {
+                    IEnumerable<ICallable<T>> calls = new ICallable<T>[0];
+                    if (!isTimed) _sut.InvokeAny(calls);
+                    else _sut.InvokeAny(TestData.ShortDelay, calls);
+                });
+            Assert.That(e.ParamName, Is.EqualTo("tasks"));
+        }
+
+        [Test] public void InvokeAnyChokesOnNullTaskInCollection([Values(true, false)] bool isTimed)
+        {
+            var e = Assert.Throws<ArgumentNullException>(
+                delegate
+                    {
+                        IEnumerable<Call<T>> calls = new Call<T>[] { null };
+                        if (!isTimed) _sut.InvokeAny(calls);
+                        else _sut.InvokeAny(TestData.ShortDelay, calls);
+                    });
+            Assert.That(e.ParamName, Is.EqualTo("call"));
+
+            e = Assert.Throws<ArgumentNullException>(
+                delegate
+                {
+                    IEnumerable<ICallable<T>> calls = new ICallable<T>[] { null };
+                    if (!isTimed) _sut.InvokeAny(calls);
+                    else _sut.InvokeAny(TestData.ShortDelay, calls);
+                });
+            Assert.That(e.ParamName, Is.EqualTo("callable"));
+        }
+
+        [Test] public void InvokeAllChokesOnNullArgument([Values(true, false)] bool isTimed)
+        {
+            var e = Assert.Throws<ArgumentNullException>(
+                delegate
+                    {
+                        const IEnumerable<Call<T>> calls = null;
+                        if (!isTimed) _sut.InvokeAll(calls);
+                        else _sut.InvokeAll(TestData.ShortDelay, calls);
+                    });
+            Assert.That(e.ParamName, Is.EqualTo("tasks"));
+
+            e = Assert.Throws<ArgumentNullException>(
+                delegate
+                {
+                    const IEnumerable<ICallable<T>> calls = null;
+                    if (!isTimed) _sut.InvokeAll(calls);
+                    else _sut.InvokeAll(TestData.ShortDelay, calls);
+                });
+            Assert.That(e.ParamName, Is.EqualTo("tasks"));
+        }
+
+        [Test] public void InvokeAllNopOnEmptyTaskCollection([Values(true, false)] bool isTimed)
+        {
+            IEnumerable<Call<T>> calls = new Call<T>[0];
+            var futures = isTimed ? 
+                _sut.InvokeAll(TestData.ShortDelay, calls) :
+                _sut.InvokeAll(calls);
+            CollectionAssert.IsEmpty(futures);
+
+            IEnumerable<ICallable<T>> callables = new ICallable<T>[0];
+            futures = isTimed ?
+                _sut.InvokeAll(TestData.ShortDelay, callables) :
+                _sut.InvokeAll(callables);
+            CollectionAssert.IsEmpty(futures);
+        }
+
+        [Test] public void InvokeAllChokesOnNullTaskInCollection([Values(true, false)] bool isTimed)
+        {
+            var e = Assert.Throws<ArgumentNullException>(
+                delegate
+                    {
+                        IEnumerable<Call<T>> calls = new Call<T>[] { null };
+                        if (!isTimed) _sut.InvokeAny(calls);
+                        else _sut.InvokeAny(TestData.ShortDelay, calls);
+                    });
+            Assert.That(e.ParamName, Is.EqualTo("call"));
+
+            e = Assert.Throws<ArgumentNullException>(
+                delegate
+                {
+                    IEnumerable<ICallable<T>> calls = new ICallable<T>[] { null };
+                    if (!isTimed) _sut.InvokeAny(calls);
+                    else _sut.InvokeAny(TestData.ShortDelay, calls);
+                });
+            Assert.That(e.ParamName, Is.EqualTo("callable"));
+        }
+
+        [Test] public void InvokeAnyChokesWhenNoTaskCompletes([Values(true, false)] bool isTimed)
+        {
+            var expected = new Exception();
+            Call<T> call = delegate { throw expected; };
+            var e1 = Assert.Throws<ExecutionException>(
+                delegate
+                {
+                    IEnumerable<Call<T>> calls = new Call<T>[] { call };
+                    if (!isTimed) _sut.InvokeAny(calls);
+                    else _sut.InvokeAny(TestData.ShortDelay, calls);
+                });
+            Assert.That(e1.InnerException, Is.SameAs(expected));
+
+            var e2 = Assert.Throws<ExecutionException>(
+                delegate
+                {
+                    IEnumerable<ICallable<T>> calls = new Callable<T>[] { call };
+                    if (!isTimed) _sut.InvokeAny(calls);
+                    else _sut.InvokeAny(TestData.ShortDelay, calls);
+                });
+            Assert.That(e2.InnerException, Is.SameAs(expected));
+        }
+
+        [Test] public void InvokeAnyReturnsWhenOneCallCompletes([Values(true, false)] bool isTimed)
+        {
+            _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
+            var call1 = MockRepository.GenerateMock<Call<T>>();
+            var call2 = MockRepository.GenerateMock<Call<T>>();
+            call1.Stub(c => c()).Throw(new Exception());
+            call2.Stub(c => c()).Return(TestData<T>.Four).WhenCalled(i => Thread.Sleep(TestData.ShortDelay));
+
+            IEnumerable<Call<T>> calls = new Call<T>[] { call1, call2, call1, call2 };
+            var result = isTimed ? 
+                _sut.InvokeAny(TestData.SmallDelay, calls) :
+                _sut.InvokeAny(calls);
+            Assert.That(result, Is.EqualTo(TestData<T>.Four));
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void InvokeAnyReturnsWhenOneCallableCompletes([Values(true, false)] bool isTimed)
+        {
+            var call1 = MockRepository.GenerateMock<ICallable<T>>();
+            var call2 = MockRepository.GenerateMock<ICallable<T>>();
+            var call3 = MockRepository.GenerateMock<ICallable<T>>();
+            call1.Stub(c => c.Call()).Throw(new Exception());
+            call2.Stub(c => c.Call()).Return(TestData<T>.Four);
+
+            IEnumerable<ICallable<T>> calls = new ICallable<T>[] { call1, call2, call3};
+            var result = isTimed ? 
+                _sut.InvokeAny(TestData.ShortDelay, calls) :
+                _sut.InvokeAny(calls);
+            call1.AssertWasCalled(c => c.Call());
+            call3.AssertWasNotCalled(c=>c.Call());
+            Assert.That(result, Is.EqualTo(TestData<T>.Four));
+        }
+
+        [Test] public void InvokeAllReturnsWhenAllCallableComplete([Values(true, false)] bool isTimed)
+        {
+            _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
+            ICallable<T>[] calls = new ICallable<T>[5];
+            for (int i = calls.Length - 1; i >= 0; i--)
+            {
+                calls[i] = MockRepository.GenerateMock<ICallable<T>>();
+                calls[i].Stub(c => c.Call()).Return(TestData<T>.MakeData(i));
+            }
+
+            var futures = isTimed ? 
+                _sut.InvokeAll(TestData.ShortDelay, calls) :
+                _sut.InvokeAll(calls);
+            Assert.That(futures.Count, Is.EqualTo(calls.Length));
+            for (int i = futures.Count - 1; i >= 0; i--)
+            {
+                Assert.IsTrue(futures[i].IsDone);
+                Assert.That(futures[i].GetResult(), Is.EqualTo(TestData<T>.MakeData(i)));
+            }
+        }
+
+        [Test] public void InvokeAllReturnsFutureChokesWhenCallFailed([Values(true, false)] bool isTimed)
+        {
+            _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
+            Call<T>[] calls = new Call<T>[3];
+            for (int i = calls.Length - 1; i >= 0; i--)
+            {
+                calls[i] = MockRepository.GenerateMock<Call<T>>();
+            }
+            var expectedException = new Exception();
+            calls[0].Stub(c => c()).Throw(expectedException);
+            calls[1].Stub(c => c()).Return(TestData<T>.One).WhenCalled(i => Thread.Sleep(TestData.ShortDelay));
+            calls[2].Stub(c => c()).Return(TestData<T>.Two);
+
+            var futures = isTimed ? 
+                _sut.InvokeAll(TestData.SmallDelay, calls) :
+                _sut.InvokeAll(calls);
+            foreach (var future in futures)
+            {
+                Assert.IsTrue(future.IsDone);
+            }
+            var e = Assert.Throws<ExecutionException>(() => futures[0].GetResult());
+            Assert.That(e.InnerException, Is.SameAs(expectedException));
+            Assert.That(futures[1].GetResult(), Is.EqualTo(TestData<T>.One));
+            Assert.That(futures[2].GetResult(), Is.EqualTo(TestData<T>.Two));
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void TimedInvokeAnyChokesWhenTimeoutOnCalls()
+        {
+            _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
+            Call<T>[] calls = new Call<T>[3];
+            for (int i = calls.Length - 1; i >= 0; i--)
+            {
+                calls[i] = MockRepository.GenerateMock<Call<T>>();
+                calls[i].Stub(c => c()).Return(TestData<T>.Four)
+                    .WhenCalled(x => Thread.Sleep(TestData.SmallDelay));
+            }
+
+            Assert.Throws<TimeoutException>(() => _sut.InvokeAny(TestData.ShortDelay, calls));
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void TimedInvokeAllCancelsUncompletedCallablesWhenTimeout()
+        {
+            const int size = 5;
+            const int halfSize = size / 2;
+            ICallable<T>[] calls = new ICallable<T>[size];
+            for (int i = calls.Length - 1; i >= 0; i--)
+            {
+                calls[i] = MockRepository.GenerateMock<ICallable<T>>();
+                var x = calls[i].Stub(c => c.Call()).Return(TestData<T>.MakeData(i));
+                if (i > halfSize)
+                    x.WhenCalled(invoke => Thread.Sleep(TestData.SmallDelay));
+            }
+
+            var futures = _sut.InvokeAll(TestData.ShortDelay, calls);
+            Assert.That(futures.Count, Is.EqualTo(calls.Length));
+            for (int i = futures.Count - 1; i >= 0; i--)
+            {
+                if (i > halfSize+1)
+                {
+                    Assert.IsTrue(futures[i].IsCancelled);
+                }
+                else
+                {
+                    Assert.IsTrue(futures[i].IsDone);
+                    Assert.That(futures[i].GetResult(), Is.EqualTo(TestData<T>.MakeData(i)));
+                }
+            }
+        }
+
+        [Test] public void TimedInvokeAllCancelsUncompletedCallsWhenTimeout()
+        {
+            const int size = 5;
+            const int halfSize = size/2;
+            _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
+            Call<T>[] calls = new Call<T>[size];
+            for (int i = calls.Length - 1; i >= 0; i--)
+            {
+                calls[i] = MockRepository.GenerateMock<Call<T>>();
+                var x = calls[i].Stub(c => c()).Return(TestData<T>.MakeData(i));
+                if(i>halfSize)
+                    x.WhenCalled(invoke => Thread.Sleep(TestData.SmallDelay));
+            }
+
+            var futures = _sut.InvokeAll(TestData.ShortDelay, calls);
+            Assert.That(futures.Count, Is.EqualTo(calls.Length));
+            for (int i = futures.Count - 1; i >= 0; i--)
+            {
+                if (i>halfSize)
+                {
+                    Assert.IsTrue(futures[i].IsCancelled);
+                }
+                else
+                {
+                    Assert.IsTrue(futures[i].IsDone);
+                    Assert.That(futures[i].GetResult(), Is.EqualTo(TestData<T>.MakeData(i)));
+                }
+            }
+            ThreadManager.JoinAndVerify();
+        }
+
     }
 }

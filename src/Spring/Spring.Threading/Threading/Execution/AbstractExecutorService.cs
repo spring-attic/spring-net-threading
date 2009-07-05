@@ -686,7 +686,7 @@ namespace Spring.Threading.Execution
                 IEnumerator it = tasks.GetEnumerator();
 			    bool hasMoreTasks = it.MoveNext();
                 if (!hasMoreTasks)
-                    throw new ArgumentException("No tasks passed in.");
+                    throw new ArgumentException("No tasks passed in.", "tasks");
                 futures.Add(ecs.DoSubmit(converter(it.Current)));
 				int active = 1;
 
@@ -697,7 +697,7 @@ namespace Spring.Threading.Execution
                     {
                         if (hasMoreTasks && (hasMoreTasks = it.MoveNext()))
                         {
-                            futures.Add(ecs.Submit(converter(it.Current)));
+                            futures.Add(ecs.DoSubmit(converter(it.Current)));
                             ++active;
                         }
                         else if (active == 0)
@@ -707,7 +707,7 @@ namespace Spring.Threading.Execution
                             f = ecs.Poll(duration);
                             if (f == null)
                                 throw new TimeoutException();
-                            //TODO: done't understand what are we doing here. Useless!? -K.X.
+                            // We need to recalculate wait time if Poll was interrupted
                             duration = duration.Subtract(DateTime.Now.Subtract(lastTime));
                             lastTime = DateTime.Now;
                         }
@@ -763,6 +763,7 @@ namespace Spring.Threading.Execution
                     futures.Add(runnableFuture);
                     Execute(runnableFuture);
                 }
+
                 foreach (IFuture<T> future in futures)
                 {
                     if (!future.IsDone)

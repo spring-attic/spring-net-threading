@@ -7,10 +7,10 @@ namespace Spring
 {
     public static class TestData
     {
-        public const long ShortDelayMillis = 300;
-        public const long SmallDelayMillis = ShortDelayMillis * 5;
-        public const long MediumDelayMillis = ShortDelayMillis * 10;
-        public const long LongDelayMillis = ShortDelayMillis * 50;
+        public const int ShortDelayMillis = 300;
+        public const int SmallDelayMillis = ShortDelayMillis * 5;
+        public const int MediumDelayMillis = ShortDelayMillis * 10;
+        public const int LongDelayMillis = ShortDelayMillis * 50;
         public static readonly TimeSpan ShortDelay = TimeSpan.FromMilliseconds(ShortDelayMillis);
         public static readonly TimeSpan SmallDelay = TimeSpan.FromMilliseconds(SmallDelayMillis);
         public static readonly TimeSpan MediumDelay = TimeSpan.FromMilliseconds(MediumDelayMillis);
