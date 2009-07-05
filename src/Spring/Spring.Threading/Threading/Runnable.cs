@@ -23,69 +23,69 @@ using System;
 namespace Spring.Threading
 {
     /// <summary>
-    /// Class to convert <see cref="Task"/> to <see cref="IRunnable"/>.
+    /// Class to convert <see cref="Action"/> to <see cref="IRunnable"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
     public class Runnable : IRunnable
     {
-        private readonly Task _task;
+        private readonly Action _action;
 
         /// <summary>
         /// Construct a new instance of <see cref="Runnable"/> which calls
-        /// <paramref name="task"/> delegate with its <see cref="Run"/> method
+        /// <paramref name="action"/> delegate with its <see cref="Run"/> method
         /// is invoked.
         /// </summary>
-        /// <param name="task">
+        /// <param name="action">
         /// The delegate to be called when <see cref="Run"/> is invoked.
         /// </param>
-        public Runnable(Task task)
+        public Runnable(Action action)
         {
-            if (task == null) throw new ArgumentNullException("task");
-            _task = task;
+            if (action == null) throw new ArgumentNullException("task");
+            _action = action;
         }
 
         #region IRunnable Members
 
         /// <summary>
         /// The entry point. Invokes the delegate passed to the constructor
-        /// <see cref="Runnable(Task)"/>.
+        /// <see cref="Runnable(Action)"/>.
         /// </summary>
         public void Run()
         {
-            _task();
+            _action();
         }
 
         #endregion
 
         /// <summary>
-        /// Implicitly converts <see cref="Task"/> delegate to an instance
+        /// Implicitly converts <see cref="Action"/> delegate to an instance
         /// of <see cref="Runnable"/>.
         /// </summary>
-        /// <param name="task">
+        /// <param name="action">
         /// The delegate to be converted to <see cref="Runnable"/>.
         /// </param>
         /// <returns>
-        /// An instance of <see cref="Runnable"/> based on <paramref name="task"/>.
+        /// An instance of <see cref="Runnable"/> based on <paramref name="action"/>.
         /// </returns>
-        public static implicit operator Runnable(Task task)
+        public static implicit operator Runnable(Action action)
         {
-            return task == null ? null : new Runnable(task);
+            return action == null ? null : new Runnable(action);
         }
 
         /// <summary>
-        /// Implicitly converts <see cref="Runnable"/> to <see cref="Task"/>
+        /// Implicitly converts <see cref="Runnable"/> to <see cref="Action"/>
         /// delegate.
         /// </summary>
         /// <param name="runnable">
-        /// The callable to be converted to <see cref="Task"/>.
+        /// The callable to be converted to <see cref="Action"/>.
         /// </param>
         /// <returns>
-        /// The original <see cref="Task"/> delegate used to construct the
+        /// The original <see cref="Action"/> delegate used to construct the
         /// <paramref name="runnable"/>.
         /// </returns>
-        public static implicit operator Task(Runnable runnable)
+        public static implicit operator Action(Runnable runnable)
         {
-            return runnable == null ? null : runnable._task;
+            return runnable == null ? null : runnable._action;
         }
     }
 }

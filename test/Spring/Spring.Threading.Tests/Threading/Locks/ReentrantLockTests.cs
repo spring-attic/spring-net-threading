@@ -338,7 +338,7 @@ namespace Spring.Threading.Locks
             RecursiveHolds(delegate { _lock.LockInterruptibly(); });
         }
 
-        private void RecursiveHolds(Task lockTask)
+        private void RecursiveHolds(Action lockTask)
         {
             for (int i = 1; i <= DEFAULT_COLLECTION_SIZE; i++)
             {

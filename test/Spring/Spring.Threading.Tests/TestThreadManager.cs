@@ -201,7 +201,7 @@ namespace Spring
             }
         }
 
-        public Task NewVerifiableTask(Task action)
+        public Action NewVerifiableTask(Action action)
         {
             return delegate
             {

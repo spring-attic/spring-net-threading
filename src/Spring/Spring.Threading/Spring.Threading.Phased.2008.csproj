@@ -92,6 +92,7 @@
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CommonAssemblyInfo.cs" />
     <Compile Include="SystemExtensions.cs" />
+    <Compile Include="Threading\Action.cs" />
     <Compile Include="Threading\AtomicTypes\AbstractAtomicArray.cs" />
     <Compile Include="Threading\AtomicTypes\Atomic.cs" />
     <Compile Include="Threading\AtomicTypes\AtomicArray.cs" />
@@ -109,7 +110,6 @@
     <Compile Include="Threading\AtomicTypes\IAtomic.cs" />
     <Compile Include="Threading\AtomicTypes\IAtomicArray.cs" />
     <Compile Include="Threading\AtomicTypes\ValueHolder.cs" />
-    <Compile Include="Threading\Call.cs" />
     <Compile Include="Threading\Callable.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueue.cs" />
@@ -134,6 +134,7 @@
     <Compile Include="Threading\Execution\IRejectedExecutionHandler.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionException.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutor.cs" />
+    <Compile Include="Threading\Func.cs" />
     <Compile Include="Threading\Future\FutureTask.cs" />
     <Compile Include="Threading\Future\IDelayed.cs" />
     <Compile Include="Threading\Future\IFuture.cs" />
@@ -157,7 +158,6 @@
     <Compile Include="Threading\Locks\ReentrantLock.cs" />
     <Compile Include="Threading\NullRunnable.cs" />
     <Compile Include="Threading\Runnable.cs" />
-    <Compile Include="Threading\Task.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

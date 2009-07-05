@@ -39,7 +39,7 @@ namespace Spring.Threading
 	///		public void Execute(IRunnable r) {
 	///			r.Run();
 	/// 	}
-	///     public void Execute(Task task) {
+	///     public void Execute(Action task) {
 	///         task();
 	///     }
 	/// }
@@ -54,7 +54,7 @@ namespace Spring.Threading
 	///		public void Execute(IRunnable r) {
 	/// 		new Thread(new ThreadStart(r.Run)).Start();
 	/// 	}
-    ///     public void Execute(Task task) {
+    ///     public void Execute(Action task) {
     ///         new Thread(new ThreadStart(task)).Start();
     ///     }
     /// }
@@ -93,13 +93,13 @@ namespace Spring.Threading
         /// The task may execute in a new thread, in a pooled thread, or in the calling
         /// thread, at the discretion of the <see cref="IExecutor"/> implementation.
         /// </remarks>
-        /// <param name="task">The task to be executed.</param>
+        /// <param name="action">The task to be executed.</param>
         /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">
         /// If the task cannot be accepted for execution.
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
-        /// If the <paramref name="task"/> is <c>null</c>
+        /// If the <paramref name="action"/> is <c>null</c>
         /// </exception>
-        void Execute(Task task);
+        void Execute(Action action);
 	}
 }

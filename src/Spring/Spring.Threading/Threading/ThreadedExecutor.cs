@@ -48,12 +48,12 @@ namespace Spring.Threading
         }
 
         /// <summary>
-        /// Execute the given <paramref name="task"/> in a new thread.
+        /// Execute the given <paramref name="action"/> in a new thread.
         /// </summary>
-        /// <param name="task">The task to be executed.</param>
-        public virtual void Execute(Task task)
+        /// <param name="action">The task to be executed.</param>
+        public virtual void Execute(Action action)
         {
-            Execute(Spring.Threading.Execution.Executors.CreateRunnable(task));
+            Execute(Spring.Threading.Execution.Executors.CreateRunnable(action));
         }
     }
 }

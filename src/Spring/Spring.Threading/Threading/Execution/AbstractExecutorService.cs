@@ -145,16 +145,16 @@ namespace Spring.Threading.Execution
         /// The task may execute in a new thread, in a pooled thread, or in the calling
         /// thread, at the discretion of the <see cref="IExecutor"/> implementation.
         /// </remarks>
-        /// <param name="task">The task to be executed.</param>
+        /// <param name="action">The task to be executed.</param>
         /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">
         /// If the task cannot be accepted for execution.
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
-        /// If the <paramref name="task"/> is <c>null</c>
+        /// If the <paramref name="action"/> is <c>null</c>
         /// </exception>
-        public virtual void Execute(Task task)
+        public virtual void Execute(Action action)
         {
-            Execute(Executors.CreateRunnable(task));
+            Execute(Executors.CreateRunnable(action));
         }
 
         #endregion
@@ -166,13 +166,13 @@ namespace Spring.Threading.Execution
             return Submit<object>(runnable, null);
         }
 
-        public virtual IFuture<object> Submit(Task task)
+        public virtual IFuture<object> Submit(Action action)
         {
-            return Submit<object>(task, null);
+            return Submit<object>(action, null);
         }
 
         /// <summary> 
-        /// Submits a delegate <see cref="Call{T}"/> for execution and returns a
+        /// Submits a delegate <see cref="Func{T}"/> for execution and returns a
         /// <see cref="IFuture{T}"/> representing that <paramref name="call"/>. 
         /// The <see cref="IFuture{T}.GetResult()"/> method will return the 
         /// result of <paramref name="call"/><c>()</c> upon successful completion.
@@ -188,34 +188,34 @@ namespace Spring.Threading.Execution
         /// <exception cref="ArgumentNullException">
         /// If the <paramref name="call"/> is <c>null</c>.
         /// </exception>
-        public virtual IFuture<T> Submit<T>(Call<T> call)
+        public virtual IFuture<T> Submit<T>(Func<T> call)
         {
             if (call == null) throw new ArgumentNullException("call");
             return Submit(NewTaskFor(call));
         }
         
         /// <summary> 
-        /// Submits a delegate <see cref="Task"/> for execution and returns a
-        /// <see cref="IFuture{T}"/> representing that <paramref name="task"/>. 
+        /// Submits a delegate <see cref="Action"/> for execution and returns a
+        /// <see cref="IFuture{T}"/> representing that <paramref name="action"/>. 
         /// The <see cref="IFuture{T}.GetResult()"/> method will return the 
         /// given <paramref name="result"/> upon successful completion.
         /// </summary>
-        /// <param name="task">The task to submit.</param>
+        /// <param name="action">The task to submit.</param>
         /// <param name="result">The result to return.</param>
         /// <returns>
         /// An <see cref="IFuture{T}"/> representing pending completion of the
-        /// <paramref name="task"/>.
+        /// <paramref name="action"/>.
         /// </returns>
         /// <exception cref="RejectedExecutionException">
-        /// If the <paramref name="task"/> cannot be accepted for execution.
+        /// If the <paramref name="action"/> cannot be accepted for execution.
         /// </exception>
         /// <exception cref="ArgumentNullException">
-        /// If the <paramref name="task"/> is <c>null</c>.
+        /// If the <paramref name="action"/> is <c>null</c>.
         /// </exception>
-        public virtual IFuture<T> Submit<T>(Task task, T result)
+        public virtual IFuture<T> Submit<T>(Action action, T result)
         {
-            if (task == null) throw new ArgumentNullException("task");
-            return Submit(NewTaskFor(task, result));
+            if (action == null) throw new ArgumentNullException("task");
+            return Submit(NewTaskFor(action, result));
         }
 
         /// <summary> 
@@ -345,7 +345,7 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="ICollection{T}">collection</see> of 
-        /// <see cref="Call{T}"/> delegates.
+        /// <see cref="Func{T}"/> delegates.
         /// </param>
         /// <returns>The result returned by one of the tasks.</returns>
         /// <exception cref="RejectedExecutionException">
@@ -355,9 +355,9 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        public virtual T InvokeAny<T>(IEnumerable<Call<T>> tasks)
+        public virtual T InvokeAny<T>(IEnumerable<Func<T>> tasks)
         {
-            ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
+            ICollection<Func<T>> collection = tasks as ICollection<Func<T>>;
             int count = collection == null ? 0 : collection.Count;
             return DoInvokeAny(tasks, count, false, TimeSpan.Zero, Call2Future<T>());
         }
@@ -378,7 +378,7 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="ICollection{T}">collection</see> of 
-        /// <see cref="Call{T}"/> delegates.
+        /// <see cref="Func{T}"/> delegates.
         /// </param>
         /// <returns>The result returned by one of the tasks.</returns>
         /// <exception cref="RejectedExecutionException">
@@ -388,9 +388,9 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        public virtual T InvokeAny<T>(params Call<T>[] tasks)
+        public virtual T InvokeAny<T>(params Func<T>[] tasks)
         {
-            return InvokeAny((IEnumerable<Call<T>>) tasks);
+            return InvokeAny((IEnumerable<Func<T>>) tasks);
         }
 
         /// <summary> 
@@ -478,7 +478,7 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="ICollection{T}">collection</see> of 
-        /// <see cref="Call{T}"/> delegates.
+        /// <see cref="Func{T}"/> delegates.
         /// </param>
         /// <param name="durationToWait">The time span to wait.</param> 
         /// <returns>The result returned by one of the tasks.</returns>
@@ -489,9 +489,9 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        public virtual T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
+        public virtual T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
         {
-            ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
+            ICollection<Func<T>> collection = tasks as ICollection<Func<T>>;
             int count = collection == null ? 0 : collection.Count;
             return DoInvokeAny(tasks, count, true, durationToWait, Call2Future<T>());
         }
@@ -513,7 +513,7 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="ICollection{T}">collection</see> of 
-        /// <see cref="Call{T}"/> delegates.
+        /// <see cref="Func{T}"/> delegates.
         /// </param>
         /// <param name="durationToWait">The time span to wait.</param> 
         /// <returns>The result returned by one of the tasks.</returns>
@@ -524,9 +524,9 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        public virtual T InvokeAny<T>(TimeSpan durationToWait, params Call<T>[] tasks)
+        public virtual T InvokeAny<T>(TimeSpan durationToWait, params Func<T>[] tasks)
         {
-            return InvokeAny(durationToWait, (IEnumerable<Call<T>>) tasks);
+            return InvokeAny(durationToWait, (IEnumerable<Func<T>>) tasks);
         }
 
         /// <summary> 
@@ -638,7 +638,7 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="IEnumerable{T}">enumeration</see> of 
-        /// <see cref="Call{T}"/> delegates.
+        /// <see cref="Func{T}"/> delegates.
         /// </param>
         /// <returns>
         /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
@@ -652,9 +652,9 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-	    public virtual IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks)
+	    public virtual IList<IFuture<T>> InvokeAll<T>(IEnumerable<Func<T>> tasks)
         {
-            ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
+            ICollection<Func<T>> collection = tasks as ICollection<Func<T>>;
             int count = collection == null ? 0 : collection.Count;
             return DoInvokeAll(tasks, count, Call2Future<T>());
         }
@@ -682,7 +682,7 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="IEnumerable{T}">enumeration</see> of 
-        /// <see cref="Call{T}"/> delegates.
+        /// <see cref="Func{T}"/> delegates.
         /// </param>
         /// <returns>
         /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
@@ -696,9 +696,9 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        public virtual IList<IFuture<T>> InvokeAll<T>(params Call<T>[] tasks)
+        public virtual IList<IFuture<T>> InvokeAll<T>(params Func<T>[] tasks)
         {
-            return InvokeAll((IEnumerable<Call<T>>) tasks);
+            return InvokeAll((IEnumerable<Func<T>>) tasks);
         }
 
         /// <summary> 
@@ -822,7 +822,7 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="IEnumerable{T}">enumeration</see> of 
-        /// <see cref="Call{T}"/> delegates.
+        /// <see cref="Func{T}"/> delegates.
         /// </param>
         /// <param name="durationToWait">The time span to wait.</param> 
         /// <returns>
@@ -839,9 +839,9 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-	    public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
+	    public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
         {
-            ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
+            ICollection<Func<T>> collection = tasks as ICollection<Func<T>>;
             int count = collection == null ? 0 : collection.Count;
             return DoInvokeAll(tasks, count, durationToWait, Call2Future<T>());
         }
@@ -871,7 +871,7 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="IEnumerable{T}">enumeration</see> of 
-        /// <see cref="Call{T}"/> delegates.
+        /// <see cref="Func{T}"/> delegates.
         /// </param>
         /// <param name="durationToWait">The time span to wait.</param> 
         /// <returns>
@@ -888,9 +888,9 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
-        public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Call<T>[] tasks)
+        public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Func<T>[] tasks)
 	    {
-	        return InvokeAll(durationToWait, (IEnumerable<Call<T>>) tasks);
+	        return InvokeAll(durationToWait, (IEnumerable<Func<T>>) tasks);
 	    }
 
         #endregion
@@ -914,9 +914,9 @@ namespace Spring.Threading.Execution
             return new FutureTask<T>(runnable, result);
         }
 
-        protected internal virtual IRunnableFuture<T> NewTaskFor<T>(Task task, T result)
+        protected internal virtual IRunnableFuture<T> NewTaskFor<T>(Action action, T result)
         {
-            return new FutureTask<T>(task, result);
+            return new FutureTask<T>(action, result);
         }
 
         /// <summary> 
@@ -924,7 +924,7 @@ namespace Spring.Threading.Execution
         /// <paramref name="call"/> delegate.
         /// </summary>
         /// <param name="call">
-        /// The <see cref="Call{T}"/> delegate being wrapped.
+        /// The <see cref="Func{T}"/> delegate being wrapped.
         /// </param>
         /// <returns>
         /// An <see cref="IRunnableFuture{T}"/> which when run will call the
@@ -932,7 +932,7 @@ namespace Spring.Threading.Execution
         /// <see cref="IFuture{T}"/>, will yield the result of <c>call</c>as 
         /// its result and provide for cancellation of the underlying task.
         /// </returns>
-        protected internal virtual IRunnableFuture<T> NewTaskFor<T>(Call<T> call)
+        protected internal virtual IRunnableFuture<T> NewTaskFor<T>(Func<T> call)
         {
             return new FutureTask<T>(call);
         }
@@ -960,7 +960,7 @@ namespace Spring.Threading.Execution
 
         private Converter<object, IRunnableFuture<T>> Call2Future<T>()
         {
-            return delegate(object call) { return NewTaskFor((Call<T>)call); };
+            return delegate(object call) { return NewTaskFor((Func<T>)call); };
         }
 
         private IFuture<T> Submit<T>(IRunnableFuture<T> runnableFuture)

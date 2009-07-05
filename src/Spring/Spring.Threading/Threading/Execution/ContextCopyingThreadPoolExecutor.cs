@@ -35,9 +35,9 @@ namespace Spring.Threading.Execution
             set { _contextNames = value;}
         }
 
-        protected internal override IRunnableFuture<T> NewTaskFor<T>(Task task, T result)
+        protected internal override IRunnableFuture<T> NewTaskFor<T>(Action action, T result)
         {
-            return new ContextCopyingFutureTask<T>(task, result, _contextNames);
+            return new ContextCopyingFutureTask<T>(action, result, _contextNames);
         }
 
         protected internal override IRunnableFuture<T> NewTaskFor<T>(IRunnable runnable, T result)
@@ -45,7 +45,7 @@ namespace Spring.Threading.Execution
             return new ContextCopyingFutureTask<T>(runnable, result, _contextNames);
         }
 
-        protected internal override IRunnableFuture<T> NewTaskFor<T>(Call<T> call)
+        protected internal override IRunnableFuture<T> NewTaskFor<T>(Func<T> call)
         {
             return new ContextCopyingFutureTask<T>(call, _contextNames);
         }

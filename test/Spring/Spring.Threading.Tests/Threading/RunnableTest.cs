@@ -29,14 +29,14 @@ namespace Spring.Threading
     public class RunnableTest
     {
         private Runnable _runnable;
-        private Task _task;
+        private Action _action;
         private bool _isDelegateTasked;
 
         [SetUp]
         public void SetUp()
         {
             _isDelegateTasked = false;
-            _task = delegate
+            _action = delegate
                         {
                             _isDelegateTasked = true;
                         };
@@ -53,7 +53,7 @@ namespace Spring.Threading
         [Test]
         public void TaskReturnsTheResultOfDelegate()
         {
-            _runnable = new Runnable(_task);
+            _runnable = new Runnable(_action);
             Assert.That(!_isDelegateTasked);
             _runnable.Run();
             Assert.That(_isDelegateTasked);
@@ -62,7 +62,7 @@ namespace Spring.Threading
         [Test]
         public void ImplicitConvertTaskDelegateToRunnable()
         {
-            _runnable = _task;
+            _runnable = _action;
             Assert.That(_runnable, Is.Not.Null);
             Assert.That(!_isDelegateTasked);
             _runnable.Run();
@@ -72,25 +72,25 @@ namespace Spring.Threading
         [Test]
         public void ImplicitConvertNullTaskDelegateToNullRunnable()
         {
-            _task = null;
-            _runnable = _task;
+            _action = null;
+            _runnable = _action;
             Assert.That(_runnable, Is.Null);
         }
 
         [Test]
         public void ImplicitConvertRunnableToTaskDelegate()
         {
-            _runnable = new Runnable(_task);
-            Task task = _runnable;
-            Assert.That(task, Is.SameAs(_task));
+            _runnable = new Runnable(_action);
+            Action action = _runnable;
+            Assert.That(action, Is.SameAs(_action));
         }
 
         [Test]
         public void ImplicitConvertNullRunnableToNullTaskDelegate()
         {
             _runnable = null;
-            Task task = _runnable;
-            Assert.That(task, Is.Null);
+            Action action = _runnable;
+            Assert.That(action, Is.Null);
         }
 
     }

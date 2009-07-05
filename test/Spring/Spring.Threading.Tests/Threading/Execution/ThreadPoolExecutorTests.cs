@@ -1134,7 +1134,7 @@ namespace Spring.Threading.Execution
     [Test] public void testInvokeAny1() {
         IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAny((IEnumerable<Call<bool>>)null);
+            e.InvokeAny((IEnumerable<Func<bool>>)null);
         } catch (ArgumentNullException success) {
         } finally {
             JoinPool(e);
@@ -1210,7 +1210,7 @@ namespace Spring.Threading.Execution
     [Test] public void testInvokeAll1() {
         IExecutorService e = new ThreadPoolExecutor(2, 2, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10));
         try {
-            e.InvokeAll((IEnumerable<Call<bool>>)null);
+            e.InvokeAll((IEnumerable<Func<bool>>)null);
         } catch (ArgumentNullException success) {
         } finally {
             JoinPool(e);

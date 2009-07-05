@@ -45,7 +45,7 @@ namespace Spring.Threading
     /// <typeparam name="T">
     /// The result type of method <see cref="Call()"/>.
     /// </typeparam>
-    /// <seealso cref="Spring.Threading.Call{T}"/>
+    /// <seealso cref="Func{T}"/>
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>

@@ -60,7 +60,7 @@ namespace Spring.Threading.Execution
         [Test] public void SubmitChokesOnNullCallArgument()
         {
             var e = Assert.Throws<ArgumentNullException>(
-                () => _sut.Submit((Call<T>)null));
+                () => _sut.Submit((Func<T>)null));
             Assert.That(e.ParamName, Is.EqualTo("call"));
         }
 
@@ -77,10 +77,10 @@ namespace Spring.Threading.Execution
         [Test] public void SubmitChokesOnNullTaskArgument()
         {
             var e = Assert.Throws<ArgumentNullException>(
-                () => _sut.Submit((Task)null));
+                () => _sut.Submit((Action)null));
             Assert.That(e.ParamName, Is.EqualTo("task"));
             e = Assert.Throws<ArgumentNullException>(
-                () => _sut.Submit((Task)null, TestData<T>.One));
+                () => _sut.Submit((Action)null, TestData<T>.One));
             Assert.That(e.ParamName, Is.EqualTo("task"));
         }
 
@@ -125,7 +125,7 @@ namespace Spring.Threading.Execution
 
         [Test] public void TimedPollNeverReturnsNonCompletedTask()
         {
-            Call<T> call = delegate
+            Func<T> call = delegate
                                {
                                    Thread.Sleep(TestData.SmallDelay);
                                    return TestData<T>.One;
@@ -144,7 +144,7 @@ namespace Spring.Threading.Execution
 
         [Test] public void NewTaskForCallGetsNewTaskFromAbstractExecutorService()
         {
-            Call<T> call = delegate
+            Func<T> call = delegate
                                {
                                    return TestData<T>.One;
                                };
@@ -184,14 +184,14 @@ namespace Spring.Threading.Execution
 
         [Test] public void NewTaskForTaskWithResultGetsNewTaskFromAbstractExecutorService()
         {
-            Task task = delegate {};
+            Action action = delegate {};
             var result = TestData<T>.Two;
-            var futureTask = Mockery.GeneratePartialMock<FutureTask<T>>(task, result);
+            var futureTask = Mockery.GeneratePartialMock<FutureTask<T>>(action, result);
 
             ExpectExecuteCallAndRunTheRunnableInCurrentThread();
-            _executor.Expect(e => e.NewTaskFor(task, result)).Return(futureTask);
+            _executor.Expect(e => e.NewTaskFor(action, result)).Return(futureTask);
 
-            var f1 = _sut.Submit(task, result);
+            var f1 = _sut.Submit(action, result);
             Assert.That(f1, Is.SameAs(futureTask));
             var f2 = _sut.Poll();
             Assert.That(f2, Is.SameAs(futureTask), "submit and take must return same objects");
@@ -218,14 +218,14 @@ namespace Spring.Threading.Execution
 
         [Test] public void NewTaskForTaskGetsNewTaskFromAbstractExecutorService()
         {
-            Task task = delegate { };
+            Action action = delegate { };
             var result = default(T);
-            var futureTask = Mockery.GeneratePartialMock<FutureTask<T>>(task, result);
+            var futureTask = Mockery.GeneratePartialMock<FutureTask<T>>(action, result);
 
             ExpectExecuteCallAndRunTheRunnableInCurrentThread();
-            _executor.Expect(e => e.NewTaskFor(task, result)).Return(futureTask);
+            _executor.Expect(e => e.NewTaskFor(action, result)).Return(futureTask);
 
-            var f1 = _sut.Submit(task);
+            var f1 = _sut.Submit(action);
             Assert.That(f1, Is.SameAs(futureTask));
             var f2 = _sut.Poll();
             Assert.That(f2, Is.SameAs(futureTask), "submit and take must return same objects");

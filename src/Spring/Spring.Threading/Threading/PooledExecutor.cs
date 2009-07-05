@@ -32,7 +32,7 @@ namespace Spring.Threading
     /// <summary> 
     /// A tunable, extensible thread pool class. The main supported public
     /// method are <see cref="Execute(IRunnable)"/> and
-    /// <see cref="Execute(Spring.Threading.Task)"/>, which can be
+    /// <see cref="Execute(Action)"/>, which can be
     /// called instead of directly creating threads to execute commands.
     /// 
     /// <p>
@@ -130,7 +130,7 @@ namespace Spring.Threading
     /// does not by default preallocate threads.  Instead, a thread is
     /// created, if necessary and if there are fewer than the maximum,
     /// only when an <see cref="IExecutor.Execute(IRunnable)"/> or
-    /// <see cref="IExecutor.Execute(Spring.Threading.Task)"/> request arrives.
+    /// <see cref="IExecutor.Execute(Action)"/> request arrives.
     /// The default value is (for all practical purposes) infinite --
     /// <see cref="Int32.MaxValue"/>, so should be set in the
     /// constructor or the set method unless you are just using the pool
@@ -1135,14 +1135,14 @@ namespace Spring.Threading
         }
 
         /// <summary>
-        /// Arrange for the given <paramref name="task"/> to be executed by a 
+        /// Arrange for the given <paramref name="action"/> to be executed by a 
         /// thread in this pool.  The method normally returns when the task 
         /// has been handed off for (possibly later) execution.
         /// </summary>
-        /// <param name="task">The task to be executed.</param>
-        public virtual void Execute(Task task)
+        /// <param name="action">The task to be executed.</param>
+        public virtual void Execute(Action action)
         {
-            Execute(Executors.CreateRunnable(task));
+            Execute(Executors.CreateRunnable(action));
         }
 
     }

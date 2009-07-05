@@ -14,11 +14,11 @@ namespace Spring.Threading.Execution
 
         private AbstractExecutorService _sut;
         private IRunnable _runnable;
-        private Task _task;
-        private Call<T> _call;
+        private Action _action;
+        private Func<T> _call;
         private ICallable<T> _callable;
         ICallable<T>[] _callables = new ICallable<T>[_size];
-        Call<T>[] _calls = new Call<T>[3];
+        Func<T>[] _calls = new Func<T>[3];
         private Action<IRunnable> _actionOnExecute;
         TestThreadManager ThreadManager { get; set; }
 
@@ -31,14 +31,14 @@ namespace Spring.Threading.Execution
         {
             _sut = Mockery.GeneratePartialMock<AbstractExecutorService>();
             _runnable = MockRepository.GenerateMock<IRunnable>();
-            _task = MockRepository.GenerateMock<Task>();
+            _action = MockRepository.GenerateMock<Action>();
 
-            _calls = new Call<T>[_size];
+            _calls = new Func<T>[_size];
             _callables = new ICallable<T>[_size];
             for (int i = _size - 1; i >= 0; i--)
             {
                 _callables[i] = MockRepository.GenerateMock<ICallable<T>>();
-                _calls[i] = MockRepository.GenerateMock<Call<T>>();
+                _calls[i] = MockRepository.GenerateMock<Func<T>>();
             }
             _call = _calls[0];
             _callable = _callables[0];
@@ -54,15 +54,15 @@ namespace Spring.Threading.Execution
         [Test] public void ExecuteTaskChokesOnNullArgument()
         {
             var e = Assert.Throws<ArgumentNullException>(
-                () => _sut.Execute((Task) null));
+                () => _sut.Execute((Action) null));
             Assert.That(e.ParamName, Is.EqualTo("task"));
         }
 
         [Test] public void ExecuteTaskCallsExecuteCallable()
         {
-            _sut.Execute(_task);
+            _sut.Execute(_action);
 
-            _task.AssertWasCalled(x => x());
+            _action.AssertWasCalled(x => x());
             _sut.AssertWasCalled(x => x.Execute(Arg<IRunnable>.Is.NotNull));
         }
 
@@ -72,13 +72,13 @@ namespace Spring.Threading.Execution
                 () => _sut.Submit((IRunnable)null, TestData<T>.One));
             Assert.That(e.ParamName, Is.EqualTo("runnable"));
             e = Assert.Throws<ArgumentNullException>(
-                () => _sut.Submit((Task)null, TestData<T>.One));
+                () => _sut.Submit((Action)null, TestData<T>.One));
             Assert.That(e.ParamName, Is.EqualTo("task"));
             e = Assert.Throws<ArgumentNullException>(
                 () => _sut.Submit((ICallable<T>)null));
             Assert.That(e.ParamName, Is.EqualTo("callable"));
             e = Assert.Throws<ArgumentNullException>(
-                () => _sut.Submit((Call<T>)null));
+                () => _sut.Submit((Func<T>)null));
             Assert.That(e.ParamName, Is.EqualTo("call"));
         }
 
@@ -100,18 +100,18 @@ namespace Spring.Threading.Execution
 
         [Test] public void SubmitExecutesTheTask()
         {
-            var future = _sut.Submit(_task);
+            var future = _sut.Submit(_action);
             Assert.IsTrue(future.IsDone);
-            _task.AssertWasCalled(t => t());
+            _action.AssertWasCalled(t => t());
         }
 
         [Test] public void SubmitExecutesTheTaskAndSetFutureResult()
         {
-            var future = _sut.Submit(_task, TestData<T>.One);
+            var future = _sut.Submit(_action, TestData<T>.One);
 
             Assert.IsTrue(future.IsDone);
             Assert.That(future.GetResult(), Is.EqualTo(TestData<T>.One));
-            _task.AssertWasCalled(t => t());
+            _action.AssertWasCalled(t => t());
         }
 
         [Test] public void SubmitExecutesTheCallAndSetFutureResult()
@@ -186,7 +186,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                     {
-                        const Call<T>[] calls = null;
+                        const Func<T>[] calls = null;
                         if (!isTimed) _sut.InvokeAny(calls);
                         else _sut.InvokeAny(TestData.ShortDelay, calls);
                     });
@@ -207,7 +207,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentException>(
                 delegate
                     {
-                        Call<T>[] calls = new Call<T>[0];
+                        Func<T>[] calls = new Func<T>[0];
                         if (!isTimed) _sut.InvokeAny(calls);
                         else _sut.InvokeAny(TestData.ShortDelay, calls);
                     });
@@ -228,7 +228,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                     {
-                        Call<T>[] calls = new Call<T>[] { null };
+                        Func<T>[] calls = new Func<T>[] { null };
                         if (!isTimed) _sut.InvokeAny(calls);
                         else _sut.InvokeAny(TestData.ShortDelay, calls);
                     });
@@ -249,7 +249,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                     {
-                        const Call<T>[] calls = null;
+                        const Func<T>[] calls = null;
                         if (!isTimed) _sut.InvokeAll(calls);
                         else _sut.InvokeAll(TestData.ShortDelay, calls);
                     });
@@ -267,7 +267,7 @@ namespace Spring.Threading.Execution
 
         [Test] public void InvokeAllNopOnEmptyTaskCollection([Values(true, false)] bool isTimed)
         {
-            Call<T>[] calls = new Call<T>[0];
+            Func<T>[] calls = new Func<T>[0];
             var futures = isTimed ? 
                 _sut.InvokeAll(TestData.ShortDelay, calls) :
                 _sut.InvokeAll(calls);
@@ -285,7 +285,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                     {
-                        Call<T>[] calls = new Call<T>[] { null };
+                        Func<T>[] calls = new Func<T>[] { null };
                         if (!isTimed) _sut.InvokeAny(calls);
                         else _sut.InvokeAny(TestData.ShortDelay, calls);
                     });
@@ -304,11 +304,11 @@ namespace Spring.Threading.Execution
         [Test] public void InvokeAnyChokesWhenNoTaskCompletes([Values(true, false)] bool isTimed)
         {
             var expected = new Exception();
-            Call<T> call = delegate { throw expected; };
+            Func<T> call = delegate { throw expected; };
             var e1 = Assert.Throws<ExecutionException>(
                 delegate
                 {
-                    Call<T>[] calls = new Call<T>[] { call };
+                    Func<T>[] calls = new Func<T>[] { call };
                     if (!isTimed) _sut.InvokeAny(calls);
                     else _sut.InvokeAny(TestData.ShortDelay, calls);
                 });
@@ -332,7 +332,7 @@ namespace Spring.Threading.Execution
             call1.Stub(c => c()).Throw(new Exception());
             call2.Stub(c => c()).Return(TestData<T>.Four).WhenCalled(i => Thread.Sleep(TestData.ShortDelay));
 
-            Call<T>[] calls = new Call<T>[] { call1, call2, call1, call2 };
+            Func<T>[] calls = new Func<T>[] { call1, call2, call1, call2 };
             var result = isTimed ? 
                 _sut.InvokeAny(TestData.SmallDelay, calls) :
                 _sut.InvokeAny(calls);

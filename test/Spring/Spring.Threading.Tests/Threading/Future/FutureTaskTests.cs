@@ -15,12 +15,12 @@ namespace Spring.Threading.Future
     [TestFixture(typeof(int))]
     public class FutureTaskTest<T> : BaseThreadingTestCase
     {
-        private readonly Call<T> _noOpCall = () => default(T);
+        private readonly Func<T> _noOpCall = () => default(T);
 
 
         private class PublicFutureTask : FutureTask<T>
         {
-            public PublicFutureTask(Call<T> call) : base(call)
+            public PublicFutureTask(Func<T> call) : base(call)
             {
             }
 
@@ -45,7 +45,7 @@ namespace Spring.Threading.Future
         public void ConstructorChokesOnNullArgumentCall()
         {
             var e = Assert.Throws<ArgumentNullException>(()=>
-                new FutureTask<T>((Call<T>)null));
+                new FutureTask<T>((Func<T>)null));
             Assert.That(e.ParamName, Is.EqualTo("call"));
         }
 
@@ -54,7 +54,7 @@ namespace Spring.Threading.Future
         public void ConstructorChokesOnNullArgumentTask()
         {
             var e = Assert.Throws<ArgumentNullException>(() => 
-                new FutureTask<T>((Task)null, TestData<T>.One));
+                new FutureTask<T>((Action)null, TestData<T>.One));
             Assert.That(e.ParamName, Is.EqualTo("task"));
         }
 

@@ -8,7 +8,7 @@ namespace Spring.Threading.Future
         private ContextCarrier _contextCarrier;
 
 
-        public ContextCopyingFutureTask(Task task, T result, IEnumerable<string> names) : base(task, result)
+        public ContextCopyingFutureTask(Action action, T result, IEnumerable<string> names) : base(action, result)
         {
             SetRunnable(names);
         }
@@ -19,7 +19,7 @@ namespace Spring.Threading.Future
             SetRunnable(names);
         }
 
-        public ContextCopyingFutureTask(Call<T> call, IEnumerable<string> names)
+        public ContextCopyingFutureTask(Func<T> call, IEnumerable<string> names)
             : base(call)
         {
             SetRunnable(names);

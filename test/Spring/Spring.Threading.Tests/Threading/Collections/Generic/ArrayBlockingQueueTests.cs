@@ -53,7 +53,7 @@ namespace Spring.Threading.Collections.Generic
 				throw new NotImplementedException();
 			}
 
-            public IFuture<object> Submit(Task task)
+            public IFuture<object> Submit(Action action)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -63,7 +63,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public IFuture<T> Submit<T>(Task task, T result)
+            public IFuture<T> Submit<T>(Action action, T result)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -73,7 +73,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public IFuture<T> Submit<T>(Call<T> call)
+            public IFuture<T> Submit<T>(Func<T> call)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -83,7 +83,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks)
+            public IList<IFuture<T>> InvokeAll<T>(IEnumerable<Func<T>> tasks)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -93,7 +93,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
+            public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -103,7 +103,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public T InvokeAny<T>(IEnumerable<Call<T>> tasks)
+            public T InvokeAny<T>(IEnumerable<Func<T>> tasks)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -113,7 +113,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
+            public T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -123,7 +123,7 @@ namespace Spring.Threading.Collections.Generic
             #region IExecutor Members
 
 
-            public void Execute(Task task)
+            public void Execute(Action action)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -144,7 +144,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new NotImplementedException();
             }
 
-            public IList<IFuture<T>> InvokeAll<T>(params Call<T>[] tasks)
+            public IList<IFuture<T>> InvokeAll<T>(params Func<T>[] tasks)
             {
                 throw new NotImplementedException();
             }
@@ -154,7 +154,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new NotImplementedException();
             }
 
-            public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Call<T>[] tasks)
+            public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Func<T>[] tasks)
             {
                 throw new NotImplementedException();
             }
@@ -164,7 +164,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new NotImplementedException();
             }
 
-            public T InvokeAny<T>(params Call<T>[] tasks)
+            public T InvokeAny<T>(params Func<T>[] tasks)
             {
                 throw new NotImplementedException();
             }
@@ -174,7 +174,7 @@ namespace Spring.Threading.Collections.Generic
                 throw new NotImplementedException();
             }
 
-            public T InvokeAny<T>(TimeSpan durationToWait, params Call<T>[] tasks)
+            public T InvokeAny<T>(TimeSpan durationToWait, params Func<T>[] tasks)
             {
                 throw new NotImplementedException();
             }

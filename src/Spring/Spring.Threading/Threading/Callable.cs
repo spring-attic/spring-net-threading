@@ -22,14 +22,14 @@ using System;
 namespace Spring.Threading
 {
     /// <summary>
-    /// A class converts <see cref="Spring.Threading.Call{T}"/> delegate to 
+    /// A class converts <see cref="Func{T}"/> delegate to 
     /// <see cref="ICallable{T}"/>.
     /// </summary>
     /// <typeparam name="T">Data type of the result to be returned.</typeparam>
     /// <author>Kenneth Xu</author>
     public class Callable<T> : ICallable<T>
     {
-        private readonly Call<T> _call;
+        private readonly Func<T> _call;
 
         /// <summary>
         /// Construct a new instance of <see cref="Callable{T}"/> which calls
@@ -39,7 +39,7 @@ namespace Spring.Threading
         /// <param name="call">
         /// The delegate to be called when <see cref="Call"/> is invoked.
         /// </param>
-        public Callable(Call<T> call)
+        public Callable(Func<T> call)
         {
             if(call==null) throw new ArgumentNullException("call");
             _call = call;
@@ -55,7 +55,7 @@ namespace Spring.Threading
         }
 
         /// <summary>
-        /// Implicitly converts <see cref="Spring.Threading.Call{T}"/> delegate to an instance
+        /// Implicitly converts <see cref="Func{T}"/> delegate to an instance
         /// of <see cref="Callable{T}"/>.
         /// </summary>
         /// <param name="call">
@@ -64,23 +64,23 @@ namespace Spring.Threading
         /// <returns>
         /// An instance of <see cref="Callable{T}"/> based on <paramref name="call"/>.
         /// </returns>
-        public static implicit operator Callable<T>(Call<T> call)
+        public static implicit operator Callable<T>(Func<T> call)
         {
             return call == null ? null : new Callable<T>(call);
         }
 
         /// <summary>
-        /// Implicitly converts <see cref="Callable{T}"/> to <see cref="Spring.Threading.Call{T}"/>
+        /// Implicitly converts <see cref="Callable{T}"/> to <see cref="Func{T}"/>
         /// delegate.
         /// </summary>
         /// <param name="callable">
-        /// The callable to be converted to <see cref="Spring.Threading.Call{T}"/>.
+        /// The callable to be converted to <see cref="Func{T}"/>.
         /// </param>
         /// <returns>
-        /// The original <see cref="Spring.Threading.Call{T}"/> delegate used to construct the
+        /// The original <see cref="Func{T}"/> delegate used to construct the
         /// <paramref name="callable"/>.
         /// </returns>
-        public static implicit operator Call<T>(Callable<T> callable)
+        public static implicit operator Func<T>(Callable<T> callable)
         {
             return callable == null ? null : callable._call;
         }

@@ -27,13 +27,13 @@ namespace Spring.Threading
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The <c>Call</c> delegate is similar to <see cref="Task"/>, in that 
+    /// The <c>Func</c> delegate is similar to <see cref="Action"/>, in that 
     /// both are designed funcitons are potentially executed by another thread.
     /// A <c>Task</c>, however, does not return a result.
     /// </para>
     /// <para>
     /// The <see cref="Executors"/> class contains utility methods to
-    /// convert from other common forms to <c>Call</c> delegate.
+    /// convert from other common forms to <c>Func</c> delegate.
     /// </para>
     /// </remarks>
     /// <typeparam name="T">
@@ -41,5 +41,5 @@ namespace Spring.Threading
     /// </typeparam>
     /// <seealso cref="ICallable{T}"/>
     /// <author>Kenneth Xu</author>
-    public delegate T Call<T>();
+    public delegate T Func<T>();
 }

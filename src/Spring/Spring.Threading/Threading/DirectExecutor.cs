@@ -43,13 +43,13 @@ namespace Spring.Threading
         /// <summary>
         /// Execute the given task directly in the current thread.
         /// </summary>
-        /// <param name="task">
+        /// <param name="action">
         /// The task to be executed.
         /// </param>
-        public virtual void Execute(Task task)
+        public virtual void Execute(Action action)
         {
             Utils.FailFastIfInterrupted();
-            task();
+            action();
         }
     }
 }

@@ -301,17 +301,17 @@ namespace Spring.Threading.Execution
 
         /// <summary>
         /// Returns a <see cref="ICallable{T}"/> object that, when called, runs 
-        /// the given <paramref name="task"/> and returns <c>null</c>.  
+        /// the given <paramref name="action"/> and returns <c>null</c>.  
         /// </summary>
-        /// <param name="task">The task to run.</param>
+        /// <param name="action">The task to run.</param>
         /// <returns>An <see cref="ICallable{T}"/> object.</returns>
         /// <exception cref="System.ArgumentNullException">
-        /// When the <paramref name="task"/> is <c>null</c>.
+        /// When the <paramref name="action"/> is <c>null</c>.
         /// </exception>
-        /// <seealso cref="CreateCallable{T}(Task,T)"/>
-        public static ICallable<object> CreateCallable(Task task)
+        /// <seealso cref="CreateCallable{T}(Action,T)"/>
+        public static ICallable<object> CreateCallable(Action action)
         {
-            return CreateCallable<object>(task, null);
+            return CreateCallable<object>(action, null);
         }
 
         /// <summary> 
@@ -330,7 +330,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="System.ArgumentNullException">
         /// When the <paramref name="runnable"/> is <c>null</c>.
         /// </exception>
-        /// <seealso cref="CreateCallable{T}(Task,T)"/>
+        /// <seealso cref="CreateCallable{T}(Action,T)"/>
         public static ICallable<T> CreateCallable<T>(IRunnable runnable, T result)
         {
             if (runnable == null) throw new ArgumentNullException("runnable");
@@ -339,7 +339,7 @@ namespace Spring.Threading.Execution
 
         /// <summary>
         /// Returns a <see cref="ICallable{T}"/>  object that, when called, 
-        /// runs the given <paramref name="task"/> and returns the given 
+        /// runs the given <paramref name="action"/> and returns the given 
         /// <paramref name="result"/>.  
         /// </summary>
         /// <remarks>
@@ -347,105 +347,105 @@ namespace Spring.Threading.Execution
         /// <see cref="ICallable{T}"/> to an otherwise resultless action.
         /// </remarks>
         /// <typeparam name="T">Type of the result.</typeparam>
-        /// <param name="task">The task to run.</param>
+        /// <param name="action">The task to run.</param>
         /// <param name="result">The resul to return</param>
         /// <returns>An <see cref="ICallable{T}"/> object.</returns>
         /// <exception cref="System.ArgumentNullException">
-        /// When the <paramref name="task"/> is <c>null</c>.
+        /// When the <paramref name="action"/> is <c>null</c>.
         /// </exception>
         /// <seealso cref="CreateCallable{T}(IRunnable,T)"/>
-        public static ICallable<T> CreateCallable<T>(Task task, T result)
+        public static ICallable<T> CreateCallable<T>(Action action, T result)
         {
-            if (task == null) throw new ArgumentNullException("task");
-            return new Callable<T>(CreateCall(task, result));
+            if (action == null) throw new ArgumentNullException("task");
+            return new Callable<T>(CreateCall(action, result));
         }
 
         /// <summary>
-        /// Converts a <see cref="Call{T}"/> delegate to an 
+        /// Converts a <see cref="Func{T}"/> delegate to an 
         /// <see cref="ICallable{T}"/> object.
         /// </summary>
         /// <typeparam name="T">
         /// Type of the result to be returned by <paramref name="call"/>.
         /// </typeparam>
-        /// <param name="call">The <see cref="Call{T}"/></param> delegate.
+        /// <param name="call">The <see cref="Func{T}"/></param> delegate.
         /// <returns>An instance of <see cref="ICallable{T}"/>.</returns>
         /// <seealso cref="CreateCall{T}(ICallable{T})"/>
-        public static ICallable<T> CreateCallable<T>(Call<T> call)
+        public static ICallable<T> CreateCallable<T>(Func<T> call)
         {
             return new Callable<T>(call);
         }
 
         /// <summary> 
-        /// Returns a <see cref="Call{T}"/> delegate that, when called, 
+        /// Returns a <see cref="Func{T}"/> delegate that, when called, 
         /// runs the given <paramref name="runnable"/> and returns the given 
         /// <paramref name="result"/>.  
         /// </summary>
         /// <remarks>
         /// This can be useful when applying methods requiring a
-        /// <see cref="Call{T}"/> to an otherwise resultless action.
+        /// <see cref="Func{T}"/> to an otherwise resultless action.
         /// </remarks>
         /// <typeparam name="T">Type of the result.</typeparam>
         /// <param name="runnable">the task to run</param>
         /// <param name="result">the result to return</param>
-        /// <returns>An <see cref="Call{T}"/> delegate.</returns>
+        /// <returns>An <see cref="Func{T}"/> delegate.</returns>
         /// <exception cref="System.ArgumentNullException">
         /// When the <paramref name="runnable"/> is <c>null</c>.
         /// </exception>
-        /// <seealso cref="CreateCall{T}(Task,T)"/>
-        public static Call<T> CreateCall<T>(IRunnable runnable, T result)
+        /// <seealso cref="CreateCall{T}(Action,T)"/>
+        public static Func<T> CreateCall<T>(IRunnable runnable, T result)
         {
             if (runnable == null) throw new ArgumentNullException("runnable");
             return delegate { runnable.Run(); return result; };
         }
 
         /// <summary> 
-        /// Returns a <see cref="Call{T}"/> delegate that, when called, 
-        /// runs the given <paramref name="task"/> and returns the given 
+        /// Returns a <see cref="Func{T}"/> delegate that, when called, 
+        /// runs the given <paramref name="action"/> and returns the given 
         /// <paramref name="result"/>.  
         /// </summary>
         /// <remarks>
         /// This can be useful when applying methods requiring a
-        /// <see cref="Call{T}"/> to an otherwise resultless action.
+        /// <see cref="Func{T}"/> to an otherwise resultless action.
         /// </remarks>
         /// <typeparam name="T">Type of the result.</typeparam>
-        /// <param name="task">the task to run</param>
+        /// <param name="action">the task to run</param>
         /// <param name="result">the result to return</param>
-        /// <returns>An <see cref="Call{T}"/> delegate.</returns>
+        /// <returns>An <see cref="Func{T}"/> delegate.</returns>
         /// <exception cref="System.ArgumentNullException">
-        /// When the <paramref name="task"/> is <c>null</c>.
+        /// When the <paramref name="action"/> is <c>null</c>.
         /// </exception>
         /// <seealso cref="CreateCall{T}(IRunnable,T)"/>
-        public static Call<T> CreateCall<T>(Task task, T result)
+        public static Func<T> CreateCall<T>(Action action, T result)
         {
-            if (task == null) throw new ArgumentNullException("task");
-            return delegate { task(); return result; };
+            if (action == null) throw new ArgumentNullException("task");
+            return delegate { action(); return result; };
         }
 
         /// <summary>
         /// Converts an <see cref="ICallable{T}"/> object to a 
-        /// <see cref="Call{T}"/> delegate.
+        /// <see cref="Func{T}"/> delegate.
         /// </summary>
         /// <typeparam name="T">
         /// Type of the result to be returned by <paramref name="callable"/>.
         /// </typeparam>
         /// <param name="callable">The <see cref="ICallable{T}"/></param> object.
-        /// <returns>A <see cref="Call{T}"/> delegate.</returns>
-        public static Call<T> CreateCall<T>(ICallable<T> callable)
+        /// <returns>A <see cref="Func{T}"/> delegate.</returns>
+        public static Func<T> CreateCall<T>(ICallable<T> callable)
         {
             if (callable == null) throw new ArgumentNullException("callable");
             return callable.Call;
         }
 
         /// <summary>
-        /// Converts a <see cref="Task"/> delegate to an
+        /// Converts a <see cref="Action"/> delegate to an
         /// <see cref="IRunnable"/> object.
         /// </summary>
-        /// <param name="task">Task to be converted.</param>
+        /// <param name="action">Task to be converted.</param>
         /// <returns>An <see cref="IRunnable"/> object.</returns>
-        public static IRunnable CreateRunnable(Task task)
+        public static IRunnable CreateRunnable(Action action)
         {
-            if (task == null) throw new ArgumentNullException("task");
-            return new Runnable(task);
+            if (action == null) throw new ArgumentNullException("task");
+            return new Runnable(action);
         }
 
 
@@ -534,27 +534,27 @@ namespace Spring.Threading.Execution
 				return _executorService.Submit(task, result);
 			}
 
-            public override IFuture<T> Submit<T>(Call<T> call)
+            public override IFuture<T> Submit<T>(Func<T> call)
             {
                 return _executorService.Submit(call);
             }
 
-            public override IFuture<T> Submit<T>(Task task, T result)
+            public override IFuture<T> Submit<T>(Action action, T result)
             {
-                return _executorService.Submit(task, result);
+                return _executorService.Submit(action, result);
             }
 
-            public override IFuture<object> Submit(Task task)
+            public override IFuture<object> Submit(Action action)
             {
-                return _executorService.Submit(task);
+                return _executorService.Submit(action);
             }
 
-            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<Call<T>> tasks)
+            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<Func<T>> tasks)
             {
                 return _executorService.InvokeAll(tasks);
             }
 
-            public override IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
+            public override IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
             {
                 return _executorService.InvokeAll(durationToWait, tasks);
             }
@@ -569,12 +569,12 @@ namespace Spring.Threading.Execution
                 return _executorService.InvokeAll(durationToWait, tasks);
             }
 
-            public override T InvokeAny<T>(IEnumerable<Call<T>> tasks)
+            public override T InvokeAny<T>(IEnumerable<Func<T>> tasks)
             {
                 return _executorService.InvokeAny(tasks);
             }
 
-            public override T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Call<T>> tasks)
+            public override T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
             {
                 return _executorService.InvokeAny(durationToWait, tasks);
             }

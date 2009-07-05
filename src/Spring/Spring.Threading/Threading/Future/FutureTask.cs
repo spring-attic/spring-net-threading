@@ -55,8 +55,8 @@ namespace Spring.Threading.Future
 	/// or cancelled.
 	/// </para>
 	/// <para>
-	/// A <see cref="FutureTask{T}"/> can be used to wrap a <see cref="Task"/>
-	/// delegate, <see cref="Call{T}"/> delegate, <see cref="IRunnable"/> object 
+	/// A <see cref="FutureTask{T}"/> can be used to wrap a <see cref="Action"/>
+	/// delegate, <see cref="Func{T}"/> delegate, <see cref="IRunnable"/> object 
 	/// or <see cref="ICallable{T}"/> object.  Because <see cref="FutureTask{T}"/>
 	/// implements <see cref="IRunnable"/>, a <see cref="FutureTask{T}"/> can be
 	/// submitted to an <see cref="IExecutor"/> for execution.
@@ -103,13 +103,13 @@ namespace Spring.Threading.Future
 
         /// <summary> 
         /// Creates a <see cref="FutureTask{T}"/> that will, upon running, execute the
-        /// given <see cref="Call{T}"/> delegate.
+        /// given <see cref="Func{T}"/> delegate.
         /// </summary>
-        /// <param name="call">The <see cref="Call{T}"/> delegate.</param>
+        /// <param name="call">The <see cref="Func{T}"/> delegate.</param>
         /// <exception cref="System.ArgumentNullException">
         /// If the <paramref name="call"/> is <c>null</c>.
         /// </exception>
-        public FutureTask(Call<T> call)
+        public FutureTask(Func<T> call)
             : this(Executors.CreateCallable(call))
         {
         }
@@ -138,23 +138,23 @@ namespace Spring.Threading.Future
 
         /// <summary> 
         /// Creates a <see cref="FutureTask{T}"/> that will, upon running, execute the
-        /// given <see cref="Task"/>, and arrange that <see cref="GetResult()"/> 
+        /// given <see cref="Action"/>, and arrange that <see cref="GetResult()"/> 
         /// will return the given <paramref name="result"/> upon successful completion.
         /// </summary>
-        /// <param name="task">The <see cref="Task"/> delegate.</param>
+        /// <param name="action">The <see cref="Action"/> delegate.</param>
         /// <param name="result">
         /// The result to return on successful completion. If
         /// you don't need a particular result, consider using
         /// constructions of the form:
         /// <code language="c#">
-        ///		Future f = new FutureTask(task, default(T))
+        ///		Future f = new FutureTask(action, default(T))
         ///	</code>	
         /// </param>
         /// <exception cref="System.ArgumentNullException">
-        /// If the <paramref name="task"/> is <c>null</c>.
+        /// If the <paramref name="action"/> is <c>null</c>.
         /// </exception>
-        public FutureTask(Task task, T result)
-            : this(Executors.CreateCallable(task, result))
+        public FutureTask(Action action, T result)
+            : this(Executors.CreateCallable(action, result))
         {
         }
 

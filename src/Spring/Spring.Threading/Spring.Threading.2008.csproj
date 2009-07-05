@@ -109,7 +109,7 @@
     <Compile Include="Threading\BoundedLinkedQueue.cs" />
     <Compile Include="Threading\BoundedPriorityQueue.cs" />
     <Compile Include="Threading\BrokenBarrierException.cs" />
-    <Compile Include="Threading\Call.cs" />
+    <Compile Include="Threading\Func.cs" />
     <Compile Include="Threading\Callable.cs" />
     <Compile Include="Threading\ClockDaemon.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueue.cs" />
@@ -147,7 +147,6 @@
     <Compile Include="Threading\Execution\ScheduledThreadPoolExecutor.cs" />
     <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutor.cs" />
-    <Compile Include="Threading\CompatabilityWith2.0.cs" />
     <Compile Include="Threading\FIFOSemaphore.cs" />
     <Compile Include="Threading\ForkJoin\FJTask.cs" />
     <Compile Include="Threading\ForkJoin\FJTaskRunner.cs" />
@@ -224,7 +223,7 @@
     <Compile Include="Threading\SemaphoreControlledChannel.cs" />
     <Compile Include="Threading\Slot.cs" />
     <Compile Include="Threading\SynchronousChannel.cs" />
-    <Compile Include="Threading\Task.cs" />
+    <Compile Include="Threading\Action.cs" />
     <Compile Include="Threading\ThreadedExecutor.cs" />
     <Compile Include="Threading\ThreadFactoryUser.cs" />
     <Compile Include="Threading\TimedCallable.cs" />

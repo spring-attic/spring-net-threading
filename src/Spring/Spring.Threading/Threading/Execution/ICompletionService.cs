@@ -88,7 +88,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="ArgumentNullException">
         /// If the command is null.
         /// </exception>
-        IFuture<T> Submit(Call<T> call);
+        IFuture<T> Submit(Func<T> call);
 
         /// <summary> 
         /// Submits a <see cref="IRunnable"/> task for execution and returns a 
@@ -113,11 +113,11 @@ namespace Spring.Threading.Execution
         IFuture<T> Submit(IRunnable runnable, T result);
 
         /// <summary> 
-        /// Submits a <see cref="Task"/> task for execution and returns a 
+        /// Submits a <see cref="Action"/> task for execution and returns a 
         /// <see cref="IFuture{T}"/> representing that task.  Upon completion, 
         /// this task may be taken or polled.
         /// </summary>
-        /// <param name="task">The task to submit.</param>
+        /// <param name="action">The task to submit.</param>
         /// <param name="result">
         /// The result to return upon successful completion.
         /// </param>
@@ -132,7 +132,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="ArgumentNullException">
         /// If the command is null.
         /// </exception>
-        IFuture<T> Submit(Task task, T result);
+        IFuture<T> Submit(Action action, T result);
 
         /// <summary> 
         /// Submits a <see cref="IRunnable"/> task for execution and returns 
@@ -155,12 +155,12 @@ namespace Spring.Threading.Execution
         IFuture<T> Submit(IRunnable runnable);
 
         /// <summary> 
-        /// Submits a <see cref="Task"/> task for execution and returns a 
+        /// Submits a <see cref="Action"/> task for execution and returns a 
         /// <see cref="IFuture{T}"/> representing that task.  The future's
         /// <see cref="IFuture{T}.GetResult()"/> will return <c>default(T)</c>
         /// upon successful completion.
         /// </summary>
-        /// <param name="task">The task to submit.</param>
+        /// <param name="action">The task to submit.</param>
         /// <returns>
         /// A <see cref="IFuture{T}"/> representing pending completion of the 
         /// task, and whose <see cref="IFuture{T}.GetResult()"/> method will 
@@ -172,7 +172,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="ArgumentNullException">
         /// If the command is null.
         /// </exception>
-        IFuture<T> Submit(Task task);
+        IFuture<T> Submit(Action action);
 
         /// <summary> 
         /// Retrieves and removes the <see cref="IFuture{T}"/> representing 

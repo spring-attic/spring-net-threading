@@ -8,7 +8,7 @@ namespace Spring.Threading
     public class ContextCopyingRunable : IRunnable, IContextCopier
     {
         private ContextCarrier _contextCarrier;
-        private Task _task;
+        private Action _action;
 
         private ContextCopyingRunable(IEnumerable<string> names)
         {
@@ -16,11 +16,11 @@ namespace Spring.Threading
             _contextCarrier = new ContextCarrier(names);
         }
 
-        public ContextCopyingRunable(Task task, IEnumerable<string> names)
+        public ContextCopyingRunable(Action action, IEnumerable<string> names)
             :this(names)
         {
-            if (task==null) throw new ArgumentNullException("task");
-            _task = task;
+            if (action==null) throw new ArgumentNullException("task");
+            _action = action;
         }
 
 
@@ -28,13 +28,13 @@ namespace Spring.Threading
             :this(names)
         {
             if (runnable == null) throw new ArgumentNullException("runnable");
-            _task = runnable.Run;
+            _action = runnable.Run;
         }
 
         public void Run()
         {
             _contextCarrier.RestoreContext();
-            _task();
+            _action();
         }
     }
 }

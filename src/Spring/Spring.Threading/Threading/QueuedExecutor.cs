@@ -234,7 +234,7 @@ namespace Spring.Threading
 
         /// <summary>
         /// <para>
-        /// Arrange for execution of the <paramref name="task"/> in the
+        /// Arrange for execution of the <paramref name="action"/> in the
         /// background thread by adding it to the queue.  The method may 
         /// block if the channel's put operation blocks.
         /// </para>
@@ -242,10 +242,10 @@ namespace Spring.Threading
         /// If the background thread does not exist, it is created and started.
         /// </para>
         /// </summary>
-        /// <param name="task">The task to be executed.</param>
-        public virtual void Execute(Task task)
+        /// <param name="action">The task to be executed.</param>
+        public virtual void Execute(Action action)
         {
-            Execute(Spring.Threading.Execution.Executors.CreateRunnable(task));
+            Execute(Spring.Threading.Execution.Executors.CreateRunnable(action));
         }
 		
         /// <summary> Terminate background thread after it processes all

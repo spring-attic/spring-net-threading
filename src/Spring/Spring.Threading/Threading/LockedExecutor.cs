@@ -79,10 +79,10 @@ namespace Spring.Threading
         /// Execute the given task directly in the current thread,
         /// within the supplied lock.
         /// </summary>
-        /// <param name="task">The task to be executed.</param>
-        public virtual void Execute(Task task)
+        /// <param name="action">The task to be executed.</param>
+        public virtual void Execute(Action action)
         {
-            Execute(Spring.Threading.Execution.Executors.CreateRunnable(task));
+            Execute(Spring.Threading.Execution.Executors.CreateRunnable(action));
         }
 
 	}

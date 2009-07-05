@@ -32,7 +32,7 @@ namespace Spring.Threading
     {
         private readonly T _testData = (T)Convert.ChangeType(123, typeof(T));
         private Callable<T> _callable;
-        private Call<T> _call;
+        private Func<T> _call;
         private bool _isDelegateCalled;
 
         [SetUp] public void SetUp()
@@ -80,14 +80,14 @@ namespace Spring.Threading
         public void ImplicitConvertCallableToCallDelegate()
         {
             _callable = new Callable<T>(_call);
-            Call<T> call = _callable;
+            Func<T> call = _callable;
             Assert.That(call, Is.SameAs(_call));
         }
 
         [Test] public void ImplicitConvertNullCallableToNullCallDelegate()
         {
             _callable = null;
-            Call<T> call = _callable;
+            Func<T> call = _callable;
             Assert.That(call, Is.Null);
         }
 
