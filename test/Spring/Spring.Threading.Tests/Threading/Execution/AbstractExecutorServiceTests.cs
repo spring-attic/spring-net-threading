@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using Rhino.Mocks;
@@ -10,11 +9,16 @@ namespace Spring.Threading.Execution
     [TestFixture(typeof(int))]
     public class AbstractExecutorServiceTests<T>
     {
+        const int _size = 5;
+        const int _halfSize = _size / 2;
+
         private AbstractExecutorService _sut;
         private IRunnable _runnable;
         private Task _task;
         private Call<T> _call;
         private ICallable<T> _callable;
+        ICallable<T>[] _callables = new ICallable<T>[_size];
+        Call<T>[] _calls = new Call<T>[3];
         private Action<IRunnable> _actionOnExecute;
         TestThreadManager ThreadManager { get; set; }
 
@@ -28,8 +32,16 @@ namespace Spring.Threading.Execution
             _sut = Mockery.GeneratePartialMock<AbstractExecutorService>();
             _runnable = MockRepository.GenerateMock<IRunnable>();
             _task = MockRepository.GenerateMock<Task>();
-            _call = MockRepository.GenerateMock<Call<T>>();
-            _callable = MockRepository.GenerateMock<ICallable<T>>();
+
+            _calls = new Call<T>[_size];
+            _callables = new ICallable<T>[_size];
+            for (int i = _size - 1; i >= 0; i--)
+            {
+                _callables[i] = MockRepository.GenerateMock<ICallable<T>>();
+                _calls[i] = MockRepository.GenerateMock<Call<T>>();
+            }
+            _call = _calls[0];
+            _callable = _callables[0];
 
             _sut.Stub(x => x.Execute(Arg<IRunnable>.Is.NotNull))
                 .Do(new Action<IRunnable>(Execute));
@@ -128,11 +140,12 @@ namespace Spring.Threading.Execution
 
         [Test] public void SubmitReturnsFutureCanBeInterruptedOnGetResult()
         {
-            _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T2", r.Run);
+            Thread t2 = null;
+            _actionOnExecute = r => { t2 = ThreadManager.StartAndAssertRegistered("T2", r.Run); };
             _callable.Stub(x=>x.Call()).Do(new Delegates.Function<T>(
                 delegate
                 {
-                    Thread.Sleep(TestData.SmallDelay);
+                    Assert.Throws<ThreadInterruptedException>(()=>Thread.Sleep(TestData.SmallDelay));
                     return TestData<T>.One;
                 }));
 
@@ -145,6 +158,7 @@ namespace Spring.Threading.Execution
                     });
             Thread.Sleep(TestData.ShortDelay);
             t.Interrupt();
+            t2.Interrupt();
             ThreadManager.JoinAndVerify();
             _callable.AssertWasCalled(c => c.Call());
         }
@@ -172,7 +186,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                     {
-                        const IEnumerable<Call<T>> calls = null;
+                        const Call<T>[] calls = null;
                         if (!isTimed) _sut.InvokeAny(calls);
                         else _sut.InvokeAny(TestData.ShortDelay, calls);
                     });
@@ -181,7 +195,7 @@ namespace Spring.Threading.Execution
             e = Assert.Throws<ArgumentNullException>(
                 delegate
                 {
-                    const IEnumerable<ICallable<T>> calls = null;
+                    const ICallable<T>[] calls = null;
                     if (!isTimed) _sut.InvokeAny(calls);
                     else _sut.InvokeAny(TestData.ShortDelay, calls);
                 });
@@ -193,7 +207,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentException>(
                 delegate
                     {
-                        IEnumerable<Call<T>> calls = new Call<T>[0];
+                        Call<T>[] calls = new Call<T>[0];
                         if (!isTimed) _sut.InvokeAny(calls);
                         else _sut.InvokeAny(TestData.ShortDelay, calls);
                     });
@@ -202,7 +216,7 @@ namespace Spring.Threading.Execution
             e = Assert.Throws<ArgumentException>(
                 delegate
                 {
-                    IEnumerable<ICallable<T>> calls = new ICallable<T>[0];
+                    ICallable<T>[] calls = new ICallable<T>[0];
                     if (!isTimed) _sut.InvokeAny(calls);
                     else _sut.InvokeAny(TestData.ShortDelay, calls);
                 });
@@ -214,7 +228,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                     {
-                        IEnumerable<Call<T>> calls = new Call<T>[] { null };
+                        Call<T>[] calls = new Call<T>[] { null };
                         if (!isTimed) _sut.InvokeAny(calls);
                         else _sut.InvokeAny(TestData.ShortDelay, calls);
                     });
@@ -223,7 +237,7 @@ namespace Spring.Threading.Execution
             e = Assert.Throws<ArgumentNullException>(
                 delegate
                 {
-                    IEnumerable<ICallable<T>> calls = new ICallable<T>[] { null };
+                    ICallable<T>[] calls = new ICallable<T>[] { null };
                     if (!isTimed) _sut.InvokeAny(calls);
                     else _sut.InvokeAny(TestData.ShortDelay, calls);
                 });
@@ -235,7 +249,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                     {
-                        const IEnumerable<Call<T>> calls = null;
+                        const Call<T>[] calls = null;
                         if (!isTimed) _sut.InvokeAll(calls);
                         else _sut.InvokeAll(TestData.ShortDelay, calls);
                     });
@@ -244,7 +258,7 @@ namespace Spring.Threading.Execution
             e = Assert.Throws<ArgumentNullException>(
                 delegate
                 {
-                    const IEnumerable<ICallable<T>> calls = null;
+                    const ICallable<T>[] calls = null;
                     if (!isTimed) _sut.InvokeAll(calls);
                     else _sut.InvokeAll(TestData.ShortDelay, calls);
                 });
@@ -253,13 +267,13 @@ namespace Spring.Threading.Execution
 
         [Test] public void InvokeAllNopOnEmptyTaskCollection([Values(true, false)] bool isTimed)
         {
-            IEnumerable<Call<T>> calls = new Call<T>[0];
+            Call<T>[] calls = new Call<T>[0];
             var futures = isTimed ? 
                 _sut.InvokeAll(TestData.ShortDelay, calls) :
                 _sut.InvokeAll(calls);
             CollectionAssert.IsEmpty(futures);
 
-            IEnumerable<ICallable<T>> callables = new ICallable<T>[0];
+            ICallable<T>[] callables = new ICallable<T>[0];
             futures = isTimed ?
                 _sut.InvokeAll(TestData.ShortDelay, callables) :
                 _sut.InvokeAll(callables);
@@ -271,7 +285,7 @@ namespace Spring.Threading.Execution
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                     {
-                        IEnumerable<Call<T>> calls = new Call<T>[] { null };
+                        Call<T>[] calls = new Call<T>[] { null };
                         if (!isTimed) _sut.InvokeAny(calls);
                         else _sut.InvokeAny(TestData.ShortDelay, calls);
                     });
@@ -280,7 +294,7 @@ namespace Spring.Threading.Execution
             e = Assert.Throws<ArgumentNullException>(
                 delegate
                 {
-                    IEnumerable<ICallable<T>> calls = new ICallable<T>[] { null };
+                    ICallable<T>[] calls = new ICallable<T>[] { null };
                     if (!isTimed) _sut.InvokeAny(calls);
                     else _sut.InvokeAny(TestData.ShortDelay, calls);
                 });
@@ -294,7 +308,7 @@ namespace Spring.Threading.Execution
             var e1 = Assert.Throws<ExecutionException>(
                 delegate
                 {
-                    IEnumerable<Call<T>> calls = new Call<T>[] { call };
+                    Call<T>[] calls = new Call<T>[] { call };
                     if (!isTimed) _sut.InvokeAny(calls);
                     else _sut.InvokeAny(TestData.ShortDelay, calls);
                 });
@@ -303,7 +317,7 @@ namespace Spring.Threading.Execution
             var e2 = Assert.Throws<ExecutionException>(
                 delegate
                 {
-                    IEnumerable<ICallable<T>> calls = new Callable<T>[] { call };
+                    ICallable<T>[] calls = new Callable<T>[] { call };
                     if (!isTimed) _sut.InvokeAny(calls);
                     else _sut.InvokeAny(TestData.ShortDelay, calls);
                 });
@@ -313,12 +327,12 @@ namespace Spring.Threading.Execution
         [Test] public void InvokeAnyReturnsWhenOneCallCompletes([Values(true, false)] bool isTimed)
         {
             _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
-            var call1 = MockRepository.GenerateMock<Call<T>>();
-            var call2 = MockRepository.GenerateMock<Call<T>>();
+            var call1 = _calls[0];
+            var call2 = _calls[1];
             call1.Stub(c => c()).Throw(new Exception());
             call2.Stub(c => c()).Return(TestData<T>.Four).WhenCalled(i => Thread.Sleep(TestData.ShortDelay));
 
-            IEnumerable<Call<T>> calls = new Call<T>[] { call1, call2, call1, call2 };
+            Call<T>[] calls = new Call<T>[] { call1, call2, call1, call2 };
             var result = isTimed ? 
                 _sut.InvokeAny(TestData.SmallDelay, calls) :
                 _sut.InvokeAny(calls);
@@ -328,13 +342,13 @@ namespace Spring.Threading.Execution
 
         [Test] public void InvokeAnyReturnsWhenOneCallableCompletes([Values(true, false)] bool isTimed)
         {
-            var call1 = MockRepository.GenerateMock<ICallable<T>>();
-            var call2 = MockRepository.GenerateMock<ICallable<T>>();
-            var call3 = MockRepository.GenerateMock<ICallable<T>>();
+            var call1 = _callables[0];
+            var call2 = _callables[1];
+            var call3 = _callables[2];
             call1.Stub(c => c.Call()).Throw(new Exception());
             call2.Stub(c => c.Call()).Return(TestData<T>.Four);
 
-            IEnumerable<ICallable<T>> calls = new ICallable<T>[] { call1, call2, call3};
+            ICallable<T>[] calls = new ICallable<T>[] { call1, call2, call3};
             var result = isTimed ? 
                 _sut.InvokeAny(TestData.ShortDelay, calls) :
                 _sut.InvokeAny(calls);
@@ -346,17 +360,15 @@ namespace Spring.Threading.Execution
         [Test] public void InvokeAllReturnsWhenAllCallableComplete([Values(true, false)] bool isTimed)
         {
             _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
-            ICallable<T>[] calls = new ICallable<T>[5];
-            for (int i = calls.Length - 1; i >= 0; i--)
+            for (int i = _callables.Length - 1; i >= 0; i--)
             {
-                calls[i] = MockRepository.GenerateMock<ICallable<T>>();
-                calls[i].Stub(c => c.Call()).Return(TestData<T>.MakeData(i));
+                _callables[i].Stub(c => c.Call()).Return(TestData<T>.MakeData(i));
             }
 
             var futures = isTimed ? 
-                _sut.InvokeAll(TestData.ShortDelay, calls) :
-                _sut.InvokeAll(calls);
-            Assert.That(futures.Count, Is.EqualTo(calls.Length));
+                _sut.InvokeAll(TestData.ShortDelay, _callables) :
+                _sut.InvokeAll(_callables);
+            Assert.That(futures.Count, Is.EqualTo(_callables.Length));
             for (int i = futures.Count - 1; i >= 0; i--)
             {
                 Assert.IsTrue(futures[i].IsDone);
@@ -367,19 +379,14 @@ namespace Spring.Threading.Execution
         [Test] public void InvokeAllReturnsFutureChokesWhenCallFailed([Values(true, false)] bool isTimed)
         {
             _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
-            Call<T>[] calls = new Call<T>[3];
-            for (int i = calls.Length - 1; i >= 0; i--)
-            {
-                calls[i] = MockRepository.GenerateMock<Call<T>>();
-            }
             var expectedException = new Exception();
-            calls[0].Stub(c => c()).Throw(expectedException);
-            calls[1].Stub(c => c()).Return(TestData<T>.One).WhenCalled(i => Thread.Sleep(TestData.ShortDelay));
-            calls[2].Stub(c => c()).Return(TestData<T>.Two);
+            _calls[0].Stub(c => c()).Throw(expectedException);
+            _calls[1].Stub(c => c()).Return(TestData<T>.One).WhenCalled(i => Thread.Sleep(TestData.ShortDelay));
+            _calls[2].Stub(c => c()).Return(TestData<T>.Two);
 
             var futures = isTimed ? 
-                _sut.InvokeAll(TestData.SmallDelay, calls) :
-                _sut.InvokeAll(calls);
+                _sut.InvokeAll(TestData.SmallDelay, _calls) :
+                _sut.InvokeAll(_calls);
             foreach (var future in futures)
             {
                 Assert.IsTrue(future.IsDone);
@@ -394,38 +401,32 @@ namespace Spring.Threading.Execution
         [Test] public void TimedInvokeAnyChokesWhenTimeoutOnCalls()
         {
             _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
-            Call<T>[] calls = new Call<T>[3];
-            for (int i = calls.Length - 1; i >= 0; i--)
+            for (int i = _calls.Length - 1; i >= 0; i--)
             {
-                calls[i] = MockRepository.GenerateMock<Call<T>>();
-                calls[i].Stub(c => c()).Return(TestData<T>.Four)
+                _calls[i].Stub(c => c()).Return(TestData<T>.Four)
                     .WhenCalled(x => Thread.Sleep(TestData.SmallDelay));
             }
 
-            Assert.Throws<TimeoutException>(() => _sut.InvokeAny(TestData.ShortDelay, calls));
+            Assert.Throws<TimeoutException>(() => _sut.InvokeAny(TestData.ShortDelay, _calls));
             ThreadManager.JoinAndVerify();
         }
 
         [Test] public void TimedInvokeAllCancelsUncompletedCallablesWhenTimeout()
         {
-            const int size = 5;
-            const int halfSize = size / 2;
-            ICallable<T>[] calls = new ICallable<T>[size];
-            for (int i = calls.Length - 1; i >= 0; i--)
+            for (int i = _callables.Length - 1; i >= 0; i--)
             {
-                calls[i] = MockRepository.GenerateMock<ICallable<T>>();
-                var x = calls[i].Stub(c => c.Call()).Return(TestData<T>.MakeData(i));
-                if (i > halfSize)
-                    x.WhenCalled(invoke => Thread.Sleep(TestData.SmallDelay));
+                var x = _callables[i].Stub(c => c.Call()).Return(TestData<T>.MakeData(i));
+                if (i > _halfSize)
+                    x.WhenCalled(invoke => Thread.Sleep(TestData.ShortDelayMillis * 2));
             }
 
-            var futures = _sut.InvokeAll(TestData.ShortDelay, calls);
-            Assert.That(futures.Count, Is.EqualTo(calls.Length));
+            var futures = _sut.InvokeAll(TestData.ShortDelay, _callables);
+            Assert.That(futures.Count, Is.EqualTo(_callables.Length));
             for (int i = futures.Count - 1; i >= 0; i--)
             {
-                if (i > halfSize+1)
+                if (i > _halfSize+1)
                 {
-                    Assert.IsTrue(futures[i].IsCancelled);
+                    Assert.IsTrue(futures[i].IsCancelled, "future No. " + i + " should have been canceled");
                 }
                 else
                 {
@@ -437,23 +438,19 @@ namespace Spring.Threading.Execution
 
         [Test] public void TimedInvokeAllCancelsUncompletedCallsWhenTimeout()
         {
-            const int size = 5;
-            const int halfSize = size/2;
             _actionOnExecute = r => ThreadManager.StartAndAssertRegistered("T", r.Run);
-            Call<T>[] calls = new Call<T>[size];
-            for (int i = calls.Length - 1; i >= 0; i--)
+            for (int i = _calls.Length - 1; i >= 0; i--)
             {
-                calls[i] = MockRepository.GenerateMock<Call<T>>();
-                var x = calls[i].Stub(c => c()).Return(TestData<T>.MakeData(i));
-                if(i>halfSize)
+                var x = _calls[i].Stub(c => c()).Return(TestData<T>.MakeData(i));
+                if(i>_halfSize)
                     x.WhenCalled(invoke => Thread.Sleep(TestData.SmallDelay));
             }
 
-            var futures = _sut.InvokeAll(TestData.ShortDelay, calls);
-            Assert.That(futures.Count, Is.EqualTo(calls.Length));
+            var futures = _sut.InvokeAll(TestData.ShortDelay, _calls);
+            Assert.That(futures.Count, Is.EqualTo(_calls.Length));
             for (int i = futures.Count - 1; i >= 0; i--)
             {
-                if (i>halfSize)
+                if (i>_halfSize)
                 {
                     Assert.IsTrue(futures[i].IsCancelled);
                 }

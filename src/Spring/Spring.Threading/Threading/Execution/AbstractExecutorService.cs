@@ -314,6 +314,37 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="ICollection{T}">collection</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <returns>The result returned by one of the tasks.</returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual T InvokeAny<T>(params ICallable<T>[] tasks)
+        {
+            return InvokeAny((IEnumerable<ICallable<T>>) tasks);
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning the result
+        /// of one that has completed successfully (i.e., without throwing
+        /// an exception), if any do. 
+        /// </summary>
+        /// <remarks>
+        /// Upon normal or exceptional return, <paramref name="tasks"/> that 
+        /// have not completed are cancelled.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="ICollection{T}">collection</see> of 
         /// <see cref="Call{T}"/> delegates.
         /// </param>
         /// <returns>The result returned by one of the tasks.</returns>
@@ -329,6 +360,37 @@ namespace Spring.Threading.Execution
             ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
             int count = collection == null ? 0 : collection.Count;
             return DoInvokeAny(tasks, count, false, TimeSpan.Zero, Call2Future<T>());
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning the result
+        /// of one that has completed successfully (i.e., without throwing
+        /// an exception), if any do. 
+        /// </summary>
+        /// <remarks>
+        /// Upon normal or exceptional return, <paramref name="tasks"/> that 
+        /// have not completed are cancelled.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="ICollection{T}">collection</see> of 
+        /// <see cref="Call{T}"/> delegates.
+        /// </param>
+        /// <returns>The result returned by one of the tasks.</returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual T InvokeAny<T>(params Call<T>[] tasks)
+        {
+            return InvokeAny((IEnumerable<Call<T>>) tasks);
         }
 
         /// <summary> 
@@ -383,6 +445,39 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="ICollection{T}">collection</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>The result returned by one of the tasks.</returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual T InvokeAny<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+        {
+            return InvokeAny(durationToWait, (IEnumerable<ICallable<T>>) tasks);
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning the result
+        /// of one that has completed successfully (i.e., without throwing
+        /// an exception), if any do before the given 
+        /// <paramref name="durationToWait"/> elapses.
+        /// </summary>
+        /// <remarks>
+        /// Upon normal or exceptional return, <paramref name="tasks"/> that 
+        /// have not completed are cancelled.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="ICollection{T}">collection</see> of 
         /// <see cref="Call{T}"/> delegates.
         /// </param>
         /// <param name="durationToWait">The time span to wait.</param> 
@@ -399,6 +494,39 @@ namespace Spring.Threading.Execution
             ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
             int count = collection == null ? 0 : collection.Count;
             return DoInvokeAny(tasks, count, true, durationToWait, Call2Future<T>());
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning the result
+        /// of one that has completed successfully (i.e., without throwing
+        /// an exception), if any do before the given 
+        /// <paramref name="durationToWait"/> elapses.
+        /// </summary>
+        /// <remarks>
+        /// Upon normal or exceptional return, <paramref name="tasks"/> that 
+        /// have not completed are cancelled.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="ICollection{T}">collection</see> of 
+        /// <see cref="Call{T}"/> delegates.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>The result returned by one of the tasks.</returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual T InvokeAny<T>(TimeSpan durationToWait, params Call<T>[] tasks)
+        {
+            return InvokeAny(durationToWait, (IEnumerable<Call<T>>) tasks);
         }
 
         /// <summary> 
@@ -468,6 +596,48 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list, each of which has completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAll<T>(params ICallable<T>[] tasks)
+        {
+            return InvokeAll((IEnumerable<ICallable<T>>) tasks);
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their status and results when all complete.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see cref="ICancellable.IsDone"/> is <c>true</c> for each element of 
+        /// the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// A <b>completed</b> task could have
+        /// terminated either normally or by throwing an exception.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
         /// <see cref="Call{T}"/> delegates.
         /// </param>
         /// <returns>
@@ -487,6 +657,48 @@ namespace Spring.Threading.Execution
             ICollection<Call<T>> collection = tasks as ICollection<Call<T>>;
             int count = collection == null ? 0 : collection.Count;
             return DoInvokeAll(tasks, count, Call2Future<T>());
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their status and results when all complete.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see cref="ICancellable.IsDone"/> is <c>true</c> for each element of 
+        /// the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// A <b>completed</b> task could have
+        /// terminated either normally or by throwing an exception.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Call{T}"/> delegates.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list, each of which has completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAll<T>(params Call<T>[] tasks)
+        {
+            return InvokeAll((IEnumerable<Call<T>>) tasks);
         }
 
         /// <summary> 
@@ -563,6 +775,53 @@ namespace Spring.Threading.Execution
         /// </typeparam>
         /// <param name="tasks">
         /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+        {
+            return InvokeAll(durationToWait, (IEnumerable<ICallable<T>>) tasks);
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their status and results when all complete or the
+        /// <paramref name="durationToWait"/> expires, whichever happens
+        /// first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see cref="ICancellable.IsDone"/> is <c>true</c> for each element of 
+        /// the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// A <b>completed</b> task could have
+        /// terminated either normally or by throwing an exception.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
         /// <see cref="Call{T}"/> delegates.
         /// </param>
         /// <param name="durationToWait">The time span to wait.</param> 
@@ -586,6 +845,53 @@ namespace Spring.Threading.Execution
             int count = collection == null ? 0 : collection.Count;
             return DoInvokeAll(tasks, count, durationToWait, Call2Future<T>());
         }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their status and results when all complete or the
+        /// <paramref name="durationToWait"/> expires, whichever happens
+        /// first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see cref="ICancellable.IsDone"/> is <c>true</c> for each element of 
+        /// the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// A <b>completed</b> task could have
+        /// terminated either normally or by throwing an exception.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Call{T}"/> delegates.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Call<T>[] tasks)
+	    {
+	        return InvokeAll(durationToWait, (IEnumerable<Call<T>>) tasks);
+	    }
 
         #endregion
 

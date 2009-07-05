@@ -491,5 +491,50 @@ namespace Spring.Threading
         }
 
         #endregion
+
+        #region IExecutorService Members
+
+
+        public IList<IFuture<T>> InvokeAll<T>(params ICallable<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAll<T>(params Call<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Call<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T InvokeAny<T>(params ICallable<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T InvokeAny<T>(params Call<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T InvokeAny<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T InvokeAny<T>(TimeSpan durationToWait, params Call<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }
