@@ -28,7 +28,10 @@ namespace Spring.Threading
     /// <author>Kenneth Xu</author>
     public class Runnable : IRunnable
     {
-        private readonly Action _action;
+        /// <summary>
+        /// The action to execute;
+        /// </summary>
+        internal readonly Action _action;
 
         /// <summary>
         /// Construct a new instance of <see cref="Runnable"/> which calls
@@ -40,7 +43,7 @@ namespace Spring.Threading
         /// </param>
         public Runnable(Action action)
         {
-            if (action == null) throw new ArgumentNullException("task");
+            if (action == null) throw new ArgumentNullException("action");
             _action = action;
         }
 
@@ -50,7 +53,7 @@ namespace Spring.Threading
         /// The entry point. Invokes the delegate passed to the constructor
         /// <see cref="Runnable(Action)"/>.
         /// </summary>
-        public void Run()
+        public virtual void Run()
         {
             _action();
         }
@@ -86,6 +89,58 @@ namespace Spring.Threading
         public static implicit operator Action(Runnable runnable)
         {
             return runnable == null ? null : runnable._action;
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="object"/> is equal to 
+        /// the current <see cref="Runnable"/>.
+        /// </summary>
+        /// <returns>
+        /// true if the <paramref name="obj"/> is of type <see cref="Runnable"/> 
+        /// and it carrys the same inner action as current instance; otherwise, false.
+        /// </returns>
+        /// <param name="obj">
+        /// The <see cref="object"/> to compare with the current instance. 
+        /// </param>
+        /// <filterpriority>2</filterpriority>
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            Type type = obj.GetType();
+            if (type != typeof(Runnable) &&
+                type != typeof(ContextCopyingRunnable)) return false;
+            return Equals((Runnable)obj);
+        }
+
+        /// <summary>
+        /// Determines whether the specified <paramref name="other"/> instance 
+        /// is equal to the current <see cref="Runnable"/>.
+        /// </summary>
+        /// <returns>
+        /// true if the <paramref name="other"/> carrys the same inner action 
+        /// as current instance; otherwise, false.
+        /// </returns>
+        /// <param name="other">
+        /// The other <see cref="Runnable"/> to compare with the current instance. 
+        /// </param>
+        public virtual bool Equals(Runnable other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Equals(other._action, _action);
+        }
+
+        /// <summary>
+        /// Returns the has code of the inner action. 
+        /// </summary>
+        /// <returns>
+        /// A hash code for the current <see cref="Runnable"/>.
+        /// </returns>
+        /// <filterpriority>2</filterpriority>
+        public override int GetHashCode()
+        {
+            return _action.GetHashCode();
         }
     }
 }

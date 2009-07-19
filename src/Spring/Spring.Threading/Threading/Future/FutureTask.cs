@@ -73,8 +73,8 @@ namespace Spring.Threading.Future
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-    public class FutureTask<T> : IRunnableFuture<T>
-    {
+    public class FutureTask<T> : IRunnableFuture<T>, IContextCopyingTask
+	{
 	    private readonly ICallable<T> _callable;
 	    private T _result;
 	    private Exception _exception;
@@ -86,6 +86,8 @@ namespace Spring.Threading.Future
 	    /// volatile, to ensure visibility upon completion.
 	    /// </summary>
 	    private volatile Thread _runningThread;
+
+	    private IContextCarrier _contextCarrier;
 
 	    /// <summary> 
         /// Creates a <see cref="FutureTask{T}"/> that will, upon running, execute the
@@ -150,7 +152,7 @@ namespace Spring.Threading.Future
         ///		Future f = new FutureTask(action, default(T))
         ///	</code>	
         /// </param>
-        /// <exception cref="System.ArgumentNullException">
+        /// <exception cref="ArgumentNullException">
         /// If the <paramref name="action"/> is <c>null</c>.
         /// </exception>
         public FutureTask(Action action, T result)
@@ -160,7 +162,7 @@ namespace Spring.Threading.Future
 
 	    #region IFuture<T> Members
 
-	    /// <summary>
+        /// <summary>
 	    /// Determines if this task was cancelled.
 	    /// </summary>
 	    /// <remarks> 
@@ -304,6 +306,10 @@ namespace Spring.Threading.Future
 	    /// </summary>
 	    public virtual void Run()
 	    {
+            if (_contextCarrier != null)
+            {
+                _contextCarrier.Restore();
+            }
 	        lock (this)
 	        {
 	            if (_taskState != TaskState.Ready) return;
@@ -512,5 +518,15 @@ namespace Spring.Threading.Future
 	    {
             return (_taskState & CompleteOrCancelled) != 0;
 	    }
+
+        #region IContextCopyingTask Members
+
+        IContextCarrier IContextCopyingTask.ContextCarrier
+        {
+            get { return _contextCarrier; }
+            set { _contextCarrier = value; }
+        }
+
+        #endregion
     }
 }

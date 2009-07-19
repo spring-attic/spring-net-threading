@@ -60,7 +60,7 @@ namespace Spring.Threading.Collections.Generic
             Assert.IsFalse(q.Offer(1));
         }
 
-        [Test, ExpectedException(typeof(ArgumentNullException))]
+        [Test]
         public void TestOfferNull() {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             q.Offer(null);
@@ -72,8 +72,9 @@ namespace Spring.Threading.Collections.Generic
             q.Offer(0);
         }
 
-        [Test, ExpectedException(typeof(ArgumentNullException))]
-        public void TestAddNull() {
+        [Test, ExpectedException(typeof(InvalidOperationException))]
+        public void TestAddNull()
+        {
             SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
             q.Add(null);
         }
@@ -147,26 +148,6 @@ namespace Spring.Threading.Collections.Generic
         }
 
         /// <summary>
-        /// addAll of a collection with null elements fails
-        /// </summary>
-        [Test, ExpectedException(typeof(ArgumentNullException))]
-        public void TestAddAllWithDefaultElements() {
-            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
-            TestReferenceType[] test = new TestReferenceType[1];
-            q.AddRange(test);
-        }
-
-        /// <summary>
-        /// addAll of a collection with default value type elements fails
-        /// </summary>
-        [Test, ExpectedException(typeof(InvalidOperationException))]
-        public void TestAddAllWithDefaultElements2() {
-            SynchronousQueue<int> q = new SynchronousQueue<int>();
-            int[] test = new int[1];
-            q.AddRange(test);
-        }
-
-        /// <summary>
         /// addAll fails if no active taker
         /// </summary>
         [Test, ExpectedException(typeof(InvalidOperationException))]
@@ -176,15 +157,6 @@ namespace Spring.Threading.Collections.Generic
             for(int i = 0; i < 1; ++i)
                 test[i] = new TestReferenceType();
             q.AddRange(test);
-        }
-
-        /// <summary>
-        /// put fails if no active taker
-        /// </summary>
-        [Test, ExpectedException(typeof(ArgumentNullException))]
-        public void TestPutDefault() {
-            SynchronousQueue<TestReferenceType> q = new SynchronousQueue<TestReferenceType>();
-            q.Put(null);
         }
 
         /// <summary>

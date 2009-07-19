@@ -36,7 +36,6 @@ namespace Spring.Threading.Collections.Generic
     [Serializable]
     public abstract class AbstractBlockingQueue<T> : AbstractQueue<T>, IBlockingQueue<T>
     {
-        protected static readonly Predicate<T> Pass = delegate { return true; };
         /// <summary> 
         /// Inserts the specified element into this queue, waiting if necessary
         /// for space to become available.
@@ -128,6 +127,40 @@ namespace Spring.Threading.Collections.Generic
             return DrainTo(collection, null);
         }
 
+        /// <summary> 
+        /// Removes all available elements that meet the criteria defined by 
+        /// <paramref name="predicate"/> from this queue and adds them to the 
+        /// given collection.  
+        /// </summary>
+        /// <remarks>
+        /// This operation may be more efficient than repeatedly polling this 
+        /// queue.  A failure encountered while attempting to add elements to 
+        /// collection <paramref name="collection"/> may result in elements 
+        /// being in neither, either or both collections when the associated 
+        /// exception is thrown.  Attempts to drain a queue to itself result in
+        /// <see cref="System.ArgumentException"/>. Further, the behavior of
+        /// this operation is undefined if the specified collection is
+        /// modified while the operation is in progress.
+        /// </remarks>
+        /// <param name="collection">The collection to transfer elements into</param>
+        /// <param name="predicate">The criteria to filter the elements</param>
+        /// <returns> the number of elements transferred</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// If the queue cannot be drained at this time.
+        /// </exception>
+        /// <exception cref="System.InvalidCastException">
+        /// If the class of the supplied <paramref name="collection"/> prevents it
+        /// from being used for the elemetns from the queue.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the specified collection is <see lang="null"/>.
+        /// </exception>
+        /// <exception cref="System.ArgumentException">
+        /// If <paramref name="collection"/> represents the queue itself.
+        /// </exception>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T})"/>
+        /// <seealso cref="IBlockingQueue{T}.DrainTo(System.Collections.Generic.ICollection{T},int)"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T},int)"/>
         public virtual int DrainTo(ICollection<T> collection, Predicate<T> predicate)
         {
             CheckCollection(collection);
@@ -173,6 +206,42 @@ namespace Spring.Threading.Collections.Generic
             return DrainTo(collection, maxElements, null);
         }
 
+        /// <summary> 
+        /// Removes at most the given number of available elements that meet 
+        /// the criteria defined by <paramref name="predicate"/> from this 
+        /// queue and adds them to the given collection.  
+        /// </summary>
+        /// <remarks> 
+        /// This operation may be more
+        /// efficient than repeatedly polling this queue.  A failure
+        /// encountered while attempting to add elements to
+        /// collection <paramref name="collection"/> may result in elements being in neither,
+        /// either or both collections when the associated exception is
+        /// thrown.  Attempts to drain a queue to itself result in
+        /// <see cref="System.ArgumentException"/>. Further, the behavior of
+        /// this operation is undefined if the specified collection is
+        /// modified while the operation is in progress.
+        /// </remarks>
+        /// <param name="collection">the collection to transfer elements into</param>
+        /// <param name="maxElements">the maximum number of elements to transfer</param>
+        /// <param name="predicate">The criteria to filter the elements.</param>
+        /// <returns> the number of elements transferred</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// If the queue cannot be drained at this time.
+        /// </exception>
+        /// <exception cref="System.InvalidCastException">
+        /// If the class of the supplied <paramref name="collection"/> prevents it
+        /// from being used for the elemetns from the queue.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the specified collection is <see lang="null"/>.
+        /// </exception>
+        /// <exception cref="System.ArgumentException">
+        /// If <paramref name="collection"/> represents the queue itself.
+        /// </exception>
+        /// <seealso cref="IBlockingQueue{T}.DrainTo(System.Collections.Generic.ICollection{T})"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T})"/>
+        /// <seealso cref="IQueue{T}.Drain(System.Action{T},int)"/>
         public virtual int DrainTo(ICollection<T> collection, int maxElements, Predicate<T> predicate)
         {
             CheckCollection(collection);

@@ -30,15 +30,15 @@ namespace Spring.Threading
     {
         private Runnable _runnable;
         private Action _action;
-        private bool _isDelegateTasked;
+        private bool _isDelegateCalled;
 
         [SetUp]
         public void SetUp()
         {
-            _isDelegateTasked = false;
+            _isDelegateCalled = false;
             _action = delegate
                         {
-                            _isDelegateTasked = true;
+                            _isDelegateCalled = true;
                         };
         }
 
@@ -54,9 +54,9 @@ namespace Spring.Threading
         public void TaskReturnsTheResultOfDelegate()
         {
             _runnable = new Runnable(_action);
-            Assert.That(!_isDelegateTasked);
+            Assert.That(!_isDelegateCalled);
             _runnable.Run();
-            Assert.That(_isDelegateTasked);
+            Assert.That(_isDelegateCalled);
         }
 
         [Test]
@@ -64,9 +64,9 @@ namespace Spring.Threading
         {
             _runnable = _action;
             Assert.That(_runnable, Is.Not.Null);
-            Assert.That(!_isDelegateTasked);
+            Assert.That(!_isDelegateCalled);
             _runnable.Run();
-            Assert.That(_isDelegateTasked);
+            Assert.That(_isDelegateCalled);
         }
 
         [Test]
@@ -93,5 +93,41 @@ namespace Spring.Threading
             Assert.That(action, Is.Null);
         }
 
+        [Test] 
+        public void EqualsWhenAndOnlyWhenActionEquals()
+        {
+            _runnable = new Runnable(_action);
+            object run = new Runnable(Run);
+
+            Assert.IsTrue(run.Equals(run));
+
+            Assert.IsFalse(run.Equals(null));
+
+            Assert.IsTrue(_runnable.Equals(_runnable));
+
+            Assert.IsTrue(_runnable.Equals(new Runnable(_action)));
+
+            Assert.IsTrue(run.Equals(new Runnable(Run)));
+
+            Assert.IsFalse(_runnable.Equals(new object()));
+
+            Assert.IsFalse(_runnable.Equals(null));
+
+            Assert.IsFalse(_runnable.Equals(run));
+        }
+
+        [Test]
+        public void GetHashCodeReturnsHashCodeOfInnerAction()
+        {
+            _runnable = new Runnable(_action);
+            var run = new Runnable(Run);
+            Assert.That(_runnable.GetHashCode(), Is.EqualTo(_action.GetHashCode()));
+            Assert.That(run.GetHashCode(), Is.EqualTo(new Action(Run).GetHashCode()));
+        }
+
+        private static void Run()
+        {
+            
+        }
     }
 }

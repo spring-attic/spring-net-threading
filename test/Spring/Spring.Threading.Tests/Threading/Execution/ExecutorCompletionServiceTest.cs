@@ -78,10 +78,10 @@ namespace Spring.Threading.Execution
         {
             var e = Assert.Throws<ArgumentNullException>(
                 () => _sut.Submit((Action)null));
-            Assert.That(e.ParamName, Is.EqualTo("task"));
+            Assert.That(e.ParamName, Is.EqualTo("action"));
             e = Assert.Throws<ArgumentNullException>(
                 () => _sut.Submit((Action)null, TestData<T>.One));
-            Assert.That(e.ParamName, Is.EqualTo("task"));
+            Assert.That(e.ParamName, Is.EqualTo("action"));
         }
 
         [Test] public void TakeReturnsOnlyWhenTaskIsCompleted()

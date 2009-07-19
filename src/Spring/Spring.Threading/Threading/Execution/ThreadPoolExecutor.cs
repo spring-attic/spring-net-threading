@@ -1,3 +1,21 @@
+#region License
+/*
+* Copyright (C) 2002-2009 the original author or authors.
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+*      http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Security;
@@ -5,24 +23,27 @@ using System.Threading;
 using Spring.Threading.AtomicTypes;
 using Spring.Threading.Collections.Generic;
 using Spring.Threading.Execution.ExecutionPolicy;
+using Spring.Threading.Future;
 using Spring.Threading.Locks;
 
 namespace Spring.Threading.Execution
 {
-    /// <summary> An <see cref="Spring.Threading.Execution.IExecutorService"/> that executes each submitted task using
-    /// one of possibly several pooled threads, normally configured
-    /// using <see cref="Spring.Threading.Execution.Executors"/> factory methods.
+    /// <summary>
+    /// An <see cref="IExecutorService"/> that executes each submitted task 
+    /// using one of possibly several pooled threads, normally configured
+    /// using <see cref="Executors"/> factory methods.
     /// </summary> 
     /// <remarks>
+    /// <para>
     /// Thread pools address two different problems: they usually
     /// provide improved performance when executing large numbers of
     /// asynchronous tasks, due to reduced per-task invocation overhead,
     /// and they provide a means of bounding and managing the resources,
     /// including threads, consumed when executing a collection of tasks.
-    /// Each <see cref="Spring.Threading.Execution.ThreadPoolExecutor"/> also maintains some basic
+    /// Each <see cref="ThreadPoolExecutor"/> also maintains some basic
     /// statistics, such as the number of completed tasks.
-    /// 
-    /// <p/>
+    /// </para>
+    /// <para>
     /// To be useful across a wide range of contexts, this class
     /// provides many adjustable parameters and extensibility
     /// hooks. However, programmers are urged to use the more convenient
@@ -33,7 +54,8 @@ namespace Spring.Threading.Execution
     /// single background thread), that preconfigure settings for the most common usage
     /// scenarios. Otherwise, use the following guide when manually
     /// configuring and tuning this class:
-    /// 
+    /// </para>
+    /// <para>
     /// <dl>
     ///		<dt>Core and maximum pool sizes</dt>
     /// 	<dd>
@@ -44,7 +66,8 @@ namespace Spring.Threading.Execution
     ///         Maximum Pool Size (<see cref="MaximumPoolSize"/>)
     /// 		
     ///			When a new task is submitted in method
-    /// 		<see cref="Spring.Threading.Execution.ThreadPoolExecutor.Execute"/>, 
+    /// 		<see cref="AbstractExecutorService.Execute(Action)"/> or
+    ///         <see cref="AbstractExecutorService.Execute(IRunnable)"/>
     /// 		and fewer than <see cref="Spring.Threading.Execution.ThreadPoolExecutor.CorePoolSize"/> threads
     /// 		are running, a new thread is created to handle the request, even if
     /// 		other worker threads are idle.  If there are more than
@@ -177,10 +200,12 @@ namespace Spring.Threading.Execution
     /// 
     ///		<dt>Rejected tasks</dt>
     ///		<dd> 
-    ///			New tasks submitted in method <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Execute"/>
+    ///			New tasks submitted in method <see cref="AbstractExecutorService.Execute(Action)"/>
+    ///         or <see cref="AbstractExecutorService.Execute(IRunnable)"/>
     ///			will be <i>rejected</i> when the Executor has been shut down, and also when the Executor uses finite
     /// 		bounds for both maximum threads and work queue capacity, and is
-    /// 		saturated.  In either case, the <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Execute"/> method invokes the
+    /// 		saturated.  In either case, the <see cref="AbstractExecutorService.Execute(Action)"/>
+    ///         or <see cref="AbstractExecutorService.Execute(IRunnable)"/> method invokes the
     /// 		<see cref="IRejectedExecutionHandler.RejectedExecution"/> method of its
     /// 		<see cref="IRejectedExecutionHandler"/>.  Four predefined handler policies
     /// 		are provided:
@@ -192,7 +217,8 @@ namespace Spring.Threading.Execution
     ///				</li>
     ///				<li> 
     ///					In <see cref="CallerRunsPolicy"/>, the thread that invokes
-    ///					<see cref="Spring.Threading.Execution.ThreadPoolExecutor.Execute"/> itself runs the task. This provides a simple
+    ///					<see cref="AbstractExecutorService.Execute(Action)"/>
+    ///                 or <see cref="AbstractExecutorService.Execute(IRunnable)"/> itself runs the task. This provides a simple
     /// 				feedback control mechanism that will slow down the rate that new tasks are submitted. 
     /// 			</li>
     ///				<li> 
@@ -245,13 +271,13 @@ namespace Spring.Threading.Execution
     ///         setting <see cref="AllowsCoreThreadsToTimeOut"/>.
     ///     </dd>
     /// </dl>
-    /// 
-    /// <p/>
+    /// </para>
+    /// <example>
     /// <b>Extension example</b>. Most extensions of this class
     /// override one or more of the protected hook methods. For example,
     /// here is a subclass that adds a simple pause/resume feature:
     /// 
-    /// <code>
+    /// <code language="C#">
     ///		public class PausableThreadPoolExecutor : ThreadPoolExecutor {
     ///			private boolean _isPaused;
     /// 		private ReentrantLock _pauseLock = new ReentrantLock();
@@ -272,25 +298,22 @@ namespace Spring.Threading.Execution
     ///			}
     /// 
     ///			public void Pause() {
-    /// 			_pauseLock.Lock();
-    /// 			try {
+    /// 			using(_pauseLock.Lock())
+    /// 			{
     /// 				_isPaused = true;
-    ///				} finally {
-    ///					_pauseLock.Unlock();
     ///				}
     ///			}
     /// 
     ///			public void Resume() {
-    ///				_pauseLock.Lock();
-    ///				try {
+    ///				using(_pauseLock.Lock())
+    ///				{
     ///					_isPaused = false;
     /// 				_unpaused.SignalAll();
-    /// 			} finally {
-    /// 				_pauseLock.Unlock();
     /// 			}
     /// 		}
     /// 	}
     /// </code>
+    /// </example>
     /// </remarks>
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
@@ -946,7 +969,7 @@ namespace Spring.Threading.Execution
         /// <param name="workQueue">
         /// The queue to use for holding tasks before they
         /// are executed. This queue will hold only the <see cref="Spring.Threading.IRunnable"/>
-        /// tasks submitted by the <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Execute(IRunnable)"/> method.
+        /// tasks submitted by the <see cref="AbstractExecutorService.Execute(IRunnable)"/> method.
         /// </param>
         /// <exception cref="System.ArgumentOutOfRangeException">
         /// If <paramref name="corePoolSize"/> or <paramref name="keepAliveTime"/> is less than zero, or if <paramref name="maximumPoolSize"/>
@@ -975,7 +998,7 @@ namespace Spring.Threading.Execution
         /// <param name="workQueue">
         /// The queue to use for holding tasks before they
         /// are executed. This queue will hold only the <see cref="Spring.Threading.IRunnable"/>
-        /// tasks submitted by the <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Execute(IRunnable)"/> method.
+        /// tasks submitted by the <see cref="AbstractExecutorService.Execute(IRunnable)"/> method.
         /// </param>
         /// <param name="threadFactory">
         /// <see cref="Spring.Threading.IThreadFactory"/> to use for new thread creation.
@@ -1009,7 +1032,7 @@ namespace Spring.Threading.Execution
         /// <param name="workQueue">
         /// The queue to use for holding tasks before they
         /// are executed. This queue will hold only the <see cref="Spring.Threading.IRunnable"/>
-        /// tasks submitted by the <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Execute(IRunnable)"/> method.
+        /// tasks submitted by the <see cref="AbstractExecutorService.Execute(IRunnable)"/> method.
         /// </param>
         /// <param name="handler">
         /// The <see cref="Spring.Threading.Execution.IRejectedExecutionHandler"/> to use when execution is blocked
@@ -1040,7 +1063,7 @@ namespace Spring.Threading.Execution
         /// <param name="workQueue">
         /// The queue to use for holding tasks before they
         /// are executed. This queue will hold only the <see cref="Spring.Threading.IRunnable"/>
-        /// tasks submitted by the <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Execute(IRunnable)"/> method.
+        /// tasks submitted by the <see cref="AbstractExecutorService.Execute(IRunnable)"/> method.
         /// </param>
         /// <param name="threadFactory">
         /// <see cref="Spring.Threading.IThreadFactory"/> to use for new thread creation.
@@ -1127,26 +1150,25 @@ namespace Spring.Threading.Execution
         }
 
         /// <summary> 
-        /// Executes the given task sometime in the future.  The task
-        /// may execute in a new thread or in an existing pooled thread.
+        /// Executes the given task sometime in the future.  The task may 
+        /// execute in a new thread or in an existing pooled thread.
         /// </summary>
         /// <remarks>
         /// If the task cannot be submitted for execution, either because this
         /// executor has been shutdown or because its capacity has been reached,
-        /// the task is handled by the current <see cref="Spring.Threading.Execution.IRejectedExecutionHandler"/>
-        /// for this <see cref="Spring.Threading.Execution.ThreadPoolExecutor"/>.
+        /// the task is handled by the current <see cref="IRejectedExecutionHandler"/>
+        /// for this <see cref="ThreadPoolExecutor"/>.
         /// </remarks>
         /// <param name="command">the task to execute</param>
-        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">
+        /// <exception cref="RejectedExecutionException">
         /// if the task cannot be accepted. 
         /// </exception>
-        /// <exception cref="System.ArgumentNullException">if <paramref name="command"/> is <see lang="null"/></exception>
-        public override void Execute(IRunnable command)
+        /// <exception cref="ArgumentNullException">
+        /// if <paramref name="command"/> is <see lang="null"/>
+        /// </exception>
+        protected override void DoExecute(IRunnable command)
         {
-            if (command == null)
-            {
-                throw new ArgumentNullException("command");
-            }
+
             /*
              * Proceed in 3 steps:
              *
@@ -1190,23 +1212,44 @@ namespace Spring.Threading.Execution
         /// Removes this task from the executor's internal queue if it is
         /// present, thus causing it not to be run if it has not already
         /// started.
-        ///
-        /// <p/> This method may be useful as one part of a cancellation
-        /// scheme.  It may fail to remove tasks that have been converted
-        /// into other forms before being placed on the internal queue. For
-        /// example, a task entered using {@code submit} might be
-        /// converted into a form that maintains {@code Future} status.
-        /// However, in such cases, method {@link #purge} may be used to
-        /// remove those Futures that have been cancelled.
-        ///
         /// </summary>
-        /// @param task the task to remove
-        /// @return true if the task was removed
+        /// <remarks>
+        /// This method may be useful as one part of a cancellation scheme.  
+        /// It may fail to remove tasks that have been converted into other 
+        /// forms before being placed on the internal queue. For example, a 
+        /// task entered using <see cref="IExecutorService.Submit(Action)"/> 
+        /// might be converted into a form that maintains <see cref="IFuture{T}"/> 
+        /// status. However, in such cases, method <see cref="Purge"/> may be 
+        /// used to remove those Futures that have been cancelled.
+        /// </remarks>
+        /// <param name="task">The task to remove.</param>
+        /// <returns><c>true</c> if the task was removed.</returns>
         public bool Remove(IRunnable task)
         {
             var removed = _workQueue.Remove(task);
             TryTerminate(); // In case SHUTDOWN and now empty
             return removed;
+        }
+
+        /// <summary>
+        /// Removes this task from the executor's internal queue if it is
+        /// present, thus causing it not to be run if it has not already
+        /// started.
+        /// </summary>
+        /// <remarks>
+        /// This method may be useful as one part of a cancellation scheme.  
+        /// It may fail to remove tasks that have been converted into other 
+        /// forms before being placed on the internal queue. For example, a 
+        /// task entered using <see cref="IExecutorService.Submit(Action)"/> 
+        /// might be converted into a form that maintains <see cref="IFuture{T}"/> 
+        /// status. However, in such cases, method <see cref="Purge"/> may be 
+        /// used to remove those Futures that have been cancelled.
+        /// </remarks>
+        /// <param name="task">The task to remove.</param>
+        /// <returns><c>true</c> if the task was removed.</returns>
+        public bool Remove(Action task)
+        {
+            return Remove((IRunnable)new Runnable(task));
         }
 
         /// <summary> 
@@ -1584,7 +1627,7 @@ namespace Spring.Threading.Execution
         ///
         /// <param name="firstTask"> the task the new thread should run first (or
         /// null if none). Workers are created with an initial first task
-        /// (in method <see cref="Execute"/>) to bypass queuing when there are fewer
+        /// (in method <see cref="AbstractExecutorService.Execute(IRunnable)"/>) to bypass queuing when there are fewer
         /// than <see cref="CorePoolSize"/> threads (in which case we always start one),
         /// or when the queue is full (in which case we must bypass queue).
         /// Initially idle threads are usually created via

@@ -671,6 +671,30 @@ namespace Spring.Collections.Generic
             return Drain(action, maxElements, criteria, null);
         }
 
+        /// <summary> 
+        /// Removes at most the given number of available elements that meet 
+        /// the criteria defined by <paramref name="selectCriteria"/> from this 
+        /// queue and invoke the given <paramref name="action"/> on each 
+        /// element in order until the <paramref name="stopCriteria"/> is met.
+        /// </summary>
+        /// <remarks>
+        /// This operation may be more efficient than repeatedly polling this 
+        /// queue.  A failure encountered while attempting to invoke the 
+        /// <paramref name="action"/> on the elements may result in elements 
+        /// being neither, either or both in the queue or processed when the 
+        /// associated exception is thrown.
+        /// </remarks>
+        /// <param name="action">The action to performe on each element.</param>
+        /// <param name="maxElements">the maximum number of elements to transfer</param>
+        /// <param name="selectCriteria">The criteria to filter the elements.</param>
+        /// <param name="stopCriteria">The criteria to stop drain</param>
+        /// <returns>The number of elements processed.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// If the queue cannot be drained at this time.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the specified action is <see langword="null"/>.
+        /// </exception>
         public virtual int Drain(Action<T> action, int maxElements, Predicate<T> selectCriteria, Predicate<T> stopCriteria)
         {
             int n = 0;

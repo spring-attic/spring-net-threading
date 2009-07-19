@@ -21,7 +21,8 @@
 namespace Spring.Threading
 {
 	/// <summary> 
-	/// An object that executes submitted <see cref="Spring.Threading.IRunnable"/> tasks. 
+	/// An object that executes submitted <see cref="Spring.Threading.IRunnable"/> tasks
+	/// or an <see cref="Action"/>.
 	/// </summary>
 	/// <remarks> 
 	/// This interface provides a way of decoupling task submission from the

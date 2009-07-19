@@ -12,7 +12,7 @@ namespace Spring.Threading.Execution
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	[Serializable]
-	public class CancellationException : ApplicationException
+	public class CancellationException : InvalidOperationException
 	{
 		#region Constructor (s) / Destructor
 

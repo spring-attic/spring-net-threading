@@ -8,7 +8,21 @@ using Spring.Threading.Future;
 
 namespace Spring.Threading
 {
-    public class BaseThreadingTestCase
+    public class ExecutorTestBase
+    {
+        public void JoinPool(IExecutorService exec)
+        {
+            JoinPool(exec, BaseThreadingTestCase.LONG_DELAY);
+        }
+
+        public void JoinPool(IExecutorService exec, TimeSpan waitTime)
+        {
+            exec.Shutdown();
+            Assert.IsTrue(exec.AwaitTermination(waitTime));
+        }
+    }
+
+    public class BaseThreadingTestCase : ExecutorTestBase
     {
         [Serializable]
         public class Integer
@@ -80,12 +94,6 @@ namespace Spring.Threading
         public void UnexpectedException()
         {
             Assert.Fail("Unexpected exception");
-        }
-
-        public void JoinPool(IExecutorService exec)
-        {
-            exec.Shutdown();
-            Assert.IsTrue(exec.AwaitTermination(LONG_DELAY));
         }
 
         public void ThreadUnexpectedException()
@@ -352,7 +360,7 @@ namespace Spring.Threading
 
         #endregion
     }
-
+#if !PHASED
     internal class NoOpExecutorService : IExecutorService
     {
         #region IExecutorService Members
@@ -470,6 +478,11 @@ namespace Spring.Threading
             throw new NotImplementedException();
         }
 
+        public IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params Func<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
         public T InvokeAny<T>(IEnumerable<ICallable<T>> tasks)
         {
             throw new NotImplementedException();
@@ -515,6 +528,41 @@ namespace Spring.Threading
             throw new NotImplementedException();
         }
 
+        public IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<ICallable<T>> tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAllOrFail<T>(params ICallable<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<Func<T>> tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAllOrFail<T>(params Func<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
+        {
+            throw new NotImplementedException();
+        }
+
         public T InvokeAny<T>(params ICallable<T>[] tasks)
         {
             throw new NotImplementedException();
@@ -537,4 +585,5 @@ namespace Spring.Threading
 
         #endregion
     }
+#endif
 }

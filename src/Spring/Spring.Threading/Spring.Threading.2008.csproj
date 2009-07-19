@@ -40,7 +40,8 @@
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>
+    </NoWarn>
     <Optimize>false</Optimize>
     <RegisterForComInterop>false</RegisterForComInterop>
     <RemoveIntegerChecks>false</RemoveIntegerChecks>
@@ -61,7 +62,8 @@
     <DebugSymbols>false</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>
+    </NoWarn>
     <Optimize>true</Optimize>
     <RegisterForComInterop>false</RegisterForComInterop>
     <RemoveIntegerChecks>false</RemoveIntegerChecks>
@@ -123,15 +125,14 @@
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueue.cs" />
-    <Compile Include="Threading\ContextCarrier.cs" />
-    <Compile Include="Threading\ContextCopyingRunable.cs" />
+    <Compile Include="Threading\IContextCarrier.cs" />
+    <Compile Include="Threading\ContextCopyingRunnable.cs" />
     <Compile Include="Threading\CountDown.cs" />
     <Compile Include="Threading\CyclicBarrier.cs" />
     <Compile Include="Threading\DefaultChannelCapacity.cs" />
     <Compile Include="Threading\DirectExecutor.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorService.cs" />
     <Compile Include="Threading\Execution\CancellationException.cs" />
-    <Compile Include="Threading\Execution\ContextCopyingThreadPoolExecutor.cs" />
     <Compile Include="Threading\Execution\ExecutionException.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\AbortPolicy.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicy.cs" />
@@ -145,14 +146,12 @@
     <Compile Include="Threading\Execution\IScheduledExecutorService.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionException.cs" />
     <Compile Include="Threading\Execution\ScheduledThreadPoolExecutor.cs" />
-    <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutor.cs" />
     <Compile Include="Threading\FIFOSemaphore.cs" />
     <Compile Include="Threading\ForkJoin\FJTask.cs" />
     <Compile Include="Threading\ForkJoin\FJTaskRunner.cs" />
     <Compile Include="Threading\ForkJoin\FJTaskRunnerGroup.cs" />
     <Compile Include="Threading\ForkJoin\ThreadClass.cs" />
-    <Compile Include="Threading\Future\ContextCopyingFutureTask.cs" />
     <Compile Include="Threading\Future\FutureTask.cs" />
     <Compile Include="Threading\Future\IDelayed.cs" />
     <Compile Include="Threading\Future\IFuture.cs" />
@@ -172,7 +171,8 @@
     <Compile Include="Threading\ICallable.cs" />
     <Compile Include="Threading\ICancellable.cs" />
     <Compile Include="Threading\IChannel.cs" />
-    <Compile Include="Threading\IContextCopier.cs" />
+    <Compile Include="Threading\IContextCarrierFactory.cs" />
+    <Compile Include="Threading\IContextCopyingTask.cs" />
     <Compile Include="Threading\IExecutor.cs" />
     <Compile Include="Threading\AtomicTypes\AbstractAtomicArray.cs" />
     <Compile Include="Threading\AtomicTypes\Atomic.cs" />
@@ -212,6 +212,7 @@
     <Compile Include="Threading\Locks\ReentrantLock.cs" />
     <Compile Include="Threading\Locks\ReentrantReadWriteLock.cs" />
     <Compile Include="Threading\Locks\WriterLock.cs" />
+    <Compile Include="Threading\LogicalThreadContextCarrierFactory.cs" />
     <Compile Include="Threading\Mutex.cs" />
     <Compile Include="Threading\NullRunnable.cs" />
     <Compile Include="Threading\PooledExecutor.cs" />

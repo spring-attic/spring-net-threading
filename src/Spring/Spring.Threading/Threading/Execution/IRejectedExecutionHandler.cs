@@ -10,7 +10,7 @@ namespace Spring.Threading.Execution
 	{
 		/// <summary> 
 		/// Method that may be invoked by a <see cref="ThreadPoolExecutor"/> when
-        /// <see cref="ThreadPoolExecutor.Execute(IRunnable)"/> cannot accept a task. 
+        /// <see cref="AbstractExecutorService.Execute(IRunnable)"/> cannot accept a task. 
 		/// </summary>
 		/// <remarks> 
 		/// This may occur when no more threads or queue slots are available because their bounds
@@ -18,7 +18,7 @@ namespace Spring.Threading.Execution
 		/// <p/>
 		/// In the absence other alternatives, the method may throw an
 		/// <see cref="RejectedExecutionException"/>, which will be
-        /// propagated to the caller of <see cref="ThreadPoolExecutor.Execute(IRunnable)"/>.
+        /// propagated to the caller of <see cref="AbstractExecutorService.Execute(IRunnable)"/>.
 		/// </remarks>
 		/// <param name="runnable">the runnable task requested to be executed
 		/// </param>

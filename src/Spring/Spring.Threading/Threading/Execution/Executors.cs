@@ -71,7 +71,9 @@ namespace Spring.Threading.Execution
 		/// <returns> the newly created thread pool</returns>
 		public static IExecutorService NewFixedThreadPool(int threadPoolSize)
 		{
-			return new ThreadPoolExecutor(threadPoolSize, threadPoolSize, new TimeSpan(0), new LinkedBlockingQueue<IRunnable>());
+            CheckPoolSize(threadPoolSize);
+            return new ThreadPoolExecutor(threadPoolSize, threadPoolSize, TimeSpan.Zero, 
+                new LinkedBlockingQueue<IRunnable>());
 		}
 
 		/// <summary> 
@@ -93,10 +95,21 @@ namespace Spring.Threading.Execution
 		/// </returns>
 		public static IExecutorService NewFixedThreadPool(int threadPoolSize, IThreadFactory threadFactory)
 		{
-			return new ThreadPoolExecutor(threadPoolSize, threadPoolSize, new TimeSpan(0), new LinkedBlockingQueue<IRunnable>(), threadFactory);
+		    CheckPoolSize(threadPoolSize);
+		    return new ThreadPoolExecutor(threadPoolSize, threadPoolSize, TimeSpan.Zero, 
+                new LinkedBlockingQueue<IRunnable>(), threadFactory);
 		}
 
-		/// <summary> 
+	    private static void CheckPoolSize(int threadPoolSize)
+	    {
+	        if(threadPoolSize <= 0)
+	        {
+	            throw new ArgumentOutOfRangeException(
+                    "threadPoolSize", threadPoolSize, "thread pool size must be greater than zero");
+	        }
+	    }
+
+	    /// <summary> 
 		/// Creates an <see cref="Spring.Threading.IExecutor"/> that uses a single worker thread operating
 		/// off an unbounded queue.
 		/// </summary>
@@ -112,7 +125,8 @@ namespace Spring.Threading.Execution
 		/// <returns> the newly created single-threaded <see cref="Spring.Threading.IExecutor"/> </returns>
 		public static IExecutorService NewSingleThreadExecutor()
 		{
-			return new FinalizableDelegatedExecutorService(new ThreadPoolExecutor(1, 1, new TimeSpan(0), new LinkedBlockingQueue<IRunnable>()));
+			return new FinalizableDelegatedExecutorService(
+                new ThreadPoolExecutor(1, 1, TimeSpan.Zero, new LinkedBlockingQueue<IRunnable>()));
 		}
 
 		/// <summary> 
@@ -129,7 +143,8 @@ namespace Spring.Threading.Execution
 		/// <returns> the newly created single-threaded <see cref="Spring.Threading.IExecutor"/></returns>
 		public static IExecutorService NewSingleThreadExecutor(IThreadFactory threadFactory)
 		{
-			return new FinalizableDelegatedExecutorService(new ThreadPoolExecutor(1, 1, new TimeSpan(0), new LinkedBlockingQueue<IRunnable>(), threadFactory));
+			return new FinalizableDelegatedExecutorService(
+                new ThreadPoolExecutor(1, 1, TimeSpan.Zero, new LinkedBlockingQueue<IRunnable>(), threadFactory));
 		}
 
 		/// <summary> 
@@ -152,7 +167,8 @@ namespace Spring.Threading.Execution
 		/// <returns>the newly created thread pool</returns>
 		public static IExecutorService NewCachedThreadPool()
 		{
-			return new ThreadPoolExecutor(0, Int32.MaxValue, new TimeSpan(0, 0, 60), new SynchronousQueue<IRunnable>());
+			return new ThreadPoolExecutor(0, Int32.MaxValue, TimeSpan.FromMinutes(1), 
+                new SynchronousQueue<IRunnable>());
 		}
 
 		/// <summary> 
@@ -164,7 +180,8 @@ namespace Spring.Threading.Execution
 		/// <returns> the newly created thread pool</returns>
 		public static IExecutorService NewCachedThreadPool(IThreadFactory threadFactory)
 		{
-			return new ThreadPoolExecutor(0, Int32.MaxValue, new TimeSpan(0, 0, 60), new SynchronousQueue<IRunnable>(), threadFactory);
+            return new ThreadPoolExecutor(0, Int32.MaxValue, TimeSpan.FromMinutes(1), 
+                new SynchronousQueue<IRunnable>(), threadFactory);
 		}
 
 		/// <summary> 
@@ -333,8 +350,7 @@ namespace Spring.Threading.Execution
         /// <seealso cref="CreateCallable{T}(Action,T)"/>
         public static ICallable<T> CreateCallable<T>(IRunnable runnable, T result)
         {
-            if (runnable == null) throw new ArgumentNullException("runnable");
-            return CreateCallable(runnable.Run, result);
+            return new Callable<T>(CreateCall(runnable, result));
         }
 
         /// <summary>
@@ -356,7 +372,6 @@ namespace Spring.Threading.Execution
         /// <seealso cref="CreateCallable{T}(IRunnable,T)"/>
         public static ICallable<T> CreateCallable<T>(Action action, T result)
         {
-            if (action == null) throw new ArgumentNullException("task");
             return new Callable<T>(CreateCall(action, result));
         }
 
@@ -417,7 +432,7 @@ namespace Spring.Threading.Execution
         /// <seealso cref="CreateCall{T}(IRunnable,T)"/>
         public static Func<T> CreateCall<T>(Action action, T result)
         {
-            if (action == null) throw new ArgumentNullException("task");
+            if (action == null) throw new ArgumentNullException("action");
             return delegate { action(); return result; };
         }
 
@@ -444,7 +459,6 @@ namespace Spring.Threading.Execution
         /// <returns>An <see cref="IRunnable"/> object.</returns>
         public static IRunnable CreateRunnable(Action action)
         {
-            if (action == null) throw new ArgumentNullException("task");
             return new Runnable(action);
         }
 
@@ -461,13 +475,13 @@ namespace Spring.Threading.Execution
 
 			internal DefaultThreadFactory()
 			{
-                namePrefix = "pool-" + poolNumber.IncrementValueAndReturn() + "-thread-";
+                namePrefix = "pool-" + poolNumber.ReturnValueAndIncrement() + "-thread-";
 			}
 
 			public virtual Thread NewThread(IRunnable r)
 			{
 				Thread t = new Thread(r.Run);
-                t.Name = namePrefix + threadNumber.IncrementValueAndReturn();
+                t.Name = namePrefix + threadNumber.ReturnValueAndIncrement();
 				if (t.IsBackground)
 					t.IsBackground = false;
 				if (t.Priority != ThreadPriority.Normal)
@@ -499,7 +513,7 @@ namespace Spring.Threading.Execution
 				_executorService = executor;
 			}
 
-			public override void Execute(IRunnable command)
+			protected override void DoExecute(IRunnable command)
 			{
 				_executorService.Execute(command);
 			}

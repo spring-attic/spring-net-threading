@@ -98,7 +98,12 @@ namespace Spring.Threading.Collections.Generic
                 throw new Exception("The method or operation is not implemented.");
             }
 
-            public T InvokeAny<T>(IEnumerable<ICallable<T>> tasks)
+		    public IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params Func<T>[] tasks)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    public T InvokeAny<T>(IEnumerable<ICallable<T>> tasks)
             {
                 throw new Exception("The method or operation is not implemented.");
             }
@@ -159,7 +164,42 @@ namespace Spring.Threading.Collections.Generic
                 throw new NotImplementedException();
             }
 
-            public T InvokeAny<T>(params ICallable<T>[] tasks)
+		    public IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<ICallable<T>> tasks)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    public IList<IFuture<T>> InvokeAllOrFail<T>(params ICallable<T>[] tasks)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    public IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<Func<T>> tasks)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    public IList<IFuture<T>> InvokeAllOrFail<T>(params Func<T>[] tasks)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    public IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    public IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    public IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    public T InvokeAny<T>(params ICallable<T>[] tasks)
             {
                 throw new NotImplementedException();
             }
@@ -1075,22 +1115,6 @@ namespace Spring.Threading.Collections.Generic
 			 Assert.AreEqual(two, targetArray[2]);
 			 Assert.AreEqual(three, targetArray[3]);
 		 }
-		[Test]
-		public void RemoveAll()
-		{
-			for (int i = 1; i < DEFAULT_COLLECTION_SIZE; ++i)
-			{
-				ArrayBlockingQueue<int> q = populatedQueue(DEFAULT_COLLECTION_SIZE);
-				ArrayBlockingQueue<int> p = populatedQueue(i);
-				Util.Generic.CollectionUtils.RemoveAll(q, p);
-				Assert.AreEqual(DEFAULT_COLLECTION_SIZE - i, q.Count);
-				for (int j = 0; j < i; ++j)
-				{
-					Int32 I = p.Remove();
-					Assert.IsFalse(q.Contains(I));
-				}
-			}
-		}
 
 		[Test]
 		public void Iterator()

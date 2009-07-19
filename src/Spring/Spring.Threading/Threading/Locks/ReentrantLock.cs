@@ -1126,7 +1126,7 @@ namespace Spring.Threading.Locks
 
         #region IDisposable Members
 
-        public void Dispose()
+	    void IDisposable.Dispose()
         {
             sync.Unlock();
         }

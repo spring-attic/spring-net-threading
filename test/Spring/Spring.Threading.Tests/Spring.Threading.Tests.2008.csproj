@@ -126,7 +126,6 @@
     <Compile Include="Collections\TypedQueueTestFixture.cs" />
     <Compile Include="CoreExceptionTests.cs" />
     <Compile Include="ExceptionsTest.cs" />
-    <Compile Include="Mockery.cs" />
     <Compile Include="StandardsComplianceTest.cs" />
     <Compile Include="TestData.cs" />
     <Compile Include="TestHelper.cs" />
@@ -143,6 +142,7 @@
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
+    <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
     <Compile Include="Threading\CyclicBarrierTests.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs" />
     <Compile Include="Threading\Execution\ExecutionExceptionTests.cs" />
@@ -151,7 +151,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Threading\Execution\ExecutorCompletionServiceTest.cs" />
+    <Compile Include="Threading\Execution\ExecutorsTest.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTests.cs" />
+    <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutorTests.cs" />
     <Compile Include="Threading\ForkJoin\FJTaskRunnerTest.cs" />
     <Compile Include="Threading\Future\FutureTaskTests.cs" />
@@ -177,6 +179,7 @@
     <Compile Include="Threading\LatchTest.cs" />
     <Compile Include="Threading\Locks\ReentrantLockTests.cs" />
     <Compile Include="Threading\Locks\ReentrantReadWriteLockTests.cs" />
+    <Compile Include="Threading\LogicalThreadContextCarrierFactoryTest.cs" />
     <Compile Include="Threading\RunnableTest.cs" />
     <Compile Include="Threading\SemaphoreTest.cs" />
     <Compile Include="Threading\SyncHolderTest.cs" />

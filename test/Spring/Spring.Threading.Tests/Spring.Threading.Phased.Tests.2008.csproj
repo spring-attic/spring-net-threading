@@ -95,7 +95,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseAbstractCollectionTest.cs" />
-    <Compile Include="BaseMockTestCase.cs" />
     <Compile Include="BaseThreadingTestCase.cs" />
     <Compile Include="Collections\Generic\AbstractEnumeratorTest.cs" />
     <Compile Include="Collections\CollectionTestFixture.cs" />
@@ -111,7 +110,6 @@
     <Compile Include="Collections\QueueTestFixture.cs" />
     <Compile Include="Collections\EnumerableTestFixture.cs" />
     <Compile Include="Collections\TypedQueueTestFixture.cs" />
-    <Compile Include="Mockery.cs" />
     <Compile Include="TestData.cs" />
     <Compile Include="TestThreadManager.cs" />
     <Compile Include="Threading\AtomicTypes\AbstractAtomicArrayTest.cs" />
@@ -141,10 +139,14 @@
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
+    <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\DiscardOldestPolicyTest.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\DiscardPolicyTest.cs" />
     <Compile Include="Threading\Execution\ExecutorCompletionServiceTest.cs" />
+    <Compile Include="Threading\Execution\ExecutorsTest.cs" />
+    <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />
     <Compile Include="Threading\Helpers\CountDownLatchTests.cs" />
+    <Compile Include="Threading\LogicalThreadContextCarrierFactoryTest.cs" />
     <Compile Include="Threading\RunnableTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />

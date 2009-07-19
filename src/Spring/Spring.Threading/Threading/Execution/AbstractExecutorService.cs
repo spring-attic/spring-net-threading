@@ -65,6 +65,16 @@ namespace Spring.Threading.Execution
     /// <author>Kenneth Xu</author>
     public abstract class AbstractExecutorService : IExecutorService
     {
+        private IContextCarrierFactory _contextCarrierFactory;
+
+        /// <summary>
+        /// Gets and sets the context carrier factory
+        /// </summary>
+        public IContextCarrierFactory ContextCarrierFactory
+        {
+            get { return _contextCarrierFactory; }
+            set { _contextCarrierFactory = value; }
+        }
 
         #region Abstract Methods
 
@@ -91,16 +101,23 @@ namespace Spring.Threading.Execution
         public abstract IList<IRunnable> ShutdownNow();
 
         /// <summary> 
-        /// Executes the given command at some time in the future.
+        /// Executes the given task sometime in the future.  The task may 
+        /// execute in a new thread or in an existing pooled thread.
         /// </summary>
         /// <remarks>
-        /// The command may execute in a new thread, in a pooled thread, or in the calling
-        /// thread, at the discretion of the <see cref="Spring.Threading.IExecutor"/> implementation.
+        /// If the task cannot be submitted for execution, either because this
+        /// executor has been shutdown or because its capacity has been reached,
+        /// the task is handled by the current <see cref="IRejectedExecutionHandler"/>
+        /// for this <see cref="ThreadPoolExecutor"/>.
         /// </remarks>
-        /// <param name="runnable">the runnable task</param>
-        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
-        /// <exception cref="System.ArgumentNullException">if the command is null</exception>	
-        public abstract void Execute(IRunnable runnable);
+        /// <param name="command">the task to execute</param>
+        /// <exception cref="RejectedExecutionException">
+        /// if the task cannot be accepted. 
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// if <paramref name="command"/> is <see lang="null"/>
+        /// </exception>
+        protected abstract void DoExecute(IRunnable command);
 
         /// <summary> 
         /// Blocks until all tasks have completed execution after a shutdown
@@ -157,15 +174,62 @@ namespace Spring.Threading.Execution
             Execute(Executors.CreateRunnable(action));
         }
 
+        /// <summary> 
+        /// Executes the given command at some time in the future.
+        /// </summary>
+        /// <remarks>
+        /// The command may execute in a new thread, in a pooled thread, or in the calling
+        /// thread, at the discretion of the <see cref="Spring.Threading.IExecutor"/> implementation.
+        /// </remarks>
+        /// <param name="runnable">the runnable task</param>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>	
+        public virtual void Execute(IRunnable runnable)
+        {
+            if (runnable == null)
+            {
+                throw new ArgumentNullException("runnable");
+            }
+
+            DoExecute(CaptureContext(runnable));
+        }
+
         #endregion
 
         #region IExecutorService Implementation
 
+        /// <summary> 
+        /// Submits a Runnable task for execution and returns a Future
+        /// representing that task. The Future's <see cref="IFuture{T}.GetResult()"/> method will
+        /// return <see lang="null"/> upon successful completion.
+        /// </summary>
+        /// <param name="runnable">the task to submit
+        /// </param>
+        /// <returns> a Future representing pending completion of the task
+        /// </returns>
+        /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
+        /// <exception cref="System.ArgumentNullException">if the command is null</exception>
         public virtual IFuture<object> Submit(IRunnable runnable)
         {
             return Submit<object>(runnable, null);
         }
 
+        /// <summary> 
+        /// Submits a delegate <see cref="Action"/> for execution and returns an
+        /// <see cref="IFuture{T}"/> representing that <paramref name="action"/>. The 
+        /// <see cref="IFuture{T}.GetResult()"/> method will return <c>null</c>.
+        /// </summary>
+        /// <param name="action">The task to submit.</param>
+        /// <returns>
+        /// An <see cref="IFuture{T}"/> representing pending completion of the 
+        /// <paramref name="action"/>.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the <paramref name="action"/> cannot be accepted for execution.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// If the <paramref name="action"/> is <c>null</c>
+        /// </exception>
         public virtual IFuture<object> Submit(Action action)
         {
             return Submit<object>(action, null);
@@ -214,7 +278,7 @@ namespace Spring.Threading.Execution
         /// </exception>
         public virtual IFuture<T> Submit<T>(Action action, T result)
         {
-            if (action == null) throw new ArgumentNullException("task");
+            if (action == null) throw new ArgumentNullException("action");
             return Submit(NewTaskFor(action, result));
         }
 
@@ -800,6 +864,464 @@ namespace Spring.Threading.Execution
         /// <summary> 
         /// Executes the given <paramref name="tasks"/>, returning a 
         /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully or throws
+        /// exception when any one fails.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the enumerator for the given 
+        /// task list, each of which has completed successfully.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<ICallable<T>> tasks)
+        {
+            ICollection<ICallable<T>> collection = tasks as ICollection<ICallable<T>>;
+            int count = collection == null ? 0 : collection.Count;
+            return DoInvokeAllOrFail(tasks, count, false, TimeSpan.Zero, Callable2Future<T>());
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully or throws
+        /// exception when any one fails.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list, each of which has completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAllOrFail<T>(params ICallable<T>[] tasks)
+        {
+            return InvokeAllOrFail((IEnumerable<ICallable<T>>)tasks);
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully or throws
+        /// exception when any one fails.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list, each of which has completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<Func<T>> tasks)
+        {
+            ICollection<ICallable<T>> collection = tasks as ICollection<ICallable<T>>;
+            int count = collection == null ? 0 : collection.Count;
+            return DoInvokeAllOrFail(tasks, count, false, TimeSpan.Zero, Call2Future<T>());
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully or throws
+        /// exception when any one fails.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list, each of which has completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAllOrFail<T>(params Func<T>[] tasks)
+        {
+            return InvokeAllOrFail((IEnumerable<Func<T>>)tasks);
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully, or throws
+        /// exception when <paramref name="durationToWait"/> expires or any 
+        /// one task fails, whichever happens first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
+        {
+            ICollection<ICallable<T>> collection = tasks as ICollection<ICallable<T>>;
+            int count = collection == null ? 0 : collection.Count;
+            return DoInvokeAllOrFail(tasks, count, true, durationToWait, Callable2Future<T>());
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully, or throws
+        /// exception when <paramref name="durationToWait"/> expires or any 
+        /// one task fails, whichever happens first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+        {
+            return InvokeAllOrFail(durationToWait, (IEnumerable<ICallable<T>>) tasks);
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully, or throws
+        /// exception when <paramref name="durationToWait"/> expires or any 
+        /// one task fails, whichever happens first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
+        {
+            ICollection<ICallable<T>> collection = tasks as ICollection<ICallable<T>>;
+            int count = collection == null ? 0 : collection.Count;
+            return DoInvokeAllOrFail(tasks, count, true, durationToWait, Call2Future<T>());
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully, or throws
+        /// exception when <paramref name="durationToWait"/> expires or any 
+        /// one task fails, whichever happens first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params Func<T>[] tasks)
+        {
+            return InvokeAllOrFail(durationToWait, (IEnumerable<Func<T>>)tasks);
+        }
+
+        private IList<IFuture<T>> DoInvokeAllOrFail<T>(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait, Converter<object, IRunnableFuture<T>> converter)
+        {
+            if (tasks == null)
+                throw new ArgumentNullException("tasks");
+            List<IFuture<T>> futures = count > 0 ? new List<IFuture<T>>(count) : new List<IFuture<T>>();
+            ExecutorCompletionService<T> ecs = new ExecutorCompletionService<T>(this);
+            TimeSpan duration = durationToWait;
+
+            try
+            {
+                DateTime lastTime = (timed) ? DateTime.Now : new DateTime(0);
+                IEnumerator it = tasks.GetEnumerator();
+                bool hasMoreTasks = it.MoveNext();
+                if (!hasMoreTasks) return futures;
+                var contextCarrier = NewContextCarrier();
+                futures.Add(ecs.DoSubmit(SetContextCarrier(converter(it.Current), contextCarrier)));
+                int active = 1;
+
+                for (; ; )
+                {
+                    IFuture<T> f = ecs.Poll();
+                    if (f == null)
+                    {
+                        if (hasMoreTasks && (hasMoreTasks = it.MoveNext()))
+                        {
+                            futures.Add(ecs.DoSubmit(SetContextCarrier(converter(it.Current), contextCarrier)));
+                            ++active;
+                        }
+                        else if (active == 0)
+                            break;
+                        else if (timed)
+                        {
+                            f = ecs.Poll(duration);
+                            if (f == null)
+                                throw new TimeoutException();
+                            // We need to recalculate wait time if Poll was interrupted
+                            duration = duration.Subtract(DateTime.Now.Subtract(lastTime));
+                            lastTime = DateTime.Now;
+                        }
+                        else
+                            f = ecs.Take();
+                    }
+                    if (f != null)
+                    {
+                        --active;
+                        try
+                        {
+                            f.GetResult();
+                        }
+                        catch (ThreadInterruptedException tie)
+                        {
+                            throw SystemExtensions.PreserveStackTrace(tie);
+                        }
+                        catch (ExecutionException eex)
+                        {
+                            throw SystemExtensions.PreserveStackTrace(eex);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new ExecutionException(e);
+                        }
+                    }
+                }
+                return futures;
+            }
+            finally
+            {
+                foreach (IFuture<T> future in futures)
+                {
+                    if(!future.IsDone) future.Cancel(true);
+                }
+            }
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
         /// holding their status and results when all complete or the
         /// <paramref name="durationToWait"/> expires, whichever happens
         /// first.
@@ -896,8 +1418,8 @@ namespace Spring.Threading.Execution
         #endregion
 
         /// <summary> 
-        /// Returns a <see cref="IRunnableFuture{T}"/> for the given runnable and default
-        /// value.
+        /// Returns a <see cref="IRunnableFuture{T}"/> for the given 
+        /// <paramref name="runnable"/> and default value <paramref name="result"/>.
         /// </summary>
         /// <param name="runnable">the runnable task being wrapped
         /// </param>
@@ -914,6 +1436,20 @@ namespace Spring.Threading.Execution
             return new FutureTask<T>(runnable, result);
         }
 
+        /// <summary> 
+        /// Returns a <see cref="IRunnableFuture{T}"/> for the given 
+        /// <paramref name="action"/> and default value <paramref name="result"/>.
+        /// </summary>
+        /// <param name="action">the action being wrapped
+        /// </param>
+        /// <param name="result">the default value for the returned future
+        /// </param>
+        /// <returns>
+        /// A <see cref="IRunnableFuture{T}"/> which, when run, will invoke the
+        /// underlying action and which, as a <see cref="IFuture{T}"/>, will yield
+        /// the given value as its result and provide for cancellation of
+        /// the underlying task.
+        /// </returns>
         protected internal virtual IRunnableFuture<T> NewTaskFor<T>(Action action, T result)
         {
             return new FutureTask<T>(action, result);
@@ -953,6 +1489,19 @@ namespace Spring.Threading.Execution
             return new FutureTask<T>(callable);
         }
 
+        /// <summary>
+        /// Create a new <see cref="IContextCarrier"/>.
+        /// </summary>
+        /// <returns>
+        /// A new <see cref="IContextCarrier"/> instance or <c>null</c>
+        /// if <see cref="ContextCarrierFactory"/> is not set.
+        /// </returns>
+        protected internal virtual IContextCarrier NewContextCarrier()
+        {
+            return _contextCarrierFactory == null ?
+                null : _contextCarrierFactory.CreateContextCarrier();
+        }
+
         private Converter<object, IRunnableFuture<T>> Callable2Future<T>()
         {
             return delegate(object callable) { return NewTaskFor((ICallable<T>)callable); };
@@ -967,6 +1516,19 @@ namespace Spring.Threading.Execution
         {
             Execute(runnableFuture);
             return runnableFuture;
+        }
+
+        private T SetContextCarrier<T>(T task, IContextCarrier contextCarrier)
+        {
+            if (contextCarrier != null)
+            {
+                var contextCopying = task as IContextCopyingTask;
+                if (contextCopying != null && contextCopying.ContextCarrier == null)
+                {
+                    contextCopying.ContextCarrier = contextCarrier;
+                }
+            }
+            return task;
         }
 
         private T DoInvokeAny<T>(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait, Converter<object, IRunnableFuture<T>> converter)
@@ -993,7 +1555,8 @@ namespace Spring.Threading.Execution
 			    bool hasMoreTasks = it.MoveNext();
                 if (!hasMoreTasks)
                     throw new ArgumentException("No tasks passed in.", "tasks");
-                futures.Add(ecs.DoSubmit(converter(it.Current)));
+                var contextCarrier = NewContextCarrier();
+                futures.Add(ecs.DoSubmit(SetContextCarrier(converter(it.Current), contextCarrier)));
 				int active = 1;
 
                 for (;;)
@@ -1003,7 +1566,7 @@ namespace Spring.Threading.Execution
                     {
                         if (hasMoreTasks && (hasMoreTasks = it.MoveNext()))
                         {
-                            futures.Add(ecs.DoSubmit(converter(it.Current)));
+                            futures.Add(ecs.DoSubmit(SetContextCarrier(converter(it.Current), contextCarrier)));
                             ++active;
                         }
                         else if (active == 0)
@@ -1063,9 +1626,10 @@ namespace Spring.Threading.Execution
             bool done = false;
             try
             {
+                var contextCarrier = NewContextCarrier();
                 foreach (object task in tasks)
                 {
-                    IRunnableFuture<T> runnableFuture = converter(task);
+                    IRunnableFuture<T> runnableFuture = SetContextCarrier(converter(task), contextCarrier);
                     futures.Add(runnableFuture);
                     Execute(runnableFuture);
                 }
@@ -1110,9 +1674,10 @@ namespace Spring.Threading.Execution
             bool done = false;
             try
             {
+                var contextCarrier = NewContextCarrier();
                 foreach (object task in tasks)
                 {
-                    futures.Add(converter(task));
+                    futures.Add(SetContextCarrier(converter(task), contextCarrier));
                 }
 
                 DateTime lastTime = DateTime.Now;
@@ -1167,6 +1732,32 @@ namespace Spring.Threading.Execution
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// If <paramref name="command"/> is <see cref="IContextCopyingTask"/>
+        /// and the context carrier is already set, do nothing. Otherwise set
+        /// a new context carrier.
+        /// </summary>
+        private IRunnable CaptureContext(IRunnable command)
+        {
+            var contextCopying = command as IContextCopyingTask;
+            if (contextCopying == null)
+            {
+                var contextCarrier = NewContextCarrier();
+                if (contextCarrier != null)
+                {
+                    command = new ContextCopyingRunnable(command, contextCarrier);
+                }
+            }
+            else
+            {
+                if (contextCopying.ContextCarrier == null)
+                {
+                    contextCopying.ContextCarrier = NewContextCarrier();
+                }
+            }
+            return command;
         }
     }
 }

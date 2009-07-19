@@ -107,7 +107,8 @@ namespace Spring.Threading.Execution
 		/// </returns>
 		bool AwaitTermination(TimeSpan timeSpan);
 
-		/// <summary> Submits a Runnable task for execution and returns a Future
+		/// <summary> 
+		/// Submits a Runnable task for execution and returns a Future
         /// representing that task. The Future's <see cref="M:Spring.Threading.Future.IFuture.GetResult"/> method will
 		/// return <see lang="null"/> upon successful completion.
 		/// </summary>
@@ -546,6 +547,358 @@ namespace Spring.Threading.Execution
         /// If the <paramref name="tasks"/> is <c>null</c>.
         /// </exception>
         IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Func<T>[] tasks);
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully or throws
+        /// exception when any one fails.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the enumerator for the given 
+        /// task list, each of which has completed successfully.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<ICallable<T>> tasks);
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully or throws
+        /// exception when any one fails.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list, each of which has completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        IList<IFuture<T>> InvokeAllOrFail<T>(params ICallable<T>[] tasks);
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully or throws
+        /// exception when any one fails.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list, each of which has completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<Func<T>> tasks);
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully or throws
+        /// exception when any one fails.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list, each of which has completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        IList<IFuture<T>> InvokeAllOrFail<T>(params Func<T>[] tasks);
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully, or throws
+        /// exception when <paramref name="durationToWait"/> expires or any 
+        /// one task fails, whichever happens first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks);
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully, or throws
+        /// exception when <paramref name="durationToWait"/> expires or any 
+        /// one task fails, whichever happens first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="ICallable{T}"/> objects.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params ICallable<T>[] tasks);
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully, or throws
+        /// exception when <paramref name="durationToWait"/> expires or any 
+        /// one task fails, whichever happens first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks);
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their results when all complete successfully, or throws
+        /// exception when <paramref name="durationToWait"/> expires or any 
+        /// one task fails, whichever happens first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Upon successful return, <see cref="ICancellable.IsDone"/> is 
+        /// <c>true</c> and <see cref="IFuture{T}.GetResult()"/> is guaranteed
+        /// to success for each element of the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// The method returns immediately when any one of the tasks throws 
+        /// exception. When this happens, all uncompleted tasks are cancelled
+        /// and the exception is thrown.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params Func<T>[] tasks);
 
         /// <summary> 
         /// Executes the given <paramref name="tasks"/>, returning the result

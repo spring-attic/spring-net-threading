@@ -7,12 +7,7 @@ namespace Spring.Threading.Execution
 	/// </summary>
 	public class SimpleThreadFactory : IThreadFactory
 	{
-		/// <summary>
-		/// Default Constructor
-		/// </summary>
-		public SimpleThreadFactory() {}
-
-		/// <summary> 
+	    /// <summary> 
 		/// Constructs a new <see cref="System.Threading.Thread"/>.  
 		/// </summary>
 		/// <remarks> 
@@ -25,7 +20,7 @@ namespace Spring.Threading.Execution
 		/// <returns>constructed thread</returns>
 		public Thread NewThread( IRunnable runnable )
 		{
-			return new Thread( new ThreadStart( runnable.Run ) );
+	        return new Thread(runnable.Run );
 		}
 	}
 }

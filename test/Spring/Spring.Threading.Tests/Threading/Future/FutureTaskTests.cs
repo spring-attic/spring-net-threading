@@ -55,7 +55,7 @@ namespace Spring.Threading.Future
         {
             var e = Assert.Throws<ArgumentNullException>(() => 
                 new FutureTask<T>((Action)null, TestData<T>.One));
-            Assert.That(e.ParamName, Is.EqualTo("task"));
+            Assert.That(e.ParamName, Is.EqualTo("action"));
         }
 
         [Test]

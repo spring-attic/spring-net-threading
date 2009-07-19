@@ -1,3 +1,21 @@
+#region License
+/*
+* Copyright (C) 2002-2009 the original author or authors.
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+*      http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+#endregion
+
 using System;
 using Spring.Threading.Collections.Generic;
 using Spring.Threading.Future;
@@ -87,6 +105,13 @@ namespace Spring.Threading.Execution
 	    private readonly AbstractExecutorService _aes;
 		private readonly IBlockingQueue<IFuture<T>> _completionQueue;
 
+        private class NoContextCarrier : IContextCarrier
+        {
+            public static readonly NoContextCarrier Instance = new NoContextCarrier();
+            private NoContextCarrier() {}
+            public void Restore() {}
+        }
+
         /// <summary>
         /// <see cref="FutureTask{T}"/> extension to enqueue upon completion
         /// </summary>
@@ -100,6 +125,12 @@ namespace Spring.Threading.Execution
 			{
 				_enclosingInstance = enclosingInstance;
                 _task = task;
+                var contextCopyingTask = task as IContextCopyingTask;
+                if (contextCopyingTask != null && contextCopyingTask.ContextCarrier != null)
+                {
+                    // The task is already copying the context, so we don't do it again.
+                    ((IContextCopyingTask) this).ContextCarrier = NoContextCarrier.Instance;
+                }
 			}
 
 			protected internal override void Done()
@@ -193,12 +224,36 @@ namespace Spring.Threading.Execution
 	    /// </exception>
 	    public virtual IFuture<T> Submit(ICallable<T> callable)
 		{
-            //if (callable == null)
-            //    throw new ArgumentNullException("task", "Action cannot be null.");
             return DoSubmit(NewTaskFor(callable));
 		}
 
-        public virtual IFuture<T> Submit(Func<T> call)
+	    /// <summary> 
+	    ///	Submits a value-returning task for execution and returns an instance 
+	    /// of <see cref="IFuture{T}"/> representing the pending results of the 
+	    /// task. The future's <see cref="IFuture{T}.GetResult()"/> method will 
+	    /// return the callable's result upon successful completion.
+	    /// </summary>
+	    /// <remarks>
+	    /// <para>
+	    /// If you would like to immediately block waiting for a callable, you 
+	    /// can use constructions of the form
+	    /// <code language="c#">
+	    ///   result = exec.Submit(aCallable).GetResult();
+	    /// </code>
+	    /// </para>
+	    /// </remarks>
+	    /// <param name="call">The task to submit.</param>
+	    /// <returns>
+	    /// A <see cref="IFuture{T}"/> representing pending completion of the 
+	    /// task.
+	    /// </returns>
+	    /// <exception cref="RejectedExecutionException">
+	    /// If the task cannot be accepted for execution.
+	    /// </exception>
+	    /// <exception cref="ArgumentNullException">
+	    /// If the command is null.
+	    /// </exception>
+	    public virtual IFuture<T> Submit(Func<T> call)
         {
             return DoSubmit(NewTaskFor(call));
         }
@@ -225,8 +280,6 @@ namespace Spring.Threading.Execution
 	    /// </exception>
 	    public virtual IFuture<T> Submit(IRunnable runnable, T result)
 		{
-            //if (task == null)
-            //    throw new ArgumentNullException("task", "Action cannot be null.");
             return DoSubmit(NewTaskFor(runnable, result));
 		}
 
