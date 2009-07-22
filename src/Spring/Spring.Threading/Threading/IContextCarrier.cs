@@ -1,4 +1,3 @@
-using System;
 #region License
 /*
 * Copyright (C) 2002-2009 the original author or authors.
@@ -24,7 +23,7 @@ namespace Spring.Threading
     /// the context in another thread.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public interface IContextCarrier
+    public interface IContextCarrier //NET_ONLY
     {
         /// <summary>
         /// Restores the captured context. Once the carrier is restored, it cann

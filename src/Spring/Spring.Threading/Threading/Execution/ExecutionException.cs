@@ -12,7 +12,7 @@ namespace Spring.Threading.Execution
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	[Serializable]
-	public class ExecutionException : ApplicationException
+	public class ExecutionException : Exception //JDK_1_6
 	{
 		/// <summary> Constructs a <see cref="Spring.Threading.Execution.ExecutionException"/> with no detail message.</summary>
 		public ExecutionException()

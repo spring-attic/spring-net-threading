@@ -73,7 +73,7 @@ namespace Spring.Threading
 	/// <author>Doug Lea</author>
 	/// <author>Federico Spinazzi (.Net)</author>
 	/// <author>Kenneth Xu</author>
-	public interface IExecutor
+	public interface IExecutor //JDK_1_6
 	{
 		/// <summary> 
 		/// Executes the given command at some time in the future.

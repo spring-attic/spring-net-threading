@@ -54,7 +54,7 @@ namespace Spring.Threading.Collections.Generic
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
 	[Serializable]
-	public class ArrayBlockingQueue<T> : BlockingQueueWrapper<T>
+	public class ArrayBlockingQueue<T> : BlockingQueueWrapper<T> //BACKPORT_2_2
 	{
 		#region Constructors
 

@@ -32,7 +32,7 @@ namespace Spring.Threading.AtomicTypes
     /// <typeparam name="T">Type of the atomic array element.</typeparam>
     /// <author>Kenneth Xu</author>
     [Serializable]
-    public abstract class AbstractAtomicArray<T> : AbstractList<T>
+    public abstract class AbstractAtomicArray<T> : AbstractList<T> //NET_ONLY
     {
         /// <summary>
         /// Returns an enumerator that iterates through the collection.

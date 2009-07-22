@@ -3,7 +3,7 @@ namespace Spring.Threading
     /// <summary>
     /// A marker interface to indicate the task copies the context.
     /// </summary>
-    public interface IContextCopyingTask
+    public interface IContextCopyingTask //NET_ONLY
     {
         /// <summary>
         /// Gets and sets the <see cref="IContextCarrier"/> that captures

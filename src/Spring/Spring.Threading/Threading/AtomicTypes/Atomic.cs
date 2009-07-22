@@ -37,7 +37,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Doug Lea</author>
     /// <author>Kenneth Xu (.NET)</author>
     [Serializable]
-    public class Atomic<T> : IAtomic<T>
+    public class Atomic<T> : IAtomic<T>  //NET_ONLY
     {
         /// <summary>
         /// Holds the <see cref="Atomic{T}"/> reference

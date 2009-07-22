@@ -73,7 +73,7 @@ namespace Spring.Threading.Future
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-    public class FutureTask<T> : IRunnableFuture<T>, IContextCopyingTask
+    public class FutureTask<T> : IRunnableFuture<T>, IContextCopyingTask //BACKPORT_3_1
 	{
 	    private readonly ICallable<T> _callable;
 	    private T _result;

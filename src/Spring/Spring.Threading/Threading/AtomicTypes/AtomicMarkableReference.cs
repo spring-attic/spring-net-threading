@@ -37,7 +37,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (.NET)</author>
     [Serializable]
-    public class AtomicMarkableReference<T> : AtomicMarkable<T> where T : class
+    public class AtomicMarkableReference<T> : AtomicMarkable<T> where T : class //JDK_1_6
     {
 
         /// <summary> 

@@ -34,7 +34,7 @@ namespace Spring.Threading.Collections.Generic
     /// </summary>
     /// <author>Kenneth Xu</author>
     [Serializable]
-    public abstract class AbstractBlockingQueue<T> : AbstractQueue<T>, IBlockingQueue<T>
+    public abstract class AbstractBlockingQueue<T> : AbstractQueue<T>, IBlockingQueue<T> //BACKPORT_2_2
     {
         /// <summary> 
         /// Inserts the specified element into this queue, waiting if necessary

@@ -44,7 +44,7 @@ namespace Spring.Collections.Generic
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
 	[Serializable]
-	public class ArrayQueue<T> : AbstractQueue<T>
+	public class ArrayQueue<T> : AbstractQueue<T> //BACKPORT_2_2
 	{
 		/// <summary>
 		/// The intial capacity of this queue.

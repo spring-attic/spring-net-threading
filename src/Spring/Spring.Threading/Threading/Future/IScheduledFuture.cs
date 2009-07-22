@@ -11,7 +11,7 @@ namespace Spring.Threading.Future
     /// </remarks>
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio(.NET)</author>
-    public interface IScheduledFuture<T> : IDelayed, IFuture<T>
+    public interface IScheduledFuture<T> : IDelayed, IFuture<T> //JDK_1_6
     {
     }
 }

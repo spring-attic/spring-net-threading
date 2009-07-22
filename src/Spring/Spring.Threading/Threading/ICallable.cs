@@ -49,7 +49,7 @@ namespace Spring.Threading
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-    public interface ICallable<T>
+    public interface ICallable<T> //JDK_1_6
     {
         /// <summary>
         /// Computes a result, or throws an exception if unable to do so.

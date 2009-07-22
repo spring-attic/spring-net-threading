@@ -143,6 +143,7 @@
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
     <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
+    <Compile Include="Threading\CountDownLatchTests.cs" />
     <Compile Include="Threading\CyclicBarrierTests.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs" />
     <Compile Include="Threading\Execution\ExecutionExceptionTests.cs" />
@@ -157,7 +158,6 @@
     <Compile Include="Threading\Execution\ThreadPoolExecutorTests.cs" />
     <Compile Include="Threading\ForkJoin\FJTaskRunnerTest.cs" />
     <Compile Include="Threading\Future\FutureTaskTests.cs" />
-    <Compile Include="Threading\Helpers\CountDownLatchTests.cs" />
     <Compile Include="Threading\Helpers\ExchangerTests.cs" />
     <Compile Include="Threading\Helpers\FIFOWaitNodeQueueTests.cs" />
     <Compile Include="Threading\Helpers\ThreadExceptionHandlerHelpersTests.cs" />

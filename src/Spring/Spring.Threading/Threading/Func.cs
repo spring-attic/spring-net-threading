@@ -41,5 +41,5 @@ namespace Spring.Threading
     /// </typeparam>
     /// <seealso cref="ICallable{T}"/>
     /// <author>Kenneth Xu</author>
-    public delegate T Func<T>();
+    public delegate T Func<T>(); //NET_ONLY
 }

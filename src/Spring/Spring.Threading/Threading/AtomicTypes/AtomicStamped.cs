@@ -39,7 +39,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (.NET)</author>
     [Serializable]
-    public class AtomicStamped<T>
+    public class AtomicStamped<T> //NET_ONLY
     {
         private readonly AtomicReference<ValueIntegerPair> _atomicReference;
 

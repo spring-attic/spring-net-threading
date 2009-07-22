@@ -87,7 +87,8 @@ namespace Spring.Threading.Collections.Generic {
     /// <author>Andreas Döhring (.NET)</author>
     /// <author>Kenneth Xu</author>
     [Serializable]
-    public class PriorityBlockingQueue<T> : AbstractBlockingQueue<T>, ISerializable  { //}, java.io.Serializable {
+    public class PriorityBlockingQueue<T> : AbstractBlockingQueue<T>, ISerializable //BACKPORT_2_2
+    {
 
         private readonly PriorityQueue<T> _innerQueue;
         private readonly ReentrantLock _lock = new ReentrantLock(true);

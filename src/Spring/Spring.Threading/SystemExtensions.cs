@@ -8,7 +8,7 @@ namespace Spring
     /// Static class to provide extension methods to basic system function.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public static class SystemExtensions
+    public static class SystemExtensions //NET_ONLY
     {
         /// <summary>
         /// Tests whether the current thread has been interrupted.  The

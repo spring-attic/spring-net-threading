@@ -6,7 +6,7 @@ namespace Spring.Threading.Execution
 	/// </summary>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
-	public interface IRejectedExecutionHandler
+	public interface IRejectedExecutionHandler //JDK_1_6
 	{
 		/// <summary> 
 		/// Method that may be invoked by a <see cref="ThreadPoolExecutor"/> when

@@ -16,7 +16,7 @@ namespace Spring.Threading.Collections.Generic
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
-    public class DelayQueue<T> : AbstractBlockingQueue<T> //TODO: need to add this back where T : IDelayed
+    public class DelayQueue<T> : AbstractBlockingQueue<T> //BACKPORT_2_2 TODO: need to add this back where T : IDelayed
     {
         [NonSerialized]
         private object lockObject = new object();

@@ -44,7 +44,7 @@ namespace Spring.Threading
 	/// <author>Doug Lea</author>
     /// <author>Federico Spinazzi (.Net)</author>
     /// <author>Griffin Caprio (.Net)</author>
-    public interface IThreadFactory
+    public interface IThreadFactory //JDK_1_6
     {
 		/// <summary> 
 		/// Constructs a new <see cref="System.Threading.Thread"/>.  

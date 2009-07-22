@@ -19,7 +19,7 @@ namespace Spring.Threading.Helpers
 	/// </ol>
 	/// </changes>
 	// TODO: Update XML Comments.
-	internal interface IWaitNodeQueue
+	internal interface IWaitNodeQueue //BACKPORT_3_1
 	{
 		/// <summary>
 		/// 

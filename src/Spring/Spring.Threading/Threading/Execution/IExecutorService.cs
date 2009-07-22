@@ -51,7 +51,7 @@ namespace Spring.Threading.Execution
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
-	public interface IExecutorService : IExecutor
+	public interface IExecutorService : IExecutor //JDK_1_6
 	{
 		/// <summary> 
 		/// Returns <see lang="true"/> if this executor has been shut down.

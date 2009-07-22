@@ -40,7 +40,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Doug Lea</author>
     /// <author>Kenneth Xu (.NET)</author>
     [Serializable]
-    public class AtomicArray<T> : AbstractAtomicArray<T>, IAtomicArray<T>
+    public class AtomicArray<T> : AbstractAtomicArray<T>, IAtomicArray<T> //NET_ONLY
     {
         /// <summary>
         /// Holds the object array reference

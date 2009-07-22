@@ -44,7 +44,7 @@ namespace Spring.Collections.Generic
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
 	[Serializable]
-	public abstract class AbstractQueue<T> : AbstractCollection<T>, IQueue<T>, IQueue
+	public abstract class AbstractQueue<T> : AbstractCollection<T>, IQueue<T>, IQueue //JDK_1_6
 	{
         /// <summary> 
         /// Adds all of the elements in the supplied <paramref name="collection"/>

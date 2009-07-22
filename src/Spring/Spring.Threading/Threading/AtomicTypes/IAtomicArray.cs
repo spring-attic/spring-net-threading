@@ -28,7 +28,7 @@ namespace Spring.Threading.AtomicTypes
     /// The type of the array in which the elements are updated atomically.
     /// </typeparam>
     /// <author>Kenneth Xu</author>
-    public interface IAtomicArray<T> : IList<T>
+    public interface IAtomicArray<T> : IList<T> //NET_ONLY
     {
         /// <summary> 
         /// Eventually sets to the given value at the given <paramref name="index"/>

@@ -141,7 +141,7 @@
     <Compile Include="Threading\Future\IFuture.cs" />
     <Compile Include="Threading\Future\IRunnableFuture.cs" />
     <Compile Include="Threading\Future\IScheduledFuture.cs" />
-    <Compile Include="Threading\Helpers\CountDownLatch.cs" />
+    <Compile Include="Threading\CountDownLatch.cs" />
     <Compile Include="Threading\Helpers\FIFOWaitNodeQueue.cs" />
     <Compile Include="Threading\Helpers\IQueuedSync.cs" />
     <Compile Include="Threading\Helpers\IWaitNodeQueue.cs" />

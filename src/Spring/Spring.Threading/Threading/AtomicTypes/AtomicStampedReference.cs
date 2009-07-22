@@ -38,7 +38,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (.NET)</author>
     [Serializable]
-    public class AtomicStampedReference<T> : AtomicStamped<T> where T : class
+    public class AtomicStampedReference<T> : AtomicStamped<T> where T : class //JDK_1_6
     {
 
         /// <summary> 

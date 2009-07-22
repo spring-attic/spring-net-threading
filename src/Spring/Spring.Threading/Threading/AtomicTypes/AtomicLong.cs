@@ -34,7 +34,7 @@ namespace Spring.Threading.AtomicTypes
 	/// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
 	[Serializable]
-	public class AtomicLong : IAtomic<long>
+    public class AtomicLong : IAtomic<long> //JDK_1_6
 	{
 		private long _longValue;
 

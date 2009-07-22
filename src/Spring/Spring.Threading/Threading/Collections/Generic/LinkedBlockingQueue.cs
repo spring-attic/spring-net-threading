@@ -54,7 +54,8 @@ namespace Spring.Threading.Collections.Generic {
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     [Serializable]
-    public class LinkedBlockingQueue<T> : AbstractBlockingQueue<T>, ISerializable {
+    public class LinkedBlockingQueue<T> : AbstractBlockingQueue<T>, ISerializable //BACKPORT_3_1
+    {
 
         #region inner classes
 

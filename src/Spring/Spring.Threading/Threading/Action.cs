@@ -22,5 +22,5 @@ namespace Spring.Threading
     /// Delegate to be submitted for execution.
     /// </summary>
     /// <seealso cref="IExecutor.Execute(Action)"/>
-    public delegate void Action();
+    public delegate void Action(); //NET_ONLY
 }

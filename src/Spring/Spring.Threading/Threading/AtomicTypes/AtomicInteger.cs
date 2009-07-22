@@ -37,7 +37,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (Interlocked)</author>
 	[Serializable]
-	public class AtomicInteger : IAtomic<int>
+    public class AtomicInteger : IAtomic<int> //JDK_1_6
 	{
 		private volatile int _integerValue;
 

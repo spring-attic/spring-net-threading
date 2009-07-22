@@ -63,7 +63,7 @@ namespace Spring.Threading.Execution
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio(.NET)</author>
     /// <author>Kenneth Xu</author>
-    public abstract class AbstractExecutorService : IExecutorService
+    public abstract class AbstractExecutorService : IExecutorService //JDK_1_6
     {
         private IContextCarrierFactory _contextCarrierFactory;
 

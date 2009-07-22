@@ -10,7 +10,7 @@ namespace Spring.Threading.Execution
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio(.NET)</author>
 	[Serializable]
-	public class RejectedExecutionException : ApplicationException
+	public class RejectedExecutionException : SystemException //JDK_1_6
 	{
 		/// <summary> 
 		/// Constructs a <see cref="Spring.Threading.Execution.RejectedExecutionException"/> with no detail message.

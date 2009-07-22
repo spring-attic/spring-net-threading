@@ -22,7 +22,7 @@ namespace Spring.Threading
     /// A task that can be canceled.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public interface ICancellable
+    public interface ICancellable //NET_ONLY
     {
         /// <summary> 
         /// Attempts to cancel execution of this task.  

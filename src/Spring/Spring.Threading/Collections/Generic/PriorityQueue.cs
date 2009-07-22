@@ -69,7 +69,8 @@ namespace Spring.Collections.Generic
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
     [Serializable]
-    public class PriorityQueue<T> : AbstractQueue<T>, ISerializable  {
+    public class PriorityQueue<T> : AbstractQueue<T>, ISerializable  //BACKPORT_2_2
+    {
         private class PriorityQueueEnumerator : IEnumerator<T> {
             private readonly PriorityQueue<T> _enclosingInstance;
 

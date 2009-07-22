@@ -48,7 +48,7 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
     [Serializable]
-    public class BlockingQueueWrapper<T> : AbstractBlockingQueue<T>
+    public class BlockingQueueWrapper<T> : AbstractBlockingQueue<T> //BACKPORT_2_2
     {
         /// <summary>Main lock guarding all access </summary>
         private readonly ReentrantLock _lock;

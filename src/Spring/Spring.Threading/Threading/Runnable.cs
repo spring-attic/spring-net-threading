@@ -26,7 +26,7 @@ namespace Spring.Threading
     /// Class to convert <see cref="Action"/> to <see cref="IRunnable"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public class Runnable : IRunnable
+    public class Runnable : IRunnable //NET_ONLY
     {
         /// <summary>
         /// The action to execute;

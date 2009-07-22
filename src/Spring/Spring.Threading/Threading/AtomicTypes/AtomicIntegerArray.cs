@@ -33,7 +33,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring(.NET)</author>
     /// <author>Kenneth Xu (Interlock)</author>
     [Serializable]
-    public class AtomicIntegerArray : AbstractAtomicArray<int>, IAtomicArray<int>
+    public class AtomicIntegerArray : AbstractAtomicArray<int>, IAtomicArray<int> //JDK_1_6
     {
         private readonly int[] _intArray;
 

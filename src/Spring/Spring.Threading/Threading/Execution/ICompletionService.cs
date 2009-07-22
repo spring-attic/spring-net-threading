@@ -32,7 +32,7 @@ namespace Spring.Threading.Execution
     /// following a successful return from the corresponding <see cref="Take"/>.
     /// </para>
     /// </remarks>
-    public interface ICompletionService<T>
+    public interface ICompletionService<T> //JDK_1_6
     {
         /// <summary> 
         ///	Submits a value-returning task for execution and returns an instance 

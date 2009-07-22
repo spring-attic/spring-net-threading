@@ -115,7 +115,7 @@ namespace Spring.Threading
     /// rows. If the merger determines that a solution has been found then IsDone will return
     /// <see lang="true"/> and each worker will terminate. 
     /// </example>
-    /// <seealso cref="Spring.Threading.Helpers.CountDownLatch"/>
+    /// <seealso cref="Spring.Threading.CountDownLatch"/>
     /// <author>Doug Lea</author>
     /// <author>Federico Spinazzi (.Net)</author>
     /// <author>Griffin Caprio (.Net)</author>

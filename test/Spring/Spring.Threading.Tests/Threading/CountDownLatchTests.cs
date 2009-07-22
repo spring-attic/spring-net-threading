@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using NUnit.Framework;
 
-namespace Spring.Threading.Helpers
+namespace Spring.Threading
 {
     [TestFixture]
     public class CountDownLatchTests : BaseThreadingTestCase

@@ -136,7 +136,7 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Doug Lea</author>
 	/// <author>Griffin Caprio(.NET)</author>
 	/// <author>Kenneth Xu</author>
-	public interface IBlockingQueue<T> : IQueue<T>
+	public interface IBlockingQueue<T> : IQueue<T> //JDK_1_6
 	{
 		/// <summary> 
 		/// Inserts the specified element into this queue, waiting if necessary

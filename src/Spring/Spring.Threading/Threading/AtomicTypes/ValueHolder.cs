@@ -27,7 +27,7 @@ namespace Spring.Threading.AtomicTypes
     /// <typeparam name="T">The type of the value to hold.</typeparam>
     /// <author>Kenneth Xu</author>
     [Serializable]
-    internal class ValueHolder<T>
+    internal class ValueHolder<T> //NET_ONLY
     {
         internal readonly T Value;
         internal ValueHolder(){}

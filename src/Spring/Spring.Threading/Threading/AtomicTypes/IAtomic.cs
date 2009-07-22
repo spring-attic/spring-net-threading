@@ -24,7 +24,7 @@ namespace Spring.Threading.AtomicTypes
     /// </summary>
     /// <typeparam name="T">The type of the instance to be updated atomically.</typeparam>
     /// <author>Kenneth Xu</author>
-    public interface IAtomic<T>
+    public interface IAtomic<T> //NET_ONLY
     {
         /// <summary> 
         /// Gets and sets the current value.

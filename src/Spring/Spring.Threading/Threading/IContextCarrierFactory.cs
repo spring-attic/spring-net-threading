@@ -23,7 +23,7 @@ namespace Spring.Threading
     /// <see cref="IContextCarrier"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public interface IContextCarrierFactory
+    public interface IContextCarrierFactory //NET_ONLY
     {
         /// <summary>
         /// Create a new instance of <see cref="IContextCarrier"/>

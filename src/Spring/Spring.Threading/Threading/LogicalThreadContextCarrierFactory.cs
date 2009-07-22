@@ -28,7 +28,7 @@ namespace Spring.Threading
     /// and <see cref="Thread.CurrentPrincipal"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public class LogicalThreadContextCarrierFactory : IContextCarrierFactory
+    public class LogicalThreadContextCarrierFactory : IContextCarrierFactory //NET_ONLY
     {
         private IEnumerable<string> _names;
 

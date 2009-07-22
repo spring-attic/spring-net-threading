@@ -84,7 +84,7 @@ namespace Spring.Threading.Future
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-    public interface IFuture<T> : ICancellable
+    public interface IFuture<T> : ICancellable //JDK_1_6
     {
         /// <summary>
         /// Waits for computation to complete, then returns its result. 

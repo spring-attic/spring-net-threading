@@ -9,7 +9,7 @@ namespace Spring.Threading.Helpers
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-	internal class WaitNode
+	internal class WaitNode //BACKPORT_3_1
 	{
 		internal Thread _owner;
 		internal bool _waiting = true;

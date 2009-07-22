@@ -30,7 +30,7 @@ namespace Spring.Threading.Future
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-    public interface IRunnableFuture<T> : IRunnable, IFuture<T>
+    public interface IRunnableFuture<T> : IRunnable, IFuture<T> //JDK_1_6
     {
     }
 }

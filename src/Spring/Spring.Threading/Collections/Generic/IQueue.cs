@@ -96,7 +96,7 @@ namespace Spring.Collections.Generic
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-    public interface IQueue<T> : ICollection<T>
+    public interface IQueue<T> : ICollection<T> // JDK_1_6
     {
         /// <summary>
         /// Gets the remaining capacity of a bounded queue or

@@ -35,7 +35,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (Interlocked)</author>
     [Serializable]
-    public class AtomicReference<T> : IAtomic<T> where T : class 
+    public class AtomicReference<T> : IAtomic<T> where T : class //JDK_1_6
     {
         /// <summary>
         /// Holds the object reference.

@@ -111,6 +111,7 @@
     <Compile Include="Threading\BoundedLinkedQueue.cs" />
     <Compile Include="Threading\BoundedPriorityQueue.cs" />
     <Compile Include="Threading\BrokenBarrierException.cs" />
+    <Compile Include="Threading\CountDownLatch.cs" />
     <Compile Include="Threading\Func.cs" />
     <Compile Include="Threading\Callable.cs" />
     <Compile Include="Threading\ClockDaemon.cs" />
@@ -159,7 +160,6 @@
     <Compile Include="Threading\Future\IRunnableScheduledFuture.cs" />
     <Compile Include="Threading\Future\IScheduledFuture.cs" />
     <Compile Include="Threading\Heap.cs" />
-    <Compile Include="Threading\Helpers\CountDownLatch.cs" />
     <Compile Include="Threading\Helpers\Exchanger.cs" />
     <Compile Include="Threading\Helpers\FIFOWaitNodeQueue.cs" />
     <Compile Include="Threading\Helpers\IQueuedSync.cs" />

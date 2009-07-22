@@ -25,7 +25,7 @@ namespace Spring.Threading
     /// before it is run.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    internal class ContextCopyingRunnable : Runnable, IContextCopyingTask
+    internal class ContextCopyingRunnable : Runnable, IContextCopyingTask //NET_ONLY
     {
         private IContextCarrier _contextCarrier;
 

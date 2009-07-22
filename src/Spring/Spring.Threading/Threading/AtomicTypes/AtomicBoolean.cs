@@ -34,7 +34,8 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (Interlocked)</author>
     [Serializable]
-    public class AtomicBoolean : IAtomic<bool> {
+    public class AtomicBoolean : IAtomic<bool>  //JDK_1_6
+    {
         /// <summary>
         /// Holds a <see lang="Int32"/> representation of the flag value.
         /// </summary>

@@ -51,7 +51,7 @@ namespace Spring.Threading.Execution
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
-	public static class Executors
+	public static class Executors //JDK_1_6
 	{
 		#region Public Static Methods
 		/// <summary> 

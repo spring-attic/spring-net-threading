@@ -35,7 +35,7 @@ namespace Spring.Collections.Generic
     /// </summary>
     /// <typeparam name="T">Type of the elements to be iterated.</typeparam>
     /// <author>Kenneth Xu</author>
-    public abstract class AbstractEnumerator<T> : IEnumerator<T>, IEnumerable<T>
+    public abstract class AbstractEnumerator<T> : IEnumerator<T>, IEnumerable<T> //NET_ONLY
     {
         /// <summary>
         /// Indicates if the enumerator has not startet, is in progress, 

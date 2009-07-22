@@ -7,7 +7,7 @@ namespace Spring.Utility
 	/// <summary>
 	/// Collection of static methods that aid in serialization.
 	/// </summary>
-	public class SerializationUtilities
+	public class SerializationUtilities //NET_ONLY
 	{
 		private SerializationUtilities() {}
 

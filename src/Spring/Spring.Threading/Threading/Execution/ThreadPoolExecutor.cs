@@ -318,7 +318,7 @@ namespace Spring.Threading.Execution
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-    public class ThreadPoolExecutor : AbstractExecutorService, IDisposable
+    public class ThreadPoolExecutor : AbstractExecutorService, IDisposable //BACKPORT_3_1
     {
         #region Worker Class
 

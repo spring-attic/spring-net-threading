@@ -35,7 +35,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
     [Serializable]
-    public class AtomicLongArray : AbstractAtomicArray<long>, IAtomicArray<long>
+    public class AtomicLongArray : AbstractAtomicArray<long>, IAtomicArray<long> //JDK_1_6
     {
         private readonly long[] _longArray;
 

@@ -99,7 +99,7 @@ namespace Spring.Threading.Execution
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu (.NET)</author>
-	public class ExecutorCompletionService<T> : ICompletionService<T>
+	public class ExecutorCompletionService<T> : ICompletionService<T> //JDK_1_6
 	{
 		private readonly IExecutor _executor;
 	    private readonly AbstractExecutorService _aes;

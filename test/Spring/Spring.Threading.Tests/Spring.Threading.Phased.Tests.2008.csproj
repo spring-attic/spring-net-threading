@@ -145,7 +145,7 @@
     <Compile Include="Threading\Execution\ExecutorCompletionServiceTest.cs" />
     <Compile Include="Threading\Execution\ExecutorsTest.cs" />
     <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />
-    <Compile Include="Threading\Helpers\CountDownLatchTests.cs" />
+    <Compile Include="Threading\CountDownLatchTests.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactoryTest.cs" />
     <Compile Include="Threading\RunnableTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />

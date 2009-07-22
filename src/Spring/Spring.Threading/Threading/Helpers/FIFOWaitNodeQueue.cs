@@ -13,7 +13,7 @@ namespace Spring.Threading.Helpers
 	/// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
 	[Serializable]
-	internal class FIFOWaitNodeQueue : IWaitNodeQueue
+	internal class FIFOWaitNodeQueue : IWaitNodeQueue //BACKPORT_3_1
 	{
 
 		[NonSerialized] protected WaitNode _head;

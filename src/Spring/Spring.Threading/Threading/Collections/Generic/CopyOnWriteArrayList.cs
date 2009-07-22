@@ -50,7 +50,8 @@ namespace Spring.Threading.Collections.Generic {
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Andreas Doehring (.NET)</author>
     [Serializable]
-    public class CopyOnWriteArrayList<T> : IList<T>, ICloneable, ISerializable {
+    public class CopyOnWriteArrayList<T> : IList<T>, ICloneable, ISerializable //BACKPORT_2_2
+    {
 
         /// <summary>
         /// internal wrapper for <see cref="Array"/> to implement <see cref="IEnumerable{T}.GetEnumerator"/>
