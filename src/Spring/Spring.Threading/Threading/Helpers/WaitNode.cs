@@ -83,7 +83,7 @@ namespace Spring.Threading.Helpers
 				}
 				else
 				{
-					DateTime deadline = DateTime.Now.Add(duration);
+					DateTime deadline = DateTime.UtcNow.Add(duration);
 					try
 					{
 						for (;; )
@@ -93,7 +93,7 @@ namespace Spring.Threading.Helpers
 								return true;
 							else
 							{
-							    duration = deadline.Subtract(DateTime.Now);
+							    duration = deadline.Subtract(DateTime.UtcNow);
 								if (duration.Ticks <= 0)
 								{
 									_waiting = false;
@@ -107,7 +107,7 @@ namespace Spring.Threading.Helpers
 						if (_waiting)
 						{
 							_waiting = false; // invalidate for the signaller
-							throw ex;
+							throw SystemExtensions.PreserveStackTrace(ex);
 						}
 						else
 						{
@@ -140,7 +140,7 @@ namespace Spring.Threading.Helpers
 						{
 							// no notification
 							_waiting = false; // invalidate for the signaller
-							throw ex;
+							throw SystemExtensions.PreserveStackTrace(ex);
 						}
 						else
 						{

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using NUnit.Framework;
+using Spring.Threading.Collections.Generic;
 
 namespace Spring.Collections.Generic
 {
     /// <summary>
-    /// Basic functionality test cases for implementation of <see cref="IQueue"/>.
+    /// Basic functionality test cases for implementation of <see cref="IQueue{T}"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
     public abstract class QueueTestFixture<T> : CollectionTestFixture<T>
@@ -13,6 +16,9 @@ namespace Spring.Collections.Generic
         protected bool _isCapacityRestricted;
 
         protected bool _isFifoQueue;
+
+        // Queue in .Net should allow null in gneneral.
+        protected bool _allowNull = true;
 
         protected sealed override ICollection<T> NewCollection()
         {
@@ -47,9 +53,24 @@ namespace Spring.Collections.Generic
 
         [Test] public void AddChokesWhenQueueIsFull()
         {
-            if(!_isCapacityRestricted) Assert.Pass("Skipped as queue is unbounded.");
+            SkipIfUnboundedQueue();
             IQueue<T> queue = NewQueueFilledWithSample();
             Assert.Throws<InvalidOperationException>(delegate { queue.Add(_samples[0]); });
+        }
+
+        [Test] public void AddHandlesNullAsExpexcted()
+        {
+            var q = NewQueue();
+            if(!typeof(T).IsValueType && !_allowNull)
+            {
+                var e = Assert.Throws<ArgumentNullException>(
+                    () => q.Add(default(T)));
+                Assert.That(e.ParamName, Is.EqualTo("element"));
+            }
+            else
+            {
+                q.Add(default(T));
+            }
         }
 
         [Test] public void AddAllSamplesSuccessfully()
@@ -60,12 +81,27 @@ namespace Spring.Collections.Generic
             CollectionAssert.AreEquivalent(_samples, queue);
         }
 
-        [Test] public void AddReturnsFalseWhenQueueIsFull()
+        [Test] public void OfferReturnsFalseWhenQueueIsFull()
         {
-            if(!_isCapacityRestricted) Assert.Pass("Skipped as queue is unbounded.");
+            SkipIfUnboundedQueue();
             IQueue<T> queue = NewQueueFilledWithSample();
             Assert.IsFalse(queue.Offer(_samples[0]));
             Assert.That(queue.Count, Is.EqualTo(_sampleSize));
+        }
+
+        [Test] public void OfferHandlesNullAsExpexcted()
+        {
+            var q = NewQueue();
+            if(!typeof(T).IsValueType && !_allowNull)
+            {
+                var e = Assert.Throws<ArgumentNullException>(
+                    () => q.Offer(default(T)));
+                Assert.That(e.ParamName, Is.EqualTo("element"));
+            }
+            else
+            {
+                q.Offer(default(T));
+            }
         }
 
         [Test] public void OfferAllSamplesSuccessfully()
@@ -82,71 +118,90 @@ namespace Spring.Collections.Generic
         [Test] public void RemoveChokesWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
-            Assert.Throws<NoElementsException>(delegate { queue.Remove(); });
+            Assert.Throws<NoElementsException>(() => queue.Remove());
         }
 
-        [Test] public void RemoveAllSamplesSucessfully()
+        [Test] public void RemoveSucceedsWhenQueueIsNotEmpty()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
-
-            for (int i = queue.Count - 1; i >= 0; i--)
+            for (int i = 0; i < _sampleSize; ++i)
             {
-                object o = queue.Remove();
-                Assert.IsNotNull(o);
-                CollectionAssert.Contains(_samples, o);
+                AssertRetrievedResult(queue.Remove(), i);
             }
         }
 
-        [Test] public void PollReturnsNullWhenQuqueIsEmpty()
+        [Test] public void RemoveByElementFollowedByAddSucceeds()
+        {
+            var q = NewQueueFilledWithSample();
+            Assert.IsTrue(q.Remove(TestData<T>.MakeData(1)));
+            Assert.IsTrue(q.Remove(TestData<T>.MakeData(2)));
+            q.Add(TestData<T>.MakeData(3));
+            T dummy; Assert.That(q.Poll(out dummy), Is.True);
+        }
+
+        [Test] public void PollReturnsFalseWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             T result;
             Assert.IsFalse(queue.Poll(out result));
         }
 
-        [Test] public void PollAllSamplesSucessfully()
+        [Test] public void PollSucceedsUntilEmpty()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
-            for (int i = queue.Count - 1; i >= 0; i--)
+            T result;
+            for (int i = 0; i < _sampleSize; i++)
             {
-                T result;
                 Assert.IsTrue(queue.Poll(out result));
-                CollectionAssert.Contains(_samples, result);
+                AssertRetrievedResult(result, i);
             }
+            Assert.IsFalse(queue.Poll(out result));
+        }
+
+        protected void AssertRetrievedResult(T result, int i)
+        {
+            if(_isFifoQueue)
+                Assert.That(result, Is.EqualTo(_samples[i]));
+            else
+                CollectionAssert.Contains(_samples, result);
         }
 
         [Test] public void ElementChokesWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
-            Assert.Throws<NoElementsException>(delegate { queue.Element(); });
+            Assert.Throws<NoElementsException>(() => queue.Element());
         }
 
-        [Test] public void ElementGetsAllSamplesSucessfully()
+        [Test] public void ElementSucceedsWhenQueueIsNotEmpty()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
-            for (int i = queue.Count - 1; i >= 0; i--)
+			for (int i = 0; i < _sampleSize; ++i)
             {
-                CollectionAssert.Contains(_samples, queue.Element());
+                AssertRetrievedResult(queue.Element(), i);
                 queue.Remove();
             }
         }
 
-        [Test] public void PeekReturnsNullWhenQuqueIsEmpty()
+        [Test] public void PeekReturnsFalseWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             T result;
             Assert.IsFalse(queue.Peek(out result));
+            Assert.That(result, Is.EqualTo(default(T)));
         }
 
-        [Test] public void PeekAllSamplesSucessfully()
+        [Test] public void PeekSucceedsWhenQueueIsNotEmpty()
         {
-            IQueue<T> queue = NewQueueFilledWithSample();
-            for (int i = queue.Count - 1; i >= 0; i--)
+            var queue = NewQueueFilledWithSample();
+            for (int i = 0; i < _sampleSize; ++i)
             {
-                T result;
-                Assert.IsTrue(queue.Peek(out result));
-                CollectionAssert.Contains(_samples, result);
+                T value;
+                Assert.IsTrue(queue.Peek(out value));
+                AssertRetrievedResult(value, i);
                 queue.Remove();
+                T next;
+                queue.Peek(out next);
+                Assert.That(next, Is.Not.EqualTo(value));
             }
         }
 
@@ -159,7 +214,7 @@ namespace Spring.Collections.Generic
             AddRemoveOneLoop(queue, _sampleSize);
         }
 
-        [Test] public void RemainingCapacitySunnyDay()
+        [Test] public void RemainingCapacityDecreasesOnAddIncreasesOnRemove()
         {
             IQueue<T> queue = NewQueue();
             AssertRemainingCapacity(queue, _sampleSize);
@@ -177,7 +232,50 @@ namespace Spring.Collections.Generic
             }
         }
 
-        private void AssertRemainingCapacity(IQueue<T> queue, int size)
+        [Test] public void ClearRemovesAllElements()
+        {
+            var q = NewQueueFilledWithSample();
+            q.Clear();
+            Assert.AreEqual(0, q.Count);
+            AssertRemainingCapacity(q, _sampleSize);
+            q.Add(_samples[1]);
+            Assert.AreEqual(1, q.Count);
+            Assert.IsTrue(q.Contains(_samples[1]));
+            q.Clear();
+            Assert.AreEqual(0, q.Count);
+        }
+
+        [Test] public override void EnumerateThroughAllElements()
+        {
+            if(_isFifoQueue)
+                CollectionAssert.AreEqual(_samples, NewCollectionFilledWithSample());
+            else
+                base.EnumerateThroughAllElements();
+        }
+
+        [Test] public void DeserializedQueueIsSameAsOriginal()
+        {
+            var q = NewQueueFilledWithSample();
+            MemoryStream bout = new MemoryStream(10000);
+
+            BinaryFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(bout, q);
+
+            MemoryStream bin = new MemoryStream(bout.ToArray());
+            BinaryFormatter formatter2 = new BinaryFormatter();
+            LinkedBlockingQueue<T> r = (LinkedBlockingQueue<T>)formatter2.Deserialize(bin);
+
+            Assert.AreEqual(q.Count, r.Count);
+            while (q.Count>0)
+                Assert.AreEqual(q.Remove(), r.Remove());
+        }
+
+        protected void SkipIfUnboundedQueue()
+        {
+            if (!_isCapacityRestricted) Assert.Pass("Skipped as queue is unbounded.");
+        }
+
+        protected void AssertRemainingCapacity(IQueue<T> queue, int size)
         {
             if (_isCapacityRestricted)
             {

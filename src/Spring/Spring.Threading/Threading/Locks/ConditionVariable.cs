@@ -151,7 +151,8 @@ namespace Spring.Threading.Locks
 
         public virtual bool AwaitUntil(DateTime deadline)
         {
-            return Await(deadline - DateTime.Now);
+            // .Net has DateTime precision at around 10ms, we need to allow some error.
+            return Await(deadline - DateTime.Now + TimeSpan.FromMilliseconds(10));
         }
 
         public virtual void Signal()

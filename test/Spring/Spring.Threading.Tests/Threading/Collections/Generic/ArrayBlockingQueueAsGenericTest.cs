@@ -11,18 +11,18 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
-    public class ArrayBlockingNoFairQueueAsGenericTest<T> : QueueTestFixture<T>
+    public class ArrayBlockingNoFairQueueAsGenericTest<T> : BlockingQueueTestFixture<T>
     {
         public ArrayBlockingNoFairQueueAsGenericTest()
         {
             _isCapacityRestricted = true;
             _isFifoQueue = true;
         }
-        protected override IQueue<T> NewQueue()
+        protected override IBlockingQueue<T> NewBlockingQueue()
         {
             return new ArrayBlockingQueue<T>(_sampleSize);
         }
-        protected override IQueue<T> NewQueueFilledWithSample()
+        protected override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
         {
             return new ArrayBlockingQueue<T>(_sampleSize, false, TestData<T>.MakeTestArray(_sampleSize));
         }
@@ -37,18 +37,18 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
-    public class ArrayBlockingFairQueueAsGenericTest<T> : QueueTestFixture<T>
+    public class ArrayBlockingFairQueueAsGenericTest<T> : BlockingQueueTestFixture<T>
     {
         public ArrayBlockingFairQueueAsGenericTest()
         {
             _isCapacityRestricted = true;
             _isFifoQueue = true;
         }
-        protected override IQueue<T> NewQueue()
+        protected override IBlockingQueue<T> NewBlockingQueue()
         {
             return new ArrayBlockingQueue<T>(_sampleSize, true);
         }
-        protected override IQueue<T> NewQueueFilledWithSample()
+        protected override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
         {
             return new ArrayBlockingQueue<T>(_sampleSize, true, TestData<T>.MakeTestArray(_sampleSize));
         }

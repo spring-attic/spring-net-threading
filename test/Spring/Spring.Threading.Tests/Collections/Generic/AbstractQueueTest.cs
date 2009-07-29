@@ -11,256 +11,237 @@ namespace Spring.Collections.Generic
     [TestFixture(typeof(int))] // value type
     public class AbstractQueueTest<T>
     {
-        private MockRepository _mockery;
-        private AbstractQueue<T> _testee;
-        private IQueue _testeeNonGeneric;
+        private AbstractQueue<T> _sut;
+        private IQueue _sutAsNonGeneric;
+        readonly Action<T> _action = x => { };
+
 
         [SetUp] public void SetUp()
         {
-            _mockery = new MockRepository();
-            _testee = _mockery.PartialMock<AbstractQueue<T>>();
-            _testeeNonGeneric = _testee;
+            _sut = Mockery.GeneratePartialMock<AbstractQueue<T>>();
+            _sutAsNonGeneric = _sut;
         }
 
         [Test] public void NonGenericAddDelegatesToGenericAdd()
         {
-            _testee.Add(TestData<T>.One);
-            LastCall.Repeat.Once();
-
-            _mockery.ReplayAll();
-
-            _testeeNonGeneric.Add(TestData<T>.One);
-
-            _mockery.VerifyAll();
+            _sut.Stub(x => x.Add(Arg<T>.Is.Anything));
+            _sutAsNonGeneric.Add(TestData<T>.One);
+            _sut.AssertWasCalled(x => x.Add(TestData<T>.One));
         }
 
         [Test] public void NonGenericAddChokesOnNonCompatibleParameterType()
         {
             Assert.Throws<InvalidCastException>(delegate {
-                _testeeNonGeneric.Add(new object());
+                _sutAsNonGeneric.Add(new object());
             });
         }
 
         [Test] public void NonGenericRemoveDelegatesToGenericRemove()
         {
-            Expect.Call(_testee.Remove()).Return(TestData<T>.Two);
-
-            _mockery.ReplayAll();
-
-            Assert.That(_testeeNonGeneric.Remove(), Is.EqualTo(TestData<T>.Two));
-
-            _mockery.VerifyAll();
+            _sut.Stub(x => x.Remove()).Return(TestData<T>.Two);
+            Assert.That(_sutAsNonGeneric.Remove(), Is.EqualTo(TestData<T>.Two));
+            _sut.AssertWasCalled(x=>x.Remove());
         }
 
         [Test] public void NonGenericElementDelegatesToGenericElement()
         {
-            Expect.Call(_testee.Element()).Return(TestData<T>.Three);
-
-            _mockery.ReplayAll();
-
-            Assert.That(_testeeNonGeneric.Element(), Is.EqualTo(TestData<T>.Three));
-
-            _mockery.VerifyAll();
+            _sut.Stub(x=>x.Element()).Return(TestData<T>.Three);
+            Assert.That(_sutAsNonGeneric.Element(), Is.EqualTo(TestData<T>.Three));
+            _sut.AssertWasCalled(x => x.Element());
         }
 
         [Test] public void NonGenericPeekDelegatesToGenericPeek()
         {
-            T result;
-            Expect.Call(_testee.Peek(out result)).Return(true).OutRef(TestData<T>.Four);
-
-            _mockery.ReplayAll();
-
-            Assert.That(_testeeNonGeneric.Peek(), Is.EqualTo(TestData<T>.Four));
-
-            _mockery.VerifyAll();
+            _sut.Stub(x => x.Peek(out Arg<T>.Out(TestData<T>.Four).Dummy)).Return(true);
+            Assert.That(_sutAsNonGeneric.Peek(), Is.EqualTo(TestData<T>.Four));
+            T dummy; _sut.AssertWasCalled(x => x.Peek(out dummy));
         }
 
         [Test] public void NonGenericPeekReturnsNullWhenQueueEmpty()
         {
-            T result;
-            Expect.Call(_testee.Peek(out result)).Return(false);
-
-            _mockery.ReplayAll();
-
-            Assert.That(_testeeNonGeneric.Peek(), Is.Null);
-
-            _mockery.VerifyAll();
+            T dummy;
+            _sut.Stub(x=>x.Peek(out dummy)).Return(false);
+            Assert.That(_sutAsNonGeneric.Peek(), Is.Null);
+            _sut.AssertWasCalled(x => x.Peek(out dummy));
         }
 
         [Test] public void NonGenericPollDelegatesToGenericPoll()
         {
-            T result;
-            Expect.Call(_testee.Poll(out result)).Return(true).OutRef(TestData<T>.Five);
-
-            _mockery.ReplayAll();
-
-            Assert.That(_testeeNonGeneric.Poll(), Is.EqualTo(TestData<T>.Five));
-
-            _mockery.VerifyAll();
+            T dummy;
+            _sut.Stub(x=>x.Poll(out dummy)).Return(true).OutRef(TestData<T>.Five);
+            Assert.That(_sutAsNonGeneric.Poll(), Is.EqualTo(TestData<T>.Five));
+            _sut.AssertWasCalled(x => x.Poll(out dummy));
         }
 
         [Test] public void NonGenericPollReturnsNullWhenQueueEmpty()
         {
-            T result;
-            Expect.Call(_testee.Poll(out result)).Return(false);
-
-            _mockery.ReplayAll();
-
-            Assert.That(_testeeNonGeneric.Poll(), Is.Null);
-
-            _mockery.VerifyAll();
+            T dummy;
+            _sut.Stub(x=>x.Poll(out dummy)).Return(false);
+            Assert.That(_sutAsNonGeneric.Poll(), Is.Null);
+            _sut.AssertWasCalled(x => x.Poll(out dummy));
         }
 
         [Test] public void NonGenericOfferDelegatesToGenericOffer()
         {
-            Expect.Call(_testee.Offer(TestData<T>.One)).Return(true);
-            Expect.Call(_testee.Offer(TestData<T>.Two)).Return(false);
+            _sut.Stub(x=>x.Offer(TestData<T>.One)).Return(true);
+            _sut.Stub(x=>x.Offer(TestData<T>.Two)).Return(false);
 
-            _mockery.ReplayAll();
+            Assert.That(_sutAsNonGeneric.Offer(TestData<T>.One), Is.True);
+            Assert.That(_sutAsNonGeneric.Offer(TestData<T>.Two), Is.False);
 
-            Assert.That(_testeeNonGeneric.Offer(TestData<T>.One), Is.True);
-            Assert.That(_testeeNonGeneric.Offer(TestData<T>.Two), Is.False);
-
-            _mockery.VerifyAll();
+            _sut.AssertWasCalled(x => x.Offer(Arg<T>.Is.Anything), m=>m.Repeat.Times(2, Int32.MaxValue));
         }
 
         [Test] public void NonGenericOfferChokesOnNonCompatibleParameterType()
         {
             Assert.Throws<InvalidCastException>(delegate {
-                _testeeNonGeneric.Offer(new object());
+                _sutAsNonGeneric.Offer(new object());
             });
         }
 
         [Test] public void AddDelegatesToOffer()
         {
-            Expect.Call(_testee.Offer(TestData<T>.One)).Return(true);
-            _mockery.ReplayAll();
-            _testee.Add(TestData<T>.One);
-            _mockery.VerifyAll();
+            _sut.Stub(x=>x.Offer(Arg<T>.Is.Anything)).Return(true);
+            _sut.Add(TestData<T>.One);
+            _sut.AssertWasCalled(x => x.Offer(TestData<T>.One));
         }
 
         [Test] public void AddChokesWhenOfferReturnFalse()
         {
-            SetupResult.For(_testee.Offer(TestData<T>.One)).IgnoreArguments().Return(false);
-            _mockery.ReplayAll();
-            Assert.Throws<InvalidOperationException>(
-                delegate
-                    {
-                        _testee.Add(TestData<T>.One);
-                    });
+            _sut.Stub(x=>x.Offer(Arg<T>.Is.Anything)).Return(false);
+            Assert.Throws<InvalidOperationException>(() => _sut.Add(TestData<T>.One));
+            _sut.AssertWasCalled(x => x.Offer(TestData<T>.One));
         }
 
         [Test] public void RemoveDelegatesToPoll()
         {
-            T result;
-            Expect.Call(_testee.Poll(out result)).Return(true).OutRef(TestData<T>.Two);
-
-            _mockery.ReplayAll();
-
-            Assert.That(_testee.Remove(), Is.EqualTo(TestData<T>.Two));
-
-            _mockery.VerifyAll();
+            _sut.Stub(x=>x.Poll(out Arg<T>.Out(TestData<T>.Two).Dummy)).Return(true);
+            Assert.That(_sut.Remove(), Is.EqualTo(TestData<T>.Two));
+            T dummy;  _sut.AssertWasCalled(x => x.Poll(out dummy));
         }
 
         [Test] public void RemoveChokesWhenPollReturnFalse()
         {
-            T result;
-            Expect.Call(_testee.Poll(out result)).Return(false);
-            _mockery.ReplayAll();
-            Assert.Throws<NoElementsException>(
-                delegate
-                    {
-                        _testee.Remove();
-                    });
+            T dummy;
+            _sut.Stub(x=>x.Poll(out dummy)).Return(false);
+            Assert.Throws<NoElementsException>(() => _sut.Remove());
+            _sut.AssertWasCalled(x => x.Poll(out dummy));
         }
 
         [Test] public void ElementDelegatesToPeek()
         {
-            T result;
-            Expect.Call(_testee.Peek(out result)).Return(true).OutRef(TestData<T>.Two);
-
-            _mockery.ReplayAll();
-
-            Assert.That(_testee.Element(), Is.EqualTo(TestData<T>.Two));
-
-            _mockery.VerifyAll();
+            _sut.Stub(x=>x.Peek(out Arg<T>.Out(TestData<T>.Two).Dummy)).Return(true);
+            Assert.That(_sut.Element(), Is.EqualTo(TestData<T>.Two));
+            T dummy; _sut.AssertWasCalled(x => x.Peek(out dummy));
         }
 
         [Test] public void ElementChokesWhenPeekReturnFalse()
         {
-            T result;
-            Expect.Call(_testee.Peek(out result)).Return(false);
-            _mockery.ReplayAll();
-            Assert.Throws<NoElementsException>(
-                delegate
-                    {
-                        _testee.Element();
-                    });
+            T dummy;
+            _sut.Stub(x=>x.Peek(out dummy)).Return(false);
+            Assert.Throws<NoElementsException>(() => _sut.Element());
+            _sut.AssertWasCalled(x => x.Peek(out dummy));
         }
 
         [Test] public void ClearPollsUntilEmpty()
         {
-            using(_mockery.Ordered())
-            {
-                T result;
-                Expect.Call(_testee.Poll(out result)).Return(true).Repeat.Times(5);
-                Expect.Call(_testee.Poll(out result)).Return(false);
-            }
-            _mockery.ReplayAll();
-            _testee.Clear();
-            _mockery.VerifyAll();
+            T dummy;
+            _sut.Stub(x=>x.Poll(out dummy)).Return(true).Repeat.Times(5);
+            _sut.Stub(x=>x.Poll(out dummy)).Return(false);
+            _sut.Clear();
+            _sut.AssertWasCalled(x => x.Poll(out dummy), m => m.Repeat.Times(6));
         }
 
         [Test] public void IsEmptyReturnTrueWhenCountIsZero()
         {
-            Expect.Call(_testee.Count).Return(0);
-            _mockery.ReplayAll();
-            Assert.That(_testeeNonGeneric.IsEmpty, Is.True);
-            _mockery.VerifyAll();
+            _sut.Stub(x=>x.Count).Return(0);
+            Assert.That(_sutAsNonGeneric.IsEmpty, Is.True);
         }
 
         [Test] public void IsReadOnlyAlwaysReturnFalse()
         {
-            _mockery.ReplayAll();
-            Assert.IsFalse(_testee.IsReadOnly);
+            Assert.IsFalse(_sut.IsReadOnly);
         }
 
         [Test] public void IsEmptyReturnFalseWhenCountIsNotZero()
         {
-            Expect.Call(_testee.Count).Return(1);
-            _mockery.ReplayAll();
-            Assert.That(_testeeNonGeneric.IsEmpty, Is.False);
-            _mockery.VerifyAll();
+            _sut.Stub(x=>x.Count).Return(1);
+            Assert.That(_sutAsNonGeneric.IsEmpty, Is.False);
         }
 
-        [Test] public void AddRangeCallsAddOneByOne()
+        [Test] public void AddRangeAddAllElementsInTraversalOrder()
         {
             T[] testData = TestData<T>.MakeTestArray(5);
-            foreach (T data in testData) _testee.Add(data);
-            _mockery.ReplayAll();
-            Assert.That(_testee.AddRange(testData), Is.True);
-            _mockery.VerifyAll();
+            _sut.Stub(x=>x.Add(Arg<T>.Is.Anything));
+            Assert.That(_sut.AddRange(testData), Is.True);
+            Activities last = null;
+            foreach (T data in testData)
+            {
+                var call = _sut.ActivityOf(x => x.Add(data));
+                if (last != null) Mockery.Assert(last < call);
+                last = call;
+            }
+        }
+
+        [Test] public void AddRangeWelcomesNullElements() {
+            _sut.Stub(x => x.Add(Arg<T>.Is.Anything));
+            _sut.AddRange(new T[5]);
         }
 
         [Test] public void AddRangeReturnsFalseWhenParameterIsEmptyCollection()
         {
-            _mockery.ReplayAll();
             T[] testData = new T[0];
-            Assert.That(_testee.AddRange(testData), Is.False);
+            Assert.That(_sut.AddRange(testData), Is.False);
         }
 
-        [Test] public void AddRageChokesOnNullParameter()
+        [Test] public void AddRangeChokesOnNullParameter()
         {
-            _mockery.ReplayAll();
-            Assert.Throws<ArgumentNullException>(
-                delegate { _testee.AddRange(null); });
+            var e = Assert.Throws<ArgumentNullException>(() => _sut.AddRange(null));
+            Assert.That(e.ParamName, Is.EqualTo("collection"));
         }
 
-        [Test] public void AddRangeChokesWhenParameterIsItself()
+        [Test] public void AddRangeChokesWhenAddItself()
         {
-            _mockery.ReplayAll();
-            Assert.Throws<ArgumentException>(
-                delegate { _testee.AddRange(_testee); });
+            var e = Assert.Throws<ArgumentException>(() => _sut.AddRange(_sut));
+            Assert.That(e.ParamName, Is.EqualTo("collection"));
+        }
+
+        [Test] public void DrainChokesOnNullAction()
+        {
+            var e = Assert.Throws<ArgumentNullException>(() => _sut.Drain(null));
+            Assert.That(e.ParamName, Is.EqualTo("action"));
+            e = Assert.Throws<ArgumentNullException>(() => _sut.Drain(null, 0));
+            Assert.That(e.ParamName, Is.EqualTo("action"));
+        }
+
+        [Test] public void DrainDoesNothingOnNonPositiveMaxElement([Values(0, -1)] int maxElement)
+        {
+            Assert.That(_sut.Drain(x=>{}, maxElement), Is.EqualTo(0));
+        }
+
+        [Test] public void DrainUnlimitedDelegateToDoDrainToVirtual()
+        {
+            const int result = 10;
+            _sut.Stub(x => x.DoDrainTo(_action, null)).Return(result);
+            Assert.That(_sut.Drain(_action), Is.EqualTo(result));
+            _sut.AssertWasCalled(x => x.DoDrainTo(_action, null));
+        }
+
+        [Test] public void DrainUnlimitedDelegateToDoDrainToAbstract()
+        {
+            const int result = 10;
+            _sut.Stub(x=>x.DoDrainTo(_action, int.MaxValue, null)).Return(result);
+            Assert.That(_sut.Drain(_action), Is.EqualTo(result));
+            _sut.AssertWasCalled(x => x.DoDrainTo(_action, int.MaxValue, null));
+        }
+
+        [Test] public void DrainLimitedDelegateToDoDrainToAbstract()
+        {
+            const int result = 10;
+            const int limit = 5;
+            _sut.Stub(x=>x.DoDrainTo(null, limit, null)).IgnoreArguments().Return(result);
+            Assert.That(_sut.Drain(_action, limit), Is.EqualTo(result));
+            _sut.Stub(x => x.DoDrainTo(_action, limit, null)).Return(result);
         }
     }
 }

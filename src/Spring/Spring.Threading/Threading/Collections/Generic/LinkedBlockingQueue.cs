@@ -296,9 +296,7 @@ namespace Spring.Threading.Collections.Generic {
                     if (duration.Ticks <= 0)
                         return false;
                     try {
-                        lock(this) {
-                            Monitor.Wait(this, duration);
-                        }
+                        Monitor.Wait(_putLock, duration);
                         duration = deadline.Subtract(DateTime.UtcNow);
                     }
                     catch(ThreadInterruptedException e) {

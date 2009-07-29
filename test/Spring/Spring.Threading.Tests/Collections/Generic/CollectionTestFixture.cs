@@ -149,6 +149,17 @@ namespace Spring.Collections.Generic
             Assert.IsFalse(c.Contains(notexists));
         }
 
+		[Test] public void ContainsReportsTrueWhenElementsAddedButNotYetRemoved() {
+		    var q = NewCollectionFilledWithSample();
+			
+			for (int i = 0; i < _sampleSize; ++i) {
+			    var item = TestData<T>.MakeData(i);
+				Assert.IsTrue(q.Contains(item));
+			    q.Remove(item);
+				Assert.IsFalse(q.Contains(item));
+			}
+		}
+
         [Test] public void ClearEmptiesTheCollectionWhenSupported()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
@@ -200,15 +211,27 @@ namespace Spring.Collections.Generic
             ICollection<T> c = NewCollectionFilledWithSample();
             Assert.That(c.Count, Is.EqualTo(_sampleSize));
             AssertContainsAllSamples(c);
-            foreach (T sample in _samples)
+            for (int i = 1; i < _sampleSize; i += 2)
             {
-                try { c.Remove(sample); }
+                try {Assert.IsTrue(c.Remove(TestData<T>.MakeData(i)));}
                 catch (NotSupportedException e)
                 {
                     if (_isReadOnly) return;
                     throw SystemExtensions.PreserveStackTrace(e);
                 }
-                Assert.False(c.Contains(sample));
+            }
+            for (int i = 0; i < _sampleSize; i += 2)
+            {
+                try
+                {
+                    Assert.IsTrue(c.Remove(TestData<T>.MakeData(i)));
+                    Assert.IsFalse(c.Remove(TestData<T>.MakeData(i + 1)));
+                }
+                catch (NotSupportedException e)
+                {
+                    if (_isReadOnly) return;
+                    throw SystemExtensions.PreserveStackTrace(e);
+                }
             }
             AssertContainsNoSample(c);
         }
@@ -242,6 +265,37 @@ namespace Spring.Collections.Generic
         {
             ICollection<T> c = NewCollection();
             Assert.That(c.IsReadOnly, Is.EqualTo(_isReadOnly));
+        }
+
+		[Test] public virtual void EnumerateThroughAllElements() {
+		    var c = NewCollectionFilledWithSample();
+            CollectionAssert.AreEquivalent(_samples, c);
+		}
+
+		[Test] public void EnumeratorFailsWhenCollectionIsModified ()
+		{
+            EnumeratorFailsWhen(c => c.Remove(TestData<T>.Two));
+            EnumeratorFailsWhen(c => c.Add(TestData<T>.Three));
+		}
+
+        private void EnumeratorFailsWhen(Action<ICollection<T>> action)
+        {
+            var c = NewCollection();
+            c.Add(TestData<T>.One);
+            c.Add(TestData<T>.Two);
+            Assert.Throws<InvalidOperationException>(
+                delegate
+                    {
+                        var it = c.GetEnumerator();
+                        for (int i = AntiHangingLimit - 1; i >= 0 && it.MoveNext(); i--)
+                        {
+                            action(c);
+                        }
+                    });
+            c.Add(TestData<T>.Two);
+            var e = c.GetEnumerator();
+            action(c);
+            Assert.Throws<InvalidOperationException>(e.Reset);
         }
 
         protected void AssertContainsAllSamples(ICollection<T> c)
