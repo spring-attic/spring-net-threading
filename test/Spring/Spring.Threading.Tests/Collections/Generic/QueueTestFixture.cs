@@ -245,6 +245,21 @@ namespace Spring.Collections.Generic
             Assert.AreEqual(0, q.Count);
         }
 
+        [Test] public void TransitionsFromEmptyToFullWhenElementsAdded()
+        {
+            SkipIfUnboundedQueue();
+            var q = NewQueue();
+            Assert.That(q.Count, Is.EqualTo(0));
+            AssertRemainingCapacity(q, _sampleSize, "should have room for " + _sampleSize);
+            foreach (var sample in _samples)
+            {
+                q.Add(sample);
+                Assert.That(q.Count, Is.GreaterThan(0));
+            }
+            AssertRemainingCapacity(q, 0);
+            Assert.IsFalse(q.Offer(TestData<T>.One));
+        }
+
         [Test] public override void EnumerateThroughAllElements()
         {
             if(_isFifoQueue)
@@ -277,13 +292,18 @@ namespace Spring.Collections.Generic
 
         protected void AssertRemainingCapacity(IQueue<T> queue, int size)
         {
+            AssertRemainingCapacity(queue, size, null);
+        }
+
+        protected void AssertRemainingCapacity(IQueue<T> queue, int size, string message)
+        {
             if (_isCapacityRestricted)
             {
-                Assert.That(queue.RemainingCapacity, Is.EqualTo(size));
+                Assert.That(queue.RemainingCapacity, Is.EqualTo(size), message);
             }
             else
             {
-                Assert.That(queue.RemainingCapacity, Is.EqualTo(int.MaxValue));
+                Assert.That(queue.RemainingCapacity, Is.EqualTo(int.MaxValue), message);
             }
         }
 

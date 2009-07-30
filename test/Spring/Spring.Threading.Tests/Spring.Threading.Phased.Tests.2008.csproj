@@ -151,7 +151,6 @@
     <Compile Include="Threading\RunnableTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />
-    <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs" />
     <Compile Include="Threading\Execution\ExecutionExceptionTests.cs" />

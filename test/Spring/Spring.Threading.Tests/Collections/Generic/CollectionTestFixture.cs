@@ -53,6 +53,15 @@ namespace Spring.Collections.Generic
         protected bool _allowDuplicate;
         protected bool _isReadOnly;
 
+        public static void ToStringContainsToStringOfElements(ICollection<T> c)
+        {
+            String s = c.ToString();
+            foreach (var element in c)
+            {
+                Assert.IsTrue(s.IndexOf(element.ToString()) >= 0);
+            }
+        }
+
         protected override sealed IEnumerable<T> NewEnumerable()
         {
             return NewCollectionFilledWithSample();
