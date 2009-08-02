@@ -12,9 +12,9 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
-    public class LinkedBlockingQueueBoundAsGenericTest<T> : LinkedBlockingQueueTestBase<T>
+    public class LinkedBlockingQueueBoundTest<T> : LinkedBlockingQueueTestBase<T>
     {
-        public LinkedBlockingQueueBoundAsGenericTest()
+        public LinkedBlockingQueueBoundTest()
         {
             _isCapacityRestricted = true;
             _isFifoQueue = true;
@@ -57,9 +57,9 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
-    public class LinkedBlockingQueueUnboundAsGenericTest<T> : LinkedBlockingQueueTestBase<T>
+    public class LinkedBlockingQueueUnboundTest<T> : LinkedBlockingQueueTestBase<T>
     {
-        public LinkedBlockingQueueUnboundAsGenericTest()
+        public LinkedBlockingQueueUnboundTest()
         {
             _isCapacityRestricted = false;
             _isFifoQueue = true;
@@ -153,6 +153,33 @@ namespace Spring.Threading.Collections.Generic
             LinkedBlockingQueue<object> q = new LinkedBlockingQueue<object>(2);
             q.Offer(new object());
             Assert.Throws<ArrayTypeMismatchException>(() => q.ToArray(new string[10]));
+        }
+
+        [Test] public void ToArrayWorksFineWithArrayOfSubType()
+        {
+            LinkedBlockingQueue<object> q = new LinkedBlockingQueue<object>(2);
+            q.Offer(TestData<string>.One);
+            var a = new string[10];
+            q.ToArray(a);
+            Assert.That(a[0], Is.EqualTo(TestData<string>.One));
+        }
+
+        [Test] public void ToArrayExpendsShorterArray()
+        {
+            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
+            var a = new T[0];
+            var a2 = q.ToArray(a);
+            CollectionAssert.AreEqual(q, a2);
+        }
+
+        [Test] public void ToArrayExpendsShorterArrayWithSameType()
+        {
+            LinkedBlockingQueue<object> q = new LinkedBlockingQueue<object>();
+            q.Offer(TestData<string>.One);
+            var a = new string[0];
+            var a2 = q.ToArray(a);
+            CollectionAssert.AreEqual(q, a2);
+            Assert.That(a2, Is.InstanceOf<string[]>());
         }
 
 		[Test] public void ToStringContainsToStringOfElements() {

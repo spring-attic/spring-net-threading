@@ -222,26 +222,26 @@ namespace Spring.Collections.Generic
         [Test] public void DrainUnlimitedDelegateToDoDrainToVirtual()
         {
             const int result = 10;
-            _sut.Stub(x => x.DoDrainTo(_action, null)).Return(result);
+            _sut.Stub(x => x.DoDrain(_action, null)).Return(result);
             Assert.That(_sut.Drain(_action), Is.EqualTo(result));
-            _sut.AssertWasCalled(x => x.DoDrainTo(_action, null));
+            _sut.AssertWasCalled(x => x.DoDrain(_action, null));
         }
 
         [Test] public void DrainUnlimitedDelegateToDoDrainToAbstract()
         {
             const int result = 10;
-            _sut.Stub(x=>x.DoDrainTo(_action, int.MaxValue, null)).Return(result);
+            _sut.Stub(x=>x.DoDrain(_action, int.MaxValue, null)).Return(result);
             Assert.That(_sut.Drain(_action), Is.EqualTo(result));
-            _sut.AssertWasCalled(x => x.DoDrainTo(_action, int.MaxValue, null));
+            _sut.AssertWasCalled(x => x.DoDrain(_action, int.MaxValue, null));
         }
 
         [Test] public void DrainLimitedDelegateToDoDrainToAbstract()
         {
             const int result = 10;
             const int limit = 5;
-            _sut.Stub(x=>x.DoDrainTo(null, limit, null)).IgnoreArguments().Return(result);
+            _sut.Stub(x=>x.DoDrain(null, limit, null)).IgnoreArguments().Return(result);
             Assert.That(_sut.Drain(_action, limit), Is.EqualTo(result));
-            _sut.Stub(x => x.DoDrainTo(_action, limit, null)).Return(result);
+            _sut.Stub(x => x.DoDrain(_action, limit, null)).Return(result);
         }
     }
 }

@@ -94,13 +94,13 @@ namespace Spring.Collections.Generic
             _samples = NewSamples();
         }
 
-        [Test] public void CountAccurately()
+        [Test] public virtual void CountAccurately()
         {
             Assert.That(NewCollection().Count, Is.EqualTo(0));
             Assert.That(NewCollectionFilledWithSample().Count, Is.EqualTo(_sampleSize));
         }
 
-        [Test] public void CopyToChokesWithNullArray()
+        [Test] public virtual void CopyToChokesWithNullArray()
         {
             Assert.Throws<ArgumentNullException>(delegate
             {
@@ -108,7 +108,7 @@ namespace Spring.Collections.Generic
             });
         }
 
-        [Test] public void CopyToChokesWithNegativeIndex()
+        [Test] public virtual void CopyToChokesWithNegativeIndex()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
             Assert.Throws<ArgumentOutOfRangeException>(delegate
@@ -117,9 +117,10 @@ namespace Spring.Collections.Generic
             });
         }
 
-        [Test] public void CopyToChokesWhenArrayIsTooSmallToHold()
+        [Test] public virtual void CopyToChokesWhenArrayIsTooSmallToHold()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
+            if(c.Count == 0) Assert.Pass("Skip because of empty colleciton");
             Assert.Throws<ArgumentException>(delegate
             {
                 c.CopyTo(new T[c.Count -1], 0);
@@ -130,7 +131,7 @@ namespace Spring.Collections.Generic
             });
         }
 
-        [Test] public void CopyToZeroLowerBoundArray()
+        [Test] public virtual void CopyToZeroLowerBoundArray()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
             T[] target = new T[c.Count];
@@ -138,19 +139,20 @@ namespace Spring.Collections.Generic
             CollectionAssert.AreEqual(target, c);
         }
 
-        [Test] public void CopyToDoesNothingWhenCollectionIsEmpty()
+        [Test] public virtual void CopyToDoesNothingWhenCollectionIsEmpty()
         {
             ICollection<T> c = NewCollection();
             c.CopyTo(new T[0], 0);
         }
 
-        [Test] public void ContainsReturnFalseOnEmptyCollection()
+        [Test] public virtual void ContainsReturnFalseOnEmptyCollection()
         {
             ICollection<T> c = NewCollection();
+            Assert.IsFalse(c.Contains(TestData<T>.Zero));
             AssertContainsNoSample(c);
         }
 
-        [Test] public void ContainsSunnyDay()
+        [Test] public virtual void ContainsSunnyDay()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
             AssertContainsAllSamples(c);
@@ -158,7 +160,7 @@ namespace Spring.Collections.Generic
             Assert.IsFalse(c.Contains(notexists));
         }
 
-		[Test] public void ContainsReportsTrueWhenElementsAddedButNotYetRemoved() {
+		[Test] public virtual void ContainsReportsTrueWhenElementsAddedButNotYetRemoved() {
 		    var q = NewCollectionFilledWithSample();
 			
 			for (int i = 0; i < _sampleSize; ++i) {
@@ -169,7 +171,7 @@ namespace Spring.Collections.Generic
 			}
 		}
 
-        [Test] public void ClearEmptiesTheCollectionWhenSupported()
+        [Test] public virtual void ClearEmptiesTheCollectionWhenSupported()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
             try { c.Clear(); }
@@ -182,7 +184,7 @@ namespace Spring.Collections.Generic
             AssertContainsNoSample(c);
         }
 
-        [Test] public void AddAllSamplesSuccessfullyWhenSupported()
+        [Test] public virtual void AddAllSamplesSuccessfullyWhenSupported()
         {
             ICollection<T> c = NewCollection();
             foreach (T sample in _samples)
@@ -198,9 +200,10 @@ namespace Spring.Collections.Generic
             AssertContainsAllSamples(c);
         }
 
-        [Test] public void AddDuplicateSuccessfullyWhenSupported()
+        [Test] public virtual void AddDuplicateSuccessfullyWhenSupported()
         {
-            if(!_allowDuplicate) Assert.Pass("Skip because collection doesn't allow duplicates.");
+            if (!_allowDuplicate) Assert.Pass("Skip because collection doesn't allow duplicates.");
+            if (_sampleSize<=0) Assert.Pass("Skip because 0 capacity collection");
             ICollection<T> c = NewCollection();
             T sample = _samples[0];
             try { c.Add(sample); }
@@ -215,7 +218,7 @@ namespace Spring.Collections.Generic
             Assert.That(c.Count, Is.EqualTo(2));
         }
 
-        [Test] public void RemoveAllSamplesSuccessfullyWhenSupported()
+        [Test] public virtual void RemoveAllSamplesSuccessfullyWhenSupported()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
             Assert.That(c.Count, Is.EqualTo(_sampleSize));
@@ -245,11 +248,11 @@ namespace Spring.Collections.Generic
             AssertContainsNoSample(c);
         }
 
-        [Test] public void RemoveOnlyOneOfDuplicatesWhenSupported()
+        [Test] public virtual void RemoveOnlyOneOfDuplicatesWhenSupported()
         {
             if (!_allowDuplicate) Assert.Pass("Skip because collection doesn't allow duplicates.");
             ICollection<T> c = NewCollection();
-            T sample = _samples[0];
+            T sample = TestData<T>.One;
             try { c.Add(sample); }
             catch (NotSupportedException e)
             {
@@ -276,12 +279,13 @@ namespace Spring.Collections.Generic
             Assert.That(c.IsReadOnly, Is.EqualTo(_isReadOnly));
         }
 
-		[Test] public virtual void EnumerateThroughAllElements() {
+		[Test] public virtual void EnumerateThroughAllElements() 
+        {
 		    var c = NewCollectionFilledWithSample();
             CollectionAssert.AreEquivalent(_samples, c);
 		}
 
-		[Test] public void EnumeratorFailsWhenCollectionIsModified ()
+		[Test] public virtual void EnumeratorFailsWhenCollectionIsModified()
 		{
             EnumeratorFailsWhen(c => c.Remove(TestData<T>.Two));
             EnumeratorFailsWhen(c => c.Add(TestData<T>.Three));
@@ -321,6 +325,11 @@ namespace Spring.Collections.Generic
             {
                 Assert.IsFalse(c.Contains(sample));
             }
+        }
+
+        protected void SkipForCurrentQueueImplementation()
+        {
+            Assert.Pass("Skip test that is not applicable to current implmenetation.");
         }
     }
 }

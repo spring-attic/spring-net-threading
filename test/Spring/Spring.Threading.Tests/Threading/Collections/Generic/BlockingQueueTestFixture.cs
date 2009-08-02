@@ -15,12 +15,12 @@ namespace Spring.Threading.Collections.Generic
     {
         protected TestThreadManager ThreadManager { get; private set; }
 
-        [SetUp] public void SetUpThreadManager()
+        [SetUp] public virtual void SetUpThreadManager()
         {
             ThreadManager = new TestThreadManager();
         }
 
-        [TearDown] public void TearDownThreadManager()
+        [TearDown] public virtual void TearDownThreadManager()
         {
             ThreadManager.TearDown();
         }
@@ -41,16 +41,51 @@ namespace Spring.Threading.Collections.Generic
 
         protected abstract IBlockingQueue<T> NewBlockingQueue();
 
-     	[Test] public void PutHandlesNullAsExpected() {
-            if (_allowNull)
+        public override void AddHandlesNullAsExpexcted()
+        {
+            var q = NewBlockingQueue();
+            T value = default(T);
+            if (!typeof(T).IsValueType && !_allowNull)
             {
-                var q = NewBlockingQueue();
-                q.Put(default(T));
-                Assert.That(q.Remove(), Is.EqualTo(default(T)));
+                var e = Assert.Throws<ArgumentNullException>(
+                    () => q.Add(value));
+                Assert.That(e.ParamName, Is.EqualTo("element"));
+            }
+            else
+            {
+                // The thread is required to work with 0 capacity queue.
+                ThreadManager.StartAndAssertRegistered("T1", () => PollOneFromQueue(q, value));
+                q.Add(value);
+                ThreadManager.JoinAndVerify();
+            }
+        }
+
+     	[Test] public virtual void PutHandlesNullAsExpected() {
+            T value = default(T);
+            var q = NewBlockingQueue();
+            if (!typeof(T).IsValueType && !_allowNull)
+            {
+                var e = Assert.Throws<ArgumentNullException>(
+                    () => q.Add(value));
+                Assert.That(e.ParamName, Is.EqualTo("element"));
+            }
+            else
+            {
+                // The thread is required to work with 0 capacity queue.
+                ThreadManager.StartAndAssertRegistered("T1", () => PollOneFromQueue(q, value));
+                q.Put(value);
+                ThreadManager.JoinAndVerify();
             }
      	}
 
-    	[Test] public void PutAddsElementsToQueue() {
+        private void PollOneFromQueue(IBlockingQueue<T> q, T expectedValue)
+        {
+            T result;
+            Assert.IsTrue(q.Poll(TestData.SmallDelay, out result));
+            Assert.That(result, Is.EqualTo(default(T)));
+        }
+
+    	[Test] public virtual void PutAddsElementsToQueue() {
     	    var q = NewBlockingQueue();
             for (int i = 0; i < _sampleSize; ++i) {
                 q.Put(_samples[i]);
@@ -59,7 +94,7 @@ namespace Spring.Threading.Collections.Generic
             AssertRemainingCapacity(q, 0);
 	    }
 
-        [Test] public void PutBlocksInterruptiblyWhenFull()
+        [Test] public virtual void PutBlocksInterruptiblyWhenFull()
         {
             SkipIfUnboundedQueue();
             var q = NewBlockingQueueFilledWithSample();
@@ -71,13 +106,13 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.JoinAndVerify();
         }
 
-        [Test] public void PutBlocksWaitingForTakeWhenFull()
+        [Test] public virtual void PutBlocksWaitingForTakeWhenFull()
         {
             SkipIfUnboundedQueue();
             var q = NewBlockingQueueFilledWithSample();
             AtomicBoolean added = new AtomicBoolean(false);
             ThreadManager.StartAndAssertRegistered(
-                "T1", () => { q.Put(_samples[0]); added.Value = true; });
+                "T1", () => { q.Put(TestData<T>.One); added.Value = true; });
             Thread.Sleep(TestData.ShortDelay);
             Assert.IsFalse(added);
             q.Take();
@@ -85,28 +120,47 @@ namespace Spring.Threading.Collections.Generic
             Assert.IsTrue(added);
         }
 
-        [Test] public void TimedOfferWaitsInterruptablyAndTimesOutIfFullAndElementsNotTaken()
+        [Test] public virtual void TimedOfferWaitsInterruptablyAndTimesOutIfFullAndSucceedAfterTaken()
         {
             SkipIfUnboundedQueue();
+            var values = TestData<T>.MakeTestArray(_sampleSize + 3);
             var q = NewBlockingQueueFilledWithSample();
             var timedout = new AtomicBoolean(false);
+            ThreadManager.StartAndAssertRegistered(
+                "T2",
+                () => Assert.IsTrue(q.Offer(values[_sampleSize], TestData.LongDelay)));
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1",
                 delegate
-                    {
-                        Assert.IsFalse(q.Offer(_samples[0], TestData.ShortDelay));
-                        timedout.Value = true;
-                        Assert.Throws<ThreadInterruptedException>(
-                            ()=>q.Offer(_samples[1], TestData.LongDelay));
-                    });
+                {
+                    Assert.IsFalse(q.Offer(TestData<T>.M1, TestData.ShortDelay));
+                    timedout.Value = true;
+                    Assert.Throws<ThreadInterruptedException>(
+                        () => q.Offer(TestData<T>.M2, TestData.LongDelay));
+                });
 
             for (int i = 5; i > 0 && !timedout; i--) Thread.Sleep(TestData.ShortDelay);
             Assert.That(timedout.Value, Is.True, "Offer should timeout by now.");
+            ThreadManager.StartAndAssertRegistered(
+                "T3",
+                () => Assert.IsTrue(q.Offer(values[_sampleSize + 1], TestData.LongDelay)));
+            ThreadManager.StartAndAssertRegistered(
+                "T4",
+                () => Assert.IsTrue(q.Offer(values[_sampleSize + 2], TestData.LongDelay)));
+            Thread.Sleep(TestData.ShortDelay);
             t.Interrupt();
-            ThreadManager.JoinAndVerify(t);
+            Thread.Sleep(TestData.ShortDelay);
+            for (int i = 0; i < _sampleSize + 3; i++)
+            {
+                T result;
+                Assert.IsTrue(q.Poll(TestData.ShortDelay, out result));
+                if (_isFifoQueue) Assert.That(result, Is.EqualTo(values[i]));
+                else CollectionAssert.Contains(values, result);
+            }
+            ThreadManager.JoinAndVerify();
         }
 
-        [Test] public void TakeRetrievesElementsInExpectedOrder()
+        [Test] public virtual void TakeRetrievesElementsInExpectedOrder()
         {
             var q = NewBlockingQueueFilledWithSample();
             var itemsTook = new List<T>();
@@ -120,7 +174,7 @@ namespace Spring.Threading.Collections.Generic
             if(!_isFifoQueue) CollectionAssert.AreEquivalent(_samples, itemsTook);
         }
 
-        [Test] public void TakeBlocksInterruptiblyWhenEmpty()
+        [Test] public virtual void TakeBlocksInterruptiblyWhenEmpty()
         {
             var q = NewBlockingQueue();
             Thread t = ThreadManager.StartAndAssertRegistered(
@@ -130,7 +184,7 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.JoinAndVerify(t);
         }
 
-        [Test] public void TakeRemovesExistingElementsUntilEmptyThenBlocksInterruptibly()
+        [Test] public virtual void TakeRemovesExistingElementsUntilEmptyThenBlocksInterruptibly()
         {
             var isEmpty = new AtomicBoolean(false);
             Thread t = ThreadManager.StartAndAssertRegistered(
@@ -147,7 +201,7 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.JoinAndVerify(t);
         }
 
-        [Test] public void TimedPoolWithZeroTimeoutSucceedsWhenNonEmptyElseTimesOut()
+        [Test] public virtual void TimedPoolWithZeroTimeoutSucceedsWhenNonEmptyElseTimesOut()
         {
             var q = NewBlockingQueueFilledWithSample();
             // run it in a separate thread so test won't hang due to bad queue implementation.
@@ -166,7 +220,7 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.JoinAndVerify(t);
         }
 
-		[Test] public void TimedPoolWithNonZeroTimeoutSucceedsWhenNonEmptyElseTimesOut() {
+		[Test] public virtual void TimedPoolWithNonZeroTimeoutSucceedsWhenNonEmptyElseTimesOut() {
             var q = NewBlockingQueueFilledWithSample();
             // run it in a separate thread so test won't hang due to bad queue implementation.
             Thread t = ThreadManager.StartAndAssertRegistered(
@@ -184,7 +238,7 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.JoinAndVerify(t);
         }
 
-		[Test] public void TimedPollIsInterruptable() {
+		[Test] public virtual void TimedPollIsInterruptable() {
             var q = NewBlockingQueue();
 		    var isEmpty = new AtomicBoolean(false);
 		    Thread t = ThreadManager.StartAndAssertRegistered(
@@ -202,7 +256,7 @@ namespace Spring.Threading.Collections.Generic
            ThreadManager.JoinAndVerify(t);
 		}
 
-        [Test] public void TimedPollFailsBeforeDelayedOfferSucceedsAfterOfferChokesOnInterruption() {
+        [Test] public virtual void TimedPollFailsBeforeDelayedOfferSucceedsAfterOfferChokesOnInterruption() {
             var q = NewBlockingQueue();
             T value;
             var timedout = new AtomicBoolean(false);
@@ -215,12 +269,12 @@ namespace Spring.Threading.Collections.Generic
                         Assert.Throws<ThreadInterruptedException>(()=>q.Poll(TestData.LongDelay, out value));
                 });
             for (int i = 5 - 1; i >= 0 && !timedout; i--) Thread.Sleep(TestData.ShortDelay);
-            Assert.IsTrue(q.Offer(_samples[0], TestData.ShortDelay));
+            Assert.IsTrue(q.Offer(TestData<T>.One, TestData.ShortDelay));
             t.Interrupt();
             ThreadManager.JoinAndVerify(t);
         }
 
-		[Test] public void DrainToChokesOnNullArgument() {
+		[Test] public virtual void DrainToChokesOnNullArgument() {
 			var q = NewBlockingQueueFilledWithSample();
 			var e = Assert.Throws<ArgumentNullException>(()=>q.DrainTo(null));
 			Assert.That(e.ParamName, Is.EqualTo("collection"));
@@ -228,7 +282,7 @@ namespace Spring.Threading.Collections.Generic
 			Assert.That(e2.ParamName, Is.EqualTo("collection"));
 		}
 
-		[Test] public void DrainToChokesWhenDrainToSelf() {
+		[Test] public virtual void DrainToChokesWhenDrainToSelf() {
             var q = NewBlockingQueueFilledWithSample();
             var e = Assert.Throws<ArgumentException>(() => q.DrainTo(q));
 			Assert.That(e.ParamName, Is.EqualTo("collection"));
@@ -236,7 +290,7 @@ namespace Spring.Threading.Collections.Generic
 			Assert.That(e2.ParamName, Is.EqualTo("collection"));
 		}
 
-		[Test] public void DrainToEmptiesQueueIntoAnotherCollection() {
+		[Test] public virtual void DrainToEmptiesQueueIntoAnotherCollection() {
             var q = NewBlockingQueueFilledWithSample();
             List<T> l = new List<T>();
 			q.DrainTo(l);
@@ -244,20 +298,19 @@ namespace Spring.Threading.Collections.Generic
 			Assert.AreEqual(l.Count, _sampleSize);
 			for (int i = 0; i < _sampleSize; ++i)
 				Assert.AreEqual(l[i], TestData<T>.MakeData(i));
-			q.Add(_samples[0]);
-			q.Add(_samples[1]);
-			Assert.IsFalse(q.Count == 0); // not empty
-			Assert.IsTrue(q.Contains(_samples[0]));
-			Assert.IsTrue(q.Contains(_samples[1]));
+		    int count = Math.Min(2, _sampleSize);
+		    for (int i = 0; i < count; i++) q.Add(_samples[i]);
+		    Assert.AreEqual(count, q.Count);
+            for (int i = 0; i < count; i++) Assert.IsTrue(q.Contains(_samples[i]));
 			l.Clear();
 			q.DrainTo(l);
-			Assert.AreEqual(q.Count, 0);
-			Assert.AreEqual(l.Count, 2);
-			for (int i = 0; i < 2; ++i)
+			Assert.AreEqual(0, q.Count);
+			Assert.AreEqual(count, l.Count);
+			for (int i = 0; i < count; ++i)
 				Assert.AreEqual(l[i], TestData<T>.MakeData(i));
 		}
 
-		[Test] public void DrainToEmptiesFullQueueAndUnblocksWaitingPut() {
+		[Test] public virtual void DrainToEmptiesFullQueueAndUnblocksWaitingPut() {
             var q = NewBlockingQueueFilledWithSample();
             Thread t = ThreadManager.StartAndAssertRegistered(
 		        "T1", () => q.Put(TestData<T>.MakeData(_sampleSize + 1)));
@@ -270,7 +323,7 @@ namespace Spring.Threading.Collections.Generic
 			Assert.IsTrue(q.Count + l.Count >= _sampleSize);
 		}
 
-		[Test] public void LimitedDrainToEmptiesFirstNElementsIntoCollection() {
+		[Test] public virtual void LimitedDrainToEmptiesFirstNElementsIntoCollection() {
             var q = NewBlockingQueue();
             for (int i = 0; i < _sampleSize + 2; ++i)
             {
@@ -288,7 +341,19 @@ namespace Spring.Threading.Collections.Generic
 			}
 		}
 
-        [Test] public void OfferTransfersElementsAcrossThreads()
+        [Test] public virtual void SelectiveDrainToMovesSelectedElementsIntoCollection()
+        {
+            var q = NewBlockingQueueFilledWithSample();
+            List<T> l = new List<T>();
+            q.DrainTo(l, e=>((int)Convert.ChangeType(e, typeof(int)))%2==0);
+            Assert.That(l.Count, Is.LessThanOrEqualTo((_sampleSize + 1) / 2));
+            Assert.That(q.Count, Is.LessThanOrEqualTo((_sampleSize + 1) / 2));
+            Assert.AreEqual(_sampleSize, q.Count + l.Count);
+            for (int i = 0; i < l.Count; i++)
+                Assert.AreEqual(l[i], TestData<T>.MakeData(i*2));
+        }
+
+        [Test] public virtual void OfferTransfersElementsAcrossThreads()
         {
             SkipIfUnboundedQueue();
             var q = NewBlockingQueueFilledWithSample();
@@ -309,7 +374,7 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.JoinAndVerify(TestData.MediumDelay);
         }
 
-		[Test] public void PollRetrievesElementsAcrossThreads()
+		[Test] public virtual void PollRetrievesElementsAcrossThreads()
 		{
 		    var q = NewBlockingQueue();
             ThreadManager.StartAndAssertRegistered(

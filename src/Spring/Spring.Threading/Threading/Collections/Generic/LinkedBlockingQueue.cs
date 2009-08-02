@@ -548,10 +548,10 @@ namespace Spring.Threading.Collections.Generic {
         /// Does the real work for the <see cref="AbstractQueue{T}.Drain(System.Action{T})"/>
         /// and <see cref="AbstractQueue{T}.Drain(System.Action{T},Predicate{T})"/>.
         /// </summary>
-        protected internal override int DoDrainTo(Action<T> action, Predicate<T> criteria) {
+        protected internal override int DoDrain(Action<T> action, Predicate<T> criteria) {
             if (criteria!=null)
             {
-                return DoDrainTo(action, int.MaxValue, criteria);
+                return DoDrain(action, int.MaxValue, criteria);
             }
             Node first;
             lock(_putLock) {
@@ -589,7 +589,7 @@ namespace Spring.Threading.Collections.Generic {
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int)"/>
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, Predicate{T})"/>
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
-        internal protected override int DoDrainTo(Action<T> action, int maxElements, Predicate<T> criteria)
+        internal protected override int DoDrain(Action<T> action, int maxElements, Predicate<T> criteria)
         {
             lock(_putLock) {
                 lock(_takeLock) {
@@ -758,8 +758,9 @@ namespace Spring.Threading.Collections.Generic {
             lock(_putLock) {
                 lock(_takeLock) {
                     int size = _activeCount;
-                    if(targetArray.Length < size)
-                        targetArray = new T[size];
+                    if (targetArray.Length < size)
+                        //targetArray = new T[size];
+                        targetArray = (T[])Array.CreateInstance(targetArray.GetType().GetElementType(), size);
 
                     int k = 0;
                     for(Node p = _head.next; p != null; p = p.next)

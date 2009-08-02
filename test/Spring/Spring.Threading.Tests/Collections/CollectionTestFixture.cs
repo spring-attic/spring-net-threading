@@ -68,6 +68,7 @@ namespace Spring.Collections
         [Test] public void CopyToChokesOnMultiDimensionArray()
         {
             ICollection c = NewCollection();
+            if (c.Count==0) Assert.Pass();
             Assert.Throws<ArgumentException>(delegate
             {
                 c.CopyTo(new object[c.Count, 2], 0);
@@ -92,6 +93,7 @@ namespace Spring.Collections
         [Test] public void CopyToChokesWhenArrayIsTooSmallToHold()
         {
             ICollection c = NewCollection();
+            if(c.Count==0) Assert.Pass();
             Assert.Throws<ArgumentException>(delegate
             {
                 c.CopyTo(new object[c.Count -1], 0);

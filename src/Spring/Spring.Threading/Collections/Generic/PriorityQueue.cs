@@ -666,7 +666,7 @@ namespace Spring.Collections.Generic
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int)"/>
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, Predicate{T})"/>
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
-        internal protected override int DoDrainTo(Action<T> action, int maxElements, Predicate<T> criteria)
+        internal protected override int DoDrain(Action<T> action, int maxElements, Predicate<T> criteria)
         {
 
             return Drain(action, maxElements, criteria, null);

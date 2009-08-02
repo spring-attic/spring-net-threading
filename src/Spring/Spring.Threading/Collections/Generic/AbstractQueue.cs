@@ -386,7 +386,7 @@ namespace Spring.Collections.Generic
         public virtual int Drain(Action<T> action, Predicate<T> criteria)
 	    {
 	        if (action == null) throw new ArgumentNullException("action");
-	        return DoDrainTo(action, criteria);
+	        return DoDrain(action, criteria);
 	    }
 
 	    /// <summary> 
@@ -445,7 +445,7 @@ namespace Spring.Collections.Generic
 	    {
 	        if (action == null) throw new ArgumentNullException("action");
 	        if (maxElements <= 0) return 0;
-	        return DoDrainTo(action, maxElements, criteria);
+	        return DoDrain(action, maxElements, criteria);
 	    }
 
 	    /// <summary> 
@@ -457,15 +457,15 @@ namespace Spring.Collections.Generic
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int)"/>
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, Predicate{T})"/>
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
-	    internal protected abstract int DoDrainTo(Action<T> action, int maxElements, Predicate<T> criteria);
+	    internal protected abstract int DoDrain(Action<T> action, int maxElements, Predicate<T> criteria);
 
 	    /// <summary>
 	    /// Does the real work for the <see cref="AbstractQueue{T}.Drain(System.Action{T})"/>
         /// and <see cref="AbstractQueue{T}.Drain(System.Action{T},Predicate{T})"/>.
 	    /// </summary>
-	    internal protected virtual int DoDrainTo(Action<T> action, Predicate<T> criteria)
+	    internal protected virtual int DoDrain(Action<T> action, Predicate<T> criteria)
 	    {
-	        return DoDrainTo(action, int.MaxValue, criteria);
+	        return DoDrain(action, int.MaxValue, criteria);
 	    }
 	}
 }

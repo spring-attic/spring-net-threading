@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using NUnit.Framework;
-using Spring.Threading.Collections.Generic;
 
 namespace Spring.Collections.Generic
 {
@@ -51,14 +50,14 @@ namespace Spring.Collections.Generic
             _allowDuplicate = true;
         }
 
-        [Test] public void AddChokesWhenQueueIsFull()
+        [Test] public virtual void AddChokesWhenQueueIsFull()
         {
             SkipIfUnboundedQueue();
             IQueue<T> queue = NewQueueFilledWithSample();
-            Assert.Throws<InvalidOperationException>(delegate { queue.Add(_samples[0]); });
+            Assert.Throws<InvalidOperationException>(delegate { queue.Add(TestData<T>.One); });
         }
 
-        [Test] public void AddHandlesNullAsExpexcted()
+        [Test] public virtual void AddHandlesNullAsExpexcted()
         {
             var q = NewQueue();
             if(!typeof(T).IsValueType && !_allowNull)
@@ -73,7 +72,7 @@ namespace Spring.Collections.Generic
             }
         }
 
-        [Test] public void AddAllSamplesSuccessfully()
+        [Test] public virtual void AddAllSamplesSuccessfully()
         {
             IQueue<T> queue = NewQueue();
             foreach (T sample in _samples) queue.Add(sample);
@@ -81,15 +80,15 @@ namespace Spring.Collections.Generic
             CollectionAssert.AreEquivalent(_samples, queue);
         }
 
-        [Test] public void OfferReturnsFalseWhenQueueIsFull()
+        [Test] public virtual void OfferReturnsFalseWhenQueueIsFull()
         {
             SkipIfUnboundedQueue();
             IQueue<T> queue = NewQueueFilledWithSample();
-            Assert.IsFalse(queue.Offer(_samples[0]));
+            Assert.IsFalse(queue.Offer(TestData<T>.One));
             Assert.That(queue.Count, Is.EqualTo(_sampleSize));
         }
 
-        [Test] public void OfferHandlesNullAsExpexcted()
+        [Test] public virtual void OfferHandlesNullAsExpexcted()
         {
             var q = NewQueue();
             if(!typeof(T).IsValueType && !_allowNull)
@@ -104,7 +103,7 @@ namespace Spring.Collections.Generic
             }
         }
 
-        [Test] public void OfferAllSamplesSuccessfully()
+        [Test] public virtual void OfferAllSamplesSuccessfully()
         {
             IQueue<T> queue = NewQueue();
             foreach (T sample in _samples)
@@ -115,13 +114,13 @@ namespace Spring.Collections.Generic
             CollectionAssert.AreEquivalent(_samples, queue);
         }
 
-        [Test] public void RemoveChokesWhenQuqueIsEmpty()
+        [Test] public virtual void RemoveChokesWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             Assert.Throws<NoElementsException>(() => queue.Remove());
         }
 
-        [Test] public void RemoveSucceedsWhenQueueIsNotEmpty()
+        [Test] public  void RemoveSucceedsWhenQueueIsNotEmpty()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
             for (int i = 0; i < _sampleSize; ++i)
@@ -130,23 +129,29 @@ namespace Spring.Collections.Generic
             }
         }
 
-        [Test] public void RemoveByElementFollowedByAddSucceeds()
+        [Test] public virtual void RemoveByElementReturnsFalseWhenEmpty()
         {
+            var q = NewQueue();
+            Assert.IsFalse(q.Remove(TestData<T>.Zero));
+        }
+
+        [Test] public virtual void RemoveByElementFollowedByAddSucceeds()
+        {
+            if (_sampleSize == 0) Assert.Pass("Skip due to an empty queue.");
             var q = NewQueueFilledWithSample();
-            Assert.IsTrue(q.Remove(TestData<T>.MakeData(1)));
-            Assert.IsTrue(q.Remove(TestData<T>.MakeData(2)));
+            Assert.IsTrue(q.Remove(TestData<T>.MakeData(_sampleSize/2)));
             q.Add(TestData<T>.MakeData(3));
             T dummy; Assert.That(q.Poll(out dummy), Is.True);
         }
 
-        [Test] public void PollReturnsFalseWhenQuqueIsEmpty()
+        [Test] public virtual void PollReturnsFalseWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             T result;
             Assert.IsFalse(queue.Poll(out result));
         }
 
-        [Test] public void PollSucceedsUntilEmpty()
+        [Test] public virtual void PollSucceedsUntilEmpty()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
             T result;
@@ -166,13 +171,13 @@ namespace Spring.Collections.Generic
                 CollectionAssert.Contains(_samples, result);
         }
 
-        [Test] public void ElementChokesWhenQuqueIsEmpty()
+        [Test] public virtual void ElementChokesWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             Assert.Throws<NoElementsException>(() => queue.Element());
         }
 
-        [Test] public void ElementSucceedsWhenQueueIsNotEmpty()
+        [Test] public virtual void ElementSucceedsWhenQueueIsNotEmpty()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
 			for (int i = 0; i < _sampleSize; ++i)
@@ -182,7 +187,7 @@ namespace Spring.Collections.Generic
             }
         }
 
-        [Test] public void PeekReturnsFalseWhenQuqueIsEmpty()
+        [Test] public virtual void PeekReturnsFalseWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             T result;
@@ -190,7 +195,7 @@ namespace Spring.Collections.Generic
             Assert.That(result, Is.EqualTo(default(T)));
         }
 
-        [Test] public void PeekSucceedsWhenQueueIsNotEmpty()
+        [Test] public virtual void PeekSucceedsWhenQueueIsNotEmpty()
         {
             var queue = NewQueueFilledWithSample();
             for (int i = 0; i < _sampleSize; ++i)
@@ -205,7 +210,7 @@ namespace Spring.Collections.Generic
             }
         }
 
-        [Test] public void AddRemoveInMultipeLoops()
+        [Test] public virtual void AddRemoveInMultipeLoops()
         {
             IQueue<T> queue = NewQueue();
             AddRemoveOneLoop(queue, _sampleSize / 2);
@@ -214,7 +219,7 @@ namespace Spring.Collections.Generic
             AddRemoveOneLoop(queue, _sampleSize);
         }
 
-        [Test] public void RemainingCapacityDecreasesOnAddIncreasesOnRemove()
+        [Test] public virtual void RemainingCapacityDecreasesOnAddIncreasesOnRemove()
         {
             IQueue<T> queue = NewQueue();
             AssertRemainingCapacity(queue, _sampleSize);
@@ -232,11 +237,12 @@ namespace Spring.Collections.Generic
             }
         }
 
-        [Test] public void ClearRemovesAllElements()
+        [Test] public virtual void ClearRemovesAllElements()
         {
             var q = NewQueueFilledWithSample();
             q.Clear();
             Assert.AreEqual(0, q.Count);
+            if (q.RemainingCapacity == 0) Assert.Pass("Skip as this queue has no capacity.");
             AssertRemainingCapacity(q, _sampleSize);
             q.Add(_samples[1]);
             Assert.AreEqual(1, q.Count);
@@ -245,7 +251,7 @@ namespace Spring.Collections.Generic
             Assert.AreEqual(0, q.Count);
         }
 
-        [Test] public void TransitionsFromEmptyToFullWhenElementsAdded()
+        [Test] public virtual void TransitionsFromEmptyToFullWhenElementsAdded()
         {
             SkipIfUnboundedQueue();
             var q = NewQueue();
@@ -268,7 +274,7 @@ namespace Spring.Collections.Generic
                 base.EnumerateThroughAllElements();
         }
 
-        [Test] public void DeserializedQueueIsSameAsOriginal()
+        [Test] public virtual void DeserializedQueueIsSameAsOriginal()
         {
             var q = NewQueueFilledWithSample();
             MemoryStream bout = new MemoryStream(10000);
@@ -278,7 +284,7 @@ namespace Spring.Collections.Generic
 
             MemoryStream bin = new MemoryStream(bout.ToArray());
             BinaryFormatter formatter2 = new BinaryFormatter();
-            LinkedBlockingQueue<T> r = (LinkedBlockingQueue<T>)formatter2.Deserialize(bin);
+            var r = (IQueue<T>)formatter2.Deserialize(bin);
 
             Assert.AreEqual(q.Count, r.Count);
             while (q.Count>0)

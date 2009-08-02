@@ -20,6 +20,7 @@ namespace Spring
 
     public static class TestData<T>
     {
+        public static readonly T Zero = MakeData(0);
         public static readonly T One = MakeData(1);
         public static readonly T Two = MakeData(2);
         public static readonly T Three = MakeData(3);

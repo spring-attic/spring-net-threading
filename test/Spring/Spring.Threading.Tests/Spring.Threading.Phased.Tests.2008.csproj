@@ -136,10 +136,11 @@
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\BlockingQueueTestFixture.cs" />
-    <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueAsGenericTest.cs" />
+    <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
+    <Compile Include="Threading\Collections\Generic\SynchronousQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\DiscardOldestPolicyTest.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\DiscardPolicyTest.cs" />

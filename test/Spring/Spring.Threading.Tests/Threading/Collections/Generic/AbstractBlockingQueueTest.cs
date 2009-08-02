@@ -46,32 +46,32 @@ namespace Spring.Threading.Collections.Generic
         [Test] public void DrainToDoesNothingOnNonPositiveMaxElement([Values(0, -1)] int maxElement)
         {
             Assert.That(_testee.DrainTo(_mockCollection, maxElement), Is.EqualTo(0));
-            _testee.AssertWasNotCalled(x=>x.DoDrainTo(null, 0, null), m=>m.IgnoreArguments());
+            _testee.AssertWasNotCalled(x=>x.DoDrain(null, 0, null), m=>m.IgnoreArguments());
         }
 
         [Test] public void DrainToUnlimitedDelegateToDoDrainToVirtual()
         {
             const int result = 10;
-            _testee.Stub(x=>x.DoDrainTo(null, null)).IgnoreArguments().Return(result);
+            _testee.Stub(x=>x.DoDrain(null, null)).IgnoreArguments().Return(result);
             Assert.That(_testee.DrainTo(_mockCollection), Is.EqualTo(result));
-            _testee.AssertWasCalled(x => x.DoDrainTo(_mockCollection.Add, null));
+            _testee.AssertWasCalled(x => x.DoDrain(_mockCollection.Add, null));
         }
 
         [Test] public void DrainToUnlimitedDelegateToDoDrainToAbstract()
         {
             const int result = 10;
-            _testee.Stub(x=>x.DoDrainTo(null, 0, null)).IgnoreArguments().Return(result);
+            _testee.Stub(x=>x.DoDrain(null, 0, null)).IgnoreArguments().Return(result);
             Assert.That(_testee.DrainTo(_mockCollection), Is.EqualTo(result));
-            _testee.AssertWasCalled(x => x.DoDrainTo(_mockCollection.Add, int.MaxValue, null));
+            _testee.AssertWasCalled(x => x.DoDrain(_mockCollection.Add, int.MaxValue, null));
         }
 
         [Test] public void DrainToLimitedDelegateToDoDrainToAbstract()
         {
             const int result = 10;
             const int limit = 5;
-            _testee.Stub(x=>x.DoDrainTo(null, 0, null)).IgnoreArguments().Return(result);
+            _testee.Stub(x=>x.DoDrain(null, 0, null)).IgnoreArguments().Return(result);
             Assert.That(_testee.DrainTo(_mockCollection, limit), Is.EqualTo(result));
-            _testee.AssertWasCalled(x => x.DoDrainTo(_mockCollection.Add, limit, null));
+            _testee.AssertWasCalled(x => x.DoDrain(_mockCollection.Add, limit, null));
         }
 
     	[Test] public void AddRangeChokesWhenNotEnoughRoom() {

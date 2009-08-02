@@ -155,6 +155,7 @@ namespace Spring.Collections
         {
             IQueue queue = NewQueue();
             Assert.IsTrue(queue.IsEmpty);
+            if (_sampleSize ==0) Assert.Pass();
             queue.Add(_samples[0]);
             Assert.IsFalse(queue.IsEmpty);
         }

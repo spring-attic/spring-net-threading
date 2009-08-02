@@ -164,7 +164,7 @@ namespace Spring.Threading.Collections.Generic
         public virtual int DrainTo(ICollection<T> collection, Predicate<T> predicate)
         {
             CheckCollection(collection);
-            return DoDrainTo(collection.Add, predicate);
+            return DoDrain(collection.Add, predicate);
         }
 
         /// <summary> 
@@ -246,7 +246,7 @@ namespace Spring.Threading.Collections.Generic
         {
             CheckCollection(collection);
             if (maxElements <= 0) return 0;
-            return DoDrainTo(collection.Add, maxElements, predicate);
+            return DoDrain(collection.Add, maxElements, predicate);
         }
 
         /// <summary>
