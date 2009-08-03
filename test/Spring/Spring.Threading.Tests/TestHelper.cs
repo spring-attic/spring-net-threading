@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.ComponentModel;
+using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using NUnit.Framework;
 using System.Text.RegularExpressions;
@@ -379,6 +381,19 @@ namespace Spring
         #endregion
 
         #endregion
+
+
+        public static T SerializeAndDeserialize<T>(T o)
+        {
+            MemoryStream bout = new MemoryStream(10000);
+
+            BinaryFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(bout, o);
+
+            MemoryStream bin = new MemoryStream(bout.ToArray());
+            BinaryFormatter formatter2 = new BinaryFormatter();
+            return (T)formatter2.Deserialize(bin);
+        }
 
     }
 }

@@ -492,117 +492,200 @@ namespace Spring.Threading.Execution
 			}
 		}
 
-		internal class DelegatedExecutorService : AbstractExecutorService
+		internal class DelegatedExecutorService : IExecutorService
 		{
 			private readonly IExecutorService _executorService;
-
-			public override bool IsShutdown
-			{
-				get { return _executorService.IsShutdown; }
-
-			}
-
-			public override bool IsTerminated
-			{
-				get { return _executorService.IsTerminated; }
-
-			}
 
 			internal DelegatedExecutorService(IExecutorService executor)
 			{
 				_executorService = executor;
 			}
 
-			protected override void DoExecute(IRunnable command)
+			public virtual bool IsShutdown
+			{
+				get { return _executorService.IsShutdown; }
+			}
+
+			public virtual bool IsTerminated
+			{
+				get { return _executorService.IsTerminated; }
+			}
+
+			public virtual void Execute(IRunnable command)
 			{
 				_executorService.Execute(command);
 			}
 
-			public override void Shutdown()
+            public virtual void Execute(Action action)
+            {
+                _executorService.Execute(action);
+            }
+
+			public virtual void Shutdown()
 			{
 				_executorService.Shutdown();
 			}
 
-			public override IList<IRunnable> ShutdownNow()
+			public virtual IList<IRunnable> ShutdownNow()
 			{
 				return _executorService.ShutdownNow();
 			}
 
-			public override bool AwaitTermination(TimeSpan duration)
+			public virtual bool AwaitTermination(TimeSpan duration)
 			{
 				return _executorService.AwaitTermination(duration);
 			}
 
-			public override IFuture<object> Submit(IRunnable task)
+			public virtual IFuture<object> Submit(IRunnable task)
 			{
 				return _executorService.Submit(task);
 			}
 
-			public override IFuture<T> Submit<T>(ICallable<T> task)
+			public virtual IFuture<T> Submit<T>(ICallable<T> task)
 			{
 				return _executorService.Submit(task);
 			}
 
-			public override IFuture<T> Submit<T>(IRunnable task, T result)
+			public virtual IFuture<T> Submit<T>(IRunnable task, T result)
 			{
 				return _executorService.Submit(task, result);
 			}
 
-            public override IFuture<T> Submit<T>(Func<T> call)
+            public virtual IFuture<T> Submit<T>(Func<T> call)
             {
                 return _executorService.Submit(call);
             }
 
-            public override IFuture<T> Submit<T>(Action action, T result)
+            public virtual IFuture<T> Submit<T>(Action action, T result)
             {
                 return _executorService.Submit(action, result);
             }
 
-            public override IFuture<object> Submit(Action action)
+            public virtual IFuture<object> Submit(Action action)
             {
                 return _executorService.Submit(action);
             }
 
-            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<Func<T>> tasks)
+            public virtual IList<IFuture<T>> InvokeAll<T>(IEnumerable<Func<T>> tasks)
             {
                 return _executorService.InvokeAll(tasks);
             }
 
-            public override IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
+            public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
             {
                 return _executorService.InvokeAll(durationToWait, tasks);
             }
 
-            public override IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks)
+            public virtual IList<IFuture<T>> InvokeAll<T>(IEnumerable<ICallable<T>> tasks)
             {
                 return _executorService.InvokeAll(tasks);
             }
 
-            public override IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
+            public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
             {
                 return _executorService.InvokeAll(durationToWait, tasks);
             }
 
-            public override T InvokeAny<T>(IEnumerable<Func<T>> tasks)
+            public virtual T InvokeAny<T>(IEnumerable<Func<T>> tasks)
             {
                 return _executorService.InvokeAny(tasks);
             }
 
-            public override T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
+            public virtual T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
             {
                 return _executorService.InvokeAny(durationToWait, tasks);
             }
 
-            public override T InvokeAny<T>(IEnumerable<ICallable<T>> tasks)
+            public virtual T InvokeAny<T>(IEnumerable<ICallable<T>> tasks)
             {
                 return _executorService.InvokeAny(tasks);
             }
 
-            public override T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
+            public virtual T InvokeAny<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
             {
                 return _executorService.InvokeAny(durationToWait, tasks);
             }
-		}
+
+            public virtual IList<IFuture<T>> InvokeAll<T>(params ICallable<T>[] tasks)
+            {
+                return _executorService.InvokeAll(tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAll<T>(params Func<T>[] tasks)
+            {
+                return _executorService.InvokeAll(tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+            {
+                return _executorService.InvokeAll(durationToWait, tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Func<T>[] tasks)
+            {
+                return _executorService.InvokeAll(durationToWait, tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<ICallable<T>> tasks)
+            {
+                return _executorService.InvokeAllOrFail(tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAllOrFail<T>(params ICallable<T>[] tasks)
+            {
+                return _executorService.InvokeAllOrFail(tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAllOrFail<T>(IEnumerable<Func<T>> tasks)
+            {
+                return _executorService.InvokeAllOrFail(tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAllOrFail<T>(params Func<T>[] tasks)
+            {
+                return _executorService.InvokeAllOrFail(tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<ICallable<T>> tasks)
+            {
+                return _executorService.InvokeAllOrFail(durationToWait, tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+            {
+                return _executorService.InvokeAllOrFail(durationToWait, tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
+            {
+                return _executorService.InvokeAllOrFail(durationToWait, tasks);
+            }
+
+            public virtual IList<IFuture<T>> InvokeAllOrFail<T>(TimeSpan durationToWait, params Func<T>[] tasks)
+            {
+                return _executorService.InvokeAllOrFail(durationToWait, tasks);
+            }
+
+            public virtual T InvokeAny<T>(params ICallable<T>[] tasks)
+            {
+                return _executorService.InvokeAny(tasks);
+            }
+
+            public virtual T InvokeAny<T>(params Func<T>[] tasks)
+            {
+                return _executorService.InvokeAny(tasks);
+            }
+
+            public virtual T InvokeAny<T>(TimeSpan durationToWait, params ICallable<T>[] tasks)
+            {
+                return _executorService.InvokeAny(durationToWait, tasks);
+            }
+
+            public virtual T InvokeAny<T>(TimeSpan durationToWait, params Func<T>[] tasks)
+            {
+                return _executorService.InvokeAny(durationToWait, tasks);
+            }
+        }
         
         internal class FinalizableDelegatedExecutorService : DelegatedExecutorService
         {
