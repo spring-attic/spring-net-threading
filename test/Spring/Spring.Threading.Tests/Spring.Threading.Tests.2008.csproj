@@ -135,17 +135,21 @@
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueAsGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
+    <Compile Include="Threading\Collections\Generic\BlockingQueueTestFixture.cs" />
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />
-    <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueAsGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
+    <Compile Include="Threading\Collections\Generic\SynchronousQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
     <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
     <Compile Include="Threading\CountDownLatchTests.cs" />
     <Compile Include="Threading\CyclicBarrierTests.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs" />
+    <Compile Include="Threading\Execution\CancellationExceptionTest.cs" />
+    <Compile Include="Threading\Execution\DelegatedExecutorServiceTest.cs" />
+    <Compile Include="Threading\Execution\ExecutionExceptionTest.cs" />
     <Compile Include="Threading\Execution\ExecutionExceptionTests.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\AbortPolicyTests.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicyTests.cs">
@@ -153,6 +157,7 @@
     </Compile>
     <Compile Include="Threading\Execution\ExecutorCompletionServiceTest.cs" />
     <Compile Include="Threading\Execution\ExecutorsTest.cs" />
+    <Compile Include="Threading\Execution\RejectedExecutionExceptionTest.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTests.cs" />
     <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutorTests.cs" />

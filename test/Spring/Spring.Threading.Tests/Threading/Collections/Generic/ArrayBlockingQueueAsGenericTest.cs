@@ -43,6 +43,7 @@ namespace Spring.Threading.Collections.Generic
         {
             _isCapacityRestricted = true;
             _isFifoQueue = true;
+            _isFair = true;
         }
         protected override IBlockingQueue<T> NewBlockingQueue()
         {

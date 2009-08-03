@@ -17,7 +17,7 @@ namespace Spring.Threading.Collections.Generic
     {
         public SynchronousQueueFairTest()
         {
-            _isFifoQueue = true;
+            _isFair = true;
         }
         protected override SynchronousQueue<T> NewSynchronousQueue()
         {
@@ -46,6 +46,7 @@ namespace Spring.Threading.Collections.Generic
         {
             _isCapacityRestricted = true;
             _sampleSize = 0;
+            _isFifoQueue = true;
         }
 
         protected override IBlockingQueue<T> NewBlockingQueue()
@@ -127,7 +128,7 @@ namespace Spring.Threading.Collections.Generic
             q.Offer(TestData<T>.One);
             q.Offer(TestData<T>.Two);
             ThreadManager.JoinAndVerify();
-            if (_isFifoQueue)
+            if (_isFair)
             {
                 Assert.That(values[0], Is.EqualTo(TestData<T>.One));
                 Assert.That(values[1], Is.EqualTo(TestData<T>.Two));
@@ -166,7 +167,7 @@ namespace Spring.Threading.Collections.Generic
             for (int i = 0; i < size; i++)
             {
 
-                if (_isFifoQueue)
+                if (_isFair)
                 {
                     Assert.That(values[i], Is.EqualTo(TestData<T>.MakeData(i)));
                 }

@@ -13,6 +13,8 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Kenneth Xu</author>
     public abstract class BlockingQueueTestFixture<T> : QueueTestFixture<T>
     {
+        protected bool _isFair;
+
         protected TestThreadManager ThreadManager { get; private set; }
 
         [SetUp] public virtual void SetUpThreadManager()
@@ -147,14 +149,13 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.StartAndAssertRegistered(
                 "T4",
                 () => Assert.IsTrue(q.Offer(values[_sampleSize + 2], TestData.LongDelay)));
-            Thread.Sleep(TestData.ShortDelay);
             t.Interrupt();
             Thread.Sleep(TestData.ShortDelay);
             for (int i = 0; i < _sampleSize + 3; i++)
             {
                 T result;
                 Assert.IsTrue(q.Poll(TestData.ShortDelay, out result));
-                if (_isFifoQueue) Assert.That(result, Is.EqualTo(values[i]));
+                if (_isFifoQueue && (i<_sampleSize || _isFair)) Assert.That(result, Is.EqualTo(values[i]));
                 else CollectionAssert.Contains(values, result);
             }
             ThreadManager.JoinAndVerify();
