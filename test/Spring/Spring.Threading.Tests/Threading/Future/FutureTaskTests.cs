@@ -13,7 +13,7 @@ namespace Spring.Threading.Future
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
-    public class FutureTaskTest<T> : BaseThreadingTestCase
+    public class FutureTaskTest<T> : ThreadingTestFixture<T>
     {
         private readonly Func<T> _noOpCall = () => default(T);
 
