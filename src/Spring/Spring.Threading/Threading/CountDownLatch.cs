@@ -8,44 +8,55 @@ namespace Spring.Threading
     /// a set of operations being performed in other threads completes.
     /// </summary>
     /// <remarks>
-    /// A <see cref="Spring.Threading.CountDownLatch"/> is initialized with a given
-    /// <b>count</b>.  The <see cref="Spring.Threading.CountDownLatch.Await()"/> and <see cref="Spring.Threading.CountDownLatch.Await(TimeSpan)"/>
-    /// methods block until the current <see cref="Spring.Threading.CountDownLatch.Count"/> 
-    /// reaches zero due to invocations of the
-    /// <see cref="Spring.Threading.CountDownLatch.CountDown()"/> method, after which all waiting threads are
-    /// released and any subsequent invocations of <see cref="Spring.Threading.CountDownLatch.Await()"/> and <see cref="Spring.Threading.CountDownLatch.Await(TimeSpan)"/> return
-    /// immediately. This is a one-shot phenomenon -- the count cannot be
-    /// reset.  If you need a version that resets the count, consider using
-    /// a <see cref="Spring.Threading.CyclicBarrier"/>.
-    /// 
-    /// <p/>
-    /// A <see cref="Spring.Threading.CountDownLatch"/> is a versatile synchronization tool
-    /// and can be used for a number of purposes.  A
-    /// <see cref="Spring.Threading.CountDownLatch"/> initialized with a count of one serves as a
-    /// simple on/off latch, or gate: all threads invoking  <see cref="Spring.Threading.CountDownLatch.Await()"/> and <see cref="Spring.Threading.CountDownLatch.Await(TimeSpan)"/>
-    /// wait at the gate until it is opened by a thread invoking <see cref="Spring.Threading.CountDownLatch.CountDown()"/>.
-    /// A <see cref="Spring.Threading.CountDownLatch"/> initialized to <i>N</i>
-    /// can be used to make one thread wait until <i>N</i> threads have
-    /// completed some action, or some action has been completed <i>N</i> times.
-    /// 
-    /// <p/>
-    /// A useful property of a <see cref="Spring.Threading.CountDownLatch"/> is that it
-    /// doesn't require that threads calling <see cref="Spring.Threading.CountDownLatch.CountDown()"/> wait for
+    /// <para>
+    /// A <see cref="CountDownLatch"/> is initialized with a given <b>count</b>.
+    /// The <see cref="Await()"/> and <see cref="Await(TimeSpan)"/> methods 
+    /// block until the current <see cref="Count"/> reaches zero due to 
+    /// invocations of the <see cref="CountDown()"/> method, after which all 
+    /// waiting threads are released and any subsequent invocations of 
+    /// <see cref="Await()"/> or <see cref="Await(TimeSpan)"/> return 
+    /// immediately. This is a one-shot phenomenon -- the count cannot be reset.
+    /// If you need a version that resets the count, consider using a 
+    /// <see cref="CyclicBarrier"/>.
+    /// </para>
+    /// <para>
+    /// A <see cref="CountDownLatch"/> is a versatile synchronization tool
+    /// and can be used for a number of purposes.  A <see cref="CountDownLatch"/> 
+    /// initialized with a count of one serves as a simple on/off latch, or 
+    /// gate: all threads invoking <see cref="Await()"/> or <see cref="Await(TimeSpan)"/>
+    /// wait at the gate until it is opened by a thread invoking <see cref="CountDown()"/>.
+    /// A <see cref="CountDownLatch"/> initialized to <b>N</b> can be used to 
+    /// make one thread wait until <b>N</b> threads have completed some action, 
+    /// or some action has been completed <b>N</b> times.
+    /// </para>
+    /// <para>
+    /// A useful property of a <see cref="CountDownLatch"/> is that it doesn't 
+    /// require that threads calling <see cref="CountDown()"/> wait for
     /// the count to reach zero before proceeding, it simply prevents any
-    /// thread from proceeding past an <see cref="Spring.Threading.CountDownLatch.Await()"/> and <see cref="Spring.Threading.CountDownLatch.Await(TimeSpan)"/> until all
-    /// threads could pass.
-    /// 
-    /// <p/>
+    /// thread from proceeding past an <see cref="Await()"/> or 
+    /// <see cref="Await(TimeSpan)"/> until all threads could pass.
+    /// </para>
+    /// <para>
+    /// <b>Memory consistency effects</b>: Actions in a thread prior to calling
+    /// <see cref="CountDown"/> <i>happen-before</i> actions following a 
+    /// successful return from a corresponding <see cref="Await()"/> in another 
+    /// thread.
+    /// </para>
+    /// <example>
     /// <b>Sample usage:</b> 
     /// <br/>
-    /// Here is a pair of classes in which a group
-    /// of worker threads use two countdown latches:
-    /// <ul>
-    /// <li>The first is a start signal that prevents any worker from proceeding
-    /// until the driver is ready for them to proceed.</li>
-    /// <li>The second is a completion signal that allows the driver to wait
-    /// until all workers have completed.</li>
-    /// </ul>
+    /// Here is a pair of classes in which a group of worker threads use two 
+    /// countdown latches:
+    /// <list type="bullet">
+    /// <item>
+    /// The first is a start signal that prevents any worker from proceeding
+    /// until the driver is ready for them to proceed.
+    /// </item>
+    /// <item>
+    /// The second is a completion signal that allows the driver to wait
+    /// until all workers have completed.
+    /// </item>
+    /// </list>
     /// 
     /// <code>
     /// public class Driver { // ...
@@ -54,7 +65,7 @@ namespace Spring.Threading
     ///			CountDownLatch doneSignal = new CountDownLatch(N);
     /// 
     ///			for (int i = 0; i &lt; N; ++i)
-    ///				new Thread(new ThreadStart(new Worker(startSignal, doneSignal).Run).Start();
+    ///				new Thread(new Worker(startSignal, doneSignal).Run).Start();
     /// 
     /// 		doSomethingElse();            // don't let run yet
     ///			startSignal.CountDown();      // let all threads proceed
@@ -63,7 +74,7 @@ namespace Spring.Threading
     /// 	}
     /// }
     /// 
-    /// public class Worker : IRunnable {
+    /// public class Worker {
     ///		private CountDownLatch startSignal;
     /// 	private CountDownLatch doneSignal;
     /// 	Worker(CountDownLatch startSignal, CountDownLatch doneSignal) {
@@ -73,23 +84,22 @@ namespace Spring.Threading
     /// 	public void Run() {
     /// 		try {
     /// 			startSignal.Await();
-    /// 			doWork();
+    /// 			DoWork();
     /// 			doneSignal.CountDown();
     /// 		} catch (ThreadInterruptedException ex) {} // return;
     /// 	}
     /// 
-    /// 	void doWork() { ... }
+    /// 	void DoWork() { ... }
     /// }
     /// 
     /// </code>
-    /// 
-    /// <p/>
     /// Another typical usage would be to divide a problem into N parts,
-    /// describe each part with a <see cref="Spring.Threading.IRunnable"/> that executes that portion and
-    /// counts down on the latch, and queue all the <see cref="Spring.Threading.IRunnable"/>s to an
-    /// <see cref="Spring.Threading.IExecutor"/>.  When all sub-parts are complete, the coordinating thread
-    /// will be able to pass through await. (When threads must repeatedly
-    /// count down in this way, instead use a <see cref="Spring.Threading.CyclicBarrier"/>.)
+    /// describe each part with a worker that executes that portion and counts 
+    /// down on the latch, and queue all the <see cref="IRunnable"/>s to an
+    /// <see cref="IExecutor"/>.  When all sub-parts are complete, the 
+    /// coordinating thread will be able to pass through await. (When threads 
+    /// must repeatedly count down in this way, instead use a 
+    /// <see cref="Spring.Threading.CyclicBarrier"/>.)
     /// 
     /// <code>
     /// public class Driver2 { // ...
@@ -113,18 +123,20 @@ namespace Spring.Threading
     /// 	}
     /// 	public void Run() {
     /// 		try {
-    /// 			doWork(i);
+    /// 			DoWork(i);
     /// 			doneSignal.CountDown();
     /// 		} catch (ThreadInterruptedException ex) {} // return;
     /// 	}
     ///	 
-    ///		void doWork() { ... }
+    ///		void DoWork() { ... }
     /// }
     /// 
     /// </code>
+    /// </example>
     /// </remarks>
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu</author>
     public class CountDownLatch //BACKPORT_3_1
     {
         private int _count;
@@ -142,37 +154,45 @@ namespace Spring.Threading
 
         }
         /// <summary> 
-        /// Constructs a <see cref="Spring.Threading.CountDownLatch"/> initialized with the given
+        /// Constructs a <see cref="CountDownLatch"/> initialized with the given
         /// <paramref name="count"/>.
         /// </summary>
-        /// <param name="count">the number of times <see cref="Spring.Threading.CountDownLatch.CountDown"/> must be invoked
-        /// before threads can pass through <see cref="Spring.Threading.CountDownLatch.Await()"/>.
+        /// <param name="count">the number of times <see cref="CountDown"/> must 
+        /// be invoked before threads can pass through <see cref="Await()"/>.
         /// </param>
-        /// <exception cref="System.ArgumentException">if <paramref name="count"/> is less than 0.</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">
+        /// If <paramref name="count"/> is less than 0.
+        /// </exception>
         public CountDownLatch(int count)
         {
             if (count < 0)
-                throw new ArgumentException("Count must be greater than 0.");
+                throw new ArgumentOutOfRangeException(
+                    "count", count, "Count must be greater than 0.");
             _count = count;
         }
 
         /// <summary> 
-        /// Causes the current thread to wait until the latch has counted down to
-        /// zero, unless <see cref="System.Threading.Thread.Interrupt()"/> is called on the thread.
+        /// Causes the current thread to wait until the latch has counted down 
+        /// to zero, unless <see cref="Thread.Interrupt()"/> is called on the 
+        /// thread.
         /// </summary>	
         /// <remarks>
-        /// If the current <see cref="Spring.Threading.CountDownLatch.Count"/>  is zero then this method
-        /// returns immediately.
-        /// <p/>If the current <see cref="Spring.Threading.CountDownLatch.Count"/> is greater than zero then
-        /// the current thread becomes disabled for thread scheduling
-        /// purposes and lies dormant until the count reaches zero due to invocations of the
-        /// <see cref="Spring.Threading.CountDownLatch.CountDown()"/> method or 
-        /// some other thread calls <see cref="System.Threading.Thread.Interrupt()"/> on the current
-        /// thread.
-        /// <p/>
-        /// A <see cref="System.Threading.ThreadInterruptedException"/> is thrown if the thread is interrupted.
+        /// <para>
+        /// If the current <see cref="Count"/> is zero then this method returns 
+        /// immediately.
+        /// </para>
+        /// <para>
+        /// If the current <see cref="Count"/> is greater than zero then the 
+        /// current thread becomes disabled for thread scheduling purposes and 
+        /// lies dormant until the count reaches zero due to invocations of the
+        /// <see cref="CountDown()"/> method or some other thread calls 
+        /// <see cref="Thread.Interrupt()"/> on the current thread.
+        /// </para>
         /// </remarks>
-        /// <exception cref="System.Threading.ThreadInterruptedException">if the current thread is interrupted.</exception>
+        /// <exception cref="ThreadInterruptedException">
+        /// If the current thread has its interrupted status set on entry to
+        /// this method or is interrupted while waiting.
+        /// </exception>
         public void Await()
         {
             lock (this)
@@ -183,53 +203,60 @@ namespace Spring.Threading
         }
 
         /// <summary> 
-        /// Causes the current thread to wait until the latch has counted down to
-        /// zero, unless <see cref="System.Threading.Thread.Interrupt()"/> is called on the thread or
-        /// the specified <paramref name="duration"/> elapses.
+        /// Causes the current thread to wait until the latch has counted down 
+        /// to zero, unless <see cref="Thread.Interrupt()"/> is called on the 
+        /// thread or the specified <paramref name="duration"/> elapses.
         /// </summary>	
         /// <remarks> 
-        /// <p/>
-        /// If the current <see cref="Spring.Threading.CountDownLatch.Count"/>  is zero then this method
+        /// <para>
+        /// If the current <see cref="Count"/>  is zero then this method
         /// returns immediately.
-        /// <p/>If the current <see cref="Spring.Threading.CountDownLatch.Count"/> is greater than zero then
-        /// the current thread becomes disabled for thread scheduling
-        /// purposes and lies dormant until the count reaches zero due to invocations of the
-        /// <see cref="Spring.Threading.CountDownLatch.CountDown()"/> method or 
-        /// some other thread calls <see cref="System.Threading.Thread.Interrupt()"/> on the current
-        /// thread.
-        /// <p/>
-        /// A <see cref="System.Threading.ThreadInterruptedException"/> is thrown if the thread is interrupted.
-        /// <p/>
-        /// If the specified <paramref name="duration"/> elapses then the value <see lang="false"/>
-        /// is returned. If the time is less than or equal to zero, the method will not wait at all.
+        /// </para>
+        /// <para>
+        /// If the current <see cref="Count"/> is greater than zero then the 
+        /// current thread becomes disabled for thread scheduling purposes and 
+        /// lies dormant until the count reaches zero due to invocations of the
+        /// <see cref="CountDown()"/> method or some other thread calls 
+        /// <see cref="Thread.Interrupt()"/> on the current thread.
+        /// </para>
+        /// <para>
+        /// A <see cref="ThreadInterruptedException"/> is thrown if the thread 
+        /// is interrupted.
+        /// </para>
+        /// <para>
+        /// If the specified <paramref name="duration"/> elapses then the value
+        /// <see lang="false"/> is returned. If the time is less than or equal
+        /// to zero, the method will not wait at all.
+        /// </para>
         /// </remarks>
-        /// <param name="duration">the maximum time to wait
-        /// </param>
-        /// <returns> <see lang="true"/> if the count reached zero  and <see lang="false"/>
+        /// <param name="duration">The maximum time to wait.</param>
+        /// <returns>
+        /// <see lang="true"/> if the count reached zero and <see lang="false"/>
         /// if the waiting time elapsed before the count reached zero.
         /// </returns>
-        /// <exception cref="System.Threading.ThreadInterruptedException">if the current thread is interrupted.</exception>
+        /// <exception cref="ThreadInterruptedException">
+        /// If the current thread is interrupted.
+        /// </exception>
         public bool Await(TimeSpan duration)
         {
-            TimeSpan durationToWait = duration;
+            DateTime deadline = DateTime.UtcNow.Add(duration);
             lock (this)
             {
                 if (_count <= 0)
                     return true;
-                else if (durationToWait.Ticks <= 0)
+                else if (duration.Ticks <= 0)
                     return false;
                 else
                 {
-                    DateTime deadline = DateTime.Now.Add(durationToWait);
                     for (;; )
                     {
-                        Monitor.Wait(this, durationToWait);
+                        Monitor.Wait(this, duration);
                         if (_count <= 0)
                             return true;
                         else
                         {
-                            durationToWait = deadline.Subtract(DateTime.Now);
-                            if (durationToWait.Ticks <= 0)
+                            duration = deadline.Subtract(DateTime.UtcNow);
+                            if (duration.Ticks <= 0)
                                 return false;
                         }
                     }
@@ -242,10 +269,14 @@ namespace Spring.Threading
         /// the count reaches zero.
         /// </summary>
         /// <remarks>
-        /// If the current <see cref="Spring.Threading.CountDownLatch.Count"/> is greater than zero then
-        /// it is decremented. If the new count is zero then all waiting threads
-        /// are re-enabled for thread scheduling purposes. If the current <see cref="Spring.Threading.CountDownLatch.Count"/> equals zero then nothing
-        /// happens.
+        /// <para>
+        /// If the current <see cref="Count"/> is greater than zero then it is 
+        /// decremented. If the new count is zero then all waiting threads are 
+        /// re-enabled for thread scheduling purposes. 
+        /// </para>
+        /// <para>
+        /// If the current <see cref="Count"/> equals zero then nothing happens.
+        /// </para>
         /// </remarks>
         public void CountDown()
         {
@@ -262,10 +293,12 @@ namespace Spring.Threading
         /// Returns a string identifying this latch, as well as its state.
         /// </summary>
         /// <remarks>
-        /// The state, in brackets, includes the String
-        /// &quot;Count =&quot; followed by the current count.
+        /// The state, in brackets, includes the string &quot;Count =&quot; 
+        /// followed by the current count.
         /// </remarks>
-        /// <returns> a string identifying this latch, as well as its state</returns>
+        /// <returns>
+        /// A string identifying this latch, as well as its state.
+        /// </returns>
         public override String ToString()
         {
             return base.ToString() + "[Count = " + Count + "]";

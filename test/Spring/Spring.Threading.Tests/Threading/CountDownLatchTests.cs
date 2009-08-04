@@ -4,116 +4,24 @@ using NUnit.Framework;
 
 namespace Spring.Threading
 {
+    /// <summary>
+    /// Test cases for <see cref="CountDownLatch"/>.
+    /// </summary>
+    /// <author>Doug Lea</author>
+    /// <author>Griffin Caprio (.NET)</author>
+    /// <author>Kenneth Xu (Interlocked)</author>
     [TestFixture]
-    public class CountDownLatchTests : BaseThreadingTestCase
+    public class CountDownLatchTests : ThreadingTestFixture
     {
-        private class AnonymousClassRunnable : IRunnable
+        [Test]
+        public void ConstructorChokesOnNegativeCount()
         {
-            public AnonymousClassRunnable(CountDownLatch l)
-            {
-                this.l = l;
-            }
-
-            private CountDownLatch l;
-
-            public virtual void Run()
-            {
-                Assert.IsTrue(l.Count > 0);
-                l.Await();
-                Assert.IsTrue(l.Count == 0);
-            }
+            Assert.Throws<ArgumentOutOfRangeException>(
+                ()=>new CountDownLatch(- 1));
         }
-
-        private class AnonymousClassRunnable1 : IRunnable
-        {
-            public AnonymousClassRunnable1(CountDownLatch l)
-            {
-                this.l = l;
-            }
-
-            private CountDownLatch l;
-
-            public virtual void Run()
-            {
-                Assert.IsTrue(l.Count > 0);
-                Assert.IsTrue(l.Await(SMALL_DELAY));
-            }
-        }
-
-        private class AnonymousClassRunnable2 : IRunnable
-        {
-            public AnonymousClassRunnable2(CountDownLatch l)
-            {
-                this.l = l;
-            }
-
-            private CountDownLatch l;
-
-            public virtual void Run()
-            {
-                try
-                {
-                    Assert.IsTrue(l.Count > 0);
-                    l.Await();
-                    Assert.Fail("Should throw an exception.");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            }
-        }
-
-        private class AnonymousClassRunnable3 : IRunnable
-        {
-            public AnonymousClassRunnable3(CountDownLatch l)
-            {
-                this.l = l;
-            }
-
-            private CountDownLatch l;
-
-            public virtual void Run()
-            {
-                try
-                {
-                    Assert.IsTrue(l.Count > 0);
-                    l.Await(MEDIUM_DELAY);
-                    Assert.Fail("Should throw an exception.");
-                }
-                catch (ThreadInterruptedException)
-                {
-                }
-            }
-        }
-
-        private class AnonymousClassRunnable4 : IRunnable
-        {
-            public AnonymousClassRunnable4(CountDownLatch l)
-            {
-                this.l = l;
-            }
-
-            private CountDownLatch l;
-
-            public virtual void Run()
-            {
-                Assert.IsTrue(l.Count > 0);
-                Assert.IsFalse(l.Await(SHORT_DELAY));
-                Assert.IsTrue(l.Count > 0);
-            }
-        }
-
 
         [Test]
-        [ExpectedException(typeof (ArgumentException))]
-        public void Constructor()
-        {
-            new CountDownLatch(- 1);
-        }
-
-
-        [Test]
-        public void GetCount()
+        public void CountReturnsInitialCountAndDecreasesAftercountDown()
         {
             CountDownLatch l = new CountDownLatch(2);
             Assert.AreEqual(2, l.Count);
@@ -123,7 +31,7 @@ namespace Spring.Threading
 
 
         [Test]
-        public void CountDown()
+        public void CountDownDecrementsCountWhenPositiveAndHasNoEffectWhenZero()
         {
             CountDownLatch l = new CountDownLatch(1);
             Assert.AreEqual(1, l.Count);
@@ -135,12 +43,19 @@ namespace Spring.Threading
 
 
         [Test]
-        public void Await()
+        public void AwaitReturnsAfterCountDownToZeroButNotBefore()
         {
             CountDownLatch l = new CountDownLatch(2);
 
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable(l).Run));
-            t.Start();
+            ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate 
+                    {
+                        Assert.IsTrue(l.Count > 0);
+                        l.Await();
+                        Assert.IsTrue(l.Count == 0);
+
+                    });
             Assert.AreEqual(l.Count, 2);
 
             Thread.Sleep(SHORT_DELAY);
@@ -148,17 +63,38 @@ namespace Spring.Threading
             Assert.AreEqual(l.Count, 1);
             l.CountDown();
             Assert.AreEqual(l.Count, 0);
-            t.Join();
+            ThreadManager.JoinAndVerify();
         }
 
+        [Test]
+        public void AwaitReturnsImmediatelyIfCountIsZero()
+        {
+            CountDownLatch l = new CountDownLatch(1);
+            l.CountDown();
+
+            ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                {
+                    Assert.IsTrue(l.Count == 0);
+                    l.Await();
+
+                });
+            ThreadManager.JoinAndVerify();
+        }
 
         [Test]
-        public void TimedAwait()
+        public void TimedAwaitReturnsAfterCountDownToZero()
         {
             CountDownLatch l = new CountDownLatch(2);
 
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable1(l).Run));
-            t.Start();
+            ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                    {
+                        Assert.IsTrue(l.Count > 0);
+                        Assert.IsTrue(l.Await(SMALL_DELAY));
+                    });
             Assert.AreEqual(l.Count, 2);
 
             Thread.Sleep(SHORT_DELAY);
@@ -166,49 +102,97 @@ namespace Spring.Threading
             Assert.AreEqual(l.Count, 1);
             l.CountDown();
             Assert.AreEqual(l.Count, 0);
-            t.Join();
+            ThreadManager.JoinAndVerify();
         }
 
-
         [Test]
-        public void Await_InterruptedException()
+        public void TimedAwaitReturnsImmediatelyIfCountIsZero()
         {
             CountDownLatch l = new CountDownLatch(1);
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable2(l).Run));
-            t.Start();
+            l.CountDown();
+
+            ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                {
+                    Assert.IsTrue(l.Count == 0);
+                    Assert.IsTrue(l.Await(MEDIUM_DELAY));
+                    Assert.IsTrue(l.Await(TimeSpan.Zero));
+                });
+            ThreadManager.JoinAndVerify(SHORT_DELAY);
+        }
+
+        [Test]
+        public void TimedAwaitReturnsFalseOnNonPositiveWaitTime()
+        {
+            CountDownLatch l = new CountDownLatch(1);
+
+            ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                {
+                    Assert.IsTrue(l.Count == 1);
+                    Assert.IsFalse(l.Await(TimeSpan.Zero));
+                });
+            ThreadManager.JoinAndVerify(SHORT_DELAY);
+        }
+
+        [Test]
+        public void AwaitChokesIfInterruptedBeforeCountedDown()
+        {
+            CountDownLatch l = new CountDownLatch(1);
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                    {
+                        Assert.IsTrue(l.Count > 0);
+                        Assert.Throws<ThreadInterruptedException>(l.Await);
+                    });
             Assert.AreEqual(l.Count, 1);
             t.Interrupt();
-            t.Join();
+            ThreadManager.JoinAndVerify();
         }
 
 
         [Test]
-        public void TimedAwait_InterruptedException()
+        public void TimedAwaitChokesIfInterruptedBeforeCountedDown()
         {
             CountDownLatch l = new CountDownLatch(1);
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable3(l).Run));
-            t.Start();
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                    {
+                        Assert.IsTrue(l.Count > 0);
+                        Assert.Throws<ThreadInterruptedException>(()=>l.Await(MEDIUM_DELAY));
+                    });
             Thread.Sleep(SHORT_DELAY);
             Assert.AreEqual(l.Count, 1);
             t.Interrupt();
-            t.Join();
+            ThreadManager.JoinAndVerify();
         }
 
 
         [Test]
-        public void AwaitTimeout()
+        public void TimedAwaitTimesOutIfNotCountedDownBeforeTimeout()
         {
             CountDownLatch l = new CountDownLatch(1);
-            Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable4(l).Run));
-            t.Start();
+            ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                    {
+                        Assert.IsTrue(l.Count > 0);
+                        Assert.IsFalse(l.Await(SHORT_DELAY));
+                        Assert.IsTrue(l.Count > 0);
+
+                    });
             Assert.AreEqual(l.Count, 1);
-            t.Join();
+            ThreadManager.JoinAndVerify();
             Assert.AreEqual(l.Count, 1);
         }
 
 
         [Test]
-        public void CountDownLatchToString()
+        public void ToStringIndicatesCurrentCount()
         {
             CountDownLatch s = new CountDownLatch(2);
             String us = s.ToString();
