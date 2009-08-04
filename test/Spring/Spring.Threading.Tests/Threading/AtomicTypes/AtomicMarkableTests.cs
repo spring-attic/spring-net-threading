@@ -25,17 +25,18 @@ using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
 {
-	[TestFixture]
-	public class AtomicMarkableTests : BaseThreadingTestCase
+    [TestFixture(typeof(string))]
+    [TestFixture(typeof(int))]
+	public class AtomicMarkableTests<T> : ThreadingTestFixture<T>
 	{
 	    [Test]
 		public void DefaultConstructor()
 		{
-            AtomicMarkable<int> ai = new AtomicMarkable<int>(one, false);
+            AtomicMarkable<T> ai = new AtomicMarkable<T>(one, false);
 			Assert.AreEqual(one, ai.Value);
 			Assert.IsFalse(ai.IsMarked);
-            AtomicMarkable<object> a2 = new AtomicMarkable<object>(null, true);
-			Assert.IsNull(a2.Value);
+            AtomicMarkable<T> a2 = new AtomicMarkable<T>(default(T), true);
+			Assert.AreEqual(default(T), a2.Value);
 			Assert.IsTrue(a2.IsMarked);
 		}
 
@@ -43,7 +44,7 @@ namespace Spring.Threading.AtomicTypes
 		public void GetSet()
 		{
 			bool mark;
-            AtomicMarkable<int> ai = new AtomicMarkable<int>(one, false);
+            AtomicMarkable<T> ai = new AtomicMarkable<T>(one, false);
 			Assert.AreEqual(one, ai.Value);
 			Assert.IsFalse(ai.IsMarked);
 			Assert.AreEqual(one, ai.GetValue(out mark));
@@ -70,7 +71,7 @@ namespace Spring.Threading.AtomicTypes
 		public void AttemptMark()
 		{
 		    bool mark;
-            AtomicMarkable<int> ai = new AtomicMarkable<int>(one, false);
+            AtomicMarkable<T> ai = new AtomicMarkable<T>(one, false);
 			Assert.IsFalse(ai.IsMarked, "Value is marked.");
 			Assert.IsTrue(ai.AttemptMark(one, true), "Value was not marked");
 			Assert.IsTrue(ai.IsMarked, "Value is not marked.");
@@ -82,7 +83,7 @@ namespace Spring.Threading.AtomicTypes
 		public void CompareAndSet()
 		{
 		    bool mark;
-            AtomicMarkable<int> ai = new AtomicMarkable<int>(one, false);
+            AtomicMarkable<T> ai = new AtomicMarkable<T>(one, false);
             Assert.AreEqual(one, ai.GetValue(out mark));
 			Assert.IsFalse(ai.IsMarked);
 			Assert.IsFalse(mark);
@@ -103,15 +104,11 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreads()
 		{
-            AtomicMarkable<int> ai = new AtomicMarkable<int>(one, false);
-            Thread t = new Thread(delegate()
-            {
-                while (!ai.CompareAndSet(two, three, false, false))
-                    Thread.Sleep(SHORT_DELAY);
-            });
-			t.Start();
+            AtomicMarkable<T> ai = new AtomicMarkable<T>(one, false);
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1", () => { while (!ai.CompareAndSet(two, three, false, false)) Thread.Sleep(SHORT_DELAY); });
 			Assert.IsTrue(ai.CompareAndSet(one, two, false, false));
-			t.Join(LONG_DELAY);
+			ThreadManager.JoinAndVerify(LONG_DELAY);
 			Assert.IsFalse(t.IsAlive);
 			Assert.AreEqual(ai.Value, three);
 			Assert.IsFalse(ai.IsMarked);
@@ -120,15 +117,11 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreadsChangedMarkBits()
 		{
-            AtomicMarkable<int> ai = new AtomicMarkable<int>(one, false);
-            Thread t = new Thread(delegate()
-            {
-                while (!ai.CompareAndSet(one, one, true, false))
-                    Thread.Sleep(SHORT_DELAY);
-            });
-			t.Start();
+            AtomicMarkable<T> ai = new AtomicMarkable<T>(one, false);
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1", () => { while (!ai.CompareAndSet(one, one, true, false)) Thread.Sleep(SHORT_DELAY); });
 			Assert.IsTrue(ai.CompareAndSet(one, one, false, true));
-			t.Join(LONG_DELAY);
+			ThreadManager.JoinAndVerify(LONG_DELAY);
 			Assert.IsFalse(t.IsAlive);
 			Assert.AreEqual(ai.Value, one);
 			Assert.IsFalse(ai.IsMarked);
@@ -138,7 +131,7 @@ namespace Spring.Threading.AtomicTypes
 		public void WeakCompareAndSet()
 		{
 			bool mark;
-            AtomicMarkable<int> ai = new AtomicMarkable<int>(one, false);
+            AtomicMarkable<T> ai = new AtomicMarkable<T>(one, false);
 			Assert.AreEqual(one, ai.GetValue(out mark));
 			Assert.IsFalse(ai.IsMarked);
 			Assert.IsFalse(mark);
@@ -154,7 +147,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 			public void SerializeAndDeseralize()
 		{
-            AtomicMarkable<int> atomicMarkable = new AtomicMarkable<int>(one, true);	
+            AtomicMarkable<T> atomicMarkable = new AtomicMarkable<T>(one, true);	
 			MemoryStream bout = new MemoryStream(10000);
 
 			BinaryFormatter formatter = new BinaryFormatter();
@@ -162,7 +155,7 @@ namespace Spring.Threading.AtomicTypes
 
 			MemoryStream bin = new MemoryStream(bout.ToArray());
 			BinaryFormatter formatter2 = new BinaryFormatter();
-            AtomicMarkable<int> atomicMarkableReference2 = (AtomicMarkable<int>)formatter2.Deserialize(bin);
+            AtomicMarkable<T> atomicMarkableReference2 = (AtomicMarkable<T>)formatter2.Deserialize(bin);
 
 			Assert.AreEqual(atomicMarkable.Value, atomicMarkableReference2.Value);
 			Assert.IsTrue(atomicMarkableReference2.IsMarked);

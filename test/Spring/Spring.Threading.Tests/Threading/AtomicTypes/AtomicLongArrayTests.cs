@@ -28,7 +28,7 @@ using NUnit.Framework;
 namespace Spring.Threading.AtomicTypes
 {
 	[TestFixture]
-	public class AtomicLongArrayTests : BaseThreadingTestCase
+	public class AtomicLongArrayTests : ThreadingTestFixture
 	{
 	    [Test]
         public void ConstructAtomicIntegerArryWithGivenSize()
@@ -132,14 +132,10 @@ namespace Spring.Threading.AtomicTypes
 		{
 			AtomicLongArray a = new AtomicLongArray(1);
 			a[0] = 1;
-            Thread t = new Thread(delegate()
-            {
-                while (!a.CompareAndSet(0, 2, 3))
-                    Thread.Sleep(0);
-            });
-			t.Start();
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1", () => { while (!a.CompareAndSet(0, 2, 3)) Thread.Sleep(0); });
 			Assert.IsTrue(a.CompareAndSet(0, 1, 2));
-			t.Join(LONG_DELAY);
+			ThreadManager.JoinAndVerify(LONG_DELAY);
 			Assert.IsFalse(t.IsAlive);
 			Assert.AreEqual(a[0], 3);
 		}

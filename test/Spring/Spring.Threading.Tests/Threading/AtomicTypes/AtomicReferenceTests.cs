@@ -25,23 +25,26 @@ using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
 {
-    [TestFixture]
-    public class AtomicReferenceTests : BaseThreadingTestCase {
+    [TestFixture(typeof(string))]
+    [TestFixture(typeof(object))]
+    public class AtomicReferenceTests<T> : ThreadingTestFixture<T>
+        where T : class
+    {
         [Test]
         public void Constructor() {
-            AtomicReference<object> ai = new AtomicReference<object>(one);
+            AtomicReference<T> ai = new AtomicReference<T>(one);
             Assert.AreEqual(one, ai.Value);
         }
 
         [Test]
         public void Constructor2() {
-            AtomicReference<object> ai = new AtomicReference<object>();
+            AtomicReference<T> ai = new AtomicReference<T>();
             Assert.IsNull(ai.Value);
         }
 
         [Test]
         public void GetSet() {
-            AtomicReference<object> ai = new AtomicReference<object>(one);
+            AtomicReference<T> ai = new AtomicReference<T>(one);
             Assert.AreEqual(one, ai.Value);
             ai.Value = two;
             Assert.AreEqual(two, ai.Value);
@@ -51,7 +54,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void GetLazySet()
 		{
-			AtomicReference<object> ai = new AtomicReference<object>(one);
+			AtomicReference<T> ai = new AtomicReference<T>(one);
 			Assert.AreEqual(one, ai.Value);
 			ai.LazySet(two);
 			Assert.AreEqual(two, ai.Value);
@@ -61,45 +64,45 @@ namespace Spring.Threading.AtomicTypes
 
         [Test]
         public void CompareAndSet() {
-            object o1 = new object(), o2 = new object(), o4 = new object(), o5 = new object(), o7 = new object();
-            AtomicReference<object> ai = new AtomicReference<object>(o1);
+            T 
+                o1 = TestData<T>.MakeData(0), 
+                o2 = TestData<T>.MakeData(0), 
+                o4 = TestData<T>.MakeData(0), 
+                o5 = TestData<T>.MakeData(0), 
+                o7 = TestData<T>.MakeData(0);
+            AtomicReference<T> ai = new AtomicReference<T>(o1);
             //CS1718 Assert.IsTrue(one == one);
             Assert.IsTrue(ai.CompareAndSet(o1, o2), "Object reference comparison 1");
             Assert.IsTrue(ai.CompareAndSet(o2, o4), "Object reference comparison 2");
             Assert.AreEqual(o4, ai.Value);
             Assert.IsFalse(ai.CompareAndSet(o5, o7), "Object reference comparison 3");
-            Assert.IsFalse((o7.Equals(ai.Value)));
+            Assert.That(ai.Value, Is.Not.SameAs(o7));
             Assert.IsTrue(ai.CompareAndSet(o4, o7));
             Assert.AreEqual(o7, ai.Value);
         }
 
         [Test]
         public void CompareAndSetWithNullReference() {
-            AtomicReference<string> sar = new AtomicReference<string>();
-            const string expected = "test";
-            Assert.IsTrue(sar.CompareAndSet(null, expected));
-            Assert.IsTrue(sar.Value.Equals(expected));
+            AtomicReference<T> ar = new AtomicReference<T>();
+            T expected = one;
+            Assert.IsTrue(ar.CompareAndSet(null, expected));
+            Assert.IsTrue(ar.Value.Equals(expected));
         }
 
         [Test]
         public void CompareAndSetInMultipleThreads() {
-            AtomicReference<object> ai = new AtomicReference<object>(one);
-            Thread t = new Thread(delegate()
-                                      {
-                                          while (!ai.CompareAndSet(two, three))
-                                              Thread.Sleep(SHORT_DELAY);
-
-                                      });
-            t.Start();
+            AtomicReference<T> ai = new AtomicReference<T>(one);
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1", () => { while (!ai.CompareAndSet(two, three)) Thread.Sleep(SHORT_DELAY); });
             Assert.IsTrue(ai.CompareAndSet(one, two), "Value did not equal 'one' reference");
-            t.Join(SMALL_DELAY);
+            ThreadManager.JoinAndVerify();
             Assert.IsFalse(t.IsAlive, "Thread is still alive");
             Assert.AreEqual(ai.Value, three, "Object reference not switched from 'two' to 'three'");
         }
 
         [Test]
         public void WeakCompareAndSet() {
-            AtomicReference<object> ai = new AtomicReference<object>(one);
+            AtomicReference<T> ai = new AtomicReference<T>(one);
             while(!ai.WeakCompareAndSet(one, two)){}
             while(!ai.WeakCompareAndSet(two, m4)){}
             Assert.AreEqual(m4, ai.Value);
@@ -111,7 +114,7 @@ namespace Spring.Threading.AtomicTypes
 
         [Test]
         public void GetAndSet() {
-            AtomicReference<object> ai = new AtomicReference<object>(one);
+            AtomicReference<T> ai = new AtomicReference<T>(one);
             Assert.AreEqual(one, ai.Exchange(zero));
             Assert.AreEqual(zero, ai.Exchange(m10));
             Assert.AreEqual(m10, ai.Exchange(one));
@@ -119,7 +122,7 @@ namespace Spring.Threading.AtomicTypes
 
         [Test]
         public void Serialization() {
-            AtomicReference<object> l = new AtomicReference<object>();
+            AtomicReference<T> l = new AtomicReference<T>();
 
             MemoryStream bout = new MemoryStream(10000);
 
@@ -128,13 +131,13 @@ namespace Spring.Threading.AtomicTypes
 
             MemoryStream bin = new MemoryStream(bout.ToArray());
             BinaryFormatter formatter2 = new BinaryFormatter();
-            AtomicReference<object> r = (AtomicReference<object>)formatter2.Deserialize(bin);
+            AtomicReference<T> r = (AtomicReference<T>)formatter2.Deserialize(bin);
             Assert.AreEqual(l.Value, r.Value);
         }
 
         [Test]
         public void ToStringRepresentation() {
-            AtomicReference<object> ai = new AtomicReference<object>(one);
+            AtomicReference<T> ai = new AtomicReference<T>(one);
             Assert.AreEqual(ai.ToString(), one.ToString());
             ai.Value = two;
             Assert.AreEqual(ai.ToString(), two.ToString());
@@ -143,8 +146,8 @@ namespace Spring.Threading.AtomicTypes
         [Test]
         public void ImplicitConverter()
         {
-            AtomicReference<Integer> ai = new AtomicReference<Integer>(one);
-            Integer result = ai;
+            AtomicReference<T> ai = new AtomicReference<T>(one);
+            T result = ai;
             Assert.AreEqual(one, result);
             ai.Value = two;
             result = ai;

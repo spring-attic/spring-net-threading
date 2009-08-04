@@ -25,11 +25,13 @@ using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
 {
-    [TestFixture]
-    public class AtomicTests : BaseThreadingTestCase {
+    [TestFixture(typeof(string))]
+    [TestFixture(typeof(int))]
+    public class AtomicTests<T> : ThreadingTestFixture<T>
+    {
         [Test]
         public void Constructor() {
-            Atomic<int> ai = new Atomic<int>(one);
+            Atomic<T> ai = new Atomic<T>(one);
             Assert.AreEqual(one, ai.Value);
         }
 
@@ -41,7 +43,7 @@ namespace Spring.Threading.AtomicTypes
 
         [Test]
         public void GetSet() {
-            Atomic<int> ai = new Atomic<int>(one);
+            Atomic<T> ai = new Atomic<T>(one);
             Assert.AreEqual(one, ai.Value);
             ai.Value = two;
             Assert.AreEqual(two, ai.Value);
@@ -51,7 +53,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void GetLazySet()
 		{
-			Atomic<int> ai = new Atomic<int>(one);
+			Atomic<T> ai = new Atomic<T>(one);
 			Assert.AreEqual(one, ai.Value);
 			ai.LazySet(two);
 			Assert.AreEqual(two, ai.Value);
@@ -61,7 +63,7 @@ namespace Spring.Threading.AtomicTypes
 
         [Test]
         public void CompareAndSet() {
-            Atomic<int> ai = new Atomic<int>(one);
+            Atomic<T> ai = new Atomic<T>(one);
             //CS1718 Assert.IsTrue(one == one);
             Assert.IsTrue(ai.CompareAndSet(one, two), "Object reference comparison 1");
             Assert.IsTrue(ai.CompareAndSet(two, m4), "Object reference comparison 2");
@@ -82,7 +84,7 @@ namespace Spring.Threading.AtomicTypes
 
         [Test]
         public void CompareAndSetInMultipleThreads() {
-            Atomic<int> ai = new Atomic<int>(one);
+            Atomic<T> ai = new Atomic<T>(one);
             Thread t = new Thread(delegate()
             {
                 while (!ai.CompareAndSet(two, three))
@@ -97,7 +99,7 @@ namespace Spring.Threading.AtomicTypes
 
         [Test]
         public void WeakCompareAndSet() {
-            Atomic<int> ai = new Atomic<int>(one);
+            Atomic<T> ai = new Atomic<T>(one);
             while(!ai.WeakCompareAndSet(one, two)){}
             while(!ai.WeakCompareAndSet(two, m4)){}
             Assert.AreEqual(m4, ai.Value);
@@ -109,7 +111,7 @@ namespace Spring.Threading.AtomicTypes
 
         [Test]
         public void GetAndSet() {
-            Atomic<int> ai = new Atomic<int>(one);
+            Atomic<T> ai = new Atomic<T>(one);
             Assert.AreEqual(one, ai.Exchange(zero));
             Assert.AreEqual(zero, ai.Exchange(m10));
             Assert.AreEqual(m10, ai.Exchange(one));
@@ -117,7 +119,7 @@ namespace Spring.Threading.AtomicTypes
 
         [Test]
         public void Serialization() {
-            Atomic<int> l = new Atomic<int>();
+            Atomic<T> l = new Atomic<T>();
 
             MemoryStream bout = new MemoryStream(10000);
 
@@ -126,23 +128,24 @@ namespace Spring.Threading.AtomicTypes
 
             MemoryStream bin = new MemoryStream(bout.ToArray());
             BinaryFormatter formatter2 = new BinaryFormatter();
-            Atomic<int> r = (Atomic<int>)formatter2.Deserialize(bin);
+            Atomic<T> r = (Atomic<T>)formatter2.Deserialize(bin);
             Assert.AreEqual(l.Value, r.Value);
         }
 
         [Test]
         public void ToStringRepresentation() {
-            Atomic<int> ai = new Atomic<int>(one);
-            Assert.AreEqual(ai.ToString(), one.Value.ToString());
+            Atomic<T> ai = new Atomic<T>(one);
+            Assert.AreEqual(ai.ToString(), one.ToString());
             ai.Value = two;
-            Assert.AreEqual(ai.ToString(), two.Value.ToString());
+            Assert.AreEqual(ai.ToString(), two.ToString());
         }
 
         [Test]
         public void ImplicitConverter()
         {
-            Atomic<int> ai = new Atomic<int>(one);
-            Assert.AreEqual(2, 1+ai);
+            Atomic<T> ai = new Atomic<T>(one);
+            T oneone = ai;
+            Assert.AreEqual(one, oneone);
         }
     }
 }

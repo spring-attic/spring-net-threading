@@ -25,16 +25,18 @@ using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
 {
-	[TestFixture]
-	public class AtomicStampedReferenceTests : BaseThreadingTestCase
+    [TestFixture(typeof(string))]
+    [TestFixture(typeof(object))]
+	public class AtomicStampedReferenceTests<T> : ThreadingTestFixture<T>
+        where T : class 
 	{
 	    [Test]
 		public void Constructor()
 		{
-            AtomicStampedReference<Integer> ai = new AtomicStampedReference<Integer>(one, 0);
+            AtomicStampedReference<T> ai = new AtomicStampedReference<T>(one, 0);
 			Assert.AreEqual(one, ai.Value);
 			Assert.AreEqual(0, ai.Stamp);
-            AtomicStampedReference<object> a2 = new AtomicStampedReference<object>(null, 1);
+            AtomicStampedReference<T> a2 = new AtomicStampedReference<T>(null, 1);
 			Assert.IsNull(a2.Value);
 			Assert.AreEqual(1, a2.Stamp);
 		}
@@ -43,7 +45,7 @@ namespace Spring.Threading.AtomicTypes
 		public void GetSet()
 		{
 			int mark;
-            AtomicStampedReference<Integer> ai = new AtomicStampedReference<Integer>(one, 0);
+            AtomicStampedReference<T> ai = new AtomicStampedReference<T>(one, 0);
 			Assert.AreEqual(one, ai.Value);
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(one, ai.GetValue(out mark));
@@ -70,7 +72,7 @@ namespace Spring.Threading.AtomicTypes
 		public void AttemptStamp()
 		{
 			int mark;
-            AtomicStampedReference<Integer> ai = new AtomicStampedReference<Integer>(one, 0);
+            AtomicStampedReference<T> ai = new AtomicStampedReference<T>(one, 0);
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.IsTrue(ai.AttemptStamp(one, 1));
 			Assert.AreEqual(1, ai.Stamp);
@@ -82,7 +84,7 @@ namespace Spring.Threading.AtomicTypes
 		public void CompareAndSet()
 		{
 			int mark;
-            AtomicStampedReference<Integer> ai = new AtomicStampedReference<Integer>(one, 0);
+            AtomicStampedReference<T> ai = new AtomicStampedReference<T>(one, 0);
 			Assert.AreEqual(one, ai.GetValue(out mark));
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(0, mark);
@@ -103,7 +105,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreads()
 		{
-            AtomicStampedReference<Integer> ai = new AtomicStampedReference<Integer>(one, 0);
+            AtomicStampedReference<T> ai = new AtomicStampedReference<T>(one, 0);
             Thread t = new Thread(delegate()
             {
                 while (!ai.CompareAndSet(two, three, 0, 0))
@@ -120,7 +122,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreads2()
 		{
-            AtomicStampedReference<Integer> ai = new AtomicStampedReference<Integer>(one, 0);
+            AtomicStampedReference<T> ai = new AtomicStampedReference<T>(one, 0);
             Thread t = new Thread(delegate()
             {
                 while (!ai.CompareAndSet(one, one, 1, 2))
@@ -138,7 +140,7 @@ namespace Spring.Threading.AtomicTypes
 		public void WeakCompareAndSet()
 		{
 			int mark;
-            AtomicStampedReference<Integer> ai = new AtomicStampedReference<Integer>(one, 0);
+            AtomicStampedReference<T> ai = new AtomicStampedReference<T>(one, 0);
 			Assert.AreEqual(one, ai.GetValue(out mark));
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(0, mark);
@@ -156,7 +158,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void SerializeAndDeseralize()
 		{
-            AtomicStampedReference<Integer> atomicStampedReference = new AtomicStampedReference<Integer>(one, 0987654321);	
+            AtomicStampedReference<T> atomicStampedReference = new AtomicStampedReference<T>(one, 0987654321);	
 			MemoryStream bout = new MemoryStream(10000);
 
 			BinaryFormatter formatter = new BinaryFormatter();
@@ -164,7 +166,7 @@ namespace Spring.Threading.AtomicTypes
 
 			MemoryStream bin = new MemoryStream(bout.ToArray());
 			BinaryFormatter formatter2 = new BinaryFormatter();
-            AtomicStampedReference<Integer> atomicStampedReferenceReference2 = (AtomicStampedReference<Integer>)formatter2.Deserialize(bin);
+            AtomicStampedReference<T> atomicStampedReferenceReference2 = (AtomicStampedReference<T>)formatter2.Deserialize(bin);
 
 			Assert.AreEqual(atomicStampedReference.Value, atomicStampedReferenceReference2.Value);
 			Assert.AreEqual( atomicStampedReference.Stamp, atomicStampedReferenceReference2.Stamp);

@@ -33,7 +33,8 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (.NET)</author>
     [TestFixture]
-    public class AtomicLongTests : BaseThreadingTestCase {
+    public class AtomicLongTests : ThreadingTestFixture 
+    {
         [Test]
         public void Constructor() {
             AtomicLong ai = new AtomicLong(1);
@@ -85,14 +86,10 @@ namespace Spring.Threading.AtomicTypes
         public void CompareExpectedValueAndSetNewValueInMultipleThreads()
         {
             AtomicLong ai = new AtomicLong(1);
-            Thread t = new Thread(delegate()
-            {
-                while (!ai.CompareAndSet(2, 3))
-                    Thread.Sleep(0);
-            });
-            t.Start();
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1", () => { while (!ai.CompareAndSet(2, 3)) Thread.Sleep(0); });
             Assert.IsTrue(ai.CompareAndSet(1, 2));
-            t.Join(LONG_DELAY);
+            ThreadManager.JoinAndVerify(LONG_DELAY);
             Assert.IsFalse(t.IsAlive);
             Assert.AreEqual(ai.Value, 3);
         }

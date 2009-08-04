@@ -33,7 +33,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (.NET)</author>
     [TestFixture]
-    public class AtomicIntegerTests : BaseThreadingTestCase
+    public class AtomicIntegerTests : ThreadingTestFixture
     {
         [Test]
         public void Constructor()
@@ -88,14 +88,10 @@ namespace Spring.Threading.AtomicTypes
         public void CompareExpectedValueAndSetNewValueInMultipleThreads()
         {
             AtomicInteger ai = new AtomicInteger(1);
-            Thread t = new Thread(delegate()
-            {
-                while (!ai.CompareAndSet(2, 3))
-                    Thread.Sleep(100);
-            });
-            t.Start();
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1", () => { while (!ai.CompareAndSet(2, 3)) Thread.Sleep(100); });
             Assert.IsTrue(ai.CompareAndSet(1, 2));
-            t.Join(LONG_DELAY);
+            ThreadManager.JoinAndVerify(LONG_DELAY);
             Assert.IsFalse(t.IsAlive);
             Assert.AreEqual(ai.Value, 3);
         }

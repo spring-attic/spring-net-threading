@@ -25,16 +25,18 @@ using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
 {
-	[TestFixture]
-	public class AtomicMarkableReferenceTests : BaseThreadingTestCase
+    [TestFixture(typeof(string))]
+    [TestFixture(typeof(object))]
+	public class AtomicMarkableReferenceTests<T> : ThreadingTestFixture<T>
+        where T : class 
 	{
 	    [Test]
 		public void DefaultConstructor()
 		{
-            AtomicMarkableReference<Integer> ai = new AtomicMarkableReference<Integer>(one, false);
+            AtomicMarkableReference<T> ai = new AtomicMarkableReference<T>(one, false);
 			Assert.AreEqual(one, ai.Value);
 			Assert.IsFalse(ai.IsMarked);
-            AtomicMarkableReference<object> a2 = new AtomicMarkableReference<object>(null, true);
+            AtomicMarkableReference<T> a2 = new AtomicMarkableReference<T>(null, true);
 			Assert.IsNull(a2.Value);
 			Assert.IsTrue(a2.IsMarked);
 		}
@@ -43,7 +45,7 @@ namespace Spring.Threading.AtomicTypes
 		public void GetSet()
 		{
 			bool mark;
-            AtomicMarkableReference<Integer> ai = new AtomicMarkableReference<Integer>(one, false);
+            AtomicMarkableReference<T> ai = new AtomicMarkableReference<T>(one, false);
 			Assert.AreEqual(one, ai.Value);
 			Assert.IsFalse(ai.IsMarked);
 			Assert.AreEqual(one, ai.GetValue(out mark));
@@ -70,7 +72,7 @@ namespace Spring.Threading.AtomicTypes
 		public void AttemptMark()
 		{
 			bool mark;
-            AtomicMarkableReference<Integer> ai = new AtomicMarkableReference<Integer>(one, false);
+            AtomicMarkableReference<T> ai = new AtomicMarkableReference<T>(one, false);
 			Assert.IsFalse(ai.IsMarked, "Reference is marked.");
 			Assert.IsTrue(ai.AttemptMark(one, true), "Reference was not marked");
 			Assert.IsTrue(ai.IsMarked, "Reference is not marked.");
@@ -82,7 +84,7 @@ namespace Spring.Threading.AtomicTypes
 		public void CompareAndSet()
 		{
 			bool mark;
-            AtomicMarkableReference<Integer> ai = new AtomicMarkableReference<Integer>(one, false);
+            AtomicMarkableReference<T> ai = new AtomicMarkableReference<T>(one, false);
 			Assert.AreEqual(one, ai.GetValue(out mark));
 			Assert.IsFalse(ai.IsMarked);
 			Assert.IsFalse(mark);
@@ -103,7 +105,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreads()
 		{
-            AtomicMarkableReference<Integer> ai = new AtomicMarkableReference<Integer>(one, false);
+            AtomicMarkableReference<T> ai = new AtomicMarkableReference<T>(one, false);
             Thread t = new Thread(delegate()
             {
                 while (!ai.CompareAndSet(two, three, false, false))
@@ -120,7 +122,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreadsChangedMarkBits()
 		{
-            AtomicMarkableReference<Integer> ai = new AtomicMarkableReference<Integer>(one, false);
+            AtomicMarkableReference<T> ai = new AtomicMarkableReference<T>(one, false);
             Thread t = new Thread(delegate()
             {
                 while (!ai.CompareAndSet(one, one, true, false))
@@ -138,7 +140,7 @@ namespace Spring.Threading.AtomicTypes
 		public void WeakCompareAndSet()
 		{
 			bool mark;
-            AtomicMarkableReference<Integer> ai = new AtomicMarkableReference<Integer>(one, false);
+            AtomicMarkableReference<T> ai = new AtomicMarkableReference<T>(one, false);
 			Assert.AreEqual(one, ai.GetValue(out mark));
 			Assert.IsFalse(ai.IsMarked);
 			Assert.IsFalse(mark);
@@ -154,7 +156,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 			public void SerializeAndDeseralize()
 		{
-            AtomicMarkableReference<Integer> atomicMarkableReference = new AtomicMarkableReference<Integer>(one, true);	
+            AtomicMarkableReference<T> atomicMarkableReference = new AtomicMarkableReference<T>(one, true);	
 			MemoryStream bout = new MemoryStream(10000);
 
 			BinaryFormatter formatter = new BinaryFormatter();
@@ -162,7 +164,7 @@ namespace Spring.Threading.AtomicTypes
 
 			MemoryStream bin = new MemoryStream(bout.ToArray());
 			BinaryFormatter formatter2 = new BinaryFormatter();
-            AtomicMarkableReference<Integer> atomicMarkableReference2 = (AtomicMarkableReference<Integer>)formatter2.Deserialize(bin);
+            AtomicMarkableReference<T> atomicMarkableReference2 = (AtomicMarkableReference<T>)formatter2.Deserialize(bin);
 
 			Assert.AreEqual(atomicMarkableReference.Value, atomicMarkableReference2.Value);
 			Assert.IsTrue(atomicMarkableReference2.IsMarked);

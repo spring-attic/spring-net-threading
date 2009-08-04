@@ -34,7 +34,8 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (.NET)</author>
     [TestFixture]
-    public class AtomicIntegerArrayTests : BaseThreadingTestCase {
+    public class AtomicIntegerArrayTests : ThreadingTestFixture 
+    {
         internal const int COUNTDOWN = 100000;
 
         internal class Counter {
@@ -155,14 +156,10 @@ namespace Spring.Threading.AtomicTypes
         public void CompareAndSetInMultipleThreads() {
             AtomicIntegerArray a = new AtomicIntegerArray(1);
             a[0] = 1;
-            Thread t = new Thread(delegate()
-            {
-                while (!a.CompareAndSet(0, 2, 3))
-                    Thread.Sleep(0);
-            });
-            t.Start();
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1", () => { while (!a.CompareAndSet(0, 2, 3)) Thread.Sleep(0); });
             Assert.IsTrue(a.CompareAndSet(0, 1, 2));
-            t.Join(LONG_DELAY);
+            ThreadManager.JoinAndVerify(LONG_DELAY);
             Assert.IsFalse(t.IsAlive);
             Assert.AreEqual(a[0], 3);
         }
@@ -291,12 +288,8 @@ namespace Spring.Threading.AtomicTypes
                 ai[i] = COUNTDOWN;
             Counter c1 = new Counter(ai);
             Counter c2 = new Counter(ai);
-            Thread t1 = new Thread(c1.Run);
-            Thread t2 = new Thread(c2.Run);
-            t1.Start();
-            t2.Start();
-            t1.Join();
-            t2.Join();
+            ThreadManager.StartAndAssertRegistered("T", c1.Run, c2.Run);
+            ThreadManager.JoinAndVerify();
             Assert.AreEqual(c1.counts + c2.counts, DEFAULT_COLLECTION_SIZE * COUNTDOWN);
         }
 

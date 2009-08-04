@@ -25,17 +25,18 @@ using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
 {
-	[TestFixture]
-	public class AtomicStampedTests : BaseThreadingTestCase
+    [TestFixture(typeof(string))]
+    [TestFixture(typeof(int))]
+	public class AtomicStampedTests<T> : ThreadingTestFixture<T>
 	{
 	    [Test]
 		public void Constructor()
 		{
-            AtomicStamped<int> ai = new AtomicStamped<int>(one, 0);
+            AtomicStamped<T> ai = new AtomicStamped<T>(one, 0);
 			Assert.AreEqual(one, ai.Value);
 			Assert.AreEqual(0, ai.Stamp);
-            AtomicStamped<object> a2 = new AtomicStamped<object>(null, 1);
-			Assert.IsNull(a2.Value);
+            AtomicStamped<T> a2 = new AtomicStamped<T>(default(T), 1);
+			Assert.That(a2.Value, Is.EqualTo(default(T)));
 			Assert.AreEqual(1, a2.Stamp);
 		}
 
@@ -43,7 +44,7 @@ namespace Spring.Threading.AtomicTypes
 		public void GetSet()
 		{
 			int mark;
-            AtomicStamped<int> ai = new AtomicStamped<int>(one, 0);
+            AtomicStamped<T> ai = new AtomicStamped<T>(one, 0);
 			Assert.AreEqual(one, ai.Value);
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(one, ai.GetValue(out mark));
@@ -70,7 +71,7 @@ namespace Spring.Threading.AtomicTypes
 		public void AttemptStamp()
 		{
 			int mark;
-            AtomicStamped<int> ai = new AtomicStamped<int>(one, 0);
+            AtomicStamped<T> ai = new AtomicStamped<T>(one, 0);
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.IsTrue(ai.AttemptStamp(one, 1));
 			Assert.AreEqual(1, ai.Stamp);
@@ -82,7 +83,7 @@ namespace Spring.Threading.AtomicTypes
 		public void CompareAndSet()
 		{
 			int mark;
-            AtomicStamped<int> ai = new AtomicStamped<int>(one, 0);
+            AtomicStamped<T> ai = new AtomicStamped<T>(one, 0);
 			Assert.AreEqual(one, ai.GetValue(out mark));
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(0, mark);
@@ -103,7 +104,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreads()
 		{
-            AtomicStamped<int> ai = new AtomicStamped<int>(one, 0);
+            AtomicStamped<T> ai = new AtomicStamped<T>(one, 0);
             Thread t = new Thread(delegate()
             {
                 while (!ai.CompareAndSet(two, three, 0, 0))
@@ -120,7 +121,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void CompareAndSetInMultipleThreads2()
 		{
-            AtomicStamped<int> ai = new AtomicStamped<int>(one, 0);
+            AtomicStamped<T> ai = new AtomicStamped<T>(one, 0);
             Thread t = new Thread(delegate()
             {
                 while (!ai.CompareAndSet(one, one, 1, 2))
@@ -138,7 +139,7 @@ namespace Spring.Threading.AtomicTypes
 		public void WeakCompareAndSet()
 		{
 			int mark;
-            AtomicStamped<int> ai = new AtomicStamped<int>(one, 0);
+            AtomicStamped<T> ai = new AtomicStamped<T>(one, 0);
 			Assert.AreEqual(one, ai.GetValue(out mark));
 			Assert.AreEqual(0, ai.Stamp);
 			Assert.AreEqual(0, mark);
@@ -156,7 +157,7 @@ namespace Spring.Threading.AtomicTypes
 		[Test]
 		public void SerializeAndDeseralize()
 		{
-            AtomicStamped<int> atomicStamped = new AtomicStamped<int>(one, 0987654321);	
+            AtomicStamped<T> atomicStamped = new AtomicStamped<T>(one, 0987654321);	
 			MemoryStream bout = new MemoryStream(10000);
 
 			BinaryFormatter formatter = new BinaryFormatter();
@@ -164,7 +165,7 @@ namespace Spring.Threading.AtomicTypes
 
 			MemoryStream bin = new MemoryStream(bout.ToArray());
 			BinaryFormatter formatter2 = new BinaryFormatter();
-            AtomicStamped<int> atomicStampedReference2 = (AtomicStamped<int>)formatter2.Deserialize(bin);
+            AtomicStamped<T> atomicStampedReference2 = (AtomicStamped<T>)formatter2.Deserialize(bin);
 
 			Assert.AreEqual(atomicStamped.Value, atomicStampedReference2.Value);
 			Assert.AreEqual( atomicStamped.Stamp, atomicStampedReference2.Stamp);

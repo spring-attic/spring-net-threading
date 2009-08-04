@@ -33,7 +33,7 @@ namespace Spring.Threading.AtomicTypes
     /// <author>Andreas Doehring (.NET)</author>
     /// <author>Kenneth Xu (.NET)</author>
 	[TestFixture]
-	public class AtomicBooleanTest : BaseThreadingTestCase
+	public class AtomicBooleanTest : ThreadingTestFixture
 	{
 		[Test]
 		public void Constructor()
@@ -90,16 +90,15 @@ namespace Spring.Threading.AtomicTypes
 		public void CompareExpectedValueAndSetNewValueInMultipleThreads()
 		{
 			AtomicBoolean ai = new AtomicBoolean( true );
-            Thread t = new Thread(new ThreadStart(delegate 
+            var t = ThreadManager.StartAndAssertRegistered("T1",delegate 
                     {
                         while (!ai.CompareAndSet(false, true))
                             Thread.Sleep(SHORT_DELAY);
                     }
-                ));
+                );
 
-			t.Start();
 			Assert.IsTrue( ai.CompareAndSet( true, false ), "Value" );
-			t.Join( SMALL_DELAY );
+			ThreadManager.JoinAndVerify();
 			Assert.IsFalse( t.IsAlive, "Thread is still alive." );
 			Assert.IsTrue( ai.Value );
 		}
