@@ -36,7 +36,7 @@ namespace Spring.Collections.Generic
     /// Basic functionality test cases for implementation of <see cref="IEnumerator{T}"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public abstract class EnumeratorTestFixture<T>
+    public abstract class EnumeratorTestFixture<T> : ThreadingTestFixture
     {
         private int _antiHangingLimit = 512;
         protected int AntiHangingLimit

@@ -15,18 +15,6 @@ namespace Spring.Threading.Collections.Generic
     {
         protected bool _isFair;
 
-        protected TestThreadManager ThreadManager { get; private set; }
-
-        [SetUp] public virtual void SetUpThreadManager()
-        {
-            ThreadManager = new TestThreadManager();
-        }
-
-        [TearDown] public virtual void TearDownThreadManager()
-        {
-            ThreadManager.TearDown();
-        }
-
         protected sealed override IQueue<T> NewQueue()
         {
             return NewBlockingQueue();
