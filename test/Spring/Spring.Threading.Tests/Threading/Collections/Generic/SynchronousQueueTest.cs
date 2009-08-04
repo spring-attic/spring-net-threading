@@ -2,8 +2,6 @@ using System;
 using System.Threading;
 using NUnit.Framework;
 using System.Collections.Generic;
-using Spring.Threading.AtomicTypes;
-
 namespace Spring.Threading.Collections.Generic
 {
     /// <summary>
@@ -145,17 +143,12 @@ namespace Spring.Threading.Collections.Generic
         {
             var q = NewSynchronousQueue();
             const int size = 2;
-            var position = new AtomicInteger(0);
             for (int i = 0; i < size; i++)
             {
-                int index = i;
+                if(i>0) Thread.Sleep(TestData.ShortDelay);
                 T e = TestData<T>.MakeData(i);
                 ThreadManager.StartAndAssertRegistered(
-                    "T" + i, () =>
-                                 {
-                                     while (position.CompareAndSet(index, index + 1)) Thread.Sleep(1);
-                                     q.Offer(e, TestData.SmallDelay);
-                                 });
+                    "T" + i, () => q.Offer(e, TestData.MediumDelay));
             }
             Thread.Sleep(TestData.ShortDelay);
             T[] values = new T[size];
