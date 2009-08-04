@@ -130,6 +130,7 @@
     <Compile Include="TestData.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="TestThreadManager.cs" />
+    <Compile Include="ThreadingrTestFixture.cs" />
     <Compile Include="Threading\CallableTest.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueAsGenericTest.cs" />

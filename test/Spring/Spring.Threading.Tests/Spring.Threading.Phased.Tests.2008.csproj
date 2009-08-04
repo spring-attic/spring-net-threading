@@ -107,6 +107,7 @@
     <Compile Include="Collections\Generic\EnumerableTestFixture.cs" />
     <Compile Include="Collections\Generic\EnumeratorTestFixture.cs" />
     <Compile Include="Collections\Generic\QueueTestFixture.cs" />
+    <Compile Include="ThreadingrTestFixture.cs" />
     <Compile Include="Collections\QueueTestFixture.cs" />
     <Compile Include="Collections\EnumerableTestFixture.cs" />
     <Compile Include="Collections\TypedQueueTestFixture.cs" />
