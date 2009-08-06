@@ -65,36 +65,39 @@ namespace Spring.Collections.Generic
 		#region Private Methods
 
 		/// <summary> 
-		/// Utility for remove and iterator.remove: Delete item at position <paramref name="index"/>.
-		/// Call only when holding lock.
+		/// Utility for remove: Delete item at position <paramref name="index"/>.
+		/// and return the next item position. Call only when holding lock.
 		/// </summary>
-		internal virtual void removeAt(int index)
+		private int removeAt(int index)
 		{
 			T[] items = _items;
 			if (index == _takeIndex)
 			{
 				items[_takeIndex] = default(T);
 				_takeIndex = increment(_takeIndex);
+			    index = _takeIndex;
 			}
 			else
 			{
-				for (;; )
+                int i = index;
+                for (; ; )
 				{
-					int nextIndex = increment(index);
+					int nextIndex = increment(i);
 					if (nextIndex != _putIndex)
 					{
-						items[index] = items[nextIndex];
-						index = nextIndex;
+						items[i] = items[nextIndex];
+						i = nextIndex;
 					}
 					else
 					{
-						items[index] = default(T);
-						_putIndex = index;
+						items[i] = default(T);
+						_putIndex = i;
 						break;
 					}
 				}
 			}
 			--_count;
+		    return index;
 		}
 
 		/// <summary> Circularly increment i.</summary>
@@ -384,18 +387,20 @@ namespace Spring.Collections.Generic
 
             int n = 0;
 	        int reject = 0;
-            for (int currentIndex = _takeIndex; n < maxElements && _count > reject; currentIndex = increment(currentIndex))
+            int currentIndex = _takeIndex; 
+            while(n < maxElements && _count > reject)
             {
                 T element = items[currentIndex];
                 if (criteria == null || criteria(element))
                 {
                     action(element);
                     n++;
-                    removeAt(currentIndex);
+                    currentIndex = removeAt(currentIndex);
                 }
                 else
                 {
                     reject++;
+                    currentIndex = increment(currentIndex);
                 }
                 
             }
@@ -570,7 +575,7 @@ namespace Spring.Collections.Generic
 
 			/// <summary> 
 			/// Checks whether nextIndex is valid; if so setting nextItem.
-			/// Stops iterator when either hits putIndex or sees null item.
+			/// Stops iterator when hits putIndex.
 			/// </summary>
 			private void CheckNext()
 			{
