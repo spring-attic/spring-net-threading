@@ -120,8 +120,9 @@ namespace Spring.Threading.Collections.Generic
             T[] values = new T[2];
             ThreadManager.StartAndAssertRegistered(
                 "T1", () => q.Poll(TestData.SmallDelay, out values[0]));
+            Thread.Sleep(TestData.ShortDelay);
             ThreadManager.StartAndAssertRegistered(
-                "T1", () => q.Poll(TestData.SmallDelay, out values[1]));
+                "T2", () => q.Poll(TestData.SmallDelay, out values[1]));
             Thread.Sleep(TestData.ShortDelay);
             q.Offer(TestData<T>.One);
             q.Offer(TestData<T>.Two);
