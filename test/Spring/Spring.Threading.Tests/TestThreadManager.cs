@@ -45,6 +45,8 @@ namespace Spring
 
         private Exception _threadException;
 
+        private bool _isAllJoinAndVerified;
+
         private readonly ICollection<Thread> _runningThreads = new List<Thread>();
 
         /// <summary>
@@ -156,18 +158,23 @@ namespace Spring
         /// Abort every registered thread if it is still alive. Used in the 
         /// tear down method of the test fixture.
         /// </summary>
-        public void TearDown()
+        public void TearDown(bool shouldAssertFail)
         {
-            Thread aliveThread = null;
-            foreach (Thread thread in _runningThreads)
+            try
             {
-                if (thread.IsAlive)
+                if (!_isAllJoinAndVerified) 
+                    if (shouldAssertFail) JoinAndVerify();
+                    else try { JoinAndVerify(); } catch(Exception){}
+            }
+            finally
+            {
+                var current = Thread.CurrentThread;
+                foreach (Thread thread in _runningThreads)
                 {
-                    aliveThread = thread;
-                    thread.Abort();
+                    if (thread == current) continue;
+                    if (thread.IsAlive) thread.Abort();
                 }
             }
-            if (aliveThread != null) Assert.Fail("Thread {0} is still alive.", aliveThread.Name);
         }
 
         /// <summary>
@@ -379,6 +386,7 @@ namespace Spring
         /// <param name="timeToWait">Time to wait for thread to complete.</param>
         public void JoinAndVerify(TimeSpan timeToWait)
         {
+            _isAllJoinAndVerified = true;
             Thread[] threads;
             lock(_runningThreads)
             {
@@ -388,12 +396,11 @@ namespace Spring
             JoinAndVerify(timeToWait, threads);
             lock (_runningThreads)
             {
+                var current = Thread.CurrentThread;
                 foreach (Thread thread in _runningThreads)
                 {
-                    Assert.IsFalse(
-                        thread.IsAlive,
-                        "Thread {0} is expected to be terminated but still alive.",
-                        thread.Name);
+                    if(thread == current || !thread.IsAlive) continue;
+                    Assert.Fail("Thread {0} is expected to be terminated but still alive.", thread.Name);
                 }
             }
         }
@@ -439,15 +446,21 @@ namespace Spring
         /// <param name="threads">Threads expected to complete.</param>
         public void JoinAndVerify(TimeSpan timeToWait, IEnumerable<Thread> threads)
         {
-            foreach (Thread thread in threads)
+            try
             {
-                thread.Join(timeToWait);
-                Assert.IsFalse(
-                    thread.IsAlive, 
-                    "Thread {0} is expected to be terminated but still alive.", 
-                    thread.Name);
+                var current = Thread.CurrentThread;
+                foreach (Thread thread in threads)
+                {
+                    if (thread == current) continue;
+                    thread.Join(timeToWait);
+                    if (!thread.IsAlive) continue;
+                    Assert.Fail("Thread {0} is expected to be terminated but still alive.", thread.Name);
+                }
             }
-            Verify();
+            finally
+            {
+                Verify();
+            }
         }
 
         /// <summary>

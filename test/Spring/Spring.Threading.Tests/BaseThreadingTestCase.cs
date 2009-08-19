@@ -109,7 +109,7 @@ namespace Spring.Threading
 
         [TearDown] public void TearDown()
         {
-            _threadManager.TearDown();
+            _threadManager.TearDown(true);
         }
     }
 

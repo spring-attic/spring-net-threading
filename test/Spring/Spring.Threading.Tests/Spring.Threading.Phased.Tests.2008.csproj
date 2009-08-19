@@ -143,6 +143,7 @@
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
+    <Compile Include="Threading\Execution\ExecutorServiceTestFixture.cs" />
     <Compile Include="Threading\Execution\CancellationExceptionTest.cs" />
     <Compile Include="Threading\Execution\ExecutionExceptionTest.cs" />
     <Compile Include="Threading\Execution\DelegatedExecutorServiceTest.cs" />
@@ -159,7 +160,6 @@
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs" />
-    <Compile Include="Threading\Execution\ExecutionExceptionTests.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\AbortPolicyTests.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicyTests.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTests.cs" />

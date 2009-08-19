@@ -12,20 +12,8 @@ namespace Spring.Threading.Execution
     /// Test cases for <see cref="Executors"/>
     /// </summary>
     /// <author>Kenneth Xu</author>
-    [TestFixture] public class ExecutorsTest : ExecutorTestBase
+    [TestFixture] public class ExecutorsTest : ThreadingTestFixture
     {
-        TestThreadManager ThreadManager { get; set; }
-
-        [SetUp] public void SetUp()
-        {
-            ThreadManager = new TestThreadManager();
-        }
-
-        [TearDown] public void TearDown()
-        {
-            ThreadManager.TearDown();
-        }
-
         private static void CanExecuteRunnable(IExecutor e)
         {
             Action task = delegate {};

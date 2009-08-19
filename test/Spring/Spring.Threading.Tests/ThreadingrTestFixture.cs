@@ -1,15 +1,16 @@
 using System;
 using NUnit.Framework;
+using Spring.Threading.Execution;
 
 namespace Spring
 {
     public abstract class ThreadingTestFixture
     {
         public const int DEFAULT_COLLECTION_SIZE = 20;
-        public const long SHORT_DELAY_MS = 300;
-        public const long SMALL_DELAY_MS = SHORT_DELAY_MS * 5;
-        public const long MEDIUM_DELAY_MS = SHORT_DELAY_MS * 10;
-        public const long LONG_DELAY_MS = SHORT_DELAY_MS * 50;
+        public const int SHORT_DELAY_MS = 300;
+        public const int SMALL_DELAY_MS = SHORT_DELAY_MS * 5;
+        public const int MEDIUM_DELAY_MS = SHORT_DELAY_MS * 10;
+        public const int LONG_DELAY_MS = SHORT_DELAY_MS * 50;
         public static readonly TimeSpan SHORT_DELAY = TimeSpan.FromMilliseconds(SHORT_DELAY_MS);
         public static readonly TimeSpan SMALL_DELAY = TimeSpan.FromMilliseconds(SMALL_DELAY_MS);
         public static readonly TimeSpan MEDIUM_DELAY = TimeSpan.FromMilliseconds(MEDIUM_DELAY_MS);
@@ -26,7 +27,36 @@ namespace Spring
         [TearDown]
         public virtual void TearDownThreadManager()
         {
-            ThreadManager.TearDown();
+            ThreadManager.TearDown(true);
+        }
+
+        public virtual void JoinPool(IExecutorService exec)
+        {
+            JoinPool(exec, LONG_DELAY);
+        }
+
+        public virtual void JoinPool(IExecutorService exec, TimeSpan waitTime)
+        {
+            OnJoinPool(exec, false);
+            exec.Shutdown();
+            Assert.IsTrue(exec.AwaitTermination(waitTime));
+        }
+
+
+        public virtual void InterruptAndJoinPool(IExecutorService exec)
+        {
+            InterruptAndJoinPool(exec, LONG_DELAY);
+        }
+
+        public virtual void InterruptAndJoinPool(IExecutorService exec, TimeSpan waitTime)
+        {
+            OnJoinPool(exec, true);
+            exec.ShutdownNow();
+            Assert.IsTrue(exec.AwaitTermination(waitTime));
+        }
+        
+        protected virtual void OnJoinPool(IExecutorService exec, bool isInterrupted)
+        {
         }
     }
 

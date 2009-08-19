@@ -824,7 +824,7 @@ namespace Spring.Threading.Execution
             Assert.That(futures.Count, Is.EqualTo(_callables.Length));
             for (int i = futures.Count - 1; i >= 0; i--)
             {
-                if (i > _halfSize+1)
+                if (i > _halfSize+1) //TODO: why +1?
                 {
                     Assert.IsTrue(futures[i].IsCancelled, "future No. " + i + " should have been canceled");
                 }

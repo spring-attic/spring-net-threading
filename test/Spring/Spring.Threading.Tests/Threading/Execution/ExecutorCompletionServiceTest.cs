@@ -13,24 +13,17 @@ namespace Spring.Threading.Execution
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
-    public class ExecutorCompletionServiceTest<T>
+    public class ExecutorCompletionServiceTest<T> : ThreadingTestFixture
     {
         private AbstractExecutorService _executor;
         private IBlockingQueue<IFuture<T>> _blockingQueue;
         private ExecutorCompletionService<T> _sut;
-        TestThreadManager ThreadManager { get; set; }
 
         [SetUp] public void SetUp()
         {
-            ThreadManager = new TestThreadManager();
             _executor = Mockery.GeneratePartialMock<AbstractExecutorService>();
             _sut = new ExecutorCompletionService<T>(_executor);
             _blockingQueue = MockRepository.GenerateMock<IBlockingQueue<IFuture<T>>>();
-        }
-
-        [TearDown] public void TearDown()
-        {
-            ThreadManager.TearDown();
         }
 
         [Test] public void ConstructorChokesOnNullExecutorArgument()

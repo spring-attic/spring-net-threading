@@ -1093,11 +1093,12 @@ namespace Spring.Threading.Execution
             if (maximumPoolSize < corePoolSize)
             {
                 throw new ArgumentException("maximum pool size, " + maximumPoolSize + 
-                    " cannot be less than core pool size, " + corePoolSize + ".");
+                    " cannot be less than core pool size, " + corePoolSize + ".", "maximumPoolSize");
             }
             if (keepAliveTime.Ticks < 0)
             {
-                throw new ArgumentException("keep alive time must be greater than or equal to zero.");
+                throw new ArgumentOutOfRangeException("keepAliveTime", keepAliveTime, 
+                    "keep alive time must be greater than or equal to zero.");
             }
             if (workQueue == null)
             {
