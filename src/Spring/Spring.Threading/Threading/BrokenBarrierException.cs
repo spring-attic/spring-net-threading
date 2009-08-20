@@ -1,37 +1,45 @@
+#region License
+
+/*
+ * Copyright (C) 2002-2005 the original author or authors.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#endregion
+
 using System;
 using System.Runtime.Serialization;
 
 #region License
 
-/*
-* Copyright © 2002-2005 the original author or authors.
-* 
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-* 
-*      http://www.apache.org/licenses/LICENSE-2.0
-* 
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
 
 #endregion
 
 namespace Spring.Threading
 {
 	/// <summary> 
-	/// Thrown by <see cref="Spring.Threading.IBarrier"/> upon interruption of participant threads
+	/// Exception thrown when a thread tries to wait upon a barrier that is in a 
+	/// broken state, or which enters the broken state while the thread is waiting.
 	/// </summary>
+	/// <seealso cref="CyclicBarrier"/>
 	[Serializable]
-	public class BrokenBarrierException : ApplicationException
+    public class BrokenBarrierException : ApplicationException //JDK_1_6
 	{
+#if !PHASED
 		private readonly int _index;
 
-		/// <summary>
+		/// <summary> 
 		/// Creates a new <see cref="Spring.Threading.BrokenBarrierException"/> instance.
 		/// </summary>
 		public BrokenBarrierException()
@@ -65,13 +73,13 @@ namespace Spring.Threading
 			_index = index;
 		}
 
-		/// <summary>
+        /// <summary>
 		/// Creates a new <see cref="Spring.Threading.BrokenBarrierException"/> instance.
 		/// </summary>
 		/// <param name="message">Message for the exception.</param>
 		public BrokenBarrierException(string message) : base(message)
 		{
-		}
+        }
 
 		/// <summary>
 		/// Creates a new <see cref="Spring.Threading.BrokenBarrierException"/> instance.
@@ -82,36 +90,37 @@ namespace Spring.Threading
 		{
 		}
 
-		/// <summary>
-		/// Creates a new <see cref="BrokenBarrierException"/> instance.
-		/// </summary>
-		/// <remarks>
-		/// This constructor is used by serialization/deserialization
-		/// code, so it should not be used directly
-		/// </remarks>
-		/// <param name="info">
-		/// The <see cref="System.Runtime.Serialization.SerializationInfo"/>
-		/// that holds the serialized object data about the exception being thrown.
-		/// </param>
-		/// <param name="context">
-		/// The <see cref="System.Runtime.Serialization.StreamingContext"/>
-		/// that contains contextual information about the source or destination.
-		/// </param>
-		protected BrokenBarrierException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-			_index = info.GetInt32("index");
-		}
+        /// <summary>
+        /// Creates a new <see cref="BrokenBarrierException"/> instance.
+        /// </summary>
+        /// <remarks>
+        /// This constructor is used by serialization/deserialization
+        /// code, so it should not be used directly
+        /// </remarks>
+        /// <param name="info">
+        /// The <see cref="System.Runtime.Serialization.SerializationInfo"/>
+        /// that holds the serialized object data about the exception being thrown.
+        /// </param>
+        /// <param name="context">
+        /// The <see cref="System.Runtime.Serialization.StreamingContext"/>
+        /// that contains contextual information about the source or destination.
+        /// </param>
+        protected BrokenBarrierException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+            _index = info.GetInt32("index");
+        }
 
-		/// <summary>
-		/// Override of GetObjectData to allow for private serialization
-		/// </summary>
-		/// <param name="info">serialization info</param>
-		/// <param name="context">streaming context</param>
-		public override void GetObjectData(SerializationInfo info, StreamingContext context)
-		{
-			info.AddValue("index", _index);
-			base.GetObjectData(info, context);
-		}
+        /// <summary>
+        /// Override of GetObjectData to allow for private serialization
+        /// </summary>
+        /// <param name="info">serialization info</param>
+        /// <param name="context">streaming context</param>
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("index", _index);
+            base.GetObjectData(info, context);
+        }
+#endif
 	}
 }

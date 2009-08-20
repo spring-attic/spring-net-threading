@@ -60,9 +60,9 @@ namespace Spring.Threading
         }
 
         [Test]
-        public void ImplicitConvertTaskDelegateToRunnable()
+        public void ExplicitConvertTaskDelegateToRunnable()
         {
-            _runnable = _action;
+            _runnable = (Runnable)_action;
             Assert.That(_runnable, Is.Not.Null);
             Assert.That(!_isDelegateCalled);
             _runnable.Run();
@@ -70,26 +70,26 @@ namespace Spring.Threading
         }
 
         [Test]
-        public void ImplicitConvertNullTaskDelegateToNullRunnable()
+        public void ExplicitConvertNullTaskDelegateToNullRunnable()
         {
             _action = null;
-            _runnable = _action;
+            _runnable = (Runnable)_action;
             Assert.That(_runnable, Is.Null);
         }
 
         [Test]
-        public void ImplicitConvertRunnableToTaskDelegate()
+        public void ExplicitConvertRunnableToTaskDelegate()
         {
             _runnable = new Runnable(_action);
-            Action action = _runnable;
+            Action action = (Action)_runnable;
             Assert.That(action, Is.SameAs(_action));
         }
 
         [Test]
-        public void ImplicitConvertNullRunnableToNullTaskDelegate()
+        public void ExplicitConvertNullRunnableToNullTaskDelegate()
         {
             _runnable = null;
-            Action action = _runnable;
+            Action action = (Action)_runnable;
             Assert.That(action, Is.Null);
         }
 

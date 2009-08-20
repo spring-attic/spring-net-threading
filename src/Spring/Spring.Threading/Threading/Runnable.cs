@@ -70,7 +70,7 @@ namespace Spring.Threading
         /// <returns>
         /// An instance of <see cref="Runnable"/> based on <paramref name="action"/>.
         /// </returns>
-        public static implicit operator Runnable(Action action)
+        public static explicit operator Runnable(Action action)
         {
             return action == null ? null : new Runnable(action);
         }
@@ -86,7 +86,7 @@ namespace Spring.Threading
         /// The original <see cref="Action"/> delegate used to construct the
         /// <paramref name="runnable"/>.
         /// </returns>
-        public static implicit operator Action(Runnable runnable)
+        public static explicit operator Action(Runnable runnable)
         {
             return runnable == null ? null : runnable._action;
         }

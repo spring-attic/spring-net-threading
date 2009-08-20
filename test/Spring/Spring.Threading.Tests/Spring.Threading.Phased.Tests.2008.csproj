@@ -143,6 +143,7 @@
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
+    <Compile Include="Threading\CyclicBarrierTests.cs" />
     <Compile Include="Threading\Execution\ExecutorServiceTestFixture.cs" />
     <Compile Include="Threading\Execution\CancellationExceptionTest.cs" />
     <Compile Include="Threading\Execution\ExecutionExceptionTest.cs" />

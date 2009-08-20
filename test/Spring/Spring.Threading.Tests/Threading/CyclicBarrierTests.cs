@@ -1,333 +1,201 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using NUnit.Framework;
+using Rhino.Mocks;
 using Spring.Threading.AtomicTypes;
 
 namespace Spring.Threading
 {
+    /// <summary>
+    /// Test cases for <see cref="CyclicBarrier"/>
+    /// </summary>
+    /// <author>Doug Lea</author>
+    /// <author>Kenneth Xu</author>
     [TestFixture]
-    public class CyclicBarrierTests : BaseThreadingTestCase
+    public class CyclicBarrierTests : ThreadingTestFixture
     {
-        private class MyAction : IRunnable
+        [Test, Description("Creating with non positive parties throws ArgumentOutOfRangeException")]
+        public void ConstructorChokesOnNonPositiveParties([Values(0, -1)] int parties)
         {
-            private volatile int countAction;
-            public void Run() { ++countAction; }
+            const string expected = "parties";
+            var e = Assert.Throws<ArgumentOutOfRangeException>(
+                ()=>new CyclicBarrier(parties));
+            Assert.That(e.ParamName, Is.EqualTo(expected));
+            e = Assert.Throws<ArgumentOutOfRangeException>(
+                () => new CyclicBarrier(parties, (Action)null));
+            Assert.That(e.ParamName, Is.EqualTo(expected));
+            e = Assert.Throws<ArgumentOutOfRangeException>(
+                () => new CyclicBarrier(parties, (IRunnable)null));
+            Assert.That(e.ParamName, Is.EqualTo(expected));
         }
 
-
-        [Test]
-        [ExpectedException(typeof(ArgumentException))]
-        public void Constructor1()
+        [Test, Description("Parties returns the number of parties given in constructor")]
+        public void PartiesReturnsTheValueGiveinInConstructor([Values(1,5)] int parties)
         {
-            new CyclicBarrier(-1, null);
-        }
-        [Test]
-        [ExpectedException(typeof(ArgumentException))]
-        public void Constructor2()
-        {
-            new CyclicBarrier(-1);
-        }
-
-        [Test]
-        public void GetParties()
-        {
-            CyclicBarrier b = new CyclicBarrier(2);
-            Assert.AreEqual(2, b.Parties);
+            CyclicBarrier b = new CyclicBarrier(parties);
+            Assert.AreEqual(parties, b.Parties);
             Assert.AreEqual(0, b.NumberOfWaitingParties);
         }
 
 
-        [Test]
-        public void SingleParty()
+        [Test, Description("A 1-party barrier triggers after single await")]
+        public void SinglePartyBarrierTriggersAfterSingleAwait([Values(true, false)] bool isTimed)
         {
             CyclicBarrier b = new CyclicBarrier(1);
+            Assert.AreEqual(1, b.Parties);
+            Assert.AreEqual(0, b.NumberOfWaitingParties);
+            if (isTimed)
+            {
+                b.Await(SMALL_DELAY);
+                b.Await(SMALL_DELAY);
+            }
+            else
+            {
+                b.Await();
+                b.Await();
+            }
+            Assert.AreEqual(0, b.NumberOfWaitingParties);
+
+        }
+
+
+        [Test, Description("The supplied barrier runnable is run at barrier")]
+        public void SuppliedRunnableIsRunAtBarries()
+        {
+            var runnable = MockRepository.GenerateStub<IRunnable>();
+            CyclicBarrier b = new CyclicBarrier(1, runnable);
             Assert.AreEqual(1, b.Parties);
             Assert.AreEqual(0, b.NumberOfWaitingParties);
             b.Await();
             b.Await();
             Assert.AreEqual(0, b.NumberOfWaitingParties);
-
+            runnable.AssertWasCalled(r => r.Run(), m => m.Repeat.Twice());
         }
 
+        [Test, Description("The supplied barrier action is run at barrier")]
+        public void SuppliedActionIsRunAtBarries()
+        {
+            var action = MockRepository.GenerateStub<Action>();
+            CyclicBarrier b = new CyclicBarrier(1, action);
+            Assert.AreEqual(1, b.Parties);
+            Assert.AreEqual(0, b.NumberOfWaitingParties);
+            b.Await();
+            b.Await(SMALL_DELAY);
+            Assert.AreEqual(0, b.NumberOfWaitingParties);
+            action.AssertWasCalled(a => a(), m => m.Repeat.Twice());
+        }
 
-        //        [Test]
-        //        public void BarrierAction()
-        //        {
-        //            countAction = 0;
-        //            CyclicBarrier b = new CyclicBarrier(1, new MyAction());
-        //            Assert.AreEqual(1, b.Parties);
-        //            Assert.AreEqual(0, b.NumberOfWaitingParties);
-        //            b.Await();
-        //            b.Await();
-        //            Assert.AreEqual(0, b.NumberOfWaitingParties);
-        //            Assert.AreEqual(countAction, 2);
-        //
-        //        }
-
-        [Test]
-        public void TwoParties()
+        [Test, Description("A 2-party/thread barrier triggers after both threads invoke await")]
+        public void TwoPartieBarrierTriggersAfterBothInvokeAwait()
         {
             CyclicBarrier b = new CyclicBarrier(2);
-            Thread t = new Thread(delegate()
-                                      {
-                                          b.Await();
-                                          b.Await();
-                                          b.Await();
-                                          b.Await();
-                                      });
-
-            t.Start();
-            b.Await();
-            b.Await();
-            b.Await();
-            b.Await();
-            t.Join();
+            ThreadStart action = () =>
+                                     {
+                                         b.Await();
+                                         b.Await(SMALL_DELAY);
+                                         b.Await();
+                                         b.Await(SMALL_DELAY);
+                                     };
+            ThreadManager.StartAndAssertRegistered("T", action, action);
+            ThreadManager.JoinAndVerify();
         }
 
 
 
-        [Test]
-        [Ignore("Failing")]
-        public void Await1_Interrupted_BrokenBarrier()
+        [Test, Description("An interruption in one party causes others waiting to throw BrokenBarrierException")]
+        public void InterruptedAwaitBreaksBarrier([Values(true, false)] bool isTimed)
         {
             CyclicBarrier c = new CyclicBarrier(3);
-            Thread t1 = new Thread(delegate()
-                                       {
-                                           try
-                                           {
-                                               c.Await();
-                                               Debug.Fail("Should throw exception");
-                                           }
-                                           catch (ThreadInterruptedException)
-                                           {
-                                           }
-                                       });
-            Thread t2 = new Thread(delegate()
-                                       {
-                                           try
-                                           {
-                                               c.Await();
-                                               Debug.Fail("Should throw exception");
-                                           }
-                                           catch (BrokenBarrierException)
-                                           {
-                                           }
-                                       });
-            t1.Start();
-            t2.Start();
+
+            Thread t1 = ThreadManager.StartAndAssertRegistered(
+                "T1", () => Assert.Throws<ThreadInterruptedException>(() => AwaitOrTimedAwait(isTimed, c)));
+            ThreadManager.StartAndAssertRegistered(
+                "T2", () => Assert.Throws<BrokenBarrierException>(() => AwaitOrTimedAwait(isTimed, c)));
             Thread.Sleep(SHORT_DELAY);
             t1.Interrupt();
-            t1.Join();
-            t2.Join();
-
+            ThreadManager.JoinAndVerify();
         }
 
-        [Test]
-        [Ignore("Failing")]
-        public void Await2_Interrupted_BrokenBarrier()
-        {
-            CyclicBarrier c = new CyclicBarrier(3);
-            Thread t1 = new Thread(delegate()
-                                       {
-                                           try
-                                           {
-                                               c.Await(LONG_DELAY);
-                                               Debug.Fail("should throw exception");
-                                           }
-                                           catch (ThreadInterruptedException success)
-                                           {
-                                           }
-                                       });
-            Thread t2 = new Thread(delegate()
-                                       {
-                                           try
-                                           {
-                                               c.Await(LONG_DELAY);
-                                               Debug.Fail("should throw exception");
-                                           }
-                                           catch (BrokenBarrierException success)
-                                           {
-                                           }
-                                       });
-            t1.Start();
-            t2.Start();
-            Thread.Sleep(SHORT_DELAY);
-            t1.Interrupt();
-            t1.Join();
-            t2.Join();
-
-        }
-
-        [Test]
-        [Ignore("Failing")]
-        public void Await3_TimeOutException()
+        [Test, Description("A timeout in timed await throws TimeoutException")]
+        public void AwaitChokesWhenTimeOut()
         {
             CyclicBarrier c = new CyclicBarrier(2);
-            Thread t = new Thread(delegate()
-                                      {
-                                          try
-                                          {
-                                              c.Await(SHORT_DELAY);
-                                              Debug.Fail("should throw exception");
-                                          }
-                                          catch (TimeoutException success)
-                                          {
-                                          }
-                                      });
-            t.Start();
-            t.Join();
+            ThreadManager.StartAndAssertRegistered(
+                "T", () => Assert.Throws<TimeoutException>(() => c.Await(SHORT_DELAY)));
+
+            ThreadManager.JoinAndVerify();
         }
 
 
-        [Test]
-        [Ignore("Failing")]
-        public void Await4_Timeout_BrokenBarrier()
+        [Test, Description("A timeout in one party causes others waiting to throw BrokenBarrierException")]
+        public void TimeoutAwaitBreaksBarrier([Values(true, false)] bool isTimed)
         {
             CyclicBarrier c = new CyclicBarrier(3);
-            Thread t1 = new Thread(delegate()
-                                       {
-                                           try
-                                           {
-                                               c.Await(SHORT_DELAY);
-                                               Debug.Fail("should throw exception");
-                                           }
-                                           catch (TimeoutException success)
-                                           {
-                                           }
-                                       });
-            Thread t2 = new Thread(delegate()
-                                       {
-                                           try
-                                           {
-                                               c.Await(MEDIUM_DELAY);
-                                               Debug.Fail("should throw exception");
-                                           }
-                                           catch (BrokenBarrierException success)
-                                           {
-                                           }
-                                       });
-            t1.Start();
-            t2.Start();
-            t1.Join();
-            t2.Join();
-
+            ThreadManager.StartAndAssertRegistered(
+                "T1", () => Assert.Throws<TimeoutException>(()=>c.Await(SHORT_DELAY)));
+            ThreadManager.StartAndAssertRegistered(
+                "T2", () => Assert.Throws<BrokenBarrierException>(() => AwaitOrTimedAwait(isTimed, c)));
+            ThreadManager.JoinAndVerify();
         }
 
-
-        [Test]
-        [Ignore("Failing")]
-        public void Await5_Timeout_BrokenBarrier()
+        [Test, Description("Await on already broken barrier throw BrokenBarrierException")]
+        public void AwaitChokesOnBrokenBarrier([Values(true, false)] bool isTimed)
         {
-            CyclicBarrier c = new CyclicBarrier(3);
-            Thread t1 = new Thread(delegate()
-            {
-                try
-                {
-                    c.Await(SHORT_DELAY);
-                    Debug.Fail("should throw exception");
-                }
-                catch (TimeoutException success)
-                {
-                }
-            });
-            Thread t2 = new Thread(delegate()
-            {
-                try
-                {
-                    c.Await();
-                    Debug.Fail("should throw exception");
-                }
-                catch (BrokenBarrierException success)
-                {
-                }
-            });
-            t1.Start();
-            t2.Start();
-            t1.Join();
-            t2.Join();
+            CyclicBarrier c = new CyclicBarrier(2);
+            ThreadManager.StartAndAssertRegistered(
+                "T1", 
+                delegate
+                    {
+                        Assert.Throws<TimeoutException>(() => c.Await(SHORT_DELAY));
+                        Assert.Throws<BrokenBarrierException>(() => AwaitOrTimedAwait(isTimed, c));
+                    });
+            ThreadManager.JoinAndVerify();
         }
 
-        [Test]
-        public void Reset_BrokenBarrier()
+        [Test, Description("A reset of an active barrier causes waiting threads to throw BrokenBarrierException")]
+        public void ResetBreaksBarrierWhenTheadWaiting([Values(true, false)] bool isTimed)
         {
             CyclicBarrier c = new CyclicBarrier(3);
-            Thread t1 = new Thread(delegate()
-                                       {
-                                           try
-                                           {
-                                               c.Await();
-                                               Debug.Fail("should throw exception");
-                                           }
-                                           catch (BrokenBarrierException success)
-                                           {
-                                           }
-                                       });
-            Thread t2 = new Thread(delegate()
-                                       {
-                                           try
-                                           {
-                                               c.Await();
-                                               Debug.Fail("should throw exception");
-                                           }
-                                           catch (BrokenBarrierException success)
-                                           {
-                                           }
-                                       });
-            t1.Start();
-            t2.Start();
+            ThreadStart action = () => Assert.Throws<BrokenBarrierException>(() => AwaitOrTimedAwait(isTimed, c));
+            ThreadManager.StartAndAssertRegistered("T", action, action);
             Thread.Sleep(SHORT_DELAY);
             c.Reset();
-            t1.Join();
-            t2.Join();
+            ThreadManager.JoinAndVerify();
         }
 
-        [Test]
-        public void Reset_NoBrokenBarrier()
+        [Test, Description("A reset before threads enter barrier does not throw BrokenBarrierException")]
+        public void ResetDoesNotBreakBarrierWhenNoThreadWaiting([Values(true, false)] bool isTimed)
         {
             CyclicBarrier c = new CyclicBarrier(3);
-            Thread t1 = new Thread(delegate()
-            {
-                c.Await();
-            });
-            Thread t2 = new Thread(delegate()
-            {
-                c.Await();
-            });
+
+            ThreadStart action = () => AwaitOrTimedAwait(isTimed, c);
+
             c.Reset();
-            t1.Start();
-            t2.Start();
-            c.Await();
-            t1.Join();
-            t2.Join();
+
+            ThreadManager.StartAndAssertRegistered("T", action, action, action);
+            ThreadManager.JoinAndVerify();
         }
-        [Test]
-        [Ignore("Failing")]
-        public void Reset_Leakage()
+
+        [Test, Description("All threads block while a barrier is broken")]
+        public void ResetLeakage() //TODO: didn't understand test name and description; copied from Java -K.X.
         {
             CyclicBarrier c = new CyclicBarrier(2);
             AtomicBoolean done = new AtomicBoolean();
-            Thread t = new Thread(delegate()
-                                      {
-                                          while (!done.Value)
-                                          {
-                                              try
-                                              {
-                                                  while (c.IsBroken)
-                                                      c.Reset();
-                                                  c.Await();
-                                                  Debug.Fail("Await should not return");
-                                              }
-                                              catch (BrokenBarrierException e)
-                                              {
-                                              }
-                                              catch (ThreadInterruptedException ie)
-                                              {
-                                              }
-                                          }
-                                      });
+            Thread t = ThreadManager.StartAndAssertRegistered(
+                "T1",
+                delegate
+                {
+                    while (!done.Value)
+                    {
+                        while (c.IsBroken) c.Reset();
+                        var e = Assert.Catch(() => c.Await());
+                        Assert.That(e,
+                                    Is.InstanceOf<BrokenBarrierException>()
+                                    .Or.InstanceOf<ThreadInterruptedException>());
+                    }
+                });
 
-            t.Start();
+
             for (int i = 0; i < 4; i++)
             {
                 Thread.Sleep(SHORT_DELAY);
@@ -335,233 +203,126 @@ namespace Spring.Threading
             }
             done.Value = true;
             t.Interrupt();
+            ThreadManager.JoinAndVerify();
         }
 
 
 
-        [Test]
-        public void ResetWithoutBreakage()
+        [Test, Description("Reset of a non-broken barrier does not break barrier")]
+        public void ResetSucceedsOnNonBrokenBarrier()
         {
-            CyclicBarrier Start = new CyclicBarrier(3);
+            CyclicBarrier start = new CyclicBarrier(3);
             CyclicBarrier barrier = new CyclicBarrier(3);
+            ThreadStart action = () => { start.Await(); barrier.Await(); };
             for (int i = 0; i < 3; i++)
             {
-                Thread t1 = new Thread(delegate()
-                {
-                    try { Start.Await(); }
-                    catch (Exception ie)
-                    {
-                        Debug.Fail("Start barrier");
-                    }
-                    try { barrier.Await(); }
-                    catch (Exception thrown)
-                    {
-                        Debug.Fail("unexpected exception");
-                    }
-                });
+                ThreadManager.StartAndAssertRegistered("T" + i + "-", action, action);
 
-                Thread t2 = new Thread(delegate()
-                {
-                    try { Start.Await(); }
-                    catch (Exception ie)
-                    {
-                        Debug.Fail("Start barrier");
-                    }
-                    try { barrier.Await(); }
-                    catch (Exception thrown)
-                    {
-                        Debug.Fail("unexpected exception");
-                    }
-                });
-
-
-                t1.Start();
-                t2.Start();
-                try { Start.Await(); }
-                catch (Exception ie) { Debug.Fail("Start barrier"); }
+                start.Await();
                 barrier.Await();
-                t1.Join();
-                t2.Join();
+                ThreadManager.JoinAndVerify();
                 Assert.IsFalse(barrier.IsBroken);
                 Assert.AreEqual(0, barrier.NumberOfWaitingParties);
                 if (i == 1) barrier.Reset();
                 Assert.IsFalse(barrier.IsBroken);
                 Assert.AreEqual(0, barrier.NumberOfWaitingParties);
             }
-
         }
 
 
-        [Test]
-        [Ignore("Failing")]
-        public void ResetAfterInterrupt()
+        [Test, Description("Reset of a barrier after interruption reinitializes it")]
+        public void ResetReinitializeBarrierAfterInterrupt()
         {
-            CyclicBarrier Start = new CyclicBarrier(3);
+            CyclicBarrier start = new CyclicBarrier(3);
             CyclicBarrier barrier = new CyclicBarrier(3);
             for (int i = 0; i < 2; i++)
             {
-                Thread t1 = new Thread(delegate()
-                {
-                    try { Start.Await(); }
-                    catch (Exception ie)
+                var threads = ThreadManager.StartAndAssertRegistered(
+                    "T" + i + "-",
+                    delegate
                     {
-                        Debug.Fail("Start barrier");
-                    }
-                    try { barrier.Await(); }
-                    catch (ThreadInterruptedException ok) { }
-                    catch (Exception thrown)
+                        start.Await();
+                        Assert.Catch<ThreadInterruptedException>(() => barrier.Await());
+                    },
+                    delegate
                     {
-                        Debug.Fail("unexpected exception");
-                    }
-                });
+                        start.Await();
+                        Assert.Catch<BrokenBarrierException>(() => barrier.Await());
+                    });
 
-                Thread t2 = new Thread(delegate()
-                {
-                    try { Start.Await(); }
-                    catch (Exception ie)
-                    {
-                        Debug.Fail("Start barrier");
-                    }
-                    try { barrier.Await(); }
-                    catch (BrokenBarrierException ok) { }
-                    catch (Exception thrown)
-                    {
-                        Debug.Fail("unexpected exception");
-                    }
-                });
-
-                t1.Start();
-                t2.Start();
-                try { Start.Await(); }
-                catch (Exception ie) { Debug.Fail("Start barrier"); }
-                t1.Interrupt();
-                t1.Join();
-                t2.Join();
+                start.Await();
+                threads[0].Interrupt();
+                ThreadManager.JoinAndVerify();
                 Assert.IsTrue(barrier.IsBroken);
                 Assert.AreEqual(0, barrier.NumberOfWaitingParties);
                 barrier.Reset();
                 Assert.IsFalse(barrier.IsBroken);
                 Assert.AreEqual(0, barrier.NumberOfWaitingParties);
             }
-
         }
 
 
-        [Test]
-        [Ignore("Failing")]
-        public void ResetAfterTimeout()
+        [Test, Description("Reset of a barrier after timeout reinitializes it")]
+        public void ResetReinitializeBarrierAfterTimeout()
         {
-            CyclicBarrier Start = new CyclicBarrier(3);
+            CyclicBarrier start = new CyclicBarrier(3);
             CyclicBarrier barrier = new CyclicBarrier(3);
             for (int i = 0; i < 2; i++)
             {
-                Thread t1 = new Thread(delegate()
-                {
-                    try { Start.Await(); }
-                    catch (Exception ie)
+                ThreadManager.StartAndAssertRegistered(
+                    "T" + i + "-",
+                    delegate
                     {
-                        Debug.Fail("Start barrier");
-                    }
-                    try { barrier.Await(MEDIUM_DELAY); }
-                    catch (TimeoutException ok) { }
-                    catch (Exception thrown)
+                        start.Await();
+                        Assert.Catch<TimeoutException>(() => barrier.Await(SHORT_DELAY));
+                    },
+                    delegate
                     {
-                        Debug.Fail("unexpected exception");
-                    }
-                });
+                        start.Await();
+                        Assert.Catch<BrokenBarrierException>(() => barrier.Await());
+                    });
 
-                Thread t2 = new Thread(delegate()
-                {
-                    try { Start.Await(); }
-                    catch (Exception ie)
-                    {
-                        Debug.Fail("Start barrier");
-                    }
-                    try { barrier.Await(); }
-                    catch (BrokenBarrierException ok) { }
-                    catch (Exception thrown)
-                    {
-                        Debug.Fail("unexpected exception");
-                    }
-                });
-
-                t1.Start();
-                t2.Start();
-                try { Start.Await(); }
-                catch (Exception ie) { Debug.Fail("Start barrier"); }
-                t1.Join();
-                t2.Join();
+                start.Await();
+                ThreadManager.JoinAndVerify();
                 Assert.IsTrue(barrier.IsBroken);
                 Assert.AreEqual(0, barrier.NumberOfWaitingParties);
                 barrier.Reset();
                 Assert.IsFalse(barrier.IsBroken);
                 Assert.AreEqual(0, barrier.NumberOfWaitingParties);
             }
-
         }
 
-
-        private class NullRefRunnable : IRunnable
+        [Test, Description("Reset of a barrier after a failed command reinitializes it")]
+        public void ResetReinitializeBarrierAfterExceptionInBarrierAction()
         {
-            public void Run()
+            var e = new NullReferenceException();
+            CyclicBarrier start = new CyclicBarrier(3);
+            CyclicBarrier barrier = new CyclicBarrier(3, () => { throw e; });
+            ThreadStart action = delegate
             {
-                throw new NullReferenceException();
-            }
-        }
-        [Test]
-        [Ignore("Timing Out")]
-        public void ResetAfterCommandException()
-        {
-            CyclicBarrier Start = new CyclicBarrier(3);
-            CyclicBarrier barrier =
-                new CyclicBarrier(3, new NullRefRunnable());
+                start.Await();
+                Assert.Catch<BrokenBarrierException>(() => barrier.Await());
+            };
             for (int i = 0; i < 2; i++)
             {
-                Thread t1 = new Thread(delegate()
-                {
-                    try { Start.Await(); }
-                    catch (Exception ie)
-                    {
-                        Debug.Fail("Start barrier");
-                    }
-                    try { barrier.Await(); }
-                    catch (BrokenBarrierException ok) { }
-                    catch (Exception thrown)
-                    {
-                        Debug.Fail("unexpected exception");
-                    }
-                });
+                ThreadManager.StartAndAssertRegistered("T" + i + "-", action, action);
 
-                Thread t2 = new Thread(delegate()
-                {
-                    try { Start.Await(); }
-                    catch (Exception ie)
-                    {
-                        Debug.Fail("Start barrier");
-                    }
-                    try { barrier.Await(); }
-                    catch (BrokenBarrierException ok) { }
-                    catch (Exception thrown)
-                    {
-                        Debug.Fail("unexpected exception");
-                    }
-                });
-
-                t1.Start();
-                t2.Start();
-                try { Start.Await(); }
-                catch (Exception ie) { Debug.Fail("Start barrier"); }
-                while (barrier.NumberOfWaitingParties < 2) { Thread.CurrentThread.Join(); }
-                try { barrier.Await(); }
-                catch (Exception ok) { }
-                t1.Join();
-                t2.Join();
+                start.Await();
+                while (barrier.NumberOfWaitingParties < 2) { Thread.Sleep(1); }
+                Assert.That(Assert.Catch(()=>barrier.Await()), Is.SameAs(e));
+                ThreadManager.JoinAndVerify();
                 Assert.IsTrue(barrier.IsBroken);
                 Assert.AreEqual(0, barrier.NumberOfWaitingParties);
                 barrier.Reset();
                 Assert.IsFalse(barrier.IsBroken);
                 Assert.AreEqual(0, barrier.NumberOfWaitingParties);
             }
+        }
+
+        private static void AwaitOrTimedAwait(bool isTimed, CyclicBarrier c)
+        {
+            if (isTimed) c.Await(LONG_DELAY);
+            else c.Await();
         }
     }
 }

@@ -110,6 +110,7 @@
     <Compile Include="Threading\AtomicTypes\IAtomic.cs" />
     <Compile Include="Threading\AtomicTypes\IAtomicArray.cs" />
     <Compile Include="Threading\AtomicTypes\ValueHolder.cs" />
+    <Compile Include="Threading\BrokenBarrierException.cs" />
     <Compile Include="Threading\Callable.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueue.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueue.cs" />
     <Compile Include="Threading\ContextCopyingRunnable.cs" />
+    <Compile Include="Threading\CyclicBarrier.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorService.cs" />
     <Compile Include="Threading\Execution\CancellationException.cs" />
     <Compile Include="Threading\Execution\ExecutionException.cs" />

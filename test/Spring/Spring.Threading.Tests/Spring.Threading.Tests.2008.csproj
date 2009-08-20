@@ -151,12 +151,12 @@
     <Compile Include="Threading\Execution\CancellationExceptionTest.cs" />
     <Compile Include="Threading\Execution\DelegatedExecutorServiceTest.cs" />
     <Compile Include="Threading\Execution\ExecutionExceptionTest.cs" />
-    <Compile Include="Threading\Execution\ExecutionExceptionTests.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\AbortPolicyTests.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicyTests.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Threading\Execution\ExecutorCompletionServiceTest.cs" />
+    <Compile Include="Threading\Execution\ExecutorServiceTestFixture.cs" />
     <Compile Include="Threading\Execution\ExecutorsTest.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTest.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTests.cs" />
