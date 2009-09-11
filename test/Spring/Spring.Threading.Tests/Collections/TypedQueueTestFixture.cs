@@ -12,6 +12,17 @@ namespace Spring.Collections
     /// <author>Kenneth Xu</author>
     public abstract class TypedQueueTestFixture<T> : QueueTestFixture
     {
+        /// <summary>
+        /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
+        /// <see cref="CollectionOptions.Bounded"/> and
+        /// <see cref="CollectionOptions.Fifo"/>.
+        /// </summary>
+        /// <param name="options"></param>
+        protected TypedQueueTestFixture(CollectionOptions options)
+            : base(options)
+        {
+        }
+
         protected override object[] NewSamples()
         {
             object[] samples = new object[_sampleSize];

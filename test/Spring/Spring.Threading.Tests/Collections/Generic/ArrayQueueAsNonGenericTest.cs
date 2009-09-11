@@ -13,9 +13,8 @@ namespace Spring.Collections.Generic
     public class ArrayQueueAsNonGenericTest<T> : TypedQueueTestFixture<T>
     {
         public ArrayQueueAsNonGenericTest()
+            : base(CollectionOptions.Bounded | CollectionOptions.Fifo)
         {
-            _isCapacityRestricted = true;
-            _isFifoQueue = true;
         }
 
         protected override IQueue NewQueue()

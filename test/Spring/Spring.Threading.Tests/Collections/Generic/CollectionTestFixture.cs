@@ -50,7 +50,7 @@ namespace Spring.Collections.Generic
     {
         protected T[] _samples;
         protected int _sampleSize = 9;
-        protected bool _allowDuplicate;
+        protected bool _allowDuplicate = true;
         protected bool _isReadOnly;
 
         public static void ToStringContainsToStringOfElements(ICollection<T> c)
@@ -60,6 +60,17 @@ namespace Spring.Collections.Generic
             {
                 Assert.IsTrue(s.IndexOf(element.ToString()) >= 0);
             }
+        }
+
+        /// <summary>
+        /// Only evaluates option <see cref="CollectionOptions.Unique"/> and
+        /// <see cref="CollectionOptions.ReadOnly"/>.
+        /// </summary>
+        /// <param name="options"></param>
+        protected CollectionTestFixture(CollectionOptions options)
+        {
+            if ((options & CollectionOptions.Unique) != 0) _allowDuplicate = false;
+            if ((options & CollectionOptions.ReadOnly) != 0) _isReadOnly = true;
         }
 
         protected override sealed IEnumerable<T> NewEnumerable()

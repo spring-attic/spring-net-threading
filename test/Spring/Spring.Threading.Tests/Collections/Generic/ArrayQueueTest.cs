@@ -15,9 +15,8 @@ namespace Spring.Collections.Generic
     public class ArrayQueueTest<T> : QueueTestFixture<T>
     {
         public ArrayQueueTest()
+            : base(CollectionOptions.Bounded | CollectionOptions.Fifo)
         {
-            _isCapacityRestricted = true;
-            _isFifoQueue = true;
         }
         protected override IQueue<T> NewQueue()
         {

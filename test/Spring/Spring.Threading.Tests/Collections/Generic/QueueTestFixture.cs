@@ -19,6 +19,21 @@ namespace Spring.Collections.Generic
         // Queue in .Net should allow null in gneneral.
         protected bool _allowNull = true;
 
+        /// <summary>
+        /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
+        /// <see cref="CollectionOptions.ReadOnly"/>,
+        /// <see cref="CollectionOptions.Bounded"/>,
+        /// <see cref="CollectionOptions.Fifo"/> and
+        /// <see cref="CollectionOptions.NoNull"/>.
+        /// </summary>
+        /// <param name="options"></param>
+        protected QueueTestFixture(CollectionOptions options) : base(options)
+        {
+            if ((options & CollectionOptions.Bounded) != 0) _isCapacityRestricted = true;
+            if ((options & CollectionOptions.Fifo) != 0) _isFifoQueue = true;
+            if ((options & CollectionOptions.NoNull) != 0) _allowNull = false;
+        }
+
         protected sealed override ICollection<T> NewCollection()
         {
             return NewQueue();
@@ -44,11 +59,6 @@ namespace Spring.Collections.Generic
         /// </summary>
         /// <returns></returns>
         protected abstract IQueue<T> NewQueue();
-
-        public QueueTestFixture()
-        {
-            _allowDuplicate = true;
-        }
 
         [Test] public virtual void AddChokesWhenQueueIsFull()
         {
@@ -294,6 +304,11 @@ namespace Spring.Collections.Generic
         protected void SkipIfUnboundedQueue()
         {
             if (!_isCapacityRestricted) Assert.Pass("Skipped as queue is unbounded.");
+        }
+
+        protected void SkipIfBoundedQueue()
+        {
+            if (_isCapacityRestricted) Assert.Pass("Skipped as queue is bounded.");
         }
 
         protected void AssertRemainingCapacity(IQueue<T> queue, int size)

@@ -1,88 +1,66 @@
 ﻿using System;
 using NUnit.Framework;
+using CollectionOptions = Spring.Collections.CollectionOptions;
 
 namespace Spring.Threading.Collections.Generic
 {
     /// <summary>
-    /// Functional test case for bounded <see cref="LinkedBlockingQueue{T}"/> as a generic
-    /// <see cref="IBlockingQueue{T}"/>
+    /// Test cases for <see cref="LinkedBlockingQueue{T}"/>
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <author>Doug Lea</author>
     /// <author>Kenneth Xu</author>
-    [TestFixture(typeof(string))]
-    [TestFixture(typeof(int))]
-    public class LinkedBlockingQueueBoundTest<T> : LinkedBlockingQueueTestBase<T>
+    [TestFixture(typeof(string), CollectionOptions.Unbounded)]
+    [TestFixture(typeof(int), CollectionOptions.Unbounded)]
+    [TestFixture(typeof(string), CollectionOptions.Bounded)]
+    [TestFixture(typeof(int), CollectionOptions.Bounded)]
+    public class LinkedBlockingQueueTest<T> : BlockingQueueTestFixture<T>
     {
-        public LinkedBlockingQueueBoundTest()
+        public LinkedBlockingQueueTest(CollectionOptions attributes)
+            : base(attributes | CollectionOptions.Fifo)
         {
-            _isCapacityRestricted = true;
-            _isFifoQueue = true;
-        }
-        protected override IBlockingQueue<T> NewBlockingQueue()
-        {
-            return new LinkedBlockingQueue<T>(_sampleSize);
         }
 
-        protected override LinkedBlockingQueue<T> NewLinkedBlockingQueueFilledWithSample()
+        protected override IBlockingQueue<T> NewBlockingQueue()
         {
-            var sut = new LinkedBlockingQueue<T>(_sampleSize);
-            sut.AddRange(TestData<T>.MakeTestArray(_sampleSize));
+            return NewLinkedBlockingQueue(_isCapacityRestricted, _sampleSize, false);
+        }
+
+        protected sealed override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
+        {
+            return NewLinkedBlockingQueueFilledWithSample();
+        }
+
+        protected virtual LinkedBlockingQueue<T> NewLinkedBlockingQueueFilledWithSample()
+        {
+            return NewLinkedBlockingQueue(_isCapacityRestricted, _sampleSize, true);
+        }
+
+        internal static LinkedBlockingQueue<T> NewLinkedBlockingQueue(bool isCapacityRestricted, int size, bool isFilled)
+        {
+            LinkedBlockingQueue<T> sut = isCapacityRestricted ? 
+                new LinkedBlockingQueue<T>(size) : new LinkedBlockingQueue<T>();
+
+            if (isFilled)
+            {
+                sut.AddRange(TestData<T>.MakeTestArray(size));
+            }
             return sut;
         }
 
-        [Test] public void ConstructorCreatesQueueWithGivenCapacity()
+        [Test]
+        public void ConstructorCreatesQueueWithUnlimitedCapacity()
         {
-            var queue = new LinkedBlockingQueue<T>(_sampleSize);
-            Assert.AreEqual(_sampleSize, queue.RemainingCapacity);
-            Assert.AreEqual(_sampleSize, queue.Capacity);
-        }
-
-        [Test] public void ConstructorChokesOnNonPositiveCapacityArgument([Values(0, -1)] int capacity)
-        {
-            var e = Assert.Throws<ArgumentOutOfRangeException>(
-                () => { new LinkedBlockingQueue<T>(capacity); });
-            Assert.That(e.ParamName, Is.EqualTo("capacity"));
-            Assert.That(e.ActualValue, Is.EqualTo(capacity));
-        }
-
-    }
-
-    /// <summary>
-    /// Functional test case for unbounded <see cref="LinkedBlockingQueue{T}"/> as a generic
-    /// <see cref="IBlockingQueue{T}"/>
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <author>Doug Lea</author>
-    /// <author>Kenneth Xu</author>
-    [TestFixture(typeof(string))]
-    [TestFixture(typeof(int))]
-    public class LinkedBlockingQueueUnboundTest<T> : LinkedBlockingQueueTestBase<T>
-    {
-        public LinkedBlockingQueueUnboundTest()
-        {
-            _isCapacityRestricted = false;
-            _isFifoQueue = true;
-        }
-        protected override IBlockingQueue<T> NewBlockingQueue()
-        {
-            return new LinkedBlockingQueue<T>();
-        }
-
-        protected override LinkedBlockingQueue<T> NewLinkedBlockingQueueFilledWithSample()
-        {
-            return new LinkedBlockingQueue<T>(TestData<T>.MakeTestArray(_sampleSize));
-        }
-
-        [Test] public void ConstructorCreatesQueueWithUnlimitedCapacity()
-        {
+            SkipIfBoundedQueue();
             var queue = new LinkedBlockingQueue<T>();
             Assert.AreEqual(int.MaxValue, queue.RemainingCapacity);
             Assert.AreEqual(int.MaxValue, queue.Capacity);
         }
 
-        [Test] public void ConstructorWelcomesNullElememtInCollectionArgument()
+        [Test]
+        public void ConstructorWelcomesNullElememtInCollectionArgument()
         {
+            SkipIfBoundedQueue();
             T[] arrayWithDefaulValue = new T[_sampleSize];
             var q = new LinkedBlockingQueue<T>(arrayWithDefaulValue);
             foreach (T sample in arrayWithDefaulValue)
@@ -93,15 +71,19 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-        [Test] public void ConstructorChokesOnNullCollectionArgument()
+        [Test]
+        public void ConstructorChokesOnNullCollectionArgument()
         {
+            SkipIfBoundedQueue();
             var e = Assert.Throws<ArgumentNullException>(
                 () => { new LinkedBlockingQueue<T>(null); });
-            Assert.That(e.ParamName,Is.EqualTo("collection"));
+            Assert.That(e.ParamName, Is.EqualTo("collection"));
         }
 
-        [Test] public void ConstructorCreatesQueueConstainsAllElementsInCollection()
+        [Test]
+        public void ConstructorCreatesQueueConstainsAllElementsInCollection()
         {
+            SkipIfBoundedQueue();
             var q = new LinkedBlockingQueue<T>(_samples);
             foreach (T sample in _samples)
             {
@@ -111,42 +93,48 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-    }
-
-    /// <author>Doug Lea</author>
-    /// <author>Kenneth Xu</author>
-    public abstract class LinkedBlockingQueueTestBase<T> : BlockingQueueTestFixture<T>
-    {
-        protected abstract LinkedBlockingQueue<T> NewLinkedBlockingQueueFilledWithSample();
-
-        protected sealed override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
+        [Test]
+        public void ConstructorCreatesQueueWithGivenCapacity()
         {
-            return NewLinkedBlockingQueueFilledWithSample();
+            SkipIfUnboundedQueue();
+            var queue = new LinkedBlockingQueue<T>(_sampleSize);
+            Assert.AreEqual(_sampleSize, queue.RemainingCapacity);
+            Assert.AreEqual(_sampleSize, queue.Capacity);
         }
 
-		[Test] public void ToArrayWritesAllElementsToNewArray() 
+        [Test]
+        public void ConstructorChokesOnNonPositiveCapacityArgument([Values(0, -1)] int capacity)
         {
-			LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
-			T[] o = q.ToArray();
-			for(int i = 0; i < o.Length; i++)
-				Assert.AreEqual(o[i], q.Take());
-		}
+            SkipIfUnboundedQueue();
+            var e = Assert.Throws<ArgumentOutOfRangeException>(
+                () => { new LinkedBlockingQueue<T>(capacity); });
+            Assert.That(e.ParamName, Is.EqualTo("capacity"));
+            Assert.That(e.ActualValue, Is.EqualTo(capacity));
+        }
 
-		[Test] public void ToArrayWritesAllElementsToExistingArray() 
+        [Test] public void ToArrayWritesAllElementsToNewArray() 
         {
-		    LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
-			T[] ints = new T[_sampleSize];
-			ints = q.ToArray(ints);
-				for(int i = 0; i < ints.Length; i++)
-					Assert.AreEqual(ints[i], q.Take());
-		}
+            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
+            T[] o = q.ToArray();
+            for(int i = 0; i < o.Length; i++)
+                Assert.AreEqual(o[i], q.Take());
+        }
 
-		[Test] public void ToArrayChokesOnNullArray() 
+        [Test] public void ToArrayWritesAllElementsToExistingArray() 
         {
-		    LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
-			var e = Assert.Throws<ArgumentNullException>(()=>q.ToArray(null));
+            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
+            T[] ints = new T[_sampleSize];
+            ints = q.ToArray(ints);
+            for(int i = 0; i < ints.Length; i++)
+                Assert.AreEqual(ints[i], q.Take());
+        }
+
+        [Test] public void ToArrayChokesOnNullArray() 
+        {
+            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
+            var e = Assert.Throws<ArgumentNullException>(()=>q.ToArray(null));
             Assert.That(e.ParamName, Is.EqualTo("targetArray"));
-		}
+        }
 
         [Test] public void ToArrayChokesOnIncompatibleArray()
         {
@@ -182,13 +170,33 @@ namespace Spring.Threading.Collections.Generic
             Assert.That(a2, Is.InstanceOf<string[]>());
         }
 
-		[Test] public void ToStringContainsToStringOfElements() {
-		    LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
-			string s = q.ToString();
-			for (int i = 0; i < _sampleSize; ++i) {
-				Assert.IsTrue(s.IndexOf(_samples[i].ToString()) >= 0);
-			}
-		}
+        [Test] public void ToStringContainsToStringOfElements() {
+            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
+            string s = q.ToString();
+            for (int i = 0; i < _sampleSize; ++i) {
+                Assert.IsTrue(s.IndexOf(_samples[i].ToString()) >= 0);
+            }
+        }
+
+        [TestFixture(typeof(string), CollectionOptions.Unbounded)]
+        [TestFixture(typeof(int), CollectionOptions.Unbounded)]
+        [TestFixture(typeof(string), CollectionOptions.Bounded)]
+        [TestFixture(typeof(int), CollectionOptions.Bounded)]
+        public class AsNonGeneric : Spring.Collections.TypedQueueTestFixture<T>
+        {
+            public AsNonGeneric(CollectionOptions options) 
+                : base(options | CollectionOptions.Fifo) {}
+
+            protected override Spring.Collections.IQueue NewQueue()
+            {
+                return NewLinkedBlockingQueue(_isCapacityRestricted, _sampleSize, false);
+            }
+
+            protected override Spring.Collections.IQueue NewQueueFilledWithSample()
+            {
+                return NewLinkedBlockingQueue(_isCapacityRestricted, _sampleSize, true);
+            }
+        }
 
     }
 }

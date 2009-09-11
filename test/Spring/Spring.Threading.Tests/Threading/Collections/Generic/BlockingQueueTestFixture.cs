@@ -4,6 +4,7 @@ using System.Threading;
 using NUnit.Framework;
 using Spring.Collections.Generic;
 using Spring.Threading.AtomicTypes;
+using CollectionOptions = Spring.Collections.CollectionOptions;
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -14,6 +15,20 @@ namespace Spring.Threading.Collections.Generic
     public abstract class BlockingQueueTestFixture<T> : QueueTestFixture<T>
     {
         protected bool _isFair;
+
+        /// <summary>
+        /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
+        /// <see cref="CollectionOptions.ReadOnly"/>,
+        /// <see cref="CollectionOptions.Bounded"/>,
+        /// <see cref="CollectionOptions.Fifo"/>,
+        /// <see cref="CollectionOptions.NoNull"/> and
+        /// <see cref="CollectionOptions.NoFair"/>.
+        /// </summary>
+        /// <param name="options"></param>
+        protected BlockingQueueTestFixture(CollectionOptions options) : base(options)
+        {
+            if ((options & CollectionOptions.Fair) != 0) _isFair = true;
+        }
 
         protected sealed override IQueue<T> NewQueue()
         {
@@ -68,11 +83,11 @@ namespace Spring.Threading.Collections.Generic
             }
      	}
 
-        private void PollOneFromQueue(IBlockingQueue<T> q, T expectedValue)
+        private static void PollOneFromQueue(IBlockingQueue<T> q, T expectedValue)
         {
             T result;
             Assert.IsTrue(q.Poll(TestData.SmallDelay, out result));
-            Assert.That(result, Is.EqualTo(default(T)));
+            Assert.That(result, Is.EqualTo(expectedValue));
         }
 
     	[Test] public virtual void PutAddsElementsToQueue() {

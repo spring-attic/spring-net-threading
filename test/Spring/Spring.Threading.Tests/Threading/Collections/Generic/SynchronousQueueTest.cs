@@ -2,49 +2,26 @@ using System;
 using System.Threading;
 using NUnit.Framework;
 using System.Collections.Generic;
+using Spring.Collections;
+using CollectionOptions = Spring.Collections.CollectionOptions;
+
 namespace Spring.Threading.Collections.Generic
 {
     /// <summary>
-    /// Test cases for fair <see cref="SynchronousQueue{T}"/>.
+    /// Test cases for <see cref="SynchronousQueue{T}"/>.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <author>Kenneth Xu</author>
-    [TestFixture(typeof(int))]
-    [TestFixture(typeof(string))]
-    public class SynchronousQueueFairTest<T> : SynchronousQueueTestBase<T>
+    [TestFixture(typeof(int), CollectionOptions.Fair)]
+    [TestFixture(typeof(int), CollectionOptions.NoFair)]
+    [TestFixture(typeof(string), CollectionOptions.Fair)]
+    [TestFixture(typeof(string), CollectionOptions.NoFair)]
+    public class SynchronousQueueTest<T> : BlockingQueueTestFixture<T>
     {
-        public SynchronousQueueFairTest()
+        public SynchronousQueueTest(CollectionOptions options) 
+            : base(options | CollectionOptions.Bounded | CollectionOptions.Fifo)
         {
-            _isFair = true;
-        }
-        protected override SynchronousQueue<T> NewSynchronousQueue()
-        {
-            return new SynchronousQueue<T>(true);
-        }
-    }
-
-    /// <summary>
-    /// Test cases for no fair <see cref="SynchronousQueue{T}"/>.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <author>Kenneth Xu</author>
-    [TestFixture(typeof(int))]
-    [TestFixture(typeof(string))]
-    public class SynchronousQueueNoFairTest<T> : SynchronousQueueTestBase<T>
-    {
-        protected override SynchronousQueue<T>  NewSynchronousQueue()
-        {
-            return new SynchronousQueue<T>();
-        }
-    }
-
-    public abstract class SynchronousQueueTestBase<T> : BlockingQueueTestFixture<T>
-    {
-        protected SynchronousQueueTestBase()
-        {
-            _isCapacityRestricted = true;
             _sampleSize = 0;
-            _isFifoQueue = true;
         }
 
         protected override IBlockingQueue<T> NewBlockingQueue()
@@ -52,7 +29,10 @@ namespace Spring.Threading.Collections.Generic
             return NewSynchronousQueue();
         }
 
-        protected abstract SynchronousQueue<T> NewSynchronousQueue();
+        private SynchronousQueue<T> NewSynchronousQueue()
+        {
+            return _isFair ? new SynchronousQueue<T>(true) : new SynchronousQueue<T>();
+        }
 
         [Test] public override void EnumeratorFailsWhenCollectionIsModified()
         {
@@ -169,6 +149,24 @@ namespace Spring.Threading.Collections.Generic
                 {
                     CollectionAssert.Contains(values, TestData<T>.MakeData(i));
                 }
+            }
+        }
+
+        [TestFixture(typeof(int), CollectionOptions.Fair)]
+        [TestFixture(typeof(int), CollectionOptions.NoFair)]
+        [TestFixture(typeof(string), CollectionOptions.Fair)]
+        [TestFixture(typeof(string), CollectionOptions.NoFair)]
+        public class AsNonGeneric : TypedQueueTestFixture<T>
+        {
+            private readonly bool _isFair;
+            public AsNonGeneric(CollectionOptions options) : base(options)
+            {
+                _isFair = (options & CollectionOptions.Fair) > 0;
+                _sampleSize = 0;
+            }
+            protected override IQueue NewQueue()
+            {
+                return _isFair ? new SynchronousQueue<T>(true) : new SynchronousQueue<T>();
             }
         }
     }

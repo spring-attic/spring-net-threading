@@ -103,6 +103,7 @@
     <Compile Include="BaseAbstractCollectionTest.cs" />
     <Compile Include="BaseMockTestCase.cs" />
     <Compile Include="BaseThreadingTestCase.cs" />
+    <Compile Include="Collections\CollectionOptions.cs" />
     <Compile Include="Collections\CollectionTestFixture.cs" />
     <Compile Include="Collections\EnumerableTestFixture.cs" />
     <Compile Include="Collections\EnumeratorTestFixture.cs" />
@@ -134,15 +135,12 @@
     <Compile Include="Threading\CallableTest.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueAsGenericTest.cs" />
-    <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\BlockingQueueTestFixture.cs" />
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />
-    <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
-    <Compile Include="Threading\Collections\Generic\SynchronousQueueAsNonGenericTest.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
     <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
     <Compile Include="Threading\CountDownLatchTests.cs" />

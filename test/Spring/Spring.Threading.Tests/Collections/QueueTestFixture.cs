@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using NUnit.Framework;
-using Spring.Collections.Generic;
 
 namespace Spring.Collections
 {
@@ -18,6 +17,18 @@ namespace Spring.Collections
         protected bool _isCapacityRestricted;
 
         protected bool _isFifoQueue;
+
+        /// <summary>
+        /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
+        /// <see cref="CollectionOptions.Bounded"/> and
+        /// <see cref="CollectionOptions.Fifo"/>.
+        /// </summary>
+        /// <param name="options"></param>
+        protected QueueTestFixture(CollectionOptions options)
+        {
+            if ((options & CollectionOptions.Bounded) != 0) _isCapacityRestricted = true;
+            if ((options & CollectionOptions.Fifo) != 0) _isFifoQueue = true;
+        }
 
         protected override sealed ICollection NewCollection()
         {
