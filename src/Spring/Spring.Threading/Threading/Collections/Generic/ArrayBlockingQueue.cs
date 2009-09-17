@@ -98,7 +98,7 @@ namespace Spring.Threading.Collections.Generic
         /// <exception cref="ArgumentNullException">
         /// If <paramref name="collection"/> is <see langword="null"/>.
 		/// </exception> 
-		public ArrayBlockingQueue(int capacity, bool isFair, ICollection<T> collection) : 
+		public ArrayBlockingQueue(int capacity, bool isFair, IEnumerable<T> collection) : 
             base(new ArrayQueue<T>(capacity, collection), capacity, isFair)
 		{
 		}

@@ -159,6 +159,27 @@ namespace Spring.Threading.Collections.Generic
         }
         #endregion
 
+        #region Properties
+        /// <summary>
+        /// Returns the current capacity of this queue.
+        /// </summary>
+        public override int Capacity
+        {
+            get { return _capacity; }
+        }
+
+        /// <summary>
+        /// Determine if the current instance is fair to blocking threads.
+        /// </summary>
+        public virtual bool IsFair
+        {
+            get
+            {
+                return _lock.IsFair;
+            }
+        }
+        #endregion
+
         /// <summary> 
         /// Atomically removes all of the elements from this queue.
         /// The queue will be empty after this call returns.
@@ -170,13 +191,6 @@ namespace Spring.Threading.Collections.Generic
                 _wrapped.Clear();
                 _notFullCondition.SignalAll();
             }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        public override int Capacity
-        {
-            get { return _capacity; }
         }
 
         /// <summary>

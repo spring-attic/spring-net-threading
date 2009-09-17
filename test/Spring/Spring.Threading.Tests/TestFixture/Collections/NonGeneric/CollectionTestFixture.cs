@@ -2,48 +2,8 @@
 using System.Collections;
 using NUnit.Framework;
 
-namespace Spring.Collections
+namespace Spring.TestFixture.Collections.NonGeneric
 {
-
-    /*
-
-    [TestFixture(typeof(string))]
-    [TestFixture(typeof(int))]
-    public class ListAsCollectionTest<T> : CollectionTestFixture
-    {
-        protected override ICollection NewCollection()
-        {
-            return new System.Collections.Generic.List<T>(TestData<T>.MakeTestArray(55));
-        }
-    }
-
-    [TestFixture(typeof(string))]
-    [TestFixture(typeof(int))]
-    public class ArrayListAsCollectionTest<T> : CollectionTestFixture
-    {
-        protected override ICollection NewCollection()
-        {
-            return new ArrayList(TestData<T>.MakeTestArray(55));
-        }
-    }
-
-    [TestFixture(typeof(string))]
-    [TestFixture(typeof(int))]
-    public class ArrayAsCollectionTest<T> : CollectionTestFixture
-    {
-        [SetUp]
-        public void SetUp()
-        {
-            AntiHangingLimit = 600;
-        }
-        protected override ICollection NewCollection()
-        {
-            return TestData<T>.MakeTestArray(555);
-        }
-    }
-
-     */
-
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="ICollection"/>.
     /// </summary>
@@ -60,9 +20,9 @@ namespace Spring.Collections
         [Test] public void CopyToChokesWithNullArray()
         {
             Assert.Throws<ArgumentNullException>(delegate
-            {
-                NewCollection().CopyTo(null, 0);
-            });
+                                                     {
+                                                         NewCollection().CopyTo(null, 0);
+                                                     });
         }
 
         [Test] public void CopyToChokesOnMultiDimensionArray()
@@ -70,9 +30,9 @@ namespace Spring.Collections
             ICollection c = NewCollection();
             if (c.Count==0) Assert.Pass();
             Assert.Throws<ArgumentException>(delegate
-            {
-                c.CopyTo(new object[c.Count, 2], 0);
-            });
+                                                 {
+                                                     c.CopyTo(new object[c.Count, 2], 0);
+                                                 });
         }
 
 
@@ -80,14 +40,14 @@ namespace Spring.Collections
         {
             ICollection c = NewCollection();
             Assert.Throws<ArgumentOutOfRangeException>(delegate
-            {
-                c.CopyTo(new object[0], -1);
-            });
+                                                           {
+                                                               c.CopyTo(new object[0], -1);
+                                                           });
 
             Assert.Throws<ArgumentOutOfRangeException>(delegate
-            {
-                c.CopyTo(NewArray<object>(1, c.Count), 0);
-            });
+                                                           {
+                                                               c.CopyTo(NewArray<object>(1, c.Count), 0);
+                                                           });
         }
 
         [Test] public void CopyToChokesWhenArrayIsTooSmallToHold()
@@ -95,17 +55,17 @@ namespace Spring.Collections
             ICollection c = NewCollection();
             if(c.Count==0) Assert.Pass();
             Assert.Throws<ArgumentException>(delegate
-            {
-                c.CopyTo(new object[c.Count -1], 0);
-            });
+                                                 {
+                                                     c.CopyTo(new object[c.Count -1], 0);
+                                                 });
             Assert.Throws<ArgumentException>(delegate
-            {
-                c.CopyTo(NewArray<object>(1, c.Count-1), 1);
-            });
+                                                 {
+                                                     c.CopyTo(NewArray<object>(1, c.Count-1), 1);
+                                                 });
             Assert.Throws<ArgumentException>(delegate
-            {
-                c.CopyTo(NewArray<object>(1, c.Count), 2);
-            });
+                                                 {
+                                                     c.CopyTo(NewArray<object>(1, c.Count), 2);
+                                                 });
         }
 
         [Test] public void CopyToZeroLowerBoundArray()
@@ -133,5 +93,4 @@ namespace Spring.Collections
         }
 
     }
-
 }

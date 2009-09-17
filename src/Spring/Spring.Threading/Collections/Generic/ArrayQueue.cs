@@ -46,15 +46,17 @@ namespace Spring.Collections.Generic
 	[Serializable]
 	public class ArrayQueue<T> : AbstractQueue<T> //BACKPORT_2_2
 	{
-		/// <summary>
-		/// The intial capacity of this queue.
-		/// </summary>
-		private int _capacity;
+		/// <summary>The intial capacity of this queue.</summary>
+		private readonly int _capacity;
+
 		/// <summary>Number of items in the queue </summary>
 		private int _count;
 
 		/// <summary>The queued items  </summary>
-		private T[] _items;
+		private readonly T[] _items;
+
+	    /// <summary>The change revision to fast fail enumerator</summary>
+	    private int _version;
 
 		/// <summary>items index for next take, poll or remove </summary>
 		[NonSerialized] private int _takeIndex;
@@ -68,13 +70,14 @@ namespace Spring.Collections.Generic
 		/// Utility for remove: Delete item at position <paramref name="index"/>.
 		/// and return the next item position. Call only when holding lock.
 		/// </summary>
-		private int removeAt(int index)
+		private int RemoveAt(int index)
 		{
-			T[] items = _items;
+            _version++;
+            T[] items = _items;
 			if (index == _takeIndex)
 			{
 				items[_takeIndex] = default(T);
-				_takeIndex = increment(_takeIndex);
+				_takeIndex = Increment(_takeIndex);
 			    index = _takeIndex;
 			}
 			else
@@ -82,7 +85,7 @@ namespace Spring.Collections.Generic
                 int i = index;
                 for (; ; )
 				{
-					int nextIndex = increment(i);
+					int nextIndex = Increment(i);
 					if (nextIndex != _putIndex)
 					{
 						items[i] = items[nextIndex];
@@ -101,7 +104,7 @@ namespace Spring.Collections.Generic
 		}
 
 		/// <summary> Circularly increment i.</summary>
-		private int increment(int index)
+		private int Increment(int index)
 		{
 			return (++index == _items.Length) ? 0 : index;
 		}
@@ -110,10 +113,11 @@ namespace Spring.Collections.Generic
 		/// Inserts element at current put position, advances, and signals.
 		/// Call only when holding lock.
 		/// </summary>
-		private void insert(T x)
+		private void Insert(T x)
 		{
-			_items[_putIndex] = x;
-			_putIndex = increment(_putIndex);
+            _version++;
+            _items[_putIndex] = x;
+			_putIndex = Increment(_putIndex);
 			++_count;
 		}
 
@@ -121,12 +125,13 @@ namespace Spring.Collections.Generic
 		/// Extracts element at current take position, advances, and signals.
 		/// Call only when holding lock.
 		/// </summary>
-		private T extract()
+		private T Extract()
 		{
-			T[] items = _items;
+            _version++;
+            T[] items = _items;
 			T x = items[_takeIndex];
 			items[_takeIndex] = default(T);
-			_takeIndex = increment(_takeIndex);
+			_takeIndex = Increment(_takeIndex);
 			--_count;
 			return x;
 		}
@@ -165,7 +170,7 @@ namespace Spring.Collections.Generic
 				    throw new ArgumentOutOfRangeException(
                         "collection", collection, "Collection size greater than queue capacity");
                 }
-				insert(currentObject);
+				Insert(currentObject);
 			}
 		}
 
@@ -196,13 +201,14 @@ namespace Spring.Collections.Generic
         /// </summary>
 	    public override void Clear()
 	    {
+            _version++;
 	        T[] items = _items;
 	        int i = _takeIndex;
 	        int k = _count;
 	        while (k-- > 0)
 	        {
 	            items[i] = default(T);
-	            i = increment(i);
+	            i = Increment(i);
 	        }
 	        _count = 0;
 	        _putIndex = 0;
@@ -234,7 +240,7 @@ namespace Spring.Collections.Generic
 		    {
 		        if (elementToSearchFor.Equals(items[i]))
 		            return true;
-		        i = increment(i);
+		        i = Increment(i);
 		    }
 		    return false;
 		}
@@ -262,10 +268,10 @@ namespace Spring.Collections.Generic
 	                return false;
 	            if (elementToRemove.Equals(items[currentIndex]))
 	            {
-	                removeAt(currentIndex);
+	                RemoveAt(currentIndex);
 	                return true;
 	            }
-	            currentIndex = increment(currentIndex);
+	            currentIndex = Increment(currentIndex);
 	        }
 	    }
 
@@ -315,13 +321,9 @@ namespace Spring.Collections.Generic
 		/// </exception>
         public override bool Offer(T element)
 		{
-		    if (_count == _items.Length)
-		        return false;
-		    else
-		    {
-		        insert(element);
-		        return true;
-		    }
+		    if (_count == _items.Length) return false;
+		    Insert(element);
+		    return true;
 		}
 
 	    /// <summary> 
@@ -340,7 +342,7 @@ namespace Spring.Collections.Generic
 	    {
 	        if (_count == 0)
 	            throw new NoElementsException("Queue is empty.");
-	        T x = extract();
+	        T x = Extract();
 	        return x;
 	    }
 
@@ -354,7 +356,7 @@ namespace Spring.Collections.Generic
         public override bool Poll(out T element)
 	    {
 	        bool notEmpty = _count > 0;
-	        element = notEmpty ? extract() : default(T);
+	        element = notEmpty ? Extract() : default(T);
 	        return notEmpty;
 	    }
 
@@ -395,12 +397,12 @@ namespace Spring.Collections.Generic
                 {
                     action(element);
                     n++;
-                    currentIndex = removeAt(currentIndex);
+                    currentIndex = RemoveAt(currentIndex);
                 }
                 else
                 {
                     reject++;
-                    currentIndex = increment(currentIndex);
+                    currentIndex = Increment(currentIndex);
                 }
                 
             }
@@ -427,7 +429,7 @@ namespace Spring.Collections.Generic
 	        while (k < _count)
 	        {
 	            a[k++] = items[i];
-	            i = increment(i);
+	            i = Increment(i);
 	        }
 	        return a;
 	    }
@@ -493,7 +495,7 @@ namespace Spring.Collections.Generic
 	        while (k < _count)
 	        {
 	            targetArray[k++] = items[i];
-	            i = increment(i);
+	            i = Increment(i);
 	        }
 	        if (targetArray.Length > _count)
 	            targetArray[_count] = default(T);
@@ -525,11 +527,15 @@ namespace Spring.Collections.Generic
 			/// or a negative number if no such element.
 			/// </summary>
 			private int _nextIndex;
+            /// <summary>
+            /// The change version of the queue when the enumerator was created.
+            /// </summary>
+            private readonly int _startVersion;
 			/// <summary>
 			/// Parent <see cref="ArrayQueue{T}"/> 
 			/// for this <see cref="IEnumerator{T}"/>
 			/// </summary>
-			private readonly ArrayQueue<T> _enclosingInstance;
+			private readonly ArrayQueue<T> _queue;
 			/// <summary> 
 			/// nextItem holds on to item fields because once we claim
 			/// that an element exists in hasNext(), we must return it in
@@ -541,35 +547,38 @@ namespace Spring.Collections.Generic
 	        protected override T FetchCurrent()
 			{
 			    T x = _nextItem;
-			    _nextIndex = _enclosingInstance.increment(_nextIndex);
+			    _nextIndex = _queue.Increment(_nextIndex);
 			    CheckNext();
 			    return x;
 			}
 				
-			internal ArrayQueueEnumerator(ArrayQueue<T> enclosingInstance)
+			internal ArrayQueueEnumerator(ArrayQueue<T> queue)
 			{
-				_enclosingInstance = enclosingInstance;
+				_queue = queue;
+			    _startVersion = queue._version;
 				SetInitialState();
 			}
 			
 			protected override bool GoNext()
 			{
-				return _nextIndex >= 0;
+                CheckChange();
+                return _nextIndex >= 0;
 			}
 
 			public override void Reset()
 			{
+			    CheckChange();
 				SetInitialState();
 			}
 
 			private void SetInitialState()
 			{
-			    if (_enclosingInstance.Count == 0)
+			    if (_queue.Count == 0)
 					_nextIndex = - 1;
 				else
 				{
-					_nextIndex = _enclosingInstance._takeIndex;
-					_nextItem = _enclosingInstance._items[_enclosingInstance._takeIndex];
+					_nextIndex = _queue._takeIndex;
+					_nextItem = _queue._items[_queue._takeIndex];
 				}
 			}
 
@@ -579,16 +588,23 @@ namespace Spring.Collections.Generic
 			/// </summary>
 			private void CheckNext()
 			{
-				if (_nextIndex == _enclosingInstance._putIndex)
+				if (_nextIndex == _queue._putIndex)
 				{
 					_nextIndex = - 1;
 					_nextItem = default(T);
 				}
 				else
 				{
-					_nextItem = _enclosingInstance._items[_nextIndex];
+					_nextItem = _queue._items[_nextIndex];
 				}
 			}
+
+            private void CheckChange()
+            {
+                if (_startVersion != _queue._version)
+                    throw new InvalidOperationException(
+                        "queue has changed during enumeration");
+            }
         }
 	}
 }

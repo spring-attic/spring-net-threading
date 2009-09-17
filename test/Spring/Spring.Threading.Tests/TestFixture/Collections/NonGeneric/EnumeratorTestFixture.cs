@@ -2,36 +2,8 @@
 using System.Collections;
 using NUnit.Framework;
 
-namespace Spring.Collections
+namespace Spring.TestFixture.Collections.NonGeneric
 {
-    /* Example usage of EnumeratorTestFixture
- 
-        [TestFixture(typeof(string))]
-        [TestFixture(typeof(int))]
-        public class ListEnumeratorTest<T> : EnumeratorTestFixture
-        {
-            protected override IEnumerator NewEnumerator()
-            {
-                return new ArrayList(TestData<T>.MakeTestArray(55)).GetEnumerator();
-            }
-        }
-
-        [TestFixture(typeof(string))]
-        [TestFixture(typeof(int))]
-        public class ArrayEnumeratorTest<T> : EnumeratorTestFixture
-        {
-            [SetUp] public void SetUp()
-            {
-                AntiHangingLimit = 600;
-            }
-            protected override IEnumerator NewEnumerator()
-            {
-                return TestData<T>.MakeTestArray(555).GetEnumerator();
-            }
-        }
-
-     */
-
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="IEnumerator"/>.
     /// </summary>
@@ -70,7 +42,9 @@ namespace Spring.Collections
         private int Iterate(IEnumerator enumerator)
         {
             int count = 0;
+#pragma warning disable 219
             object value;
+#pragma warning restore 219
             Assert.Throws<InvalidOperationException>(delegate { value = enumerator.Current; });
             while(enumerator.MoveNext())
             {
@@ -84,5 +58,4 @@ namespace Spring.Collections
             return count;
         }
     }
-
 }

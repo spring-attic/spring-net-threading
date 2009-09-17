@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections;
 using NUnit.Framework;
+using Spring.Collections;
 
-namespace Spring.Collections
+namespace Spring.TestFixture.Collections.NonGeneric
 {
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="IQueue"/>.
@@ -14,20 +15,27 @@ namespace Spring.Collections
 
         protected int _sampleSize = 9;
 
-        protected bool _isCapacityRestricted;
+        protected CollectionOptions Options { get; set; }
 
-        protected bool _isFifoQueue;
+        protected bool IsFifo
+        {
+            get { return Options.Has(CollectionOptions.Fifo); }
+            set { Options = Options.Set(CollectionOptions.Fifo, value); }
+        }
+        protected bool IsUnbounded
+        {
+            get { return Options.Has(CollectionOptions.Unbounded); }
+            set { Options = Options.Set(CollectionOptions.Unbounded, value); }
+        }
 
         /// <summary>
         /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
-        /// <see cref="CollectionOptions.Bounded"/> and
         /// <see cref="CollectionOptions.Fifo"/>.
         /// </summary>
         /// <param name="options"></param>
         protected QueueTestFixture(CollectionOptions options)
         {
-            if ((options & CollectionOptions.Bounded) != 0) _isCapacityRestricted = true;
-            if ((options & CollectionOptions.Fifo) != 0) _isFifoQueue = true;
+            Options = options;
         }
 
         protected override sealed ICollection NewCollection()
@@ -63,9 +71,9 @@ namespace Spring.Collections
 
         [Test] public void AddChokesWhenQueueIsFull()
         {
-            if(!_isCapacityRestricted) Assert.Pass("Skipped as queue is unbounded.");
+            Options.SkipWhen(CollectionOptions.Unbounded);
             IQueue queue = NewQueueFilledWithSample();
-            Assert.Throws<InvalidOperationException>(delegate { queue.Add(_samples[0]); });
+            Assert.Throws<InvalidOperationException>(() => queue.Add(MakeData(0)));
         }
 
         [Test] public void AddAllSamplesSuccessfully()
@@ -78,9 +86,9 @@ namespace Spring.Collections
 
         [Test] public void AddReturnsFalseWhenQueueIsFull()
         {
-            if(!_isCapacityRestricted) Assert.Pass("Skipped as queue is unbounded.");
+            Options.SkipWhen(CollectionOptions.Unbounded);
             IQueue queue = NewQueueFilledWithSample();
-            Assert.IsFalse(queue.Offer(_samples[0]));
+            Assert.IsFalse(queue.Offer(MakeData(0)));
             Assert.That(queue.Count, Is.EqualTo(_sampleSize));
         }
 
@@ -98,7 +106,7 @@ namespace Spring.Collections
         [Test] public void RemoveChokesWhenQuqueIsEmpty()
         {
             IQueue queue = NewQueue();
-            Assert.Throws<NoElementsException>(delegate { queue.Remove(); });
+            Assert.Throws<NoElementsException>(() => queue.Remove());
         }
 
         [Test] public void RemoveAllSamplesSucessfully()
@@ -133,7 +141,7 @@ namespace Spring.Collections
         [Test] public void ElementChokesWhenQuqueIsEmpty()
         {
             IQueue queue = NewQueue();
-            Assert.Throws<NoElementsException>(delegate { queue.Element(); });
+            Assert.Throws<NoElementsException>(() => queue.Element());
         }
 
         [Test] public void ElementGetsAllSamplesSucessfully()
@@ -180,6 +188,11 @@ namespace Spring.Collections
             AddRemoveOneLoop(queue, _sampleSize);
         }
 
+        protected virtual object MakeData(int i)
+        {
+            return new object();
+        }
+
         private void AddRemoveOneLoop(IQueue queue, int size)
         {
             for (int i = 0; i < size; i++)
@@ -189,7 +202,7 @@ namespace Spring.Collections
             for (int i = 0; i < size; i++)
             {
                 object o = queue.Remove();
-                if(_isFifoQueue)
+                if(IsFifo)
                 {
                     Assert.That(o, Is.EqualTo(_samples[i]));
                 }

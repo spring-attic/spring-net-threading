@@ -1,8 +1,9 @@
 ﻿using System;
 using NUnit.Framework;
+using Spring.Collections;
 using Spring.Collections.Generic;
 
-namespace Spring.Collections
+namespace Spring.TestFixture.Collections.NonGeneric
 {
     /// <summary>
     /// Basic functionality test for implementations of <see cref="IQueue"/> 
@@ -13,8 +14,7 @@ namespace Spring.Collections
     public abstract class TypedQueueTestFixture<T> : QueueTestFixture
     {
         /// <summary>
-        /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
-        /// <see cref="CollectionOptions.Bounded"/> and
+        /// Only evaluates option <see cref="CollectionOptions.Unique"/> and
         /// <see cref="CollectionOptions.Fifo"/>.
         /// </summary>
         /// <param name="options"></param>
@@ -33,16 +33,21 @@ namespace Spring.Collections
             return samples;
         }
 
+        protected override object MakeData(int i)
+        {
+            return TestData<T>.MakeData(i);
+        }
+
         [Test] public void AddChokesOnIncompatibleDataType()
         {
             IQueue queue = NewQueue();
-            Assert.Throws<InvalidCastException>(delegate { queue.Add(new object()); });
+            Assert.Throws<InvalidCastException>(() => queue.Add(new object()));
         }
 
         [Test] public void OfferChokesOnIncompatibleDataType()
         {
             IQueue queue = NewQueue();
-            Assert.Throws<InvalidCastException>(delegate { queue.Add(new object()); });
+            Assert.Throws<InvalidCastException>(() => queue.Add(new object()));
         }
     }
 }

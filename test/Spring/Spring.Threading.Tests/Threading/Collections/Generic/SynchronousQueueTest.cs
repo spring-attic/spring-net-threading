@@ -3,7 +3,9 @@ using System.Threading;
 using NUnit.Framework;
 using System.Collections.Generic;
 using Spring.Collections;
-using CollectionOptions = Spring.Collections.CollectionOptions;
+using Spring.TestFixture.Collections;
+using Spring.TestFixture.Collections.NonGeneric;
+using Spring.TestFixture.Threading.Collections.Generic;
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -13,13 +15,14 @@ namespace Spring.Threading.Collections.Generic
     /// <typeparam name="T"></typeparam>
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(int), CollectionOptions.Fair)]
-    [TestFixture(typeof(int), CollectionOptions.NoFair)]
+    [TestFixture(typeof(int))]
     [TestFixture(typeof(string), CollectionOptions.Fair)]
-    [TestFixture(typeof(string), CollectionOptions.NoFair)]
+    [TestFixture(typeof(string))]
     public class SynchronousQueueTest<T> : BlockingQueueTestFixture<T>
     {
+        public SynchronousQueueTest() : this(0) {}
         public SynchronousQueueTest(CollectionOptions options) 
-            : base(options | CollectionOptions.Bounded | CollectionOptions.Fifo)
+            : base(options | CollectionOptions.Fifo)
         {
             _sampleSize = 0;
         }
@@ -31,7 +34,7 @@ namespace Spring.Threading.Collections.Generic
 
         private SynchronousQueue<T> NewSynchronousQueue()
         {
-            return _isFair ? new SynchronousQueue<T>(true) : new SynchronousQueue<T>();
+            return IsFair ? new SynchronousQueue<T>(true) : new SynchronousQueue<T>();
         }
 
         [Test] public override void EnumeratorFailsWhenCollectionIsModified()
@@ -107,7 +110,7 @@ namespace Spring.Threading.Collections.Generic
             q.Offer(TestData<T>.One);
             q.Offer(TestData<T>.Two);
             ThreadManager.JoinAndVerify();
-            if (_isFair)
+            if (IsFair)
             {
                 Assert.That(values[0], Is.EqualTo(TestData<T>.One));
                 Assert.That(values[1], Is.EqualTo(TestData<T>.Two));
@@ -141,7 +144,7 @@ namespace Spring.Threading.Collections.Generic
             for (int i = 0; i < size; i++)
             {
 
-                if (_isFair)
+                if (IsFair)
                 {
                     Assert.That(values[i], Is.EqualTo(TestData<T>.MakeData(i)));
                 }
@@ -153,15 +156,17 @@ namespace Spring.Threading.Collections.Generic
         }
 
         [TestFixture(typeof(int), CollectionOptions.Fair)]
-        [TestFixture(typeof(int), CollectionOptions.NoFair)]
+        [TestFixture(typeof(int))]
         [TestFixture(typeof(string), CollectionOptions.Fair)]
-        [TestFixture(typeof(string), CollectionOptions.NoFair)]
+        [TestFixture(typeof(string))]
         public class AsNonGeneric : TypedQueueTestFixture<T>
         {
             private readonly bool _isFair;
+
+            public AsNonGeneric() : this(0) {}
             public AsNonGeneric(CollectionOptions options) : base(options)
             {
-                _isFair = (options & CollectionOptions.Fair) > 0;
+                _isFair = options.Has(CollectionOptions.Fair);
                 _sampleSize = 0;
             }
             protected override IQueue NewQueue()

@@ -2,46 +2,8 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Spring.Collections.Generic
+namespace Spring.TestFixture.Collections.Generic
 {
-
-    /*
-
-    [TestFixture(typeof(string))]
-    [TestFixture(typeof(int))]
-    public class ListAsCollectionTest<T> : CollectionTestFixture<T>
-    {
-        public ListAsCollectionTest()
-        {
-            _allowDuplicate = true;
-        }
-
-        protected override ICollection<T> NewCollection()
-        {
-            return new List<T>();
-        }
-    }
-
-    [TestFixture(typeof(string))]
-    [TestFixture(typeof(int))]
-    public class ArrayAsCollectionTest<T> : CollectionTestFixture<T>
-    {
-        public ArrayAsCollectionTest()
-        {
-            _isReadOnly = true;
-        }
-        protected override ICollection<T> NewCollection()
-        {
-            return new T[0];
-        }
-        protected override ICollection<T> NewCollectionFilledWithSample()
-        {
-            return TestData<T>.MakeTestArray(_sampleSize);
-        }
-    }
-
-     */
-
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="ICollection{T}"/>.
     /// </summary>
@@ -50,8 +12,18 @@ namespace Spring.Collections.Generic
     {
         protected T[] _samples;
         protected int _sampleSize = 9;
-        protected bool _allowDuplicate = true;
-        protected bool _isReadOnly;
+        protected bool IsUnique
+        {
+            get { return Options.Has(CollectionOptions.Unique); }
+            set { Options = Options.Set(CollectionOptions.Unique, value); }
+        }
+        protected bool IsReadOnly
+        {
+            get { return Options.Has(CollectionOptions.ReadOnly); }
+            set { Options = Options.Set(CollectionOptions.ReadOnly, value); }
+        }
+
+        protected CollectionOptions Options { get; set; }
 
         public static void ToStringContainsToStringOfElements(ICollection<T> c)
         {
@@ -69,8 +41,7 @@ namespace Spring.Collections.Generic
         /// <param name="options"></param>
         protected CollectionTestFixture(CollectionOptions options)
         {
-            if ((options & CollectionOptions.Unique) != 0) _allowDuplicate = false;
-            if ((options & CollectionOptions.ReadOnly) != 0) _isReadOnly = true;
+            Options = options;
         }
 
         protected override sealed IEnumerable<T> NewEnumerable()
@@ -113,33 +84,23 @@ namespace Spring.Collections.Generic
 
         [Test] public virtual void CopyToChokesWithNullArray()
         {
-            Assert.Throws<ArgumentNullException>(delegate
-            {
-                NewCollectionFilledWithSample().CopyTo(null, 0);
-            });
+            Assert.Throws<ArgumentNullException>(
+                () => NewCollectionFilledWithSample().CopyTo(null, 0));
         }
 
         [Test] public virtual void CopyToChokesWithNegativeIndex()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
-            Assert.Throws<ArgumentOutOfRangeException>(delegate
-            {
-                c.CopyTo(new T[c.Count], -1);
-            });
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => c.CopyTo(new T[c.Count], -1));
         }
 
         [Test] public virtual void CopyToChokesWhenArrayIsTooSmallToHold()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
             if(c.Count == 0) Assert.Pass("Skip because of empty colleciton");
-            Assert.Throws<ArgumentException>(delegate
-            {
-                c.CopyTo(new T[c.Count -1], 0);
-            });
-            Assert.Throws<ArgumentException>(delegate
-            {
-                c.CopyTo(new T[c.Count], 1);
-            });
+            Assert.Throws<ArgumentException>(() => c.CopyTo(new T[c.Count - 1], 0));
+            Assert.Throws<ArgumentException>(() => c.CopyTo(new T[c.Count], 1));
         }
 
         [Test] public virtual void CopyToZeroLowerBoundArray()
@@ -171,16 +132,16 @@ namespace Spring.Collections.Generic
             Assert.IsFalse(c.Contains(notexists));
         }
 
-		[Test] public virtual void ContainsReportsTrueWhenElementsAddedButNotYetRemoved() {
-		    var q = NewCollectionFilledWithSample();
+        [Test] public virtual void ContainsReportsTrueWhenElementsAddedButNotYetRemoved() {
+            var q = NewCollectionFilledWithSample();
 			
-			for (int i = 0; i < _sampleSize; ++i) {
-			    var item = TestData<T>.MakeData(i);
-				Assert.IsTrue(q.Contains(item));
-			    q.Remove(item);
-				Assert.IsFalse(q.Contains(item));
-			}
-		}
+            for (int i = 0; i < _sampleSize; ++i) {
+                var item = TestData<T>.MakeData(i);
+                Assert.IsTrue(q.Contains(item));
+                q.Remove(item);
+                Assert.IsFalse(q.Contains(item));
+            }
+        }
 
         [Test] public virtual void ClearEmptiesTheCollectionWhenSupported()
         {
@@ -188,7 +149,7 @@ namespace Spring.Collections.Generic
             try { c.Clear(); }
             catch (NotSupportedException e)
             {
-                if (_isReadOnly) return;
+                if (IsReadOnly) return;
                 throw SystemExtensions.PreserveStackTrace(e);
             }
             Assert.That(c.Count, Is.EqualTo(0));
@@ -203,7 +164,7 @@ namespace Spring.Collections.Generic
                 try { c.Add(sample); }
                 catch (NotSupportedException e)
                 {
-                    if (_isReadOnly) return;
+                    if (IsReadOnly) return;
                     throw SystemExtensions.PreserveStackTrace(e);
                 }
             }
@@ -213,14 +174,14 @@ namespace Spring.Collections.Generic
 
         [Test] public virtual void AddDuplicateSuccessfullyWhenSupported()
         {
-            if (!_allowDuplicate) Assert.Pass("Skip because collection doesn't allow duplicates.");
+            if (IsUnique) Assert.Pass("Skip because collection doesn't allow duplicates.");
             if (_sampleSize<=0) Assert.Pass("Skip because 0 capacity collection");
             ICollection<T> c = NewCollection();
             T sample = _samples[0];
             try { c.Add(sample); }
             catch (NotSupportedException e)
             {
-                if (_isReadOnly) return;
+                if (IsReadOnly) return;
                 throw SystemExtensions.PreserveStackTrace(e);
             }
             Assert.That(c.Count, Is.EqualTo(1));
@@ -239,7 +200,7 @@ namespace Spring.Collections.Generic
                 try {Assert.IsTrue(c.Remove(TestData<T>.MakeData(i)));}
                 catch (NotSupportedException e)
                 {
-                    if (_isReadOnly) return;
+                    if (IsReadOnly) return;
                     throw SystemExtensions.PreserveStackTrace(e);
                 }
             }
@@ -252,7 +213,7 @@ namespace Spring.Collections.Generic
                 }
                 catch (NotSupportedException e)
                 {
-                    if (_isReadOnly) return;
+                    if (IsReadOnly) return;
                     throw SystemExtensions.PreserveStackTrace(e);
                 }
             }
@@ -261,13 +222,13 @@ namespace Spring.Collections.Generic
 
         [Test] public virtual void RemoveOnlyOneOfDuplicatesWhenSupported()
         {
-            if (!_allowDuplicate) Assert.Pass("Skip because collection doesn't allow duplicates.");
+            if (IsUnique) Assert.Pass("Skip because collection doesn't allow duplicates.");
             ICollection<T> c = NewCollection();
             T sample = TestData<T>.One;
             try { c.Add(sample); }
             catch (NotSupportedException e)
             {
-                if (_isReadOnly) return;
+                if (IsReadOnly) return;
                 throw SystemExtensions.PreserveStackTrace(e);
             }
             Assert.That(c.Count, Is.EqualTo(1));
@@ -277,7 +238,7 @@ namespace Spring.Collections.Generic
             try { c.Remove(sample); }
             catch (NotSupportedException e)
             {
-                if (_isReadOnly) return;
+                if (IsReadOnly) return;
                 throw SystemExtensions.PreserveStackTrace(e);
             }
             Assert.IsTrue(c.Contains(sample));
@@ -287,20 +248,26 @@ namespace Spring.Collections.Generic
         [Test] public virtual void IsReadOnlyAsExpected()
         {
             ICollection<T> c = NewCollection();
-            Assert.That(c.IsReadOnly, Is.EqualTo(_isReadOnly));
+            Assert.That(c.IsReadOnly, Is.EqualTo(IsReadOnly));
         }
 
-		[Test] public virtual void EnumerateThroughAllElements() 
+        [Test] public virtual void EnumerateThroughAllElements() 
         {
-		    var c = NewCollectionFilledWithSample();
+            var c = NewCollectionFilledWithSample();
             CollectionAssert.AreEquivalent(_samples, c);
-		}
+        }
 
-		[Test] public virtual void EnumeratorFailsWhenCollectionIsModified()
-		{
+        [Test] public virtual void EnumeratorFailsWhenCollectionIsModified()
+        {
             EnumeratorFailsWhen(c => c.Remove(TestData<T>.Two));
             EnumeratorFailsWhen(c => c.Add(TestData<T>.Three));
-		}
+        }
+
+        [Test] public virtual void ToStringContainsToStringOfAllElements()
+        {
+            Options.SkipWhenNot(CollectionOptions.ToStringPrintItems);
+            ToStringContainsToStringOfElements(NewCollectionFilledWithSample());
+        }
 
         private void EnumeratorFailsWhen(Action<ICollection<T>> action)
         {

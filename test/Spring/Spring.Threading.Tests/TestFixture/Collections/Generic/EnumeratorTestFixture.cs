@@ -2,36 +2,8 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Spring.Collections.Generic
+namespace Spring.TestFixture.Collections.Generic
 {
-    /* Example usage of EnumeratorTestFixture
- 
-        [TestFixture(typeof(string))]
-        [TestFixture(typeof(int))]
-        public class ListEnumeratorTest<T> : EnumeratorTestFixture<T>
-        {
-            protected override IEnumerator<T> NewEnumerator()
-            {
-                return new List<T>(TestData<T>.MakeTestArray(55)).GetEnumerator();
-            }
-        }
-
-        [TestFixture(typeof(string))]
-        [TestFixture(typeof(int))]
-        public class ArrayEnumeratorTest<T> : EnumeratorTestFixture<T>
-        {
-            [SetUp] public void SetUp()
-            {
-                AntiHangingLimit = 600;
-            }
-            protected override IEnumerator<T> NewEnumerator()
-            {
-                return ((IList<T>)TestData<T>.MakeTestArray(555)).GetEnumerator();
-            }
-        }
-
-     */
-
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="IEnumerator{T}"/>.
     /// </summary>
@@ -86,5 +58,4 @@ namespace Spring.Collections.Generic
             return count;
         }
     }
-
 }

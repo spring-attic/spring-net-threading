@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using NUnit.Framework;
+using Spring.Collections;
+using Spring.Collections.Generic;
 
-namespace Spring.Collections.Generic
+namespace Spring.TestFixture.Collections.Generic
 {
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="IQueue{T}"/>.
@@ -12,26 +14,34 @@ namespace Spring.Collections.Generic
     /// <author>Kenneth Xu</author>
     public abstract class QueueTestFixture<T> : CollectionTestFixture<T>
     {
-        protected bool _isCapacityRestricted;
+        //protected bool _isCapacityRestricted;
 
-        protected bool _isFifoQueue;
-
+        protected bool IsFifo
+        {
+            get { return Options.Has(CollectionOptions.Fifo); }
+            set { Options = Options.Set(CollectionOptions.Fifo, value); }
+        }
+        protected bool IsUnbounded
+        {
+            get { return Options.Has(CollectionOptions.Unbounded); }
+            set { Options = Options.Set(CollectionOptions.Unbounded, value); }
+        }
         // Queue in .Net should allow null in gneneral.
-        protected bool _allowNull = true;
+        protected bool NoNull
+        {
+            get { return Options.Has(CollectionOptions.NoNull); }
+            set { Options = Options.Set(CollectionOptions.NoNull, value); }
+        }
 
         /// <summary>
         /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
         /// <see cref="CollectionOptions.ReadOnly"/>,
-        /// <see cref="CollectionOptions.Bounded"/>,
         /// <see cref="CollectionOptions.Fifo"/> and
         /// <see cref="CollectionOptions.NoNull"/>.
         /// </summary>
         /// <param name="options"></param>
         protected QueueTestFixture(CollectionOptions options) : base(options)
         {
-            if ((options & CollectionOptions.Bounded) != 0) _isCapacityRestricted = true;
-            if ((options & CollectionOptions.Fifo) != 0) _isFifoQueue = true;
-            if ((options & CollectionOptions.NoNull) != 0) _allowNull = false;
         }
 
         protected sealed override ICollection<T> NewCollection()
@@ -62,15 +72,15 @@ namespace Spring.Collections.Generic
 
         [Test] public virtual void AddChokesWhenQueueIsFull()
         {
-            SkipIfUnboundedQueue();
+            Options.SkipWhen(CollectionOptions.Unbounded);
             IQueue<T> queue = NewQueueFilledWithSample();
-            Assert.Throws<InvalidOperationException>(delegate { queue.Add(TestData<T>.One); });
+            Assert.Throws<InvalidOperationException>(() => queue.Add(TestData<T>.One));
         }
 
         [Test] public virtual void AddHandlesNullAsExpexcted()
         {
             var q = NewQueue();
-            if(!typeof(T).IsValueType && !_allowNull)
+            if(!typeof(T).IsValueType && NoNull)
             {
                 var e = Assert.Throws<ArgumentNullException>(
                     () => q.Add(default(T)));
@@ -92,7 +102,7 @@ namespace Spring.Collections.Generic
 
         [Test] public virtual void OfferReturnsFalseWhenQueueIsFull()
         {
-            SkipIfUnboundedQueue();
+            Options.SkipWhen(CollectionOptions.Unbounded);
             IQueue<T> queue = NewQueueFilledWithSample();
             Assert.IsFalse(queue.Offer(TestData<T>.One));
             Assert.That(queue.Count, Is.EqualTo(_sampleSize));
@@ -101,7 +111,7 @@ namespace Spring.Collections.Generic
         [Test] public virtual void OfferHandlesNullAsExpexcted()
         {
             var q = NewQueue();
-            if(!typeof(T).IsValueType && !_allowNull)
+            if(!typeof(T).IsValueType && NoNull)
             {
                 var e = Assert.Throws<ArgumentNullException>(
                     () => q.Offer(default(T)));
@@ -175,7 +185,7 @@ namespace Spring.Collections.Generic
 
         protected void AssertRetrievedResult(T result, int i)
         {
-            if(_isFifoQueue)
+            if(IsFifo)
                 Assert.That(result, Is.EqualTo(_samples[i]));
             else
                 CollectionAssert.Contains(_samples, result);
@@ -190,7 +200,7 @@ namespace Spring.Collections.Generic
         [Test] public virtual void ElementSucceedsWhenQueueIsNotEmpty()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
-			for (int i = 0; i < _sampleSize; ++i)
+            for (int i = 0; i < _sampleSize; ++i)
             {
                 AssertRetrievedResult(queue.Element(), i);
                 queue.Remove();
@@ -263,7 +273,7 @@ namespace Spring.Collections.Generic
 
         [Test] public virtual void TransitionsFromEmptyToFullWhenElementsAdded()
         {
-            SkipIfUnboundedQueue();
+            Options.SkipWhen(CollectionOptions.Unbounded);
             var q = NewQueue();
             Assert.That(q.Count, Is.EqualTo(0));
             AssertRemainingCapacity(q, _sampleSize, "should have room for " + _sampleSize);
@@ -278,7 +288,7 @@ namespace Spring.Collections.Generic
 
         [Test] public override void EnumerateThroughAllElements()
         {
-            if(_isFifoQueue)
+            if(IsFifo)
                 CollectionAssert.AreEqual(_samples, NewCollectionFilledWithSample());
             else
                 base.EnumerateThroughAllElements();
@@ -301,16 +311,6 @@ namespace Spring.Collections.Generic
                 Assert.AreEqual(q.Remove(), r.Remove());
         }
 
-        protected void SkipIfUnboundedQueue()
-        {
-            if (!_isCapacityRestricted) Assert.Pass("Skipped as queue is unbounded.");
-        }
-
-        protected void SkipIfBoundedQueue()
-        {
-            if (_isCapacityRestricted) Assert.Pass("Skipped as queue is bounded.");
-        }
-
         protected void AssertRemainingCapacity(IQueue<T> queue, int size)
         {
             AssertRemainingCapacity(queue, size, null);
@@ -318,13 +318,13 @@ namespace Spring.Collections.Generic
 
         protected void AssertRemainingCapacity(IQueue<T> queue, int size, string message)
         {
-            if (_isCapacityRestricted)
+            if (IsUnbounded)
             {
-                Assert.That(queue.RemainingCapacity, Is.EqualTo(size), message);
+                Assert.That(queue.RemainingCapacity, Is.EqualTo(int.MaxValue), message);
             }
             else
             {
-                Assert.That(queue.RemainingCapacity, Is.EqualTo(int.MaxValue), message);
+                Assert.That(queue.RemainingCapacity, Is.EqualTo(size), message);
             }
         }
 
@@ -337,7 +337,7 @@ namespace Spring.Collections.Generic
             for (int i = 0; i < size; i++)
             {
                 T removed = queue.Remove();
-                if(_isFifoQueue)
+                if(IsFifo)
                 {
                     Assert.That(removed, Is.EqualTo(_samples[i]));
                 }

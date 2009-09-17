@@ -1,12 +1,14 @@
 ﻿using System;
 using NUnit.Framework;
+using Spring.TestFixture.Collections;
+using Spring.TestFixture.Collections.Generic;
+using Spring.TestFixture.Collections.NonGeneric;
 
 namespace Spring.Collections.Generic
 {
 
     /// <summary>
-    /// Functional test case for <see cref="ArrayQueue{T}"/> as a generic
-    /// <see cref="IQueue{T}"/>
+    /// Functional test case for <see cref="ArrayQueue{T}"/>
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <author>Kenneth Xu</author>
@@ -15,7 +17,7 @@ namespace Spring.Collections.Generic
     public class ArrayQueueTest<T> : QueueTestFixture<T>
     {
         public ArrayQueueTest()
-            : base(CollectionOptions.Bounded | CollectionOptions.Fifo)
+            : base(CollectionOptions.Fifo)
         {
         }
         protected override IQueue<T> NewQueue()
@@ -73,6 +75,25 @@ namespace Spring.Collections.Generic
             queue = NewQueue();
             Assert.IsFalse(queue.Remove(TestData<T>.MakeData(0)));
         }
-    }
 
+        [TestFixture(typeof(string))]
+        [TestFixture(typeof(int))]
+        public class AsNonGeneric : TypedQueueTestFixture<T>
+        {
+            public AsNonGeneric()
+                : base(CollectionOptions.Fifo)
+            {
+            }
+
+            protected override IQueue NewQueue()
+            {
+                return new ArrayQueue<T>(_sampleSize);
+            }
+
+            protected override IQueue NewQueueFilledWithSample()
+            {
+                return new ArrayQueue<T>(_sampleSize, TestData<T>.MakeTestArray(_sampleSize));
+            }
+        }
+    }
 }

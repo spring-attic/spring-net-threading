@@ -1,6 +1,8 @@
 ﻿using System;
 using NUnit.Framework;
-using CollectionOptions = Spring.Collections.CollectionOptions;
+using Spring.TestFixture.Collections;
+using Spring.TestFixture.Collections.NonGeneric;
+using Spring.TestFixture.Threading.Collections.Generic;
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -12,18 +14,17 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(string), CollectionOptions.Unbounded)]
     [TestFixture(typeof(int), CollectionOptions.Unbounded)]
-    [TestFixture(typeof(string), CollectionOptions.Bounded)]
-    [TestFixture(typeof(int), CollectionOptions.Bounded)]
+    [TestFixture(typeof(string))]
+    [TestFixture(typeof(int))]
     public class LinkedBlockingQueueTest<T> : BlockingQueueTestFixture<T>
     {
-        public LinkedBlockingQueueTest(CollectionOptions attributes)
-            : base(attributes | CollectionOptions.Fifo)
-        {
-        }
+        public LinkedBlockingQueueTest() : this(0) {}
+        public LinkedBlockingQueueTest(CollectionOptions options)
+            : base(options | CollectionOptions.Fifo) {}
 
         protected override IBlockingQueue<T> NewBlockingQueue()
         {
-            return NewLinkedBlockingQueue(_isCapacityRestricted, _sampleSize, false);
+            return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, false);
         }
 
         protected sealed override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
@@ -33,13 +34,13 @@ namespace Spring.Threading.Collections.Generic
 
         protected virtual LinkedBlockingQueue<T> NewLinkedBlockingQueueFilledWithSample()
         {
-            return NewLinkedBlockingQueue(_isCapacityRestricted, _sampleSize, true);
+            return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, true);
         }
 
-        internal static LinkedBlockingQueue<T> NewLinkedBlockingQueue(bool isCapacityRestricted, int size, bool isFilled)
+        internal static LinkedBlockingQueue<T> NewLinkedBlockingQueue(bool isUnbounded, int size, bool isFilled)
         {
-            LinkedBlockingQueue<T> sut = isCapacityRestricted ? 
-                new LinkedBlockingQueue<T>(size) : new LinkedBlockingQueue<T>();
+            LinkedBlockingQueue<T> sut = isUnbounded ? 
+                new LinkedBlockingQueue<T>() : new LinkedBlockingQueue<T>(size);
 
             if (isFilled)
             {
@@ -51,7 +52,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorCreatesQueueWithUnlimitedCapacity()
         {
-            SkipIfBoundedQueue();
+            Options.SkipWhenNot(CollectionOptions.Unbounded);
             var queue = new LinkedBlockingQueue<T>();
             Assert.AreEqual(int.MaxValue, queue.RemainingCapacity);
             Assert.AreEqual(int.MaxValue, queue.Capacity);
@@ -60,7 +61,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorWelcomesNullElememtInCollectionArgument()
         {
-            SkipIfBoundedQueue();
+            Options.SkipWhenNot(CollectionOptions.Unbounded);
             T[] arrayWithDefaulValue = new T[_sampleSize];
             var q = new LinkedBlockingQueue<T>(arrayWithDefaulValue);
             foreach (T sample in arrayWithDefaulValue)
@@ -74,7 +75,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorChokesOnNullCollectionArgument()
         {
-            SkipIfBoundedQueue();
+            Options.SkipWhenNot(CollectionOptions.Unbounded);
             var e = Assert.Throws<ArgumentNullException>(
                 () => { new LinkedBlockingQueue<T>(null); });
             Assert.That(e.ParamName, Is.EqualTo("collection"));
@@ -83,7 +84,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorCreatesQueueConstainsAllElementsInCollection()
         {
-            SkipIfBoundedQueue();
+            Options.SkipWhenNot(CollectionOptions.Unbounded);
             var q = new LinkedBlockingQueue<T>(_samples);
             foreach (T sample in _samples)
             {
@@ -96,7 +97,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorCreatesQueueWithGivenCapacity()
         {
-            SkipIfUnboundedQueue();
+            Options.SkipWhen(CollectionOptions.Unbounded);
             var queue = new LinkedBlockingQueue<T>(_sampleSize);
             Assert.AreEqual(_sampleSize, queue.RemainingCapacity);
             Assert.AreEqual(_sampleSize, queue.Capacity);
@@ -105,7 +106,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorChokesOnNonPositiveCapacityArgument([Values(0, -1)] int capacity)
         {
-            SkipIfUnboundedQueue();
+            Options.SkipWhen(CollectionOptions.Unbounded);
             var e = Assert.Throws<ArgumentOutOfRangeException>(
                 () => { new LinkedBlockingQueue<T>(capacity); });
             Assert.That(e.ParamName, Is.EqualTo("capacity"));
@@ -171,7 +172,7 @@ namespace Spring.Threading.Collections.Generic
         }
 
         [Test] public void ToStringContainsToStringOfElements() {
-            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
+            var q = NewCollectionFilledWithSample();
             string s = q.ToString();
             for (int i = 0; i < _sampleSize; ++i) {
                 Assert.IsTrue(s.IndexOf(_samples[i].ToString()) >= 0);
@@ -180,21 +181,22 @@ namespace Spring.Threading.Collections.Generic
 
         [TestFixture(typeof(string), CollectionOptions.Unbounded)]
         [TestFixture(typeof(int), CollectionOptions.Unbounded)]
-        [TestFixture(typeof(string), CollectionOptions.Bounded)]
-        [TestFixture(typeof(int), CollectionOptions.Bounded)]
-        public class AsNonGeneric : Spring.Collections.TypedQueueTestFixture<T>
+        [TestFixture(typeof(string))]
+        [TestFixture(typeof(int))]
+        public class AsNonGeneric : TypedQueueTestFixture<T>
         {
+            public AsNonGeneric() :  this(0) {}
             public AsNonGeneric(CollectionOptions options) 
                 : base(options | CollectionOptions.Fifo) {}
 
             protected override Spring.Collections.IQueue NewQueue()
             {
-                return NewLinkedBlockingQueue(_isCapacityRestricted, _sampleSize, false);
+                return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, false);
             }
 
             protected override Spring.Collections.IQueue NewQueueFilledWithSample()
             {
-                return NewLinkedBlockingQueue(_isCapacityRestricted, _sampleSize, true);
+                return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, true);
             }
         }
 
