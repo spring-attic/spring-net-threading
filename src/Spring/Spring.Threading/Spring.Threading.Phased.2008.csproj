@@ -91,6 +91,8 @@
     <Compile Include="Collections\Generic\IQueue.cs" />
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CommonAssemblyInfo.cs" />
+    <Compile Include="Threading\AggregateException.cs" />
+    <Compile Include="Threading\Parallel.cs" />
     <Compile Include="SystemExtensions.cs" />
     <Compile Include="Threading\Action.cs" />
     <Compile Include="Threading\AtomicTypes\AbstractAtomicArray.cs" />
@@ -163,6 +165,7 @@
     <Compile Include="Threading\Locks\ILock.cs" />
     <Compile Include="Threading\Locks\ReentrantLock.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactory.cs" />
+    <Compile Include="Threading\ParallelOptions.cs" />
     <Compile Include="Threading\Runnable.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
   </ItemGroup>

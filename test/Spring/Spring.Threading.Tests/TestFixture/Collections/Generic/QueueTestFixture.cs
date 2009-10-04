@@ -57,7 +57,7 @@ namespace Spring.TestFixture.Collections.Generic
         protected virtual IQueue<T> NewQueueFilledWithSample()
         {
             IQueue<T> queue = NewQueue();
-            foreach (T sample in _samples)
+            foreach (T sample in Samples)
             {
                 queue.Add(sample);
             }
@@ -95,9 +95,9 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public virtual void AddAllSamplesSuccessfully()
         {
             IQueue<T> queue = NewQueue();
-            foreach (T sample in _samples) queue.Add(sample);
-            Assert.That(queue.Count, Is.EqualTo(_samples.Length));
-            CollectionAssert.AreEquivalent(_samples, queue);
+            foreach (T sample in Samples) queue.Add(sample);
+            Assert.That(queue.Count, Is.EqualTo(Samples.Length));
+            CollectionAssert.AreEquivalent(Samples, queue);
         }
 
         [Test] public virtual void OfferReturnsFalseWhenQueueIsFull()
@@ -105,7 +105,7 @@ namespace Spring.TestFixture.Collections.Generic
             Options.SkipWhen(CollectionOptions.Unbounded);
             IQueue<T> queue = NewQueueFilledWithSample();
             Assert.IsFalse(queue.Offer(TestData<T>.One));
-            Assert.That(queue.Count, Is.EqualTo(_sampleSize));
+            Assert.That(queue.Count, Is.EqualTo(SampleSize));
         }
 
         [Test] public virtual void OfferHandlesNullAsExpexcted()
@@ -126,12 +126,12 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public virtual void OfferAllSamplesSuccessfully()
         {
             IQueue<T> queue = NewQueue();
-            foreach (T sample in _samples)
+            foreach (T sample in Samples)
             {
                 Assert.IsTrue(queue.Offer(sample));
             }
-            Assert.That(queue.Count, Is.EqualTo(_samples.Length));
-            CollectionAssert.AreEquivalent(_samples, queue);
+            Assert.That(queue.Count, Is.EqualTo(Samples.Length));
+            CollectionAssert.AreEquivalent(Samples, queue);
         }
 
         [Test] public virtual void RemoveChokesWhenQuqueIsEmpty()
@@ -143,7 +143,7 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public  void RemoveSucceedsWhenQueueIsNotEmpty()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
-            for (int i = 0; i < _sampleSize; ++i)
+            for (int i = 0; i < SampleSize; ++i)
             {
                 AssertRetrievedResult(queue.Remove(), i);
             }
@@ -157,9 +157,9 @@ namespace Spring.TestFixture.Collections.Generic
 
         [Test] public virtual void RemoveByElementFollowedByAddSucceeds()
         {
-            if (_sampleSize == 0) Assert.Pass("Skip due to an empty queue.");
+            if (SampleSize == 0) Assert.Pass("Skip due to an empty queue.");
             var q = NewQueueFilledWithSample();
-            Assert.IsTrue(q.Remove(TestData<T>.MakeData(_sampleSize/2)));
+            Assert.IsTrue(q.Remove(TestData<T>.MakeData(SampleSize/2)));
             q.Add(TestData<T>.MakeData(3));
             T dummy; Assert.That(q.Poll(out dummy), Is.True);
         }
@@ -175,7 +175,7 @@ namespace Spring.TestFixture.Collections.Generic
         {
             IQueue<T> queue = NewQueueFilledWithSample();
             T result;
-            for (int i = 0; i < _sampleSize; i++)
+            for (int i = 0; i < SampleSize; i++)
             {
                 Assert.IsTrue(queue.Poll(out result));
                 AssertRetrievedResult(result, i);
@@ -186,9 +186,9 @@ namespace Spring.TestFixture.Collections.Generic
         protected void AssertRetrievedResult(T result, int i)
         {
             if(IsFifo)
-                Assert.That(result, Is.EqualTo(_samples[i]));
+                Assert.That(result, Is.EqualTo(Samples[i]));
             else
-                CollectionAssert.Contains(_samples, result);
+                CollectionAssert.Contains(Samples, result);
         }
 
         [Test] public virtual void ElementChokesWhenQuqueIsEmpty()
@@ -200,7 +200,7 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public virtual void ElementSucceedsWhenQueueIsNotEmpty()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
-            for (int i = 0; i < _sampleSize; ++i)
+            for (int i = 0; i < SampleSize; ++i)
             {
                 AssertRetrievedResult(queue.Element(), i);
                 queue.Remove();
@@ -218,7 +218,7 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public virtual void PeekSucceedsWhenQueueIsNotEmpty()
         {
             var queue = NewQueueFilledWithSample();
-            for (int i = 0; i < _sampleSize; ++i)
+            for (int i = 0; i < SampleSize; ++i)
             {
                 T value;
                 Assert.IsTrue(queue.Peek(out value));
@@ -233,24 +233,24 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public virtual void AddRemoveInMultipeLoops()
         {
             IQueue<T> queue = NewQueue();
-            AddRemoveOneLoop(queue, _sampleSize / 2);
-            AddRemoveOneLoop(queue, _sampleSize );
-            AddRemoveOneLoop(queue, _sampleSize *2 / 3);
-            AddRemoveOneLoop(queue, _sampleSize);
+            AddRemoveOneLoop(queue, SampleSize / 2);
+            AddRemoveOneLoop(queue, SampleSize );
+            AddRemoveOneLoop(queue, SampleSize *2 / 3);
+            AddRemoveOneLoop(queue, SampleSize);
         }
 
         [Test] public virtual void RemainingCapacityDecreasesOnAddIncreasesOnRemove()
         {
             IQueue<T> queue = NewQueue();
-            AssertRemainingCapacity(queue, _sampleSize);
-            for (int i = _sampleSize - 1; i >= 0; i--)
+            AssertRemainingCapacity(queue, SampleSize);
+            for (int i = SampleSize - 1; i >= 0; i--)
             {
-                queue.Add(_samples[i]);
+                queue.Add(Samples[i]);
                 AssertRemainingCapacity(queue, i);
             }
             queue = NewQueueFilledWithSample();
             AssertRemainingCapacity(queue, 0);
-            for (int i = 1; i <= _sampleSize; i++)
+            for (int i = 1; i <= SampleSize; i++)
             {
                 queue.Remove();
                 AssertRemainingCapacity(queue, i);
@@ -263,10 +263,10 @@ namespace Spring.TestFixture.Collections.Generic
             q.Clear();
             Assert.AreEqual(0, q.Count);
             if (q.RemainingCapacity == 0) Assert.Pass("Skip as this queue has no capacity.");
-            AssertRemainingCapacity(q, _sampleSize);
-            q.Add(_samples[1]);
+            AssertRemainingCapacity(q, SampleSize);
+            q.Add(Samples[1]);
             Assert.AreEqual(1, q.Count);
-            Assert.IsTrue(q.Contains(_samples[1]));
+            Assert.IsTrue(q.Contains(Samples[1]));
             q.Clear();
             Assert.AreEqual(0, q.Count);
         }
@@ -276,8 +276,8 @@ namespace Spring.TestFixture.Collections.Generic
             Options.SkipWhen(CollectionOptions.Unbounded);
             var q = NewQueue();
             Assert.That(q.Count, Is.EqualTo(0));
-            AssertRemainingCapacity(q, _sampleSize, "should have room for " + _sampleSize);
-            foreach (var sample in _samples)
+            AssertRemainingCapacity(q, SampleSize, "should have room for " + SampleSize);
+            foreach (var sample in Samples)
             {
                 q.Add(sample);
                 Assert.That(q.Count, Is.GreaterThan(0));
@@ -289,7 +289,7 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public override void EnumerateThroughAllElements()
         {
             if(IsFifo)
-                CollectionAssert.AreEqual(_samples, NewCollectionFilledWithSample());
+                CollectionAssert.AreEqual(Samples, NewCollectionFilledWithSample());
             else
                 base.EnumerateThroughAllElements();
         }
@@ -332,18 +332,18 @@ namespace Spring.TestFixture.Collections.Generic
         {
             for (int i = 0; i < size; i++)
             {
-                queue.Add(_samples[i]);
+                queue.Add(Samples[i]);
             }
             for (int i = 0; i < size; i++)
             {
                 T removed = queue.Remove();
                 if(IsFifo)
                 {
-                    Assert.That(removed, Is.EqualTo(_samples[i]));
+                    Assert.That(removed, Is.EqualTo(Samples[i]));
                 }
                 else
                 {
-                    CollectionAssert.Contains(_samples, removed);
+                    CollectionAssert.Contains(Samples, removed);
                 }
             }
         }

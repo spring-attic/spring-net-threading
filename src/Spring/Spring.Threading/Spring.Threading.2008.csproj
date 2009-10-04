@@ -107,10 +107,12 @@
     <Compile Include="Collections\Generic\TransformingList.cs" />
     <Compile Include="CommonAssemblyInfo.cs" />
     <Compile Include="SystemExtensions.cs" />
+    <Compile Include="Threading\AggregateException.cs" />
     <Compile Include="Threading\BoundedBuffer.cs" />
     <Compile Include="Threading\BoundedLinkedQueue.cs" />
     <Compile Include="Threading\BoundedPriorityQueue.cs" />
     <Compile Include="Threading\BrokenBarrierException.cs" />
+    <Compile Include="Threading\Collections\Generic\QueueClosedException.cs" />
     <Compile Include="Threading\CountDownLatch.cs" />
     <Compile Include="Threading\Func.cs" />
     <Compile Include="Threading\Callable.cs" />
@@ -215,6 +217,8 @@
     <Compile Include="Threading\LogicalThreadContextCarrierFactory.cs" />
     <Compile Include="Threading\Mutex.cs" />
     <Compile Include="Threading\NullRunnable.cs" />
+    <Compile Include="Threading\Parallel.cs" />
+    <Compile Include="Threading\ParallelOptions.cs" />
     <Compile Include="Threading\PooledExecutor.cs" />
     <Compile Include="Threading\PrioritySemaphore.cs" />
     <Compile Include="Threading\QueuedExecutor.cs" />

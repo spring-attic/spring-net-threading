@@ -24,7 +24,7 @@ namespace Spring.Threading.Collections.Generic
         public SynchronousQueueTest(CollectionOptions options) 
             : base(options | CollectionOptions.Fifo)
         {
-            _sampleSize = 0;
+            SampleSize = 0;
         }
 
         protected override IBlockingQueue<T> NewBlockingQueue()

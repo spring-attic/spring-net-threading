@@ -10,8 +10,13 @@ namespace Spring.TestFixture.Collections.Generic
     /// <author>Kenneth Xu</author>
     public abstract class CollectionTestFixture<T> : EnumerableTestFixture<T>
     {
-        protected T[] _samples;
-        protected int _sampleSize = 9;
+        private int _sampleSize = 9;
+        protected int SampleSize
+        {
+            get { return _sampleSize; }
+            set { _sampleSize = value; }
+        }
+        protected T[] Samples { get; set; }
         protected bool IsUnique
         {
             get { return Options.Has(CollectionOptions.Unique); }
@@ -52,7 +57,7 @@ namespace Spring.TestFixture.Collections.Generic
         protected virtual ICollection<T> NewCollectionFilledWithSample()
         {
             ICollection<T> collection = NewCollection();
-            foreach (T o in _samples)
+            foreach (T o in Samples)
             {
                 collection.Add(o);
             }
@@ -61,7 +66,7 @@ namespace Spring.TestFixture.Collections.Generic
 
         protected virtual T[] NewSamples()
         {
-            return TestData<T>.MakeTestArray(_sampleSize);
+            return TestData<T>.MakeTestArray(SampleSize);
         }
 
         /// <summary>
@@ -73,13 +78,13 @@ namespace Spring.TestFixture.Collections.Generic
         [SetUp]
         public virtual void SetUpSamples()
         {
-            _samples = NewSamples();
+            Samples = NewSamples();
         }
 
         [Test] public virtual void CountAccurately()
         {
             Assert.That(NewCollection().Count, Is.EqualTo(0));
-            Assert.That(NewCollectionFilledWithSample().Count, Is.EqualTo(_sampleSize));
+            Assert.That(NewCollectionFilledWithSample().Count, Is.EqualTo(SampleSize));
         }
 
         [Test] public virtual void CopyToChokesWithNullArray()
@@ -128,14 +133,14 @@ namespace Spring.TestFixture.Collections.Generic
         {
             ICollection<T> c = NewCollectionFilledWithSample();
             AssertContainsAllSamples(c);
-            T notexists = TestData<T>.MakeData(_sampleSize);
+            T notexists = TestData<T>.MakeData(SampleSize);
             Assert.IsFalse(c.Contains(notexists));
         }
 
         [Test] public virtual void ContainsReportsTrueWhenElementsAddedButNotYetRemoved() {
             var q = NewCollectionFilledWithSample();
 			
-            for (int i = 0; i < _sampleSize; ++i) {
+            for (int i = 0; i < SampleSize; ++i) {
                 var item = TestData<T>.MakeData(i);
                 Assert.IsTrue(q.Contains(item));
                 q.Remove(item);
@@ -159,7 +164,7 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public virtual void AddAllSamplesSuccessfullyWhenSupported()
         {
             ICollection<T> c = NewCollection();
-            foreach (T sample in _samples)
+            foreach (T sample in Samples)
             {
                 try { c.Add(sample); }
                 catch (NotSupportedException e)
@@ -168,16 +173,16 @@ namespace Spring.TestFixture.Collections.Generic
                     throw SystemExtensions.PreserveStackTrace(e);
                 }
             }
-            Assert.That(c.Count, Is.EqualTo(_sampleSize));
+            Assert.That(c.Count, Is.EqualTo(SampleSize));
             AssertContainsAllSamples(c);
         }
 
         [Test] public virtual void AddDuplicateSuccessfullyWhenSupported()
         {
             if (IsUnique) Assert.Pass("Skip because collection doesn't allow duplicates.");
-            if (_sampleSize<=0) Assert.Pass("Skip because 0 capacity collection");
+            if (SampleSize<=0) Assert.Pass("Skip because 0 capacity collection");
             ICollection<T> c = NewCollection();
-            T sample = _samples[0];
+            T sample = Samples[0];
             try { c.Add(sample); }
             catch (NotSupportedException e)
             {
@@ -193,9 +198,9 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public virtual void RemoveAllSamplesSuccessfullyWhenSupported()
         {
             ICollection<T> c = NewCollectionFilledWithSample();
-            Assert.That(c.Count, Is.EqualTo(_sampleSize));
+            Assert.That(c.Count, Is.EqualTo(SampleSize));
             AssertContainsAllSamples(c);
-            for (int i = 1; i < _sampleSize; i += 2)
+            for (int i = 1; i < SampleSize; i += 2)
             {
                 try {Assert.IsTrue(c.Remove(TestData<T>.MakeData(i)));}
                 catch (NotSupportedException e)
@@ -204,7 +209,7 @@ namespace Spring.TestFixture.Collections.Generic
                     throw SystemExtensions.PreserveStackTrace(e);
                 }
             }
-            for (int i = 0; i < _sampleSize; i += 2)
+            for (int i = 0; i < SampleSize; i += 2)
             {
                 try
                 {
@@ -254,7 +259,7 @@ namespace Spring.TestFixture.Collections.Generic
         [Test] public virtual void EnumerateThroughAllElements() 
         {
             var c = NewCollectionFilledWithSample();
-            CollectionAssert.AreEquivalent(_samples, c);
+            CollectionAssert.AreEquivalent(Samples, c);
         }
 
         [Test] public virtual void EnumeratorFailsWhenCollectionIsModified()
@@ -291,7 +296,7 @@ namespace Spring.TestFixture.Collections.Generic
 
         protected void AssertContainsAllSamples(ICollection<T> c)
         {
-            foreach (T sample in _samples)
+            foreach (T sample in Samples)
             {
                 Assert.IsTrue(c.Contains(sample));
             }
@@ -299,7 +304,7 @@ namespace Spring.TestFixture.Collections.Generic
 
         protected void AssertContainsNoSample(ICollection<T> c)
         {
-            foreach (T sample in _samples)
+            foreach (T sample in Samples)
             {
                 Assert.IsFalse(c.Contains(sample));
             }

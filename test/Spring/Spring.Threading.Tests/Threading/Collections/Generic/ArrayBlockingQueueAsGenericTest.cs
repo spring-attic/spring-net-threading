@@ -18,13 +18,13 @@ namespace Spring.Threading.Collections.Generic
     [TestFixture(typeof(int))]
     public class ArrayBlockingQueueTest<T>
     {
-        private readonly T[] _c = new T[1];
+        private readonly T[] _samples = TestData<T>.MakeTestArray(9);
 
-        [Test] public void ConstructorChokesOnNegativeCapacity()
+        [Test] public void ConstructorChokesNonPositiveCapacity([Values(0, -1)] int capacity)
         {
-            AssertChokesOnNagativeCapacityArgument(() => new ArrayBlockingQueue<T>(-1));
-            AssertChokesOnNagativeCapacityArgument(() => new ArrayBlockingQueue<T>(-1, true));
-            AssertChokesOnNagativeCapacityArgument(() => new ArrayBlockingQueue<T>(-1, true, _c));
+            AssertChokesOnNagativeCapacityArgument(() => new ArrayBlockingQueue<T>(capacity));
+            AssertChokesOnNagativeCapacityArgument(() => new ArrayBlockingQueue<T>(capacity, true));
+            AssertChokesOnNagativeCapacityArgument(() => new ArrayBlockingQueue<T>(capacity, true, _samples));
         }
 
         [Test] public void ConstructorChokesOnNullCollection()
@@ -33,24 +33,42 @@ namespace Spring.Threading.Collections.Generic
             Assert.That(e.ParamName, Is.EqualTo("collection"));
         }
 
+        [Test, Description("Constructor throws ArguementOutOfRangeException if the collection is larger then capacity.")] 
+        public void ConstructorChokesOnOversizeCollection()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayBlockingQueue<T>(1, false, _samples));
+            Assert.That(e.ParamName, Is.EqualTo("collection"));
+        }
+
         [Test] public void ConstructorDefaultToNofair()
         {
             Assert.IsFalse(new ArrayBlockingQueue<T>(1).IsFair);
+        }
+
+        [Test] public void ConstructorAddsCollectionToTheQueue()
+        {
+            var q = new ArrayBlockingQueue<T>(_samples.Length, true, _samples);
+            foreach (var sample in _samples)
+            {
+                T item;
+                Assert.IsTrue(q.Poll(out item));
+                Assert.That(item, Is.EqualTo(sample));
+            }
         }
 
         [Test] public void IsFairReturnsTheValueSetInConstructor()
         {
             Assert.IsTrue(new ArrayBlockingQueue<T>(1, true).IsFair);
             Assert.IsFalse(new ArrayBlockingQueue<T>(1, false).IsFair);
-            Assert.IsTrue(new ArrayBlockingQueue<T>(1, true, _c).IsFair);
-            Assert.IsFalse(new ArrayBlockingQueue<T>(1, false, _c).IsFair);
+            Assert.IsTrue(new ArrayBlockingQueue<T>(1, true, _samples).IsFair);
+            Assert.IsFalse(new ArrayBlockingQueue<T>(1, false, _samples).IsFair);
         }
 
         [Test] public void CapacityReturnsTheValueSetInConstructor()
         {
             Assert.That(new ArrayBlockingQueue<T>(5).Capacity, Is.EqualTo(5));
             Assert.That(new ArrayBlockingQueue<T>(8, true).Capacity, Is.EqualTo(8));
-            Assert.That(new ArrayBlockingQueue<T>(10, false, _c).Capacity, Is.EqualTo(10));
+            Assert.That(new ArrayBlockingQueue<T>(10, false, _samples).Capacity, Is.EqualTo(10));
         }
 
         private static void AssertChokesOnNagativeCapacityArgument(TestDelegate action)
@@ -71,12 +89,12 @@ namespace Spring.Threading.Collections.Generic
 
             protected override IBlockingQueue<T> NewBlockingQueue()
             {
-                return new ArrayBlockingQueue<T>(_sampleSize, IsFair);
+                return new ArrayBlockingQueue<T>(SampleSize, IsFair);
             }
 
             protected override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
             {
-                return new ArrayBlockingQueue<T>(_sampleSize, IsFair, TestData<T>.MakeTestArray(_sampleSize));
+                return new ArrayBlockingQueue<T>(SampleSize, IsFair, TestData<T>.MakeTestArray(SampleSize));
             }
         }
 

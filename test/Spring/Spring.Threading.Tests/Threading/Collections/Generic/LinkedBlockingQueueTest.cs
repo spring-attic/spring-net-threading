@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Threading;
 using NUnit.Framework;
 using Spring.TestFixture.Collections;
 using Spring.TestFixture.Collections.NonGeneric;
 using Spring.TestFixture.Threading.Collections.Generic;
+using Spring.Threading.AtomicTypes;
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -24,7 +26,7 @@ namespace Spring.Threading.Collections.Generic
 
         protected override IBlockingQueue<T> NewBlockingQueue()
         {
-            return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, false);
+            return NewLinkedBlockingQueue(IsUnbounded, SampleSize, false);
         }
 
         protected sealed override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
@@ -34,7 +36,12 @@ namespace Spring.Threading.Collections.Generic
 
         protected virtual LinkedBlockingQueue<T> NewLinkedBlockingQueueFilledWithSample()
         {
-            return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, true);
+            return NewLinkedBlockingQueue(IsUnbounded, SampleSize, true);
+        }
+
+        protected virtual LinkedBlockingQueue<T> NewLinkedBlockingQueue()
+        {
+            return NewLinkedBlockingQueue(IsUnbounded, SampleSize, false);
         }
 
         internal static LinkedBlockingQueue<T> NewLinkedBlockingQueue(bool isUnbounded, int size, bool isFilled)
@@ -62,7 +69,7 @@ namespace Spring.Threading.Collections.Generic
         public void ConstructorWelcomesNullElememtInCollectionArgument()
         {
             Options.SkipWhenNot(CollectionOptions.Unbounded);
-            T[] arrayWithDefaulValue = new T[_sampleSize];
+            T[] arrayWithDefaulValue = new T[SampleSize];
             var q = new LinkedBlockingQueue<T>(arrayWithDefaulValue);
             foreach (T sample in arrayWithDefaulValue)
             {
@@ -85,8 +92,8 @@ namespace Spring.Threading.Collections.Generic
         public void ConstructorCreatesQueueConstainsAllElementsInCollection()
         {
             Options.SkipWhenNot(CollectionOptions.Unbounded);
-            var q = new LinkedBlockingQueue<T>(_samples);
-            foreach (T sample in _samples)
+            var q = new LinkedBlockingQueue<T>(Samples);
+            foreach (T sample in Samples)
             {
                 T value;
                 Assert.IsTrue(q.Poll(out value));
@@ -98,9 +105,9 @@ namespace Spring.Threading.Collections.Generic
         public void ConstructorCreatesQueueWithGivenCapacity()
         {
             Options.SkipWhen(CollectionOptions.Unbounded);
-            var queue = new LinkedBlockingQueue<T>(_sampleSize);
-            Assert.AreEqual(_sampleSize, queue.RemainingCapacity);
-            Assert.AreEqual(_sampleSize, queue.Capacity);
+            var queue = new LinkedBlockingQueue<T>(SampleSize);
+            Assert.AreEqual(SampleSize, queue.RemainingCapacity);
+            Assert.AreEqual(SampleSize, queue.Capacity);
         }
 
         [Test]
@@ -113,7 +120,66 @@ namespace Spring.Threading.Collections.Generic
             Assert.That(e.ActualValue, Is.EqualTo(capacity));
         }
 
-        [Test] public void ToArrayWritesAllElementsToNewArray() 
+        [Test] public void TryPutReturnFalseWhenQueueClosed()
+        {
+            LinkedBlockingQueue<T> q = NewLinkedBlockingQueue();
+            q.Close();
+            Assert.IsFalse(q.TryPut(TestData<T>.One));
+        }
+
+        [Test] public void BlockedTryPutPuturnsWhenQueueClosed()
+        {
+            Options.SkipWhen(CollectionOptions.Unbounded);
+            var q = NewLinkedBlockingQueueFilledWithSample();
+            var isTryPutReturned = new AtomicBoolean();
+            ThreadManager.StartAndAssertRegistered(
+                "T1", () =>
+                          {
+                              Assert.IsFalse(q.TryPut(TestData<T>.One));
+                              isTryPutReturned.Value = true;
+                          });
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsFalse(isTryPutReturned);
+            q.Close();
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(isTryPutReturned);
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void TryTakeReturnsFalseOnlyWhenQueueClosedAndEmpty()
+        {
+            var q = NewLinkedBlockingQueue();
+            var one = TestData<T>.One;
+            q.Put(one);
+            q.Close();
+            T result;
+            Assert.IsTrue(q.TryTake(out result));
+            Assert.That(result, Is.EqualTo(one));
+            Assert.IsFalse(q.TryTake(out result));
+        }
+
+        [Test] public void BlockedTryTakePuturnsWhenQueueClosed()
+        {
+            Options.SkipWhen(CollectionOptions.Unbounded);
+            var q = NewLinkedBlockingQueue();
+            var isTryTakeReturned = new AtomicBoolean();
+            ThreadManager.StartAndAssertRegistered(
+                "T1", () =>
+                {
+                    T result;
+                    Assert.IsFalse(q.TryTake(out result));
+                    isTryTakeReturned.Value = true;
+                });
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsFalse(isTryTakeReturned);
+            q.Close();
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(isTryTakeReturned);
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test]
+        public void ToArrayWritesAllElementsToNewArray() 
         {
             LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
             T[] o = q.ToArray();
@@ -124,7 +190,7 @@ namespace Spring.Threading.Collections.Generic
         [Test] public void ToArrayWritesAllElementsToExistingArray() 
         {
             LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
-            T[] ints = new T[_sampleSize];
+            T[] ints = new T[SampleSize];
             ints = q.ToArray(ints);
             for(int i = 0; i < ints.Length; i++)
                 Assert.AreEqual(ints[i], q.Take());
@@ -174,8 +240,8 @@ namespace Spring.Threading.Collections.Generic
         [Test] public void ToStringContainsToStringOfElements() {
             var q = NewCollectionFilledWithSample();
             string s = q.ToString();
-            for (int i = 0; i < _sampleSize; ++i) {
-                Assert.IsTrue(s.IndexOf(_samples[i].ToString()) >= 0);
+            for (int i = 0; i < SampleSize; ++i) {
+                Assert.IsTrue(s.IndexOf(Samples[i].ToString()) >= 0);
             }
         }
 

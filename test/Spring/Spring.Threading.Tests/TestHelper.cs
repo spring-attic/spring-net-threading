@@ -277,6 +277,14 @@ namespace Spring
             AssertEnumeratorEquals(expected.GetEnumerator(), actual.GetEnumerator());
         }
 
+        public static void SkipOnValueType(Type type)
+        {
+            if (type.IsValueType)
+            {
+                Assert.Pass("Skipped because the test doesn't apply to value type.");
+            }
+        }
+
         #region Helpers
 
         #region Property setters

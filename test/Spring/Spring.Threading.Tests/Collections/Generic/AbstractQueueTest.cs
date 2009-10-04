@@ -177,7 +177,8 @@ namespace Spring.Collections.Generic
             Activities last = null;
             foreach (T data in testData)
             {
-                var call = _sut.ActivityOf(x => x.Add(data));
+                T element = data;
+                var call = _sut.ActivityOf(x => x.Add(element));
                 if (last != null) Mockery.Assert(last < call);
                 last = call;
             }
@@ -205,6 +206,14 @@ namespace Spring.Collections.Generic
             var e = Assert.Throws<ArgumentException>(() => _sut.AddRange(_sut));
             Assert.That(e.ParamName, Is.EqualTo("collection"));
         }
+
+    	[Test] public void AddRangeChokesWhenNotEnoughRoom() {
+            _sut.Stub(x => x.Add(Arg<T>.Is.Anything)).Repeat.Once();
+            _sut.Stub(x => x.Add(Arg<T>.Is.Anything)).Throw(new InvalidOperationException()).Repeat.Once();
+
+            Assert.Throws<InvalidOperationException>(
+                ()=>_sut.AddRange(TestData<T>.MakeTestArray(2)));
+    	}
 
         [Test] public void DrainChokesOnNullAction()
         {

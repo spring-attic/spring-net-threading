@@ -219,35 +219,18 @@ namespace Spring.Threading.Collections.Generic
                 throw new NotImplementedException();
             }
 
-            #endregion
+		    public void ForEach<T>(IEnumerable<T> source, Action<T> body)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    public void ForEach<T>(IEnumerable<T> source, ParallelOptions parallelOptions, Action<T> body)
+		    {
+		        throw new NotImplementedException();
+		    }
+
+		    #endregion
         }
-
-		[Test]
-		public void OfferInExecutor()
-		{
-			ArrayBlockingQueue<int> q = new ArrayBlockingQueue<int>(2);
-			q.Add(one);
-			q.Add(two);
-			IExecutorService executor = new SimpleExecutorService(2);
-			executor.Execute(new AnonymousClassRunnable7(q));
-			executor.Execute(new AnonymousClassRunnable8(q));
-
-			JoinPool(executor);
-		}
-
-
-		[Test]
-		public void PollInExecutor()
-		{
-			ArrayBlockingQueue<int> q = new ArrayBlockingQueue<int>(2);
-			IExecutorService executor = new SimpleExecutorService(2);
-			executor.Execute(new AnonymousClassRunnable9(q));
-
-			executor.Execute(new AnonymousClassRunnable10(q));
-
-			JoinPool(executor);
-		}
-
 
 		[Test]
 		public void Serialization()
@@ -592,137 +575,6 @@ namespace Spring.Threading.Collections.Generic
 		}
 
 
-		[Test]
-		public void Constructor1()
-		{
-			Assert.AreEqual(DEFAULT_COLLECTION_SIZE, new ArrayBlockingQueue<int>(DEFAULT_COLLECTION_SIZE).RemainingCapacity);
-		}
-
-
-		[Test]
-		[ExpectedException(typeof (ArgumentOutOfRangeException))]
-		public void Constructor2()
-		{
-			new ArrayBlockingQueue<int>(0);
-		}
-
-
-		[Test]
-		[ExpectedException(typeof (ArgumentNullException))]
-		public void Constructor3()
-		{
-			new ArrayBlockingQueue<int>(1, true, null);
-		}
-
-		[Test]
-		[ExpectedException(typeof (ArgumentOutOfRangeException))]
-		public void Constructor6()
-		{
-			Int32[] ints = new Int32[DEFAULT_COLLECTION_SIZE];
-			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
-				ints[i] = i;
-
-			new ArrayBlockingQueue<int>(1, false, new List<int>(ints));
-		}
-
-
-		[Test]
-		public void Constructor7()
-		{
-			Int32[] ints = new Int32[DEFAULT_COLLECTION_SIZE];
-			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
-				ints[i] = i;
-
-			ArrayBlockingQueue<int> q = new ArrayBlockingQueue<int>(DEFAULT_COLLECTION_SIZE, true, new List<int>(ints));
-		    int j;
-			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
-			{
-			    q.Poll(out j);
-				Assert.AreEqual(ints[i], j);
-			}
-		}
-
-
-		[Test]
-		public void EmptyFull()
-		{
-			ArrayBlockingQueue<int> q = new ArrayBlockingQueue<int>(2);
-			Assert.IsTrue( q.IsEmpty );
-			Assert.AreEqual(2, q.RemainingCapacity);
-			q.Add(one);
-			Assert.IsFalse( q.IsEmpty );
-			q.Add(two);
-			Assert.IsFalse( q.IsEmpty );
-			Assert.AreEqual(0, q.RemainingCapacity);
-			Assert.IsFalse(q.Offer(three));
-		}
-
-
-		[Test]
-		public void RemainingCapacity()
-		{
-			ArrayBlockingQueue<int> q = populatedQueue(DEFAULT_COLLECTION_SIZE);
-			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
-			{
-				Assert.AreEqual(i, q.RemainingCapacity);
-				Assert.AreEqual(DEFAULT_COLLECTION_SIZE - i, q.Count);
-				q.Remove();
-			}
-			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
-			{
-				Assert.AreEqual(DEFAULT_COLLECTION_SIZE - i, q.RemainingCapacity);
-				Assert.AreEqual(i, q.Count);
-				q.Add(i);
-			}
-		}
-
-
-        // In Java, null is used to indicate empty queue for the Poll related methods.
-        // In .NET, out parameter is used in the Poll method and a bool return value
-        // is used to indicate a empty queue. So null can well be a valid element in the
-        // queue.
-        [Test]
-		public void OfferNull()
-		{
-			ArrayBlockingQueue<object> q = new ArrayBlockingQueue<object>(1);
-			q.Offer(null);
-		}
-
-
-        // In Java, null is used to indicate empty queue for the Poll related methods.
-        // In .NET, out parameter is used in the Poll method and a bool return value
-        // is used to indicate a empty queue. So null can well be a valid element in the
-        // queue.
-        [Test]
-		public void AddNull()
-		{
-			ArrayBlockingQueue<object> q = new ArrayBlockingQueue<object>(1);
-			q.Add(null);
-		}
-
-
-		[Test]
-		public void Offer()
-		{
-			ArrayBlockingQueue<int> q = new ArrayBlockingQueue<int>(1);
-			Assert.IsTrue(q.Offer(zero));
-			Assert.IsFalse(q.Offer(one));
-		}
-
-
-		[Test]
-		[ExpectedException(typeof (InvalidOperationException))]
-		public void Add()
-		{
-			ArrayBlockingQueue<int> q = new ArrayBlockingQueue<int>(DEFAULT_COLLECTION_SIZE);
-			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
-			{
-				Assert.IsTrue(q.Offer(i));
-			}
-			Assert.AreEqual(0, q.RemainingCapacity);
-			q.Add(DEFAULT_COLLECTION_SIZE);
-		}
-
 
 		[Test]
 		[ExpectedException(typeof (ArgumentNullException))]
@@ -754,21 +606,6 @@ namespace Spring.Threading.Collections.Generic
 			q.AddRange(new List<object>(objects));
 		}
 
-
-        // In Java, null is used to indicate empty queue for the Poll related methods.
-        // In .NET, out parameter is used in the Poll method and a bool return value
-        // is used to indicate a empty queue. So null can well be a valid element in the
-        // queue.
-        [Test]
-		public void AddCollectionOfSomeNullElements()
-		{
-			ArrayBlockingQueue<object> q = new ArrayBlockingQueue<object>(DEFAULT_COLLECTION_SIZE);
-			object[] objects = new object[DEFAULT_COLLECTION_SIZE];
-			for (int i = 0; i < DEFAULT_COLLECTION_SIZE - 1; ++i)
-				objects[i] = i;
-
-			q.AddRange(new List<object>(objects));
-		}
 
 		[Test]
 		[ExpectedException(typeof (InvalidOperationException))]

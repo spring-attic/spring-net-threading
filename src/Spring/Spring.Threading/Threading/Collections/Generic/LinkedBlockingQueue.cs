@@ -60,12 +60,12 @@ namespace Spring.Threading.Collections.Generic {
         #region inner classes
 
         internal class Node {
-            internal T item;
+            internal T Item;
 
-            internal Node next;
+            internal Node Next;
 
             internal Node(T x) {
-                item = x;
+                Item = x;
             }
         }
 
@@ -85,6 +85,9 @@ namespace Spring.Threading.Collections.Generic {
         /// <summary>Current number of elements </summary>
         [NonSerialized]
         private volatile int _activeCount;
+
+        [NonSerialized] 
+        private volatile bool _isClosed;
 
         /// <summary>Head of linked list </summary>
         [NonSerialized]
@@ -123,16 +126,16 @@ namespace Spring.Threading.Collections.Generic {
         /// Creates a node and links it at end of queue.</summary>
         /// <param name="x">the item to insert</param>
         private void Insert(T x) {
-            _last = _last.next = new Node(x);
+            _last = _last.Next = new Node(x);
         }
 
         /// <summary>Removes a node from head of queue,</summary>
         /// <returns>the node</returns>
         private T Extract() {
-            Node first = _head.next;
+            Node first = _head.Next;
             _head = first;
-            T x = first.item;
-            first.item = default(T);
+            T x = first.Item;
+            first.Item = default(T);
             return x;
         }
 
@@ -230,9 +233,37 @@ namespace Spring.Threading.Collections.Generic {
         /// <exception cref="ThreadInterruptedException">
         /// if interrupted while waiting.
         /// </exception>
-        public override void Put(T element) {
+        /// <exception cref="QueueClosedException">
+        /// If the queue is already <see cref="IsClosed">closed</see>.
+        /// </exception>
+        public override void Put(T element)
+        {
+            if(!TryPut(element)) throw new QueueClosedException();
+        }
+
+        /// <summary>
+        /// Inserts the specified element into this queue, waiting if necessary
+        /// for space to become available.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Close"/> the queue will cause a waiting <see cref="TryPut"/>
+        /// to returned <c>false</c>. This is very useful to indicate that the
+        /// consumer is stopped or going to stop so that the producer should not 
+        /// put more items into the queue.
+        /// </remarks>
+        /// <param name="element">the element to add</param>
+        /// <returns>
+        /// <c>true</c> if succesfully and <c>false</c> if queue <see cref="IsClosed"/>.
+        /// </returns>
+        /// <exception cref="ThreadInterruptedException">
+        /// if interrupted while waiting.
+        /// </exception>
+        public virtual bool TryPut(T element)
+        {
             int tempCount;
-            lock(_putLock) {
+            if (_isClosed) return false;
+            lock (_putLock)
+            {
                 /*
                  * Note that count is used in wait guard even though it is
                  * not protected by lock. This works because count can
@@ -244,7 +275,10 @@ namespace Spring.Threading.Collections.Generic {
                 try
                 {
                     while(_activeCount == _capacity)
+                    {
+                        if (_isClosed) return false;
                         Monitor.Wait(_putLock);
+                    }
                 }
                 catch(ThreadInterruptedException e) {
                     Monitor.Pulse(_putLock);
@@ -261,6 +295,7 @@ namespace Spring.Threading.Collections.Generic {
 
             if(tempCount == 0)
                 SignalNotEmpty();
+            return true;
         }
 
         /// <summary> 
@@ -283,7 +318,8 @@ namespace Spring.Threading.Collections.Generic {
             lock(_putLock) {
                 DateTime deadline = DateTime.UtcNow.Add(duration);
                 for(; ; ) {
-                    if(_activeCount < _capacity) {
+                    if (_isClosed) return false;
+                    if (_activeCount < _capacity) {
                         Insert(element);
                         lock(this) {
                             tempCount = _activeCount++;
@@ -326,11 +362,11 @@ namespace Spring.Threading.Collections.Generic {
         /// <see lang="true"/> if the element was added to this queue.
         /// </returns>
         public override bool Offer(T element) {
-            if(_activeCount == _capacity)
+            if(_activeCount == _capacity || _isClosed)
                 return false;
             int tempCount = -1;
             lock(_putLock) {
-                if(_activeCount < _capacity) {
+                if(_activeCount < _capacity && !_isClosed) {
                     Insert(element);
                     lock(this) {
                         tempCount = _activeCount++;
@@ -350,13 +386,48 @@ namespace Spring.Threading.Collections.Generic {
         /// until an element becomes available.
         /// </summary>
         /// <returns> the head of this queue</returns>
-        public override T Take() {
+        /// <exception cref="QueueClosedException">
+        /// If the queue is empty and already <see cref="IsClosed">closed</see>.
+        /// </exception>
+        public override T Take()
+        {
+            T x;
+            if (!TryTake(out x)) throw new QueueClosedException();
+            return x;
+        }
+
+        /// <summary> 
+        /// Retrieves and removes the head of this queue, waiting if necessary
+        /// until an element becomes available.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Close"/> the queue will cause a waiting <see cref="TryTake"/>
+        /// to returned <c>false</c>. This is very useful to indicate that the
+        /// producer is stopped so that the producer should stop waiting for
+        /// element from queu.
+        /// </remarks>
+        /// <param name="element">
+        /// The head of this queue if successful.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if succesfully and <c>false</c> if queue is empty and 
+        /// <see cref="IsClosed">closed</see>.
+        /// </returns>
+        public virtual bool TryTake(out T element)
+        {
             T x;
             int tempCount;
             lock(_takeLock) {
                 try {
                     while(_activeCount == 0)
+                    {
+                        if (_isClosed)
+                        {
+                            element = default(T);
+                            return false;
+                        }
                         Monitor.Wait(_takeLock);
+                    }
                 }
                 catch(ThreadInterruptedException e) {
                     Monitor.Pulse(_takeLock);
@@ -374,7 +445,8 @@ namespace Spring.Threading.Collections.Generic {
             if(tempCount == _capacity)
                 SignalNotFull();
 
-            return x;
+            element = x;
+            return true;
         }
 
         /// <summary> 
@@ -405,7 +477,7 @@ namespace Spring.Threading.Collections.Generic {
                             Monitor.Pulse(_takeLock);
                         break;
                     }
-                    if (duration.Ticks <= 0)
+                    if (duration.Ticks <= 0 || _isClosed)
                     {
                         element = default(T);
                         return false;
@@ -459,7 +531,7 @@ namespace Spring.Threading.Collections.Generic {
                 SignalNotFull();
             }
             element = x;
-            return true;
+            return c >= 0;
         }
 
         /// <summary>
@@ -478,9 +550,9 @@ namespace Spring.Threading.Collections.Generic {
                 return false;
             }
             lock(_takeLock) {
-                Node first = _head.next;
+                Node first = _head.Next;
                 bool exists = first != null;
-                element = exists ? first.item : default(T);
+                element = exists ? first.Item : default(T);
                 return exists;
             }
         }
@@ -501,18 +573,18 @@ namespace Spring.Threading.Collections.Generic {
             lock(_putLock) {
                 lock(_takeLock) {
                     Node trail = _head;
-                    Node p = _head.next;
+                    Node p = _head.Next;
                     while(p != null) {
-                        if(Equals(objectToRemove, p.item)) {
+                        if(Equals(objectToRemove, p.Item)) {
                             removed = true;
                             break;
                         }
                         trail = p;
-                        p = p.next;
+                        p = p.Next;
                     }
                     if(removed) {
-                        p.item = default(T);
-                        trail.next = p.next;
+                        p.Item = default(T);
+                        trail.Next = p.Next;
                         if(_last == p)
                             _last = trail;
                         lock(this) {
@@ -556,8 +628,8 @@ namespace Spring.Threading.Collections.Generic {
             Node first;
             lock(_putLock) {
                 lock(_takeLock) {
-                    first = _head.next;
-                    _head.next = null;
+                    first = _head.Next;
+                    _head.Next = null;
 
                     _last = _head;
                     int cold;
@@ -572,9 +644,9 @@ namespace Spring.Threading.Collections.Generic {
             }
             // Transfer the elements outside of locks
             int n = 0;
-            for(Node p = first; p != null; p = p.next) {
-                action(p.item);
-                p.item = default(T);
+            for(Node p = first; p != null; p = p.Next) {
+                action(p.Item);
+                p.Item = default(T);
                 ++n;
             }
             return n;
@@ -595,20 +667,20 @@ namespace Spring.Threading.Collections.Generic {
                 lock(_takeLock) {
                     int n = 0;
                     Node p = _head;
-                    Node c = p.next;
+                    Node c = p.Next;
                     while(c != null && n < maxElements) {
-                        if (criteria == null || criteria(c.item))
+                        if (criteria == null || criteria(c.Item))
                         {
-                            action(c.item);
-                            c.item = default(T);
-                            p.next = c.next;
+                            action(c.Item);
+                            c.Item = default(T);
+                            p.Next = c.Next;
                             ++n;
                         }
                         else
                         {
                             p = c;
                         }
-                        c = c.next;
+                        c = c.Next;
                     }
                     if(n != 0) {
                         if(c == null)
@@ -651,8 +723,8 @@ namespace Spring.Threading.Collections.Generic {
         protected override void DoCopyTo(T[] array, int arrayIndex) {
             lock(_putLock) {
                 lock(_takeLock) {
-                    for(Node p = _head.next; p != null; p = p.next)
-                        array[arrayIndex++] = p.item;
+                    for(Node p = _head.Next; p != null; p = p.Next)
+                        array[arrayIndex++] = p.Item;
                 }
             }
         }
@@ -674,9 +746,9 @@ namespace Spring.Threading.Collections.Generic {
             {
                 lock (_takeLock)
                 {
-                    for (Node p = _head.next; p!=null; p = p.next)
+                    for (Node p = _head.Next; p!=null; p = p.Next)
                     {
-                        if (Equals(item, p.item)) return true;
+                        if (Equals(item, p.Item)) return true;
                     }
                 }
             }
@@ -684,6 +756,35 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         #endregion
+
+        /// <summary>
+        /// Indicate if current queue is closed.
+        /// </summary>
+        public virtual bool IsClosed
+        {
+            get { return _isClosed; }
+        }
+
+        /// <summary>
+        /// Close current queue. 
+        /// </summary>
+        /// <remarks>
+        /// When a queue is closed, all blocking actions will return with
+        /// unsuccesful status or <see cref="QueueClosedException"/> is 
+        /// thrown if method doesn't return any status.
+        /// </remarks>
+        public virtual void Close()
+        {
+            lock (_putLock)
+            {
+                lock (_takeLock)
+                {
+                    _isClosed = true;
+                    Monitor.PulseAll(_putLock);
+                    Monitor.PulseAll(_takeLock);
+                }
+            }
+        }
 
         /// <summary> 
         /// Returns an array containing all of the elements in this queue, in
@@ -705,8 +806,8 @@ namespace Spring.Threading.Collections.Generic {
                     int size = _activeCount;
                     T[] a = new T[size];
                     int k = 0;
-                    for(Node p = _head.next; p != null; p = p.next)
-                        a[k++] = p.item;
+                    for(Node p = _head.Next; p != null; p = p.Next)
+                        a[k++] = p.Item;
                     return a;
                 }
             }
@@ -763,8 +864,8 @@ namespace Spring.Threading.Collections.Generic {
                         targetArray = (T[])Array.CreateInstance(targetArray.GetType().GetElementType(), size);
 
                     int k = 0;
-                    for(Node p = _head.next; p != null; p = p.next)
-                        targetArray[k++] = p.item;
+                    for(Node p = _head.Next; p != null; p = p.Next)
+                        targetArray[k++] = p.Item;
                     return targetArray;
                 }
             }
@@ -798,7 +899,7 @@ namespace Spring.Threading.Collections.Generic {
         public override void Clear() {
             lock(_putLock) {
                 lock(_takeLock) {
-                    _head.next = null;
+                    _head.Next = null;
 
                     _last = _head;
                     int c;
@@ -807,6 +908,7 @@ namespace Spring.Threading.Collections.Generic {
                         _activeCount = 0;
                         _version++;
                     }
+                    _isClosed = false;
                     if(c == _capacity)
                         Monitor.PulseAll(_putLock);
                 }
@@ -855,9 +957,9 @@ namespace Spring.Threading.Collections.Generic {
                     lock (_queue._takeLock)
                     {
                         CheckChange();
-                        _currentNode = _currentNode.next;
+                        _currentNode = _currentNode.Next;
                         if (_currentNode == null) return false;
-                        _currentElement = _currentNode.item;
+                        _currentElement = _currentNode.Item;
                         return true;
                     }
                 }

@@ -74,13 +74,5 @@ namespace Spring.Threading.Collections.Generic
             _testee.AssertWasCalled(x => x.DoDrain(_mockCollection.Add, limit, null));
         }
 
-    	[Test] public void AddRangeChokesWhenNotEnoughRoom() {
-            _testee.Stub(x => x.Add(Arg<T>.Is.Anything)).Repeat.Once();
-            _testee.Stub(x => x.Add(Arg<T>.Is.Anything)).Throw(new InvalidOperationException()).Repeat.Once();
-
-            Assert.Throws<InvalidOperationException>(
-                ()=>_testee.AddRange(TestData<T>.MakeTestArray(2)));
-    	}
-
     }
 }

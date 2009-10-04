@@ -427,5 +427,51 @@ namespace Spring.Collections.Generic
             get { return false; }
         }
 
+        /// <summary> 
+        /// Adds all of the elements in the supplied <paramref name="collection"/>
+        /// to this collection.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Attempts to <see cref="AddRange"/> of a collection to 
+        /// itself result in <see cref="ArgumentException"/>. Further, the 
+        /// behavior of this operation is undefined if the specified
+        /// collection is modified while the operation is in progress.
+        /// </para>
+        /// <para>
+        /// This implementation iterates over the specified collection, and 
+        /// adds each element returned by the iterator to this collection, in turn.
+        /// An exception encountered while trying to add an element may result 
+        /// in only some of the elements having been successfully added when 
+        /// the associated exception is thrown.
+        /// </para>
+        /// </remarks>
+        /// <param name="collection">
+        /// The collection containing the elements to be added to this collection.
+        /// </param>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the supplied <paramref name="collection"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="System.ArgumentException">
+        /// If the collection is the current collection.
+        /// </exception>
+        public virtual bool AddRange(IEnumerable<T> collection)
+        {
+            if (collection == null)
+            {
+                throw new ArgumentNullException("collection");
+            }
+            if (collection == this)
+            {
+                throw new ArgumentException("Cannot add to itself.", "collection");
+            }
+            bool modified = false;
+            foreach (T element in collection)
+            {
+                Add(element);
+                modified = true;
+            }
+            return modified;
+        }
     }
 }

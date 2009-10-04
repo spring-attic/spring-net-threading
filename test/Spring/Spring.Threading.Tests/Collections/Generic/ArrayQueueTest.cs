@@ -22,11 +22,11 @@ namespace Spring.Collections.Generic
         }
         protected override IQueue<T> NewQueue()
         {
-            return new ArrayQueue<T>(_sampleSize);
+            return new ArrayQueue<T>(SampleSize);
         }
         protected override IQueue<T> NewQueueFilledWithSample()
         {
-            return new ArrayQueue<T>(_sampleSize, TestData<T>.MakeTestArray(_sampleSize));
+            return new ArrayQueue<T>(SampleSize, TestData<T>.MakeTestArray(SampleSize));
         }
 
         [Test] public void ConstructorChokesOnNonPositiveCapacity([Values(-1, 0)] int badCapacity)
@@ -62,16 +62,16 @@ namespace Spring.Collections.Generic
         [Test] public void RemoveByElementRemovesElementAndReturnTrueWhenExists()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
-            int index = _samples.Length/2;
-            Assert.IsTrue(queue.Contains(_samples[index]));
-            Assert.IsTrue(queue.Remove(_samples[index]));
-            Assert.IsFalse(queue.Contains(_samples[index]));
+            int index = Samples.Length/2;
+            Assert.IsTrue(queue.Contains(Samples[index]));
+            Assert.IsTrue(queue.Remove(Samples[index]));
+            Assert.IsFalse(queue.Contains(Samples[index]));
         }
 
         [Test] public void RemoveByElementReturnsFalseWhenElementDoesNotExist()
         {
             IQueue<T> queue = NewQueueFilledWithSample();
-            Assert.IsFalse(queue.Remove(TestData<T>.MakeData(_samples.Length)));
+            Assert.IsFalse(queue.Remove(TestData<T>.MakeData(Samples.Length)));
             queue = NewQueue();
             Assert.IsFalse(queue.Remove(TestData<T>.MakeData(0)));
         }

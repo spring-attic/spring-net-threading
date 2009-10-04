@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="BaseAbstractCollectionTest.cs" />
     <Compile Include="BaseThreadingTestCase.cs" />
+    <Compile Include="TestFixture\Collections\AbstractCollectionTestFixture.cs" />
     <Compile Include="TestFixture\Collections\CollectionOptions.cs" />
     <Compile Include="Collections\Generic\AbstractEnumeratorTest.cs" />
     <Compile Include="TestFixture\Collections\CollectionOptionsExtensions.cs" />
@@ -109,7 +110,7 @@
     <Compile Include="TestFixture\Collections\Generic\EnumeratorTestFixture.cs" />
     <Compile Include="TestFixture\Collections\Generic\QueueTestFixture.cs" />
     <Compile Include="ExtensionAttribute.cs" />
-    <Compile Include="ThreadingrTestFixture.cs" />
+    <Compile Include="TestFixture\Threading\ThreadingTestFixture.cs" />
     <Compile Include="TestFixture\Collections\NonGeneric\QueueTestFixture.cs" />
     <Compile Include="TestFixture\Collections\NonGeneric\EnumerableTestFixture.cs" />
     <Compile Include="TestFixture\Collections\NonGeneric\TypedQueueTestFixture.cs" />

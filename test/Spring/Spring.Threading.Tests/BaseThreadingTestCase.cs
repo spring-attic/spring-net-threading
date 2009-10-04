@@ -433,11 +433,6 @@ namespace Spring.Threading
             throw new NotImplementedException();
         }
 
-        #endregion
-
-        #region IExecutorService Members
-
-
         public IFuture<T> Submit<T>(IRunnable runnable, T result)
         {
             throw new NotImplementedException();
@@ -502,11 +497,6 @@ namespace Spring.Threading
         {
             throw new NotImplementedException();
         }
-
-        #endregion
-
-        #region IExecutorService Members
-
 
         public IList<IFuture<T>> InvokeAll<T>(params ICallable<T>[] tasks)
         {
@@ -579,6 +569,16 @@ namespace Spring.Threading
         }
 
         public T InvokeAny<T>(TimeSpan durationToWait, params Func<T>[] tasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ForEach<TSource>(IEnumerable<TSource> source, Action<TSource> body)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ForEach<TSource>(IEnumerable<TSource> source, ParallelOptions parallelOptions, Action<TSource> body)
         {
             throw new NotImplementedException();
         }

@@ -95,9 +95,9 @@ namespace Spring.TestFixture.Threading.Collections.Generic
 
         [Test] public virtual void PutAddsElementsToQueue() {
             var q = NewBlockingQueue();
-            for (int i = 0; i < _sampleSize; ++i) {
-                q.Put(_samples[i]);
-                Assert.IsTrue(q.Contains(_samples[i]));
+            for (int i = 0; i < SampleSize; ++i) {
+                q.Put(Samples[i]);
+                Assert.IsTrue(q.Contains(Samples[i]));
             }
             AssertRemainingCapacity(q, 0);
         }
@@ -108,7 +108,7 @@ namespace Spring.TestFixture.Threading.Collections.Generic
             var q = NewBlockingQueueFilledWithSample();
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1", () => Assert.Throws<ThreadInterruptedException>(
-                                () => q.Put(TestData<T>.MakeData(_sampleSize))));
+                                () => q.Put(TestData<T>.MakeData(SampleSize))));
             Thread.Sleep(TestData.ShortDelay);
             t.Interrupt();
             ThreadManager.JoinAndVerify();
@@ -198,11 +198,11 @@ namespace Spring.TestFixture.Threading.Collections.Generic
         [Test] public virtual void TimedOfferWaitsInterruptablyAndTimesOutIfFullAndSucceedAfterTaken()
         {
             Options.SkipWhen(CollectionOptions.Unbounded);
-            var values = TestData<T>.MakeTestArray(_sampleSize + 3);
+            var values = TestData<T>.MakeTestArray(SampleSize + 3);
             var q = NewBlockingQueueFilledWithSample();
             var timedout = new AtomicBoolean(false);
             ThreadManager.StartAndAssertRegistered(
-                "T2", () => Assert.IsTrue(q.Offer(values[_sampleSize], TestData.LongDelay)));
+                "T2", () => Assert.IsTrue(q.Offer(values[SampleSize], TestData.LongDelay)));
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1",
                 delegate
@@ -216,17 +216,17 @@ namespace Spring.TestFixture.Threading.Collections.Generic
             for (int i = 5; i > 0 && !timedout; i--) Thread.Sleep(TestData.ShortDelay);
             Assert.That(timedout.Value, Is.True, "Offer should timeout by now.");
             ThreadManager.StartAndAssertRegistered(
-                "T3", () => Assert.IsTrue(q.Offer(values[_sampleSize + 1], TestData.LongDelay)));
+                "T3", () => Assert.IsTrue(q.Offer(values[SampleSize + 1], TestData.LongDelay)));
             Thread.Sleep(TestData.ShortDelay);
             ThreadManager.StartAndAssertRegistered(
-                "T4", () => Assert.IsTrue(q.Offer(values[_sampleSize + 2], TestData.LongDelay)));
+                "T4", () => Assert.IsTrue(q.Offer(values[SampleSize + 2], TestData.LongDelay)));
             t.Interrupt();
             Thread.Sleep(TestData.ShortDelay);
-            for (int i = 0; i < _sampleSize + 3; i++)
+            for (int i = 0; i < SampleSize + 3; i++)
             {
                 T result;
                 Assert.IsTrue(q.Poll(TestData.ShortDelay, out result));
-                if (IsFifo && i<_sampleSize) Assert.That(result, Is.EqualTo(values[i]));
+                if (IsFifo && i<SampleSize) Assert.That(result, Is.EqualTo(values[i]));
                 else CollectionAssert.Contains(values, result);
             }
             ThreadManager.JoinAndVerify();
@@ -236,14 +236,14 @@ namespace Spring.TestFixture.Threading.Collections.Generic
         {
             var q = NewBlockingQueueFilledWithSample();
             var itemsTook = new List<T>();
-            for (int i = 0; i < _sampleSize; ++i)
+            for (int i = 0; i < SampleSize; ++i)
             {
                 if(IsFifo)
-                    Assert.AreEqual(_samples[i], q.Take());
+                    Assert.AreEqual(Samples[i], q.Take());
                 else
                     itemsTook.Add(q.Take());
             }
-            if(!IsFifo) CollectionAssert.AreEquivalent(_samples, itemsTook);
+            if(!IsFifo) CollectionAssert.AreEquivalent(Samples, itemsTook);
         }
 
         [Test] public virtual void TakeBlocksInterruptiblyWhenEmpty()
@@ -282,7 +282,7 @@ namespace Spring.TestFixture.Threading.Collections.Generic
                 delegate
                     {
                         T value;
-                        for (int i = 0; i < _sampleSize; ++i)
+                        for (int i = 0; i < SampleSize; ++i)
                         {
                             Assert.IsTrue(q.Poll(TimeSpan.Zero, out value));
                             AssertRetrievedResult(value, i);
@@ -300,7 +300,7 @@ namespace Spring.TestFixture.Threading.Collections.Generic
                 delegate
                     {
                         T value;
-                        for (int i = 0; i < _sampleSize; ++i)
+                        for (int i = 0; i < SampleSize; ++i)
                         {
                             Assert.IsTrue(q.Poll(TestData.ShortDelay, out value));
                             AssertRetrievedResult(value, i);
@@ -368,13 +368,13 @@ namespace Spring.TestFixture.Threading.Collections.Generic
             List<T> l = new List<T>();
             q.DrainTo(l);
             Assert.AreEqual(q.Count, 0);
-            Assert.AreEqual(l.Count, _sampleSize);
-            for (int i = 0; i < _sampleSize; ++i)
+            Assert.AreEqual(l.Count, SampleSize);
+            for (int i = 0; i < SampleSize; ++i)
                 Assert.AreEqual(l[i], TestData<T>.MakeData(i));
-            int count = Math.Min(2, _sampleSize);
-            for (int i = 0; i < count; i++) q.Add(_samples[i]);
+            int count = Math.Min(2, SampleSize);
+            for (int i = 0; i < count; i++) q.Add(Samples[i]);
             Assert.AreEqual(count, q.Count);
-            for (int i = 0; i < count; i++) Assert.IsTrue(q.Contains(_samples[i]));
+            for (int i = 0; i < count; i++) Assert.IsTrue(q.Contains(Samples[i]));
             l.Clear();
             q.DrainTo(l);
             Assert.AreEqual(0, q.Count);
@@ -386,27 +386,27 @@ namespace Spring.TestFixture.Threading.Collections.Generic
         [Test] public virtual void DrainToEmptiesFullQueueAndUnblocksWaitingPut() {
             var q = NewBlockingQueueFilledWithSample();
             Thread t = ThreadManager.StartAndAssertRegistered(
-                "T1", () => q.Put(TestData<T>.MakeData(_sampleSize + 1)));
+                "T1", () => q.Put(TestData<T>.MakeData(SampleSize + 1)));
             List<T> l = new List<T>();
             q.DrainTo(l);
-            Assert.IsTrue(l.Count >= _sampleSize);
-            for (int i = 0; i < _sampleSize; ++i)
+            Assert.IsTrue(l.Count >= SampleSize);
+            for (int i = 0; i < SampleSize; ++i)
                 Assert.AreEqual(l[i], TestData<T>.MakeData(i));
             ThreadManager.JoinAndVerify(t);
-            Assert.IsTrue(q.Count + l.Count >= _sampleSize);
+            Assert.IsTrue(q.Count + l.Count >= SampleSize);
         }
 
         [Test] public virtual void LimitedDrainToEmptiesFirstNElementsIntoCollection() {
             var q = NewBlockingQueue();
-            for (int i = 0; i < _sampleSize + 2; ++i)
+            for (int i = 0; i < SampleSize + 2; ++i)
             {
-                for(int j = 0; j < _sampleSize; j++)
+                for(int j = 0; j < SampleSize; j++)
                     Assert.IsTrue(q.Offer(TestData<T>.MakeData(j)));
                 List<T> l = new List<T>();
                 q.DrainTo(l, i);
-                int k = (i < _sampleSize)? i : _sampleSize;
+                int k = (i < SampleSize)? i : SampleSize;
                 Assert.AreEqual(l.Count, k);
-                Assert.AreEqual(q.Count, _sampleSize-k);
+                Assert.AreEqual(q.Count, SampleSize-k);
                 for (int j = 0; j < k; ++j)
                     Assert.AreEqual(l[j], TestData<T>.MakeData(j));
                 T v;
@@ -419,9 +419,9 @@ namespace Spring.TestFixture.Threading.Collections.Generic
             var q = NewBlockingQueueFilledWithSample();
             List<T> l = new List<T>();
             q.DrainTo(l, e=>((int)Convert.ChangeType(e, typeof(int)))%2==0);
-            Assert.That(l.Count, Is.LessThanOrEqualTo((_sampleSize + 1) / 2));
-            Assert.That(q.Count, Is.LessThanOrEqualTo((_sampleSize + 1) / 2));
-            Assert.AreEqual(_sampleSize, q.Count + l.Count);
+            Assert.That(l.Count, Is.LessThanOrEqualTo((SampleSize + 1) / 2));
+            Assert.That(q.Count, Is.LessThanOrEqualTo((SampleSize + 1) / 2));
+            Assert.AreEqual(SampleSize, q.Count + l.Count);
             for (int i = 0; i < l.Count; i++)
                 Assert.AreEqual(l[i], TestData<T>.MakeData(i*2));
         }

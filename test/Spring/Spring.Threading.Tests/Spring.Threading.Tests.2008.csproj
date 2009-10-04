@@ -131,9 +131,9 @@
     <Compile Include="TestFixture\Collections\NonGeneric\QueueTestFixture.cs" />
     <Compile Include="TestFixture\Collections\NonGeneric\TypedQueueTestFixture.cs" />
     <Compile Include="TestFixture\Threading\Collections\Generic\BlockingQueueTestFixture.cs" />
+    <Compile Include="TestFixture\Threading\ThreadingTestFixture.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="TestThreadManager.cs" />
-    <Compile Include="ThreadingrTestFixture.cs" />
     <Compile Include="Threading\CallableTest.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueAsGenericTest.cs" />

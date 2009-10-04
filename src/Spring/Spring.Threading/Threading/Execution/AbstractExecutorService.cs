@@ -1759,5 +1759,67 @@ namespace Spring.Threading.Execution
             }
             return command;
         }
+
+        /// <summary>
+        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
+        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="body"/> delegate is invoked once for each 
+        /// element in the <paramref name="source"/> enumerable. It is provided
+        /// with the current element as a parameter.
+        /// </remarks>
+        /// <typeparam name="TSource">
+        /// The type of the data in the source.
+        /// </typeparam>
+        /// <param name="source">
+        /// An enumerable data source.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="source"/> argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> argument is null.
+        /// </exception>
+        public void ForEach<TSource>(IEnumerable<TSource> source, Action<TSource> body)
+        {
+            new Parallel<TSource>(this).ForEach(source, int.MinValue, body);
+        }
+
+        /// <summary>
+        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
+        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="body"/> delegate is invoked once for each 
+        /// element in the <paramref name="source"/> enumerable. It is provided
+        /// with the current element as a parameter.
+        /// </remarks>
+        /// <typeparam name="TSource">
+        /// The type of the data in the source.
+        /// </typeparam>
+        /// <param name="source">
+        /// An enumerable data source.
+        /// </param>
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="source"/> argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> argument is null.
+        /// </exception>
+        public void ForEach<TSource>(IEnumerable<TSource> source, ParallelOptions parallelOptions, Action<TSource> body)
+        {
+            new Parallel<TSource>(this).ForEach(source, parallelOptions, body);
+        }
     }
 }
