@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Spring.Threading.Collections.Generic;
+using Spring.Threading.Execution;
 using Spring.Threading.Future;
 
 namespace Spring.Threading
@@ -123,34 +124,55 @@ namespace Spring.Threading
             ForEach(source, parallelOptions.MaxDegreeOfParallelism, body);
         }
 
-        public void ForEach(IEnumerable<T> source, int maxDegreeOfParallelism, Action<T> body)
+        internal void ForEach(IEnumerable<T> source, int maxDegreeOfParallelism, Action<T> body)
         {
             if (source == null) throw new ArgumentNullException("source");
             if (body == null) throw new ArgumentNullException("body");
-            if (maxDegreeOfParallelism < 0) maxDegreeOfParallelism = int.MinValue;
 
-            var c = source as ICollection<T>;
-            _maxDegreeOfParallelism =
-                c != null && c.Count < maxDegreeOfParallelism ?
-                c.Count : maxDegreeOfParallelism;
-
+            _maxDegreeOfParallelism = OptimizeMaxDegreeOfParallelism(source, maxDegreeOfParallelism); ;
             _body = body;
 
             var iterator = source.GetEnumerator();
             if (!iterator.MoveNext()) return;
             if (_maxDegreeOfParallelism == 1)
             {
-                _body(iterator.Current);
+                do _body(iterator.Current); while (iterator.MoveNext());
                 return;
             }
 
             _itemQueue = new LinkedBlockingQueue<T>(_maxDegreeOfParallelism);
             _futures = new List<IFuture<object>>(_maxDegreeOfParallelism);
 
-            Submit(StartParallel);
-            do _itemQueue.Put(iterator.Current); while (iterator.MoveNext());
+            try
+            {
+                Submit(StartParallel);
+            }
+            catch(RejectedExecutionException)
+            {
+                do _body(iterator.Current); while (iterator.MoveNext());
+                return;
+            }
+
+            bool success;
+            do success = _itemQueue.TryPut(iterator.Current);
+            while (success && iterator.MoveNext());
+
             _itemQueue.Close();
+
             WaitForAllTaskToComplete();
+        }
+
+        private int OptimizeMaxDegreeOfParallelism(IEnumerable<T> source, int maxDegreeOfParallelism)
+        {
+            if (maxDegreeOfParallelism < 0) maxDegreeOfParallelism = int.MaxValue;
+
+            var tpe = _executor as ThreadPoolExecutor;
+            if (tpe != null)
+                maxDegreeOfParallelism = Math.Min(tpe.MaximumPoolSize, maxDegreeOfParallelism);
+
+            var c = source as ICollection<T>;
+            if (c != null) maxDegreeOfParallelism = Math.Min(c.Count, maxDegreeOfParallelism);
+            return maxDegreeOfParallelism;
         }
 
         private void Submit(Action action)
@@ -168,6 +190,7 @@ namespace Spring.Threading
                         lock (this)
                         {
                             if (_exception == null) _exception = e;
+                            _itemQueue.Break();
                         }
                     }
                     finally
@@ -192,13 +215,18 @@ namespace Spring.Threading
                 if (_taskCount < _maxDegreeOfParallelism)
                 {
                     T source = x;
-                    Submit(() => Process(source));
+                    try
+                    {
+                        Submit(() => Process(source));
+                        continue;
+                    }
+                    catch(RejectedExecutionException)
+                    {
+                        // fine we'll just run with less parallelism
+                    }
                 }
-                else
-                {
-                    Process(x);
-                    break;
-                }
+                Process(x);
+                break;
             }
         }
 

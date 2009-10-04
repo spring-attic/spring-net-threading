@@ -104,42 +104,6 @@ namespace Spring.Threading.Collections.Generic {
         /// <summary>Lock held by put, offer, etc </summary>
         [NonSerialized]
         private readonly object _putLock = new object();
-
-        /// <summary> 
-        /// Signals a waiting take. Called only from put/offer (which do not
-        /// otherwise ordinarily lock _takeLock.)
-        /// </summary>
-        private void SignalNotEmpty() {
-            lock(_takeLock) {
-                Monitor.Pulse(_takeLock);
-            }
-        }
-
-        /// <summary> Signals a waiting put. Called only from take/poll.</summary>
-        private void SignalNotFull() {
-            lock(_putLock) {
-                Monitor.Pulse(_putLock);
-            }
-        }
-
-        /// <summary> 
-        /// Creates a node and links it at end of queue.</summary>
-        /// <param name="x">the item to insert</param>
-        private void Insert(T x) {
-            _last = _last.Next = new Node(x);
-        }
-
-        /// <summary>Removes a node from head of queue,</summary>
-        /// <returns>the node</returns>
-        private T Extract() {
-            Node first = _head.Next;
-            _head = first;
-            T x = first.Item;
-            first.Item = default(T);
-            return x;
-        }
-
-
         #endregion
 
         #region ctors
@@ -261,7 +225,6 @@ namespace Spring.Threading.Collections.Generic {
         public virtual bool TryPut(T element)
         {
             int tempCount;
-            if (_isClosed) return false;
             lock (_putLock)
             {
                 /*
@@ -272,12 +235,13 @@ namespace Spring.Threading.Collections.Generic {
                  * signaled if it ever changes from capacity. Similarly 
                  * for all other uses of count in other wait guards.
                  */
+                if (_isClosed) return false;
                 try
                 {
                     while(_activeCount == _capacity)
                     {
-                        if (_isClosed) return false;
                         Monitor.Wait(_putLock);
+                        if (_isClosed) return false;
                     }
                 }
                 catch(ThreadInterruptedException e) {
@@ -775,6 +739,7 @@ namespace Spring.Threading.Collections.Generic {
         /// </remarks>
         public virtual void Close()
         {
+            if (_isClosed) return;
             lock (_putLock)
             {
                 lock (_takeLock)
@@ -784,6 +749,19 @@ namespace Spring.Threading.Collections.Generic {
                     Monitor.PulseAll(_takeLock);
                 }
             }
+        }
+
+        /// <summary>
+        /// Empty and close current queue. 
+        /// </summary>
+        /// <remarks>
+        /// When a queue is broken, any queue modification will return with
+        /// unsuccesful status or <see cref="QueueClosedException"/> is 
+        /// thrown if method doesn't return any status.
+        /// </remarks>
+        public virtual void Break()
+        {
+            EmptyQueue(true);
         }
 
         /// <summary> 
@@ -884,35 +862,17 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary> 
-        /// Removes all of the elements from this queue.
+        /// Removes all of the elements from this queue and reopen the queue if
+        /// it was closed.
         /// </summary>
         /// <remarks>
         /// <p>
         /// The queue will be empty after this call returns.
         /// </p>
-        /// <p>
-        /// This implementation repeatedly invokes
-        /// <see cref="Spring.Collections.AbstractQueue.Poll()"/> until it
-        /// returns <see lang="null"/>.
-        /// </p>
         /// </remarks>
-        public override void Clear() {
-            lock(_putLock) {
-                lock(_takeLock) {
-                    _head.Next = null;
-
-                    _last = _head;
-                    int c;
-                    lock(this) {
-                        c = _activeCount;
-                        _activeCount = 0;
-                        _version++;
-                    }
-                    _isClosed = false;
-                    if(c == _capacity)
-                        Monitor.PulseAll(_putLock);
-                }
-            }
+        public override void Clear()
+        {
+            EmptyQueue(false);
         }
 
         #region IEnumerable Members
@@ -987,5 +947,81 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         #endregion
+
+        #region Private Methods
+        private void EmptyQueue(bool close)
+        {
+            lock (_putLock)
+            {
+                lock (_takeLock)
+                {
+                    _head.Next = null;
+
+                    _last = _head;
+                    int c;
+                    lock (this)
+                    {
+                        c = _activeCount;
+                        _activeCount = 0;
+                        _version++;
+                    }
+                    bool pulsePut = (c == _capacity);
+                    if (_isClosed != close)
+                    {
+                        _isClosed = close;
+                        if(close)
+                        {
+                            Monitor.PulseAll(_takeLock);
+                            pulsePut = true;
+                        }
+                    }
+                    if (pulsePut) Monitor.PulseAll(_putLock);
+                }
+            }
+        }
+
+        /// <summary> 
+        /// Signals a waiting take. Called only from put/offer (which do not
+        /// otherwise ordinarily lock _takeLock.)
+        /// </summary>
+        private void SignalNotEmpty()
+        {
+            lock (_takeLock)
+            {
+                Monitor.Pulse(_takeLock);
+            }
+        }
+
+        /// <summary> Signals a waiting put. Called only from take/poll.</summary>
+        private void SignalNotFull()
+        {
+            lock (_putLock)
+            {
+                Monitor.Pulse(_putLock);
+            }
+        }
+
+        /// <summary> 
+        /// Creates a node and links it at end of queue.</summary>
+        /// <param name="x">the item to insert</param>
+        private void Insert(T x)
+        {
+            _last = _last.Next = new Node(x);
+        }
+
+        /// <summary>Removes a node from head of queue,</summary>
+        /// <returns>the node</returns>
+        private T Extract()
+        {
+            Node first = _head.Next;
+            _head = first;
+            T x = first.Item;
+            first.Item = default(T);
+            return x;
+        }
+
+
+        #endregion
+
     }
 }

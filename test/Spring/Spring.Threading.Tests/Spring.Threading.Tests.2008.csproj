@@ -185,6 +185,8 @@
     <Compile Include="Threading\Locks\ReentrantLockTests.cs" />
     <Compile Include="Threading\Locks\ReentrantReadWriteLockTests.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactoryTest.cs" />
+    <Compile Include="Threading\ParallelOptionsTest.cs" />
+    <Compile Include="Threading\ParallelTest.cs" />
     <Compile Include="Threading\RunnableTest.cs" />
     <Compile Include="Threading\SemaphoreTest.cs" />
     <Compile Include="Threading\SyncHolderTest.cs" />

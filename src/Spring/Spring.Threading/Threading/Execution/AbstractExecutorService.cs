@@ -1785,7 +1785,7 @@ namespace Spring.Threading.Execution
         /// </exception>
         public void ForEach<TSource>(IEnumerable<TSource> source, Action<TSource> body)
         {
-            new Parallel<TSource>(this).ForEach(source, int.MinValue, body);
+            new Parallel<TSource>(this).ForEach(source, int.MaxValue, body);
         }
 
         /// <summary>
