@@ -182,12 +182,12 @@ namespace Spring.Threading
             ThreadManager.JoinAndVerify();
         }
 
-        [TestCase(_parallelism - 2, _parallelism + 2)]
-        [TestCase(_parallelism - 2, _parallelism - 2)] 
-        public void ForEachLimitsParallismToThreadPoolExecutorMaxSize(int coreSize, int maxSize)
+        [Test] public void ForEachLimitsParallismToThreadPoolExecutorCoreSize(
+            [Values(_parallelism - 2, _parallelism + 2)] int coreSize)
         {
             var tf = new ManagedThreadFactory(ThreadManager);
-            var executor = new ThreadPoolExecutor(coreSize, maxSize, TimeSpan.MaxValue, new LinkedBlockingQueue<IRunnable>(1), tf);
+            var executor = new ThreadPoolExecutor(coreSize, _parallelism + 2, 
+                TimeSpan.MaxValue, new LinkedBlockingQueue<IRunnable>(1), tf);
             try
             {
                 var parallel = new Parallel<T>(executor);
@@ -196,7 +196,7 @@ namespace Spring.Threading
                 parallel.ForEach(sources, _parallelism,
                     t => { Thread.Sleep(10); lock (results) results.Add(t); });
                 Assert.That(results, Is.EquivalentTo(sources));
-                Assert.That(parallel.ActualDegreeOfParallelism, Is.EqualTo(Math.Min(_parallelism, maxSize)));
+                Assert.That(parallel.ActualDegreeOfParallelism, Is.EqualTo(Math.Min(_parallelism, coreSize)));
             }
             finally
             {

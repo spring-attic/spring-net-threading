@@ -171,7 +171,7 @@ namespace Spring.Threading
 
             var tpe = _executor as ThreadPoolExecutor;
             if (tpe != null)
-                maxDegreeOfParallelism = Math.Min(tpe.MaximumPoolSize, maxDegreeOfParallelism);
+                maxDegreeOfParallelism = Math.Min(tpe.CorePoolSize, maxDegreeOfParallelism);
 
             var c = source as ICollection<T>;
             if (c != null) maxDegreeOfParallelism = Math.Min(c.Count, maxDegreeOfParallelism);
