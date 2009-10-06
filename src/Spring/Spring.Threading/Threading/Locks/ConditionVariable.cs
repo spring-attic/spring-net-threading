@@ -159,7 +159,7 @@ namespace Spring.Threading.Locks
         {
             lock (this)
             {
-                checkifLockIsHeldByCurrentThread();
+                CheckifLockIsHeldByCurrentThread();
                 Monitor.Pulse(this);
             }
         }
@@ -169,14 +169,14 @@ namespace Spring.Threading.Locks
         {
             lock (this)
             {
-                checkifLockIsHeldByCurrentThread();
+                CheckifLockIsHeldByCurrentThread();
                 Monitor.PulseAll(this);
             }
         }
 
         #endregion
 
-        private void checkifLockIsHeldByCurrentThread()
+        private void CheckifLockIsHeldByCurrentThread()
         {
             if (!_internalExclusiveLock.IsHeldByCurrentThread)
             {

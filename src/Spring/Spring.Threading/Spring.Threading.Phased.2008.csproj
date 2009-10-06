@@ -169,6 +169,7 @@
     <Compile Include="Threading\ParallelOptions.cs" />
     <Compile Include="Threading\Runnable.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
+    <Compile Include="Utility\WaitTime.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

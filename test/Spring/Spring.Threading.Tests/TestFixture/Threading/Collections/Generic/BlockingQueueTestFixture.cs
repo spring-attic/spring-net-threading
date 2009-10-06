@@ -232,6 +232,16 @@ namespace Spring.TestFixture.Threading.Collections.Generic
             ThreadManager.JoinAndVerify();
         }
 
+        [Test] public void TimedOfferAcceptsLongWait()
+        {
+            var q = NewBlockingQueueFilledWithSample();
+            ThreadManager.StartAndAssertRegistered(
+                "T1", () => Assert.IsTrue(q.Offer(TestData<T>.One, TimeSpan.MaxValue)));
+            Thread.Sleep(TestData.ShortDelay);
+            q.Take();
+            ThreadManager.JoinAndVerify();
+        }
+
         [Test] public virtual void TakeRetrievesElementsInExpectedOrder()
         {
             var q = NewBlockingQueueFilledWithSample();
@@ -345,6 +355,18 @@ namespace Spring.TestFixture.Threading.Collections.Generic
             Thread.Sleep(TestData.ShortDelay);
             t.Interrupt();
             ThreadManager.JoinAndVerify(t);
+        }
+
+        [Test] public void TimedPollAllowsLongWait()
+        {
+            var q = NewBlockingQueue();
+            T result; while (q.Poll(out result)){}
+
+            ThreadManager.StartAndAssertRegistered(
+                "T1", () => Assert.IsTrue(q.Poll(TimeSpan.MaxValue, out result)));
+            Thread.Sleep(TestData.ShortDelay);
+            q.Put(TestData<T>.One);
+            ThreadManager.JoinAndVerify();
         }
 
         [Test] public virtual void DrainToChokesOnNullArgument() {

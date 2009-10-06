@@ -19,7 +19,7 @@ namespace Spring.Threading
         private class ManagedThreadLimiter
         {
             protected readonly TestThreadManager _manager;
-            public int MaxThreadCount = int.MaxValue;
+            public int Threshold = int.MaxValue;
             public readonly AtomicInteger ThreadCount = new AtomicInteger();
 
             protected ManagedThreadLimiter(TestThreadManager manager) 
@@ -27,12 +27,13 @@ namespace Spring.Threading
                 _manager = manager;
             }
 
-            protected int NextThreadId()
+            protected int NextThreadId(bool noException)
             {
-                if (ThreadCount.Value < MaxThreadCount)
+                if (noException || ThreadCount.Value < Threshold)
                 {
                     var next = ThreadCount.IncrementValueAndReturn();
-                    if (next <= MaxThreadCount) return next;
+                    if (next <= Threshold) return next;
+                    if(noException) return -next;
                 }
                 throw new RejectedExecutionException();
             }
@@ -46,36 +47,47 @@ namespace Spring.Threading
 
             public Thread NewThread(IRunnable runnable)
             {
-                return _manager.NewVerifiableThread(runnable.Run, "T" + NextThreadId());
+                return _manager.NewVerifiableThread(runnable.Run, "T" + NextThreadId(false));
             }
         }
 
         private class ThreadManagerExecutor : ManagedThreadLimiter, IExecutor
         {
+            public TimeSpan Delay { get; set; }
+
             public ThreadManagerExecutor(TestThreadManager manager) : base(manager)
             {
             }
 
             public void Execute(IRunnable command)
             {
-                _manager.StartAndAssertRegistered(
-                    "T" + NextThreadId(), command.Run);
+                Execute(command.Run);
             }
 
             public void Execute(Action action)
             {
-                _manager.StartAndAssertRegistered(
-                    "T" + NextThreadId(), ()=>action());
+                var useDelay = Delay > TimeSpan.Zero;
+                var tid = NextThreadId(useDelay);
+                ThreadStart ts;
+                if (useDelay && tid < 0)
+                    ts = delegate
+                             {
+                                 Thread.Sleep(Delay);
+                                 action();
+                             };
+                else ts = () => action();
+                _manager.StartAndAssertRegistered("T" + tid, ts);
             }
         }
 
-        private int _sampleSize = 20;
+        private int _sampleSize;
         private const int _parallelism = 5;
         private ThreadManagerExecutor _executor;
         private Parallel<T> _parallel;
 
         [SetUp] public void SetUp()
         {
+            _sampleSize = 20;
             _executor = new ThreadManagerExecutor(ThreadManager);
             _parallel = new Parallel<T>(_executor);
         }
@@ -147,7 +159,7 @@ namespace Spring.Threading
 
         [Test] public void ForEachCompletesAllSlowTasks([Values(int.MaxValue, 3, 1, 0)] int maxThread)
         {
-            _executor.MaxThreadCount = maxThread;
+            _executor.Threshold = maxThread;
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             List<T> results = new List<T>(_sampleSize);
             _parallel.ForEach(sources, _parallelism,
@@ -157,10 +169,25 @@ namespace Spring.Threading
             ThreadManager.JoinAndVerify();
         }
 
-        [Test] public void ForEachLimitsParallismToThreadPoolExecutorMaxSize()
+        [Test] public void ForEachDoesNotSumitMoreThenMaxDegreeOfParallelism()
+        {
+            _executor.Threshold = _parallelism / 2;
+            _executor.Delay = SHORT_DELAY;
+            T[] sources = TestData<T>.MakeTestArray(_sampleSize);
+            List<T> results = new List<T>(_sampleSize);
+            _parallel.ForEach(sources, _parallelism,
+                t => { Thread.Sleep(10); lock (results) results.Add(t); });
+            Assert.That(_executor.ThreadCount.Value, Is.EqualTo(_parallelism));
+            Assert.That(results, Is.EquivalentTo(sources));
+            ThreadManager.JoinAndVerify();
+        }
+
+        [TestCase(_parallelism - 2, _parallelism + 2)]
+        [TestCase(_parallelism - 2, _parallelism - 2)] 
+        public void ForEachLimitsParallismToThreadPoolExecutorMaxSize(int coreSize, int maxSize)
         {
             var tf = new ManagedThreadFactory(ThreadManager);
-            var executor = new ThreadPoolExecutor(3, 3, TimeSpan.MaxValue, new LinkedBlockingQueue<IRunnable>(1), tf);
+            var executor = new ThreadPoolExecutor(coreSize, maxSize, TimeSpan.MaxValue, new LinkedBlockingQueue<IRunnable>(1), tf);
             try
             {
                 var parallel = new Parallel<T>(executor);
@@ -169,7 +196,7 @@ namespace Spring.Threading
                 parallel.ForEach(sources, _parallelism,
                     t => { Thread.Sleep(10); lock (results) results.Add(t); });
                 Assert.That(results, Is.EquivalentTo(sources));
-                Assert.That(tf.ThreadCount.Value, Is.EqualTo(3));
+                Assert.That(parallel.ActualDegreeOfParallelism, Is.EqualTo(Math.Min(_parallelism, maxSize)));
             }
             finally
             {

@@ -687,7 +687,7 @@ namespace Spring.Threading.Execution
         }
 
         [Test, Description("AllowsCoreThreadTimeOut value controls if idle threads timeout")]
-        public void AllowsCoreThreadTimeOutControlsIdelThreadTimeout([Values(true, false)] bool isTimeout)
+        public void AllowsCoreThreadTimeOutControlsIdleThreadTimeout([Values(true, false)] bool isTimeout)
         {
             var es = new ThreadPoolExecutor(2, 10, TimeSpan.FromMilliseconds(10), new ArrayBlockingQueue<IRunnable>(10));
             ExecutorService = es;

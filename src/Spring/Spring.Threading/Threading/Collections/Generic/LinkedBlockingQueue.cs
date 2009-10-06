@@ -277,10 +277,11 @@ namespace Spring.Threading.Collections.Generic {
         /// <exception cref="ThreadInterruptedException">
         /// if interrupted while waiting.
         /// </exception>
-        public override bool Offer(T element, TimeSpan duration) {
+        public override bool Offer(T element, TimeSpan duration) 
+        {
+            DateTime deadline = WaitTime.Deadline(duration);
             int tempCount;
             lock(_putLock) {
-                DateTime deadline = DateTime.UtcNow.Add(duration);
                 for(; ; ) {
                     if (_isClosed) return false;
                     if (_activeCount < _capacity) {
@@ -296,7 +297,7 @@ namespace Spring.Threading.Collections.Generic {
                     if (duration.Ticks <= 0)
                         return false;
                     try {
-                        Monitor.Wait(_putLock, duration);
+                        Monitor.Wait(_putLock, WaitTime.Cap(duration));
                         duration = deadline.Subtract(DateTime.UtcNow);
                     }
                     catch(ThreadInterruptedException e) {
@@ -425,11 +426,12 @@ namespace Spring.Threading.Collections.Generic {
         /// <c>false</c> if the queue is still empty after waited for the time 
         /// specified by the <paramref name="duration"/>. Otherwise <c>true</c>.
         /// </returns>
-        public override bool Poll(TimeSpan duration, out T element) {
+        public override bool Poll(TimeSpan duration, out T element) 
+        {
+            DateTime deadline = WaitTime.Deadline(duration);
             T x;
             int c;
             lock(_takeLock) {
-                DateTime deadline = DateTime.UtcNow.Add(duration);
                 for(; ; ) {
                     if(_activeCount > 0) {
                         x = Extract();
@@ -447,7 +449,7 @@ namespace Spring.Threading.Collections.Generic {
                         return false;
                     }
                     try {
-                        Monitor.Wait(_takeLock, duration);
+                        Monitor.Wait(_takeLock, WaitTime.Cap(duration));
                         duration = deadline.Subtract(DateTime.UtcNow);
                     }
                     catch(ThreadInterruptedException e) {

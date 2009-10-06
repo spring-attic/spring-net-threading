@@ -60,8 +60,8 @@ namespace Spring.Threading.Collections.Generic
         {
             Assert.IsTrue(new ArrayBlockingQueue<T>(1, true).IsFair);
             Assert.IsFalse(new ArrayBlockingQueue<T>(1, false).IsFair);
-            Assert.IsTrue(new ArrayBlockingQueue<T>(1, true, _samples).IsFair);
-            Assert.IsFalse(new ArrayBlockingQueue<T>(1, false, _samples).IsFair);
+            Assert.IsTrue(new ArrayBlockingQueue<T>(_samples.Length, true, _samples).IsFair);
+            Assert.IsFalse(new ArrayBlockingQueue<T>(_samples.Length, false, _samples).IsFair);
         }
 
         [Test] public void CapacityReturnsTheValueSetInConstructor()

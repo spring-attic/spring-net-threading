@@ -236,6 +236,7 @@
     <Compile Include="Threading\WaiterPreferenceSemaphore.cs" />
     <Compile Include="Threading\WaitFreeQueue.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
+    <Compile Include="Utility\WaitTime.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

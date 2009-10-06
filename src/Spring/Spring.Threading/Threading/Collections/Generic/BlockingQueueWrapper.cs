@@ -27,6 +27,7 @@ using System.Threading;
 using Spring.Collections;
 using Spring.Collections.Generic;
 using Spring.Threading.Locks;
+using Spring.Utility;
 
 #endregion
 
@@ -470,18 +471,16 @@ namespace Spring.Threading.Collections.Generic
         /// </exception>
         public override bool Offer(T element, TimeSpan duration)
         {
-            using(_lock.LockInterruptibly())
+            DateTime deadline = WaitTime.Deadline(duration);
+            using (_lock.LockInterruptibly())
             {
-                TimeSpan durationToWait = duration;
-                DateTime deadline = DateTime.Now.Add(durationToWait);
                 while(!_wrapped.Offer(element))
                 {
-                    if (durationToWait.Ticks <= 0)
-                        return false;
+                    if (duration.Ticks <= 0) return false;
                     try
                     {
-                        _notFullCondition.Await(durationToWait);
-                        durationToWait = deadline.Subtract(DateTime.Now);
+                        _notFullCondition.Await(WaitTime.Cap(duration));
+                        duration = deadline.Subtract(DateTime.UtcNow);
                     }
                     catch (ThreadInterruptedException e)
                     {
@@ -533,9 +532,9 @@ namespace Spring.Threading.Collections.Generic
         /// </returns>
         public override bool Poll(TimeSpan duration,out T element)
         {
+            DateTime deadline = WaitTime.Deadline(duration);
             using(_lock.LockInterruptibly())
             {
-                DateTime deadline = DateTime.UtcNow.Add(duration);
                 while (!_wrapped.Poll(out element))
                 {
                     if (duration.Ticks <= 0)
@@ -545,7 +544,7 @@ namespace Spring.Threading.Collections.Generic
                     }
                     try
                     {
-                        _notEmptyCondition.Await(duration);
+                        _notEmptyCondition.Await(WaitTime.Cap(duration));
                         duration = deadline.Subtract(DateTime.UtcNow);
                     }
                     catch (ThreadInterruptedException e)

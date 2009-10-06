@@ -111,6 +111,9 @@ namespace Spring.Threading
         private List<IFuture<object>> _futures;
         private Exception _exception;
         private int _taskCount;
+        private int _maxCount;
+
+        internal int ActualDegreeOfParallelism { get { return _maxCount; } }
 
         public Parallel(IExecutor executor)
         {
@@ -129,7 +132,7 @@ namespace Spring.Threading
             if (source == null) throw new ArgumentNullException("source");
             if (body == null) throw new ArgumentNullException("body");
 
-            _maxDegreeOfParallelism = OptimizeMaxDegreeOfParallelism(source, maxDegreeOfParallelism); ;
+            _maxDegreeOfParallelism = OptimizeMaxDegreeOfParallelism(source, maxDegreeOfParallelism);
             _body = body;
 
             var iterator = source.GetEnumerator();
@@ -182,7 +185,6 @@ namespace Spring.Threading
                 {
                     try
                     {
-                        lock (this) _taskCount++;
                         action();
                     }
                     catch (Exception e)
@@ -203,7 +205,11 @@ namespace Spring.Threading
                     }
                 };
             var f = new FutureTask<object>(task, null);
-            _executor.Execute(f);
+            lock (this)
+            {
+                _executor.Execute(f);
+                _maxCount = Math.Max(++_taskCount, _maxCount);
+            }
             _futures.Add(f);
         }
 
