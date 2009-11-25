@@ -18,6 +18,7 @@
 
 #endregion
 
+using System;
 using Spring.Threading.Execution;
 
 namespace Spring.Threading
@@ -45,7 +46,7 @@ namespace Spring.Threading
     /// <typeparam name="T">
     /// The result type of method <see cref="Call()"/>.
     /// </typeparam>
-    /// <seealso cref="Func{T}"/>
+    /// <seealso cref="Func{TResult}"/>
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>

@@ -150,6 +150,7 @@ namespace System.Threading
         {
             var result = new ParallelCompletion<TSource>(_executor, (s, pls) => body(s, new ParallelLoopState(pls)))
                 .ForEach(source, parallelOptions);
+            _executor.ForEach(source, parallelOptions, (s, pls) => body(s, new ParallelLoopState(pls)));
             return new ParallelLoopResult(result);
         }
 
@@ -159,7 +160,7 @@ namespace System.Threading
 
         public static ParallelLoopResult For(int fromInclusive, int toExclusive, Action<int> body)
         {
-            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), body);
+            return ForEach(fromInclusive.Loop(toExclusive), body);
         }
 
         public static ParallelLoopResult For(
@@ -167,7 +168,7 @@ namespace System.Threading
             int toExclusive, 
             Action<int, ParallelLoopState> body)
         {
-            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), body);
+            return ForEach(fromInclusive.Loop(toExclusive), body);
         }
 
         public static ParallelLoopResult For(
@@ -175,7 +176,7 @@ namespace System.Threading
             long toExclusive,
             Action<long> body)
         {
-            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), body);
+            return ForEach(fromInclusive.Loop(toExclusive), body);
         }
 
         public static ParallelLoopResult For(
@@ -183,7 +184,7 @@ namespace System.Threading
             long toExclusive,
             Action<long, ParallelLoopState> body)
         {
-            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), body);
+            return ForEach(fromInclusive.Loop(toExclusive), body);
         }
 
         public static ParallelLoopResult For(
@@ -192,7 +193,7 @@ namespace System.Threading
             ParallelOptions parallelOptions, 
             Action<int> body)
         {
-            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, body);
+            return ForEach(fromInclusive.Loop(toExclusive), parallelOptions, body);
         }
 
         public static ParallelLoopResult For(
@@ -201,7 +202,7 @@ namespace System.Threading
             ParallelOptions parallelOptions,
             Action<int, ParallelLoopState> body)
         {
-            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, body);
+            return ForEach(fromInclusive.Loop(toExclusive), parallelOptions, body);
         }
 
         public static ParallelLoopResult For(
@@ -210,7 +211,7 @@ namespace System.Threading
             ParallelOptions parallelOptions,
             Action<long> body)
         {
-            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, body);
+            return ForEach(fromInclusive.Loop(toExclusive), parallelOptions, body);
         }
 
         public static ParallelLoopResult For(
@@ -219,7 +220,7 @@ namespace System.Threading
             ParallelOptions parallelOptions,
             Action<long, ParallelLoopState> body)
         {
-            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, body);
+            return ForEach(fromInclusive.Loop(toExclusive), parallelOptions, body);
         }
 
         #endregion

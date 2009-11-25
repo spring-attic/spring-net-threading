@@ -22,6 +22,8 @@ Thanks for the assistance and support of Sun Microsystems Labs,
 and everyone contributing, testing, and using this code.
 */
 
+using System;
+
 namespace Spring.Threading
 {
 	

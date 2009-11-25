@@ -18,24 +18,11 @@
 
 #endregion
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Spring.Threading.Execution
 {
-    internal static class ParallelCompletion
-    {
-        internal static IEnumerable<long> Loop(long fromInclusive, long toExclusive)
-        {
-            for (long i = fromInclusive; i < toExclusive; i++) yield return i;
-        }
-
-        internal static IEnumerable<int> Loop(int fromInclusive, int toExclusive)
-        {
-            for (int i = fromInclusive; i < toExclusive; i++) yield return i;
-        }
-
-    }
-
     /// <summary>
     /// Implemetation of parallel functions.
     /// </summary>

@@ -71,6 +71,10 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="LinqBridge, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c2b14eb747628076, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\dependency\LinqBridge\net\2.0\LinqBridge.dll</HintPath>
+    </Reference>
     <Reference Include="Spring.Core, Version=1.2.0.20313, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\lib\net\2.0\Spring.Core.dll</HintPath>
@@ -100,7 +104,6 @@
     <Compile Include="Threading\Collections\Generic\QueueClosedException.cs" />
     <Compile Include="Threading\Execution\ParallelCompletion.cs" />
     <Compile Include="SystemExtensions.cs" />
-    <Compile Include="Threading\Action.cs" />
     <Compile Include="Threading\AtomicTypes\AbstractAtomicArray.cs" />
     <Compile Include="Threading\AtomicTypes\Atomic.cs" />
     <Compile Include="Threading\AtomicTypes\AtomicArray.cs" />
@@ -144,10 +147,10 @@
     <Compile Include="Threading\Execution\IExecutorService.cs" />
     <Compile Include="Threading\Execution\IRejectedExecutionHandler.cs" />
     <Compile Include="Threading\Execution\ParallelCompletionBase.cs" />
+    <Compile Include="Threading\Execution\ParallelExtension.cs" />
     <Compile Include="Threading\Execution\ParallelOptions.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionException.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutor.cs" />
-    <Compile Include="Threading\Func.cs" />
     <Compile Include="Threading\Future\FutureTask.cs" />
     <Compile Include="Threading\Future\IDelayed.cs" />
     <Compile Include="Threading\Future\IFuture.cs" />

@@ -21,6 +21,7 @@ This may be used for any purposes whatsoever without acknowledgment.
 Thanks for the assistance and support of Sun Microsystems Labs,
 and everyone contributing, testing, and using this code.
 */
+using System;
 using System.Threading;
 
 namespace Spring.Threading

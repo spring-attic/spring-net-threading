@@ -18,6 +18,8 @@
 
 #endregion
 
+using System;
+
 namespace Spring.Threading
 {
     /// <summary>

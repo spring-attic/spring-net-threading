@@ -29,7 +29,8 @@ and everyone contributing, testing, and using this code.
 History:
 Date       Who                What
 21Jun1998  dl               Create public version*/
-using Spring.Threading;
+using System;
+using Spring.Threading.Execution;
 
 namespace Spring.Threading
 {
@@ -82,7 +83,7 @@ namespace Spring.Threading
         /// <param name="action">The task to be executed.</param>
         public virtual void Execute(Action action)
         {
-            Execute(Spring.Threading.Execution.Executors.CreateRunnable(action));
+            Execute(Executors.CreateRunnable(action));
         }
 
 	}

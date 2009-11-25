@@ -73,6 +73,10 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="LinqBridge, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c2b14eb747628076, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\dependency\LinqBridge\net\2.0\LinqBridge.dll</HintPath>
+    </Reference>
     <Reference Include="Spring.Core, Version=1.2.0.20313, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\lib\net\2.0\Spring.Core.dll</HintPath>
@@ -119,7 +123,6 @@
     <Compile Include="Threading\Execution\ParallelCompletion.cs" />
     <Compile Include="Threading\Execution\ParallelCompletionBase.cs" />
     <Compile Include="Threading\Execution\ParallelOptions.cs" />
-    <Compile Include="Threading\Func.cs" />
     <Compile Include="Threading\Callable.cs" />
     <Compile Include="Threading\ClockDaemon.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueue.cs" />
@@ -231,7 +234,6 @@
     <Compile Include="Threading\SemaphoreControlledChannel.cs" />
     <Compile Include="Threading\Slot.cs" />
     <Compile Include="Threading\SynchronousChannel.cs" />
-    <Compile Include="Threading\Action.cs" />
     <Compile Include="Threading\ThreadedExecutor.cs" />
     <Compile Include="Threading\ThreadFactoryUser.cs" />
     <Compile Include="Threading\TimedCallable.cs" />
