@@ -87,6 +87,13 @@ namespace Spring.Threading.Execution
         /// </value>
         bool IsExceptional { get; }
 
+        /// <summary>
+        /// Gets the index of current iteration of the loop.
+        /// </summary>
+        /// <value>
+        /// The zero indexed position of current iteration source in the source
+        /// enumerable.
+        /// </value>
         long CurrentIndex { get; }
 
         /// <summary>

@@ -19,6 +19,7 @@
 #endregion
 
 using System;
+using System.Threading;
 
 namespace Spring.Threading.Execution
 {
@@ -36,7 +37,7 @@ namespace Spring.Threading.Execution
         /// </summary>
         /// <remarks>
         /// The <see cref="MaxDegreeOfParallelism"/> limits the number of 
-        /// concurrent operations run by <see cref="Parallel"/> method calls 
+        /// concurrent operations run by parallal method calls 
         /// that are passed this <see cref="ParallelOptions"/> instance to 
         /// the set value, if it is positive. If <see cref="MaxDegreeOfParallelism"/>
         /// is -1, then there is no limit placed on the number of concurrently 

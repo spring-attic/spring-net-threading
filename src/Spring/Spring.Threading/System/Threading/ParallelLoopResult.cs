@@ -23,22 +23,40 @@ using Spring.Threading.Execution;
 namespace System.Threading
 {
     /// <summary>
-    /// 
+    /// Provides completion status on the execution of a <see cref="Parallel"/> loop.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public class ParallelLoopResult :ILoopResult
+    public struct ParallelLoopResult :ILoopResult
     {
         private readonly ILoopResult _result;
-        public ParallelLoopResult(ILoopResult result)
+        internal ParallelLoopResult(ILoopResult result)
         {
             _result = result;
         }
 
+        /// <summary>
+        /// Gets whether the loop ran to completion, such that all iterations 
+        /// of the loop were executed.
+        /// </summary>
+        /// <value>
+        /// True if the loop ran to completion, otherwise false.
+        /// </value>
         public bool IsCompleted
         {
             get { return _result.IsCompleted; }
         }
 
+        /// <summary>
+        /// Gets the index of the lowest iteration from which 
+        /// <see cref="ParallelLoopState.Break"/> was called.
+        /// </summary>
+        /// <remarks>
+        /// If Break  was not employed, this property will return null.
+        /// </remarks>
+        /// <value>
+        /// An <see cref="int"/> that represents the lowest iteration from which
+        /// <see cref="ParallelLoopState.Break"/> was called.
+        /// </value>
         public long? LowestBreakIteration
         {
             get { return _result.LowestBreakIteration; }

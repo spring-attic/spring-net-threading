@@ -19,16 +19,28 @@
 namespace Spring.Threading
 {
     /// <summary>
+    /// TODO LinqBridge: This should be replaced by LinqBridge.
     /// Delegate to be submitted for execution.
     /// </summary>
     /// <seealso cref="IExecutor.Execute(Action)"/>
     public delegate void Action(); //NET_ONLY
 
     /// <summary>
+    /// TODO LinqBridge: This should be replaced by LinqBridge.
     /// Analogue of System.Action{T1, T2}.
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <typeparam name="T2"></typeparam>
     public delegate void Action<T1, T2>(T1 a1, T2 a2);
+
+    /// <summary>
+    /// TODO LinqBridge: This should be replaced by LinqBridge.
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <typeparam name="T2"></typeparam>
+    /// <typeparam name="T3"></typeparam>
+    /// <param name="a1"></param>
+    /// <param name="a2"></param>
+    /// <param name="a3"></param>
     public delegate void Action<T1, T2, T3>(T1 a1, T2 a2, T3 a3);
 }

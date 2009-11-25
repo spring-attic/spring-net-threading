@@ -22,7 +22,7 @@ using System.Collections.Generic;
 
 namespace Spring.Threading.Execution
 {
-    public static class ParallelCompletion
+    internal static class ParallelCompletion
     {
         internal static IEnumerable<long> Loop(long fromInclusive, long toExclusive)
         {

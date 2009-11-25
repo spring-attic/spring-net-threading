@@ -23,13 +23,14 @@ using Spring.Threading.Execution;
 namespace Spring.Threading
 {
     /// <summary> 
+    /// TODO LinqBridge: This should be replaced by LinqBridge.
     /// A delegate that returns a result and may throw an exception.
     /// </summary>
     /// <remarks>
     /// <para>
     /// The <c>Func</c> delegate is similar to <see cref="Action"/>, in that 
     /// both are designed funcitons are potentially executed by another thread.
-    /// A <c>Task</c>, however, does not return a result.
+    /// An <c>Action</c>, however, does not return a result.
     /// </para>
     /// <para>
     /// The <see cref="Executors"/> class contains utility methods to
@@ -43,6 +44,17 @@ namespace Spring.Threading
     /// <author>Kenneth Xu</author>
     public delegate T Func<T>(); //NET_ONLY
 
+    /// <summary>
+    /// TODO LinqBridge: This should be replaced by LinqBridge.
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <typeparam name="T2"></typeparam>
+    /// <typeparam name="T3"></typeparam>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="a1"></param>
+    /// <param name="a2"></param>
+    /// <param name="a3"></param>
+    /// <returns></returns>
     public delegate T Func<T1, T2, T3, T>(T1 a1, T2 a2, T3 a3); //NET_ONLY
     
 }
