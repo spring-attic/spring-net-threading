@@ -1855,7 +1855,7 @@ namespace Spring.Threading.Execution
             ParallelOptions parallelOptions,
             Action<int, ILoopState> body)
         {
-            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, body);
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, body);
         }
 
         /// <summary>
@@ -1896,7 +1896,7 @@ namespace Spring.Threading.Execution
             ParallelOptions parallelOptions, 
             Action<long> body)
         {
-            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, body);
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, body);
         }
 
         /// <summary>
@@ -1938,7 +1938,7 @@ namespace Spring.Threading.Execution
             ParallelOptions parallelOptions, 
             Action<long, ILoopState> body)
         {
-            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, body);
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, body);
         }
 
         #endregion
@@ -2010,7 +2010,7 @@ namespace Spring.Threading.Execution
             Func<int, ILoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            return ForEach(Loop(fromInclusive, toExclusive), localInit, body, localFinally);
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), localInit, body, localFinally);
         }
 
         /// <summary>
@@ -2078,7 +2078,7 @@ namespace Spring.Threading.Execution
             Func<long, ILoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            return ForEach(Loop(fromInclusive, toExclusive), localInit, body, localFinally);
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), localInit, body, localFinally);
         }
 
         /// <summary>
@@ -2154,7 +2154,7 @@ namespace Spring.Threading.Execution
             Func<int, ILoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, localInit, body, localFinally);
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, localInit, body, localFinally);
         }
 
         /// <summary>
@@ -2230,7 +2230,7 @@ namespace Spring.Threading.Execution
             Func<long, ILoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, localInit, body, localFinally);
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, localInit, body, localFinally);
         }
 
         #endregion

@@ -416,7 +416,7 @@ namespace Spring.Threading.Locks
             bool result = c.Await(timeToWait);
             sw.Stop();
             Assert.IsFalse(result);
-            Assert.That(sw.Elapsed, Is.Not.LessThan(timeToWait));
+            Assert.That(sw.Elapsed + TimeSpan.FromMilliseconds(0.5), Is.Not.LessThan(timeToWait));
             _lock.Unlock();
         }
 
@@ -584,21 +584,25 @@ namespace Spring.Threading.Locks
                             c.Await();
                         }
                     });
+            try
+            {
+                Thread.Sleep(SHORT_DELAY);
+                _lock.Lock();
+                Assert.IsTrue(_lock.HasWaiters(c));
+                Assert.AreEqual(2, _lock.GetWaitQueueLength(c));
+                c.SignalAll();
+                _lock.Unlock();
 
-            Thread.Sleep(SHORT_DELAY);
-            _lock.Lock();
-            Assert.IsTrue(_lock.HasWaiters(c));
-            Assert.AreEqual(2, _lock.GetWaitQueueLength(c));
-            c.SignalAll();
-            _lock.Unlock();
-
-            Thread.Sleep(SHORT_DELAY);
-            _lock.Lock();
-            Assert.IsFalse(_lock.HasWaiters(c));
-            Assert.AreEqual(0, _lock.GetWaitQueueLength(c));
-            _lock.Unlock();
-
-            ThreadManager.JoinAndVerify();
+                Thread.Sleep(SHORT_DELAY);
+                _lock.Lock();
+                Assert.IsFalse(_lock.HasWaiters(c));
+                Assert.AreEqual(0, _lock.GetWaitQueueLength(c));
+                _lock.Unlock();
+            }
+            finally
+            {
+                ThreadManager.JoinAndVerify();
+            }
         }
 
         [TestCase(true)]
