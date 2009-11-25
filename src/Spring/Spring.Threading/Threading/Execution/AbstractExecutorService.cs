@@ -153,7 +153,7 @@ namespace Spring.Threading.Execution
 
         #endregion
 
-        #region IExecutor Implementation
+        #region Execute Methods
 
         /// <summary> 
         /// Executes the given task at some time in the future.
@@ -194,9 +194,9 @@ namespace Spring.Threading.Execution
             DoExecute(CaptureContext(runnable));
         }
 
-        #endregion
+        #endregion Execute Methods
 
-        #region IExecutorService Implementation
+        #region Submit Methods
 
         /// <summary> 
         /// Submits a Runnable task for execution and returns a Future
@@ -328,6 +328,10 @@ namespace Spring.Threading.Execution
             if (runnable == null) throw new ArgumentNullException("runnable");
             return Submit(NewTaskFor(runnable, result));
         }
+
+        #endregion Submit Methods
+
+        #region InvokeAny<T> Methods
 
         /// <summary> 
         /// Executes the given <paramref name="tasks"/>, returning the result
@@ -592,6 +596,10 @@ namespace Spring.Threading.Execution
         {
             return InvokeAny(durationToWait, (IEnumerable<Func<T>>) tasks);
         }
+
+        #endregion InvokeAny<T> Methods
+
+        #region InvokeAll<T> Methods
 
         /// <summary> 
         /// Executes the given <paramref name="tasks"/>, returning a 
@@ -860,6 +868,106 @@ namespace Spring.Threading.Execution
         {
             return InvokeAll(durationToWait, (IEnumerable<ICallable<T>>) tasks);
         }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their status and results when all complete or the
+        /// <paramref name="durationToWait"/> expires, whichever happens
+        /// first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see cref="ICancellable.IsDone"/> is <c>true</c> for each element of 
+        /// the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// A <b>completed</b> task could have
+        /// terminated either normally or by throwing an exception.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+	    public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
+        {
+            ICollection<Func<T>> collection = tasks as ICollection<Func<T>>;
+            int count = collection == null ? 0 : collection.Count;
+            return DoInvokeAll(tasks, count, durationToWait, Call2Future<T>());
+        }
+
+        /// <summary> 
+        /// Executes the given <paramref name="tasks"/>, returning a 
+        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
+        /// holding their status and results when all complete or the
+        /// <paramref name="durationToWait"/> expires, whichever happens
+        /// first.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see cref="ICancellable.IsDone"/> is <c>true</c> for each element of 
+        /// the returned list.
+        /// </para>
+        /// <para>
+        /// Note: 
+        /// A <b>completed</b> task could have
+        /// terminated either normally or by throwing an exception.
+        /// The results of this method are undefined if the given
+        /// enumerable is modified while this operation is in progress.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
+        /// </typeparam>
+        /// <param name="tasks">
+        /// The <see cref="IEnumerable{T}">enumeration</see> of 
+        /// <see cref="Func{T}"/> delegates.
+        /// </param>
+        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <returns>
+        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
+        /// same sequential order as produced by the iterator for the given 
+        /// task list. If the operation did not time out, each task will
+        /// have completed. If it did time out, some of these tasks will
+        /// not have completed.
+        /// </returns>
+        /// <exception cref="RejectedExecutionException">
+        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
+        /// execution.
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// If the <paramref name="tasks"/> is <c>null</c>.
+        /// </exception>
+        public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Func<T>[] tasks)
+	    {
+	        return InvokeAll(durationToWait, (IEnumerable<Func<T>>) tasks);
+        }
+
+        #endregion InvokeAll<T> Methods
+
+        #region InvokeAllOrFail<T> Methods
 
         /// <summary> 
         /// Executes the given <paramref name="tasks"/>, returning a 
@@ -1245,175 +1353,885 @@ namespace Spring.Threading.Execution
             return InvokeAllOrFail(durationToWait, (IEnumerable<Func<T>>)tasks);
         }
 
-        private IList<IFuture<T>> DoInvokeAllOrFail<T>(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait, Converter<object, IRunnableFuture<T>> converter)
+        #endregion InvokeAllOrFail<T> Methods
+
+        #region ForEach<TSource> Methods
+
+        /// <summary>
+        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
+        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="body"/> delegate is invoked once for each 
+        /// element in the <paramref name="source"/> enumerable. It is provided
+        /// with the current element as a parameter.
+        /// </remarks>
+        /// <typeparam name="TSource">
+        /// The type of the data in the source.
+        /// </typeparam>
+        /// <param name="source">
+        /// An enumerable data source.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="source"/> argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> argument is null.
+        /// </exception>
+        public ILoopResult ForEach<TSource>(IEnumerable<TSource> source, Action<TSource> body)
         {
-            if (tasks == null)
-                throw new ArgumentNullException("tasks");
-            List<IFuture<T>> futures = count > 0 ? new List<IFuture<T>>(count) : new List<IFuture<T>>();
-            ExecutorCompletionService<T> ecs = new ExecutorCompletionService<T>(this);
-            TimeSpan duration = durationToWait;
-
-            try
-            {
-                DateTime lastTime = (timed) ? DateTime.Now : new DateTime(0);
-                IEnumerator it = tasks.GetEnumerator();
-                bool hasMoreTasks = it.MoveNext();
-                if (!hasMoreTasks) return futures;
-                var contextCarrier = NewContextCarrier();
-                futures.Add(ecs.DoSubmit(SetContextCarrier(converter(it.Current), contextCarrier)));
-                int active = 1;
-
-                for (; ; )
-                {
-                    IFuture<T> f = ecs.Poll();
-                    if (f == null)
-                    {
-                        if (hasMoreTasks && (hasMoreTasks = it.MoveNext()))
-                        {
-                            futures.Add(ecs.DoSubmit(SetContextCarrier(converter(it.Current), contextCarrier)));
-                            ++active;
-                        }
-                        else if (active == 0)
-                            break;
-                        else if (timed)
-                        {
-                            f = ecs.Poll(duration);
-                            if (f == null)
-                                throw new TimeoutException();
-                            // We need to recalculate wait time if Poll was interrupted
-                            duration = duration.Subtract(DateTime.Now.Subtract(lastTime));
-                            lastTime = DateTime.Now;
-                        }
-                        else
-                            f = ecs.Take();
-                    }
-                    if (f != null)
-                    {
-                        --active;
-                        try
-                        {
-                            f.GetResult();
-                        }
-                        catch (ThreadInterruptedException tie)
-                        {
-                            throw SystemExtensions.PreserveStackTrace(tie);
-                        }
-                        catch (ExecutionException eex)
-                        {
-                            throw SystemExtensions.PreserveStackTrace(eex);
-                        }
-                        catch (Exception e)
-                        {
-                            throw new ExecutionException(e);
-                        }
-                    }
-                }
-                return futures;
-            }
-            finally
-            {
-                foreach (IFuture<T> future in futures)
-                {
-                    if(!future.IsDone) future.Cancel(true);
-                }
-            }
+            return new ParallelCompletion<TSource>(this, (s, ls) => body(s))
+                .ForEach(source, int.MaxValue);
         }
 
-        /// <summary> 
-        /// Executes the given <paramref name="tasks"/>, returning a 
-        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
-        /// holding their status and results when all complete or the
-        /// <paramref name="durationToWait"/> expires, whichever happens
-        /// first.
+        /// <summary>
+        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
+        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="body"/> delegate is invoked once for each 
+        /// element in the <paramref name="source"/> enumerable. It is provided
+        /// with the current element as a parameter.
+        /// </remarks>
+        /// <typeparam name="TSource">
+        /// The type of the data in the source.
+        /// </typeparam>
+        /// <param name="source">
+        /// An enumerable data source.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="source"/> argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> argument is null.
+        /// </exception>
+        public ILoopResult ForEach<TSource>(IEnumerable<TSource> source, Action<TSource, ILoopState> body)
+        {
+            return new ParallelCompletion<TSource>(this, body)
+                .ForEach(source, int.MaxValue);
+        }
+
+        /// <summary>
+        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
+        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="body"/> delegate is invoked once for each 
+        /// element in the <paramref name="source"/> enumerable. It is provided
+        /// with the current element as a parameter.
+        /// </remarks>
+        /// <typeparam name="TSource">
+        /// The type of the data in the source.
+        /// </typeparam>
+        /// <param name="source">
+        /// An enumerable data source.
+        /// </param>
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="source"/> argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> argument is null.
+        /// </exception>
+        public ILoopResult ForEach<TSource>(IEnumerable<TSource> source, ParallelOptions parallelOptions, Action<TSource> body)
+        {
+            return new ParallelCompletion<TSource>(this, (s, ls) => body(s)).ForEach(source, parallelOptions);
+        }
+
+        /// <summary>
+        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
+        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="body"/> delegate is invoked once for each 
+        /// element in the <paramref name="source"/> enumerable. It is provided
+        /// with the current element as a parameter.
+        /// </remarks>
+        /// <typeparam name="TSource">
+        /// The type of the data in the source.
+        /// </typeparam>
+        /// <param name="source">
+        /// An enumerable data source.
+        /// </param>
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="source"/> argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> argument is null.
+        /// </exception>
+        public ILoopResult ForEach<TSource>(IEnumerable<TSource> source, ParallelOptions parallelOptions, Action<TSource, ILoopState> body)
+        {
+            return new ParallelCompletion<TSource>(this, body).ForEach(source, parallelOptions);
+        }
+
+        #endregion
+
+        #region ForEach<TSource, TLocal> Methods
+
+        /// <summary>
+        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
+        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// <see cref="ICancellable.IsDone"/> is <c>true</c> for each element of 
-        /// the returned list.
+        /// The <paramref name="body"/> delegate is invoked once for each 
+        /// element in the <paramref name="source"/> enumerable. It is provided
+        /// with the following parameters: the current element, a 
+        /// <see cref="ILoopState"/> instance that may be used to break out of 
+        /// the loop prematurely, and some local state that may be shared 
+        /// amongst iterations that execute on the same thread.
         /// </para>
         /// <para>
-        /// Note: 
-        /// A <b>completed</b> task could have
-        /// terminated either normally or by throwing an exception.
-        /// The results of this method are undefined if the given
-        /// enumerable is modified while this operation is in progress.
+        /// The <paramref name="localInit"/> delegate is invoked once for each 
+        /// thread that participates in the loop's execution and returns the 
+        /// initial local state for each of those threads. These initial states 
+        /// are passed to the first body invocations on each thread. Then, 
+        /// every subsequent body invocation returns a possibly modified state 
+        /// value that is passed to the next body invocation. Finally, the last 
+        /// body invocation on each thread returns a state value that is passed 
+        /// to the <paramref name="localFinally"/> delegate. 
+        /// The <paramref name="localFinally"/> delegate is invoked once per 
+        /// thread to perform a final action on each thread's local state.
         /// </para>
         /// </remarks>
-        /// <typeparam name="T">
-        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
-        /// </typeparam>
-        /// <param name="tasks">
-        /// The <see cref="IEnumerable{T}">enumeration</see> of 
-        /// <see cref="Func{T}"/> delegates.
+        /// <typeparam name="TSource">The type of the data in the source.</typeparam>
+        /// <typeparam name="TLocal">The type of the thread-local data.</typeparam>
+        /// <param name="source">
+        /// An enumerable data source.
         /// </param>
-        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <param name="localInit">
+        /// The function delegate that returns the initial state of the local 
+        /// data for each thread.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <param name="localFinally">
+        /// The delegate that performs a final action on the local state of 
+        /// each thread.
+        /// </param>
         /// <returns>
-        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
-        /// same sequential order as produced by the iterator for the given 
-        /// task list. If the operation did not time out, each task will
-        /// have completed. If it did time out, some of these tasks will
-        /// not have completed.
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
         /// </returns>
-        /// <exception cref="RejectedExecutionException">
-        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
-        /// execution.
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="source"/> 
+        /// argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localInit"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localFinally"/> 
+        /// argument is null.
         /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the <paramref name="tasks"/> is <c>null</c>.
-        /// </exception>
-	    public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, IEnumerable<Func<T>> tasks)
+        public ILoopResult ForEach<TSource, TLocal>(
+            IEnumerable<TSource> source,
+            Func<TLocal> localInit,
+            Func<TSource, ILoopState, TLocal, TLocal> body,
+            Action<TLocal> localFinally)
         {
-            ICollection<Func<T>> collection = tasks as ICollection<Func<T>>;
-            int count = collection == null ? 0 : collection.Count;
-            return DoInvokeAll(tasks, count, durationToWait, Call2Future<T>());
+            return new ParallelCompletion<TSource, TLocal>(this, localInit, body, localFinally)
+                .ForEach(source, int.MaxValue);
         }
 
-        /// <summary> 
-        /// Executes the given <paramref name="tasks"/>, returning a 
-        /// <see cref="IList{T}">list</see> of <see cref="IFuture{T}"/>s 
-        /// holding their status and results when all complete or the
-        /// <paramref name="durationToWait"/> expires, whichever happens
-        /// first.
+        /// <summary>
+        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
+        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// <see cref="ICancellable.IsDone"/> is <c>true</c> for each element of 
-        /// the returned list.
+        /// The <paramref name="body"/> delegate is invoked once for each 
+        /// element in the <paramref name="source"/> enumerable. It is provided
+        /// with the following parameters: the current element, a 
+        /// <see cref="ILoopState"/> instance that may be used to break out of 
+        /// the loop prematurely, and some local state that may be shared 
+        /// amongst iterations that execute on the same thread.
         /// </para>
         /// <para>
-        /// Note: 
-        /// A <b>completed</b> task could have
-        /// terminated either normally or by throwing an exception.
-        /// The results of this method are undefined if the given
-        /// enumerable is modified while this operation is in progress.
+        /// The <paramref name="localInit"/> delegate is invoked once for each 
+        /// thread that participates in the loop's execution and returns the 
+        /// initial local state for each of those threads. These initial states 
+        /// are passed to the first body invocations on each thread. Then, 
+        /// every subsequent body invocation returns a possibly modified state 
+        /// value that is passed to the next body invocation. Finally, the last 
+        /// body invocation on each thread returns a state value that is passed 
+        /// to the <paramref name="localFinally"/> delegate. 
+        /// The <paramref name="localFinally"/> delegate is invoked once per 
+        /// thread to perform a final action on each thread's local state.
         /// </para>
         /// </remarks>
-        /// <typeparam name="T">
-        /// The type of the result to be returned by <see cref="IFuture{T}"/>.
-        /// </typeparam>
-        /// <param name="tasks">
-        /// The <see cref="IEnumerable{T}">enumeration</see> of 
-        /// <see cref="Func{T}"/> delegates.
+        /// <typeparam name="TSource">The type of the data in the source.</typeparam>
+        /// <typeparam name="TLocal">The type of the thread-local data.</typeparam>
+        /// <param name="source">
+        /// An enumerable data source.
         /// </param>
-        /// <param name="durationToWait">The time span to wait.</param> 
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="localInit">
+        /// The function delegate that returns the initial state of the local 
+        /// data for each thread.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <param name="localFinally">
+        /// The delegate that performs a final action on the local state of 
+        /// each thread.
+        /// </param>
         /// <returns>
-        /// A list of <see cref="IFuture{T}"/>s representing the tasks, in the 
-        /// same sequential order as produced by the iterator for the given 
-        /// task list. If the operation did not time out, each task will
-        /// have completed. If it did time out, some of these tasks will
-        /// not have completed.
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
         /// </returns>
-        /// <exception cref="RejectedExecutionException">
-        /// If the any of the <paramref name="tasks"/> cannot be accepted for 
-        /// execution.
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="source"/> 
+        /// argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> 
+        /// argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localInit"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localFinally"/> 
+        /// argument is null.
         /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the <paramref name="tasks"/> is <c>null</c>.
+        public ILoopResult ForEach<TSource, TLocal>(
+            IEnumerable<TSource> source,
+            ParallelOptions parallelOptions,
+            Func<TLocal> localInit,
+            Func<TSource, ILoopState, TLocal, TLocal> body,
+            Action<TLocal> localFinally)
+        {
+            return new ParallelCompletion<TSource, TLocal>(this, localInit, body, localFinally)
+                .ForEach(source, parallelOptions);
+        }
+
+        #endregion
+
+        #region For Methods
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the iteration 
+        /// count (an Int32).
+        /// </para>
+        /// </remarks>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
         /// </exception>
-        public virtual IList<IFuture<T>> InvokeAll<T>(TimeSpan durationToWait, params Func<T>[] tasks)
-	    {
-	        return InvokeAll(durationToWait, (IEnumerable<Func<T>>) tasks);
-	    }
+        public ILoopResult For(int fromInclusive, int toExclusive, Action<int> body)
+        {
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), body);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the following 
+        /// parameters: the iteration count (an Int32), a <see cref="ILoopState"/>
+        /// instance that may be used to break out of the loop prematurely.
+        /// </para>
+        /// </remarks>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For(int fromInclusive, int toExclusive, Action<int, ILoopState> body)
+        {
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), body);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the iteration 
+        /// count (an Int64).
+        /// </para>
+        /// </remarks>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For(long fromInclusive, long toExclusive, Action<long> body)
+        {
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), body);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the following 
+        /// parameters: the iteration count (an Int64), a <see cref="ILoopState"/>
+        /// instance that may be used to break out of the loop prematurely.
+        /// </para>
+        /// </remarks>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For(long fromInclusive, long toExclusive, Action<long, ILoopState> body)
+        {
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), body);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the iteration 
+        /// count (an Int32).
+        /// </para>
+        /// </remarks>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> 
+        /// argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For(
+            int fromInclusive, 
+            int toExclusive, 
+            ParallelOptions parallelOptions, 
+            Action<int> body)
+        {
+            return ForEach(ParallelCompletion.Loop(fromInclusive, toExclusive), parallelOptions, body);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the following 
+        /// parameters: the iteration count (an Int32), a <see cref="ILoopState"/>
+        /// instance that may be used to break out of the loop prematurely.
+        /// </para>
+        /// </remarks>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> 
+        /// argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For(
+            int fromInclusive,
+            int toExclusive,
+            ParallelOptions parallelOptions,
+            Action<int, ILoopState> body)
+        {
+            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, body);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the iteration 
+        /// count (an Int64).
+        /// </para>
+        /// </remarks>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> 
+        /// argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For(
+            long fromInclusive, 
+            long toExclusive, 
+            ParallelOptions parallelOptions, 
+            Action<long> body)
+        {
+            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, body);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the following 
+        /// parameters: the iteration count (an Int64), a <see cref="ILoopState"/>
+        /// instance that may be used to break out of the loop prematurely.
+        /// </para>
+        /// </remarks>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> 
+        /// argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For(
+            long fromInclusive, 
+            long toExclusive, 
+            ParallelOptions parallelOptions, 
+            Action<long, ILoopState> body)
+        {
+            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, body);
+        }
+
+        #endregion
+
+        #region For<TLocal> Methods
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the following 
+        /// parameters: the iteration count (an Int32), a <see cref="ILoopState"/>
+        /// instance that may be used to break out of the loop prematurely, and 
+        /// some local state that may be shared amongst iterations that execute 
+        /// on the same thread.
+        /// </para>
+        /// <para>
+        /// The <paramref name="localInit"/> delegate is invoked once for each 
+        /// thread that participates in the loop's execution and returns the 
+        /// initial local state for each of those threads. These initial states 
+        /// are passed to the first body invocations on each thread. Then, 
+        /// every subsequent <paramref name="body"/> invocation returns a 
+        /// possibly modified state value that is passed to the next body 
+        /// invocation. Finally, the last body invocation on each thread 
+        /// returns a state value that is passed to the <paramref name="localFinally"/>
+        /// delegate. The <paramref name="localFinally"/> delegate is invoked 
+        /// once per thread to perform a final action on each thread's local 
+        /// state.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="TLocal">
+        /// The type of the thread-local data.
+        /// </typeparam>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="localInit">
+        /// The function delegate that returns the initial state of the local 
+        /// data for each thread.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <param name="localFinally">
+        /// The delegate that performs a final action on the local state of 
+        /// each thread.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="localInit"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localFinally"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For<TLocal>(
+            int fromInclusive,
+            int toExclusive,
+            Func<TLocal> localInit,
+            Func<int, ILoopState, TLocal, TLocal> body,
+            Action<TLocal> localFinally)
+        {
+            return ForEach(Loop(fromInclusive, toExclusive), localInit, body, localFinally);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the following 
+        /// parameters: the iteration count (an Int64), a <see cref="ILoopState"/>
+        /// instance that may be used to break out of the loop prematurely, and 
+        /// some local state that may be shared amongst iterations that execute 
+        /// on the same thread.
+        /// </para>
+        /// <para>
+        /// The <paramref name="localInit"/> delegate is invoked once for each 
+        /// thread that participates in the loop's execution and returns the 
+        /// initial local state for each of those threads. These initial states 
+        /// are passed to the first body invocations on each thread. Then, 
+        /// every subsequent <paramref name="body"/> invocation returns a 
+        /// possibly modified state value that is passed to the next body 
+        /// invocation. Finally, the last body invocation on each thread 
+        /// returns a state value that is passed to the <paramref name="localFinally"/>
+        /// delegate. The <paramref name="localFinally"/> delegate is invoked 
+        /// once per thread to perform a final action on each thread's local 
+        /// state.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="TLocal">
+        /// The type of the thread-local data.
+        /// </typeparam>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="localInit">
+        /// The function delegate that returns the initial state of the local 
+        /// data for each thread.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <param name="localFinally">
+        /// The delegate that performs a final action on the local state of 
+        /// each thread.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="localInit"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localFinally"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For<TLocal>(
+            long fromInclusive,
+            long toExclusive,
+            Func<TLocal> localInit,
+            Func<long, ILoopState, TLocal, TLocal> body,
+            Action<TLocal> localFinally)
+        {
+            return ForEach(Loop(fromInclusive, toExclusive), localInit, body, localFinally);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the following 
+        /// parameters: the iteration count (an Int32), a <see cref="ILoopState"/>
+        /// instance that may be used to break out of the loop prematurely, and 
+        /// some local state that may be shared amongst iterations that execute 
+        /// on the same thread.
+        /// </para>
+        /// <para>
+        /// The <paramref name="localInit"/> delegate is invoked once for each 
+        /// thread that participates in the loop's execution and returns the 
+        /// initial local state for each of those threads. These initial states 
+        /// are passed to the first body invocations on each thread. Then, 
+        /// every subsequent <paramref name="body"/> invocation returns a 
+        /// possibly modified state value that is passed to the next body 
+        /// invocation. Finally, the last body invocation on each thread 
+        /// returns a state value that is passed to the <paramref name="localFinally"/>
+        /// delegate. The <paramref name="localFinally"/> delegate is invoked 
+        /// once per thread to perform a final action on each thread's local 
+        /// state.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="TLocal">
+        /// The type of the thread-local data.
+        /// </typeparam>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="localInit">
+        /// The function delegate that returns the initial state of the local 
+        /// data for each thread.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <param name="localFinally">
+        /// The delegate that performs a final action on the local state of 
+        /// each thread.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> 
+        /// argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localInit"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localFinally"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For<TLocal>(
+            int fromInclusive,
+            int toExclusive,
+            ParallelOptions parallelOptions,
+            Func<TLocal> localInit,
+            Func<int, ILoopState, TLocal, TLocal> body,
+            Action<TLocal> localFinally)
+        {
+            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, localInit, body, localFinally);
+        }
+
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel using 
+        /// this <see cref="IExecutorService"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The <paramref name="body"/> delegate is invoked once for each value 
+        /// in the iteration range: [<paramref name="fromInclusive"/>, 
+        /// <paramref name="toExclusive"/>). It is provided with the following 
+        /// parameters: the iteration count (an Int64), a <see cref="ILoopState"/>
+        /// instance that may be used to break out of the loop prematurely, and 
+        /// some local state that may be shared amongst iterations that execute 
+        /// on the same thread.
+        /// </para>
+        /// <para>
+        /// The <paramref name="localInit"/> delegate is invoked once for each 
+        /// thread that participates in the loop's execution and returns the 
+        /// initial local state for each of those threads. These initial states 
+        /// are passed to the first body invocations on each thread. Then, 
+        /// every subsequent <paramref name="body"/> invocation returns a 
+        /// possibly modified state value that is passed to the next body 
+        /// invocation. Finally, the last body invocation on each thread 
+        /// returns a state value that is passed to the <paramref name="localFinally"/>
+        /// delegate. The <paramref name="localFinally"/> delegate is invoked 
+        /// once per thread to perform a final action on each thread's local 
+        /// state.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="TLocal">
+        /// The type of the thread-local data.
+        /// </typeparam>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="parallelOptions">
+        /// A <see cref="ParallelOptions"/> instance that configures the 
+        /// behavior of this operation.
+        /// </param>
+        /// <param name="localInit">
+        /// The function delegate that returns the initial state of the local 
+        /// data for each thread.
+        /// </param>
+        /// <param name="body">
+        /// The delegate that is invoked once per iteration.
+        /// </param>
+        /// <param name="localFinally">
+        /// The delegate that performs a final action on the local state of 
+        /// each thread.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ILoopResult"/> instance that contains information 
+        /// on what portion of the loop completed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The exception that is thrown when the <paramref name="parallelOptins"/> 
+        /// argument is null.<br/>
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localInit"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="body"/> 
+        /// argument is null.
+        /// -or-<br/>
+        /// The exception that is thrown when the <paramref name="localFinally"/> 
+        /// argument is null.
+        /// </exception>
+        public ILoopResult For<TLocal>(
+            long fromInclusive,
+            long toExclusive,
+            ParallelOptions parallelOptions,
+            Func<TLocal> localInit,
+            Func<long, ILoopState, TLocal, TLocal> body,
+            Action<TLocal> localFinally)
+        {
+            return ForEach(Loop(fromInclusive, toExclusive), parallelOptions, localInit, body, localFinally);
+        }
 
         #endregion
 
@@ -1734,6 +2552,80 @@ namespace Spring.Threading.Execution
             }
         }
 
+        private IList<IFuture<T>> DoInvokeAllOrFail<T>(IEnumerable tasks, int count, bool timed, TimeSpan durationToWait, Converter<object, IRunnableFuture<T>> converter)
+        {
+            if (tasks == null)
+                throw new ArgumentNullException("tasks");
+            List<IFuture<T>> futures = count > 0 ? new List<IFuture<T>>(count) : new List<IFuture<T>>();
+            ExecutorCompletionService<T> ecs = new ExecutorCompletionService<T>(this);
+            TimeSpan duration = durationToWait;
+
+            try
+            {
+                DateTime lastTime = (timed) ? DateTime.Now : new DateTime(0);
+                IEnumerator it = tasks.GetEnumerator();
+                bool hasMoreTasks = it.MoveNext();
+                if (!hasMoreTasks) return futures;
+                var contextCarrier = NewContextCarrier();
+                futures.Add(ecs.DoSubmit(SetContextCarrier(converter(it.Current), contextCarrier)));
+                int active = 1;
+
+                for (; ; )
+                {
+                    IFuture<T> f = ecs.Poll();
+                    if (f == null)
+                    {
+                        if (hasMoreTasks && (hasMoreTasks = it.MoveNext()))
+                        {
+                            futures.Add(ecs.DoSubmit(SetContextCarrier(converter(it.Current), contextCarrier)));
+                            ++active;
+                        }
+                        else if (active == 0)
+                            break;
+                        else if (timed)
+                        {
+                            f = ecs.Poll(duration);
+                            if (f == null)
+                                throw new TimeoutException();
+                            // We need to recalculate wait time if Poll was interrupted
+                            duration = duration.Subtract(DateTime.Now.Subtract(lastTime));
+                            lastTime = DateTime.Now;
+                        }
+                        else
+                            f = ecs.Take();
+                    }
+                    if (f != null)
+                    {
+                        --active;
+                        try
+                        {
+                            f.GetResult();
+                        }
+                        catch (ThreadInterruptedException tie)
+                        {
+                            throw SystemExtensions.PreserveStackTrace(tie);
+                        }
+                        catch (ExecutionException eex)
+                        {
+                            throw SystemExtensions.PreserveStackTrace(eex);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new ExecutionException(e);
+                        }
+                    }
+                }
+                return futures;
+            }
+            finally
+            {
+                foreach (IFuture<T> future in futures)
+                {
+                    if (!future.IsDone) future.Cancel(true);
+                }
+            }
+        }
+
         /// <summary>
         /// If <paramref name="command"/> is <see cref="IContextCopyingTask"/>
         /// and the context carrier is already set, do nothing. Otherwise set
@@ -1760,66 +2652,5 @@ namespace Spring.Threading.Execution
             return command;
         }
 
-        /// <summary>
-        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
-        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="body"/> delegate is invoked once for each 
-        /// element in the <paramref name="source"/> enumerable. It is provided
-        /// with the current element as a parameter.
-        /// </remarks>
-        /// <typeparam name="TSource">
-        /// The type of the data in the source.
-        /// </typeparam>
-        /// <param name="source">
-        /// An enumerable data source.
-        /// </param>
-        /// <param name="body">
-        /// The delegate that is invoked once per iteration.
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        /// The exception that is thrown when the <paramref name="source"/> argument is null.<br/>
-        /// -or-<br/>
-        /// The exception that is thrown when the <paramref name="body"/> argument is null.
-        /// </exception>
-        public void ForEach<TSource>(IEnumerable<TSource> source, Action<TSource> body)
-        {
-            new Parallel<TSource>(this).ForEach(source, int.MaxValue, body);
-        }
-
-        /// <summary>
-        /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
-        /// in which iterations may run in parallel using this <see cref="IExecutorService"/>.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="body"/> delegate is invoked once for each 
-        /// element in the <paramref name="source"/> enumerable. It is provided
-        /// with the current element as a parameter.
-        /// </remarks>
-        /// <typeparam name="TSource">
-        /// The type of the data in the source.
-        /// </typeparam>
-        /// <param name="source">
-        /// An enumerable data source.
-        /// </param>
-        /// <param name="parallelOptions">
-        /// A <see cref="ParallelOptions"/> instance that configures the 
-        /// behavior of this operation.
-        /// </param>
-        /// <param name="body">
-        /// The delegate that is invoked once per iteration.
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        /// The exception that is thrown when the <paramref name="source"/> argument is null.<br/>
-        /// -or-<br/>
-        /// The exception that is thrown when the <paramref name="parallelOptins"/> argument is null.<br/>
-        /// -or-<br/>
-        /// The exception that is thrown when the <paramref name="body"/> argument is null.
-        /// </exception>
-        public void ForEach<TSource>(IEnumerable<TSource> source, ParallelOptions parallelOptions, Action<TSource> body)
-        {
-            new Parallel<TSource>(this).ForEach(source, parallelOptions, body);
-        }
     }
 }

@@ -9,6 +9,7 @@ using Spring.Collections;
 using Spring.Threading.Execution;
 using Spring.Threading.Future;
 using Spring.Util;
+using ParallelOptions=Spring.Threading.Execution.ParallelOptions;
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -219,12 +220,12 @@ namespace Spring.Threading.Collections.Generic
                 throw new NotImplementedException();
             }
 
-		    public void ForEach<T>(IEnumerable<T> source, Action<T> body)
+		    public ILoopResult ForEach<T>(IEnumerable<T> source, Action<T> body)
 		    {
 		        throw new NotImplementedException();
 		    }
 
-		    public void ForEach<T>(IEnumerable<T> source, ParallelOptions parallelOptions, Action<T> body)
+            public ILoopResult ForEach<T>(IEnumerable<T> source, ParallelOptions parallelOptions, Action<T> body)
 		    {
 		        throw new NotImplementedException();
 		    }

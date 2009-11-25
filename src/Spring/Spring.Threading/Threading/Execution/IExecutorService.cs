@@ -1155,7 +1155,7 @@ namespace Spring.Threading.Execution
         /// -or-<br/>
         /// The exception that is thrown when the <paramref name="body"/> argument is null.
         /// </exception>
-        void ForEach<TSource>(IEnumerable<TSource> source, Action<TSource> body);
+        ILoopResult ForEach<TSource>(IEnumerable<TSource> source, Action<TSource> body);
 
         /// <summary>
         /// Executes a for each operation on an <see cref="IEnumerable{TSource}"/> 
@@ -1186,6 +1186,6 @@ namespace Spring.Threading.Execution
         /// -or-<br/>
         /// The exception that is thrown when the <paramref name="body"/> argument is null.
         /// </exception>
-        void ForEach<TSource>(IEnumerable<TSource> source, ParallelOptions parallelOptions, Action<TSource> body);
+        ILoopResult ForEach<TSource>(IEnumerable<TSource> source, ParallelOptions parallelOptions, Action<TSource> body);
     }
 }

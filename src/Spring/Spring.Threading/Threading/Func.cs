@@ -42,4 +42,7 @@ namespace Spring.Threading
     /// <seealso cref="ICallable{T}"/>
     /// <author>Kenneth Xu</author>
     public delegate T Func<T>(); //NET_ONLY
+
+    public delegate T Func<T1, T2, T3, T>(T1 a1, T2 a2, T3 a3); //NET_ONLY
+    
 }

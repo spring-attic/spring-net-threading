@@ -686,14 +686,14 @@ namespace Spring.Threading.Execution
                 return _executorService.InvokeAny(durationToWait, tasks);
             }
 
-		    public void ForEach<T>(IEnumerable<T> source, Action<T> body)
+            public ILoopResult ForEach<T>(IEnumerable<T> source, Action<T> body)
 		    {
-		        _executorService.ForEach(source, body);
+		        return _executorService.ForEach(source, body);
 		    }
 
-		    public void ForEach<T>(IEnumerable<T> source, ParallelOptions parallelOptions, Action<T> body)
+            public ILoopResult ForEach<T>(IEnumerable<T> source, ParallelOptions parallelOptions, Action<T> body)
 		    {
-		        _executorService.ForEach(source, parallelOptions, body);
+		        return _executorService.ForEach(source, parallelOptions, body);
 		    }
 		}
         

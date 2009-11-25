@@ -26,7 +26,7 @@ using System.Reflection;
 //
 //
 // This is to support side-by-side deployment of .NET 1.1 and .NET 2.0 versions of the assembly.
-[assembly: AssemblyVersion("1.1.1.20001")]
+[assembly: AssemblyVersion("1.1.2.20125")]
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the 

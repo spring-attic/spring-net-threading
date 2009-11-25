@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
-namespace Spring.Threading
+#if !NET_4_0
+namespace System.Threading
 {
     /// <summary>
     /// Test cases for <see cref="ParallelOptions"/>.
     /// </summary>
+    /// <author>Kenneth Xu</author>
     [TestFixture] public class ParallelOptionsTest
     {
         [Test] public void MaxDegreeOfParallelismDefaultToNegativeOne()
@@ -36,3 +35,4 @@ namespace Spring.Threading
         }
     }
 }
+#endif

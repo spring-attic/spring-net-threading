@@ -4,17 +4,17 @@ using System.Threading;
 using NUnit.Framework;
 using Spring.Threading.AtomicTypes;
 using Spring.Threading.Collections.Generic;
-using Spring.Threading.Execution;
 
-namespace Spring.Threading
+namespace Spring.Threading.Execution
 {
     /// <summary>
-    /// Test cases for <see cref="Parallel{T}"/>.
+    /// Test cases for <see cref="ParallelCompletion{T}"/>.
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    /// <author>Kenneth Xu</author>
     [TestFixture(typeof(int))] 
     [TestFixture(typeof(string))] 
-    public class ParallelTest<T> : ThreadingTestFixture<T>
+    public class ParallelCompletionTest<T> : ThreadingTestFixture<T>
     {
         private class ManagedThreadLimiter
         {
@@ -83,54 +83,54 @@ namespace Spring.Threading
         private int _sampleSize;
         private const int _parallelism = 5;
         private ThreadManagerExecutor _executor;
-        private Parallel<T> _parallel;
+        private ParallelCompletion<T> _parallelCompletion;
 
         [SetUp] public void SetUp()
         {
             _sampleSize = 20;
             _executor = new ThreadManagerExecutor(ThreadManager);
-            _parallel = new Parallel<T>(_executor);
+            _parallelCompletion = new ParallelCompletion<T>(_executor);
         }
 
         [Test] public void ConstructorChokesOnNullExecutor()
         {
             var e = Assert.Throws<ArgumentNullException>(
-                ()=>new Parallel<T>(null));
+                ()=>new ParallelCompletion<T>(null));
             Assert.That(e.ParamName, Is.EqualTo("executor"));
         }
 
         [Test] public void ForEachChokesOnNullSource()
         {
             var e = Assert.Throws<ArgumentNullException>(
-                () => _parallel.ForEach(null, 2, t=>{}));
+                () => _parallelCompletion.ForEach(null, 2, (t,s)=>{}));
             Assert.That(e.ParamName, Is.EqualTo("source"));
             e = Assert.Throws<ArgumentNullException>(
-                () => _parallel.ForEach(null, new ParallelOptions(), t => { }));
+                () => _parallelCompletion.ForEach(null, new ParallelOptions(), (t, s) => { }));
             Assert.That(e.ParamName, Is.EqualTo("source"));
         }
 
         [Test] public void ForEachChokesOnNullBody()
         {
             var e = Assert.Throws<ArgumentNullException>(
-                () => _parallel.ForEach(new T[0], 2, null));
+                () => _parallelCompletion.ForEach(new T[0], 2, null));
             Assert.That(e.ParamName, Is.EqualTo("body"));
             e = Assert.Throws<ArgumentNullException>(
-                () => _parallel.ForEach(new T[0], new ParallelOptions(), null));
+                () => _parallelCompletion.ForEach(new T[0], new ParallelOptions(), null));
             Assert.That(e.ParamName, Is.EqualTo("body"));
         }
 
         [Test] public void ForEachChokesOnNullParallelOptions()
         {
             var e = Assert.Throws<ArgumentNullException>(
-                () => _parallel.ForEach(new T[0], null, t => { }));
+                () => _parallelCompletion.ForEach(new T[0], null, (t, s) => { }));
             Assert.That(e.ParamName, Is.EqualTo("parallelOptions"));
         }
 
         [Test] public void ForEachReturnsImmediatelyOnEmptySource()
         {
             List<T> results = new List<T>();
-            _parallel.ForEach(new T[0], new ParallelOptions(),
-                t => { lock (results) results.Add(t); });
+            _parallelCompletion.ForEach(new T[0], new ParallelOptions(),
+                (t, s) => { lock (results) results.Add(t); });
             Assert.That(results, Is.Empty);
             Assert.That(_executor.ThreadCount.Value, Is.EqualTo(0));
         }
@@ -139,8 +139,8 @@ namespace Spring.Threading
         {
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             List<T> results = new List<T>(_sampleSize);
-            _parallel.ForEach(sources, 1,
-                t => { Thread.Sleep(10); lock (results) results.Add(t); });
+            _parallelCompletion.ForEach(sources, 1,
+                (t, s) => { Thread.Sleep(10); lock (results) results.Add(t); });
             Assert.That(results, Is.EquivalentTo(sources));
             Assert.That(_executor.ThreadCount.Value, Is.EqualTo(0));
         }
@@ -150,8 +150,8 @@ namespace Spring.Threading
             _sampleSize = 200;
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             List<T> results = new List<T>(_sampleSize);
-            _parallel.ForEach(sources, new ParallelOptions{MaxDegreeOfParallelism = _parallelism}, 
-                t => { lock (results) results.Add(t); });
+            _parallelCompletion.ForEach(sources, new ParallelOptions{MaxDegreeOfParallelism = _parallelism},
+                (t, s) => { lock (results) results.Add(t); });
             Assert.That(results, Is.EquivalentTo(sources));
             Assert.That(_executor.ThreadCount.Value, Is.LessThanOrEqualTo(_parallelism));
             ThreadManager.JoinAndVerify();
@@ -162,8 +162,8 @@ namespace Spring.Threading
             _executor.Threshold = maxThread;
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             List<T> results = new List<T>(_sampleSize);
-            _parallel.ForEach(sources, _parallelism,
-                t => { Thread.Sleep(10); lock (results) results.Add(t); });
+            _parallelCompletion.ForEach(sources, _parallelism,
+                (t, s) => { Thread.Sleep(10); lock (results) results.Add(t); });
             Assert.That(results, Is.EquivalentTo(sources));
             Assert.That(_executor.ThreadCount.Value, Is.EqualTo(Math.Min(_parallelism, maxThread)));
             ThreadManager.JoinAndVerify();
@@ -175,8 +175,8 @@ namespace Spring.Threading
             _executor.Delay = SHORT_DELAY;
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             List<T> results = new List<T>(_sampleSize);
-            _parallel.ForEach(sources, _parallelism,
-                t => { Thread.Sleep(10); lock (results) results.Add(t); });
+            _parallelCompletion.ForEach(sources, _parallelism,
+                (t, s) => { Thread.Sleep(10); lock (results) results.Add(t); });
             Assert.That(_executor.ThreadCount.Value, Is.EqualTo(_parallelism));
             Assert.That(results, Is.EquivalentTo(sources));
             ThreadManager.JoinAndVerify();
@@ -190,11 +190,11 @@ namespace Spring.Threading
                 TimeSpan.MaxValue, new LinkedBlockingQueue<IRunnable>(1), tf);
             try
             {
-                var parallel = new Parallel<T>(executor);
+                var parallel = new ParallelCompletion<T>(executor);
                 T[] sources = TestData<T>.MakeTestArray(_sampleSize);
                 List<T> results = new List<T>(_sampleSize);
                 parallel.ForEach(sources, _parallelism,
-                    t => { Thread.Sleep(10); lock (results) results.Add(t); });
+                    (t, s) => { Thread.Sleep(10); lock (results) results.Add(t); });
                 Assert.That(results, Is.EquivalentTo(sources));
                 Assert.That(parallel.ActualDegreeOfParallelism, Is.EqualTo(Math.Min(_parallelism, coreSize)));
             }
@@ -213,8 +213,8 @@ namespace Spring.Threading
             ThreadManager.StartAndAssertRegistered("Driver",
                 () => {
                     var e = Assert.Throws<AggregateException>(() =>
-                        _parallel.ForEach(sources, _parallelism,
-                            t =>
+                        _parallelCompletion.ForEach(sources, _parallelism,
+                            (t, s) =>
                             {
                                 if (Equals(t, sources[0]))
                                 {

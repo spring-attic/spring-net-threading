@@ -23,4 +23,12 @@ namespace Spring.Threading
     /// </summary>
     /// <seealso cref="IExecutor.Execute(Action)"/>
     public delegate void Action(); //NET_ONLY
+
+    /// <summary>
+    /// Analogue of System.Action{T1, T2}.
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <typeparam name="T2"></typeparam>
+    public delegate void Action<T1, T2>(T1 a1, T2 a2);
+    public delegate void Action<T1, T2, T3>(T1 a1, T2 a2, T3 a3);
 }

@@ -91,9 +91,14 @@
     <Compile Include="Collections\Generic\IQueue.cs" />
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CommonAssemblyInfo.cs" />
-    <Compile Include="Threading\AggregateException.cs" />
+    <Compile Include="System\Threading\ParallelLoopResult.cs" />
+    <Compile Include="Threading\Execution\ILoopResult.cs" />
+    <Compile Include="Threading\Execution\ILoopState.cs" />
+    <Compile Include="System\Threading\Parallel.cs" />
+    <Compile Include="System\AggregateException.cs" />
+    <Compile Include="System\Threading\ParallelLoopState.cs" />
     <Compile Include="Threading\Collections\Generic\QueueClosedException.cs" />
-    <Compile Include="Threading\Parallel.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletion.cs" />
     <Compile Include="SystemExtensions.cs" />
     <Compile Include="Threading\Action.cs" />
     <Compile Include="Threading\AtomicTypes\AbstractAtomicArray.cs" />
@@ -138,6 +143,8 @@
     <Compile Include="Threading\Execution\ICompletionService.cs" />
     <Compile Include="Threading\Execution\IExecutorService.cs" />
     <Compile Include="Threading\Execution\IRejectedExecutionHandler.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionBase.cs" />
+    <Compile Include="Threading\Execution\ParallelOptions.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionException.cs" />
     <Compile Include="Threading\Execution\ThreadPoolExecutor.cs" />
     <Compile Include="Threading\Func.cs" />
@@ -166,7 +173,7 @@
     <Compile Include="Threading\Locks\ILock.cs" />
     <Compile Include="Threading\Locks\ReentrantLock.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactory.cs" />
-    <Compile Include="Threading\ParallelOptions.cs" />
+    <Compile Include="System\Threading\ParallelOptions.cs" />
     <Compile Include="Threading\Runnable.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
     <Compile Include="Utility\WaitTime.cs" />
