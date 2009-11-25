@@ -685,16 +685,6 @@ namespace Spring.Threading.Execution
             {
                 return _executorService.InvokeAny(durationToWait, tasks);
             }
-
-            public ILoopResult ForEach<T>(IEnumerable<T> source, Action<T> body)
-		    {
-		        return _executorService.ForEach(source, body);
-		    }
-
-            public ILoopResult ForEach<T>(IEnumerable<T> source, ParallelOptions parallelOptions, Action<T> body)
-		    {
-		        return _executorService.ForEach(source, parallelOptions, body);
-		    }
 		}
         
         internal class FinalizableDelegatedExecutorService : DelegatedExecutorService

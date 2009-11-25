@@ -122,6 +122,7 @@
     <Compile Include="Threading\Execution\ILoopState.cs" />
     <Compile Include="Threading\Execution\ParallelCompletion.cs" />
     <Compile Include="Threading\Execution\ParallelCompletionBase.cs" />
+    <Compile Include="Threading\Execution\ParallelExtension.cs" />
     <Compile Include="Threading\Execution\ParallelOptions.cs" />
     <Compile Include="Threading\Callable.cs" />
     <Compile Include="Threading\ClockDaemon.cs" />
