@@ -1,6 +1,6 @@
 using Spring.Threading.Execution;
 
-namespace System.Threading
+namespace System.Threading.Tasks
 {
     /// <summary>
     /// Enables iterations of <see cref="Parallel"/> loops to interact with 

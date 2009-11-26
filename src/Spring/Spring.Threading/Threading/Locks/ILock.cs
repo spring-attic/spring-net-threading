@@ -2,7 +2,8 @@ using System;
 
 namespace Spring.Threading.Locks
 {
-	/// <summary> 
+#pragma warning disable 1574 //TODO PHASED
+    /// <summary> 
 	/// <see cref="Spring.Threading.Locks.ILock"/> implementations provide more extensive locking
 	/// operations than can be obtained using <see lang="lock"/> 
 	/// statements.  They allow more flexible structuring, may have
@@ -132,7 +133,8 @@ namespace Spring.Threading.Locks
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	public interface ILock
-	{
+#pragma warning restore 1574
+    {
 		/// <summary> 
 		/// Acquires the lock.
 		/// <p/>

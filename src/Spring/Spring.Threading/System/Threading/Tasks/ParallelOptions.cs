@@ -19,7 +19,7 @@
 #endregion
 
 #if !NET_4_0
-namespace System.Threading
+namespace System.Threading.Tasks
 {
     /// <summary>
     /// Stores options that configure the operation of methods on the 

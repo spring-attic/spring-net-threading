@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 
 #if !NET_4_0
-namespace System.Threading
+namespace System.Threading.Tasks
 {
     /// <summary>
     /// Test cases for <see cref="ParallelOptions"/>.

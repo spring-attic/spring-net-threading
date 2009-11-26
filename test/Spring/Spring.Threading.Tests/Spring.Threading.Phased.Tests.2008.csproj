@@ -160,7 +160,7 @@
     <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />
     <Compile Include="Threading\CountDownLatchTests.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactoryTest.cs" />
-    <Compile Include="System\Threading\ParallelOptionsTest.cs" />
+    <Compile Include="System\Threading\Tasks\ParallelOptionsTest.cs" />
     <Compile Include="Threading\Execution\ParallelCompletionTest.cs" />
     <Compile Include="Threading\RunnableTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />

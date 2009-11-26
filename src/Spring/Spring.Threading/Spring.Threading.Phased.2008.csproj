@@ -40,7 +40,8 @@
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
-    <NoWarn>1591, 1574</NoWarn>
+    <NoWarn>
+    </NoWarn>
     <Optimize>false</Optimize>
     <RegisterForComInterop>false</RegisterForComInterop>
     <RemoveIntegerChecks>false</RemoveIntegerChecks>
@@ -61,7 +62,8 @@
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
-    <NoWarn>1591, 1574</NoWarn>
+    <NoWarn>
+    </NoWarn>
     <Optimize>true</Optimize>
     <RegisterForComInterop>false</RegisterForComInterop>
     <RemoveIntegerChecks>false</RemoveIntegerChecks>
@@ -95,12 +97,12 @@
     <Compile Include="Collections\Generic\IQueue.cs" />
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CommonAssemblyInfo.cs" />
-    <Compile Include="System\Threading\ParallelLoopResult.cs" />
+    <Compile Include="System\Threading\Tasks\ParallelLoopResult.cs" />
     <Compile Include="Threading\Execution\ILoopResult.cs" />
     <Compile Include="Threading\Execution\ILoopState.cs" />
-    <Compile Include="System\Threading\Parallel.cs" />
+    <Compile Include="System\Threading\Tasks\Parallel.cs" />
     <Compile Include="System\AggregateException.cs" />
-    <Compile Include="System\Threading\ParallelLoopState.cs" />
+    <Compile Include="System\Threading\Tasks\ParallelLoopState.cs" />
     <Compile Include="Threading\Collections\Generic\QueueClosedException.cs" />
     <Compile Include="Threading\Execution\ParallelCompletion.cs" />
     <Compile Include="SystemExtensions.cs" />
@@ -176,7 +178,7 @@
     <Compile Include="Threading\Locks\ILock.cs" />
     <Compile Include="Threading\Locks\ReentrantLock.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactory.cs" />
-    <Compile Include="System\Threading\ParallelOptions.cs" />
+    <Compile Include="System\Threading\Tasks\ParallelOptions.cs" />
     <Compile Include="Threading\Runnable.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
     <Compile Include="Utility\WaitTime.cs" />

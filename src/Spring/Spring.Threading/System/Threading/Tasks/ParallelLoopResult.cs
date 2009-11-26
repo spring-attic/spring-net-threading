@@ -20,7 +20,7 @@
 
 using Spring.Threading.Execution;
 
-namespace System.Threading
+namespace System.Threading.Tasks
 {
     /// <summary>
     /// Provides completion status on the execution of a <see cref="Parallel"/> loop.

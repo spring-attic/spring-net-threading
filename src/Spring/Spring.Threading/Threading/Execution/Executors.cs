@@ -25,7 +25,8 @@ using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
 {
-	/// <summary> 
+#pragma warning disable 1574 //TODO PHASED
+    /// <summary> 
 	/// Factory and utility methods for <see cref="Spring.Threading.IExecutor"/>, 
 	/// <see cref="Spring.Threading.Execution.IExecutorService"/>,
 	/// <see cref="Spring.Threading.Execution.IScheduledExecutorService"/>,
@@ -51,8 +52,9 @@ namespace Spring.Threading.Execution
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
-	public static class Executors //JDK_1_6
-	{
+    public static class Executors //JDK_1_6
+#pragma warning restore 1574
+    {
 		#region Public Static Methods
 		/// <summary> 
 		/// Creates a thread pool that reuses a fixed number of threads

@@ -112,6 +112,10 @@
     <Compile Include="CommonAssemblyInfo.cs" />
     <Compile Include="SystemExtensions.cs" />
     <Compile Include="System\AggregateException.cs" />
+    <Compile Include="System\Threading\Tasks\Parallel.cs" />
+    <Compile Include="System\Threading\Tasks\ParallelLoopResult.cs" />
+    <Compile Include="System\Threading\Tasks\ParallelLoopState.cs" />
+    <Compile Include="System\Threading\Tasks\ParallelOptions.cs" />
     <Compile Include="Threading\BoundedBuffer.cs" />
     <Compile Include="Threading\BoundedLinkedQueue.cs" />
     <Compile Include="Threading\BoundedPriorityQueue.cs" />

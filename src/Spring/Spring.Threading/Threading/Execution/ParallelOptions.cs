@@ -19,7 +19,6 @@
 #endregion
 
 using System;
-using System.Threading;
 
 namespace Spring.Threading.Execution
 {
