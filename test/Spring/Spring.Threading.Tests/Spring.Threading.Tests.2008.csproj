@@ -162,6 +162,9 @@
     <Compile Include="Threading\Execution\ExecutorCompletionServiceTest.cs" />
     <Compile Include="Threading\Execution\ExecutorServiceTestFixture.cs" />
     <Compile Include="Threading\Execution\ExecutorsTest.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionLocalTest.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionNoLocalTest.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionTestBase.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTest.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTests.cs" />
     <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />

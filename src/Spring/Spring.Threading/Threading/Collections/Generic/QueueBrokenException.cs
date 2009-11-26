@@ -3,10 +3,10 @@ using System;
 namespace Spring.Threading.Collections.Generic
 {
     /// <summary>
-    /// Exception to indicate a queue is already closed.
+    /// Exception to indicate a queue is already broken.
     /// </summary>
     [Serializable]
-    public class QueueClosedException : Exception
+    public class QueueBrokenException : Exception
     {
     }
 }

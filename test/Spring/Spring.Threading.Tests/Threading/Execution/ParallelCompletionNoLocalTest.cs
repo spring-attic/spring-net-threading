@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
-using Spring.Threading.AtomicTypes;
 using Spring.Threading.Collections.Generic;
 
 namespace Spring.Threading.Execution
@@ -10,86 +9,13 @@ namespace Spring.Threading.Execution
     /// <summary>
     /// Test cases for <see cref="ParallelCompletion{T}"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(int))] 
     [TestFixture(typeof(string))] 
-    public class ParallelCompletionTest<T> : ThreadingTestFixture<T>
+    public class ParallelCompletionNoLocalTest<T> : ParallelCompletionTestBase
     {
-        private class ManagedThreadLimiter
-        {
-            protected readonly TestThreadManager _manager;
-            public int Threshold = int.MaxValue;
-            public readonly AtomicInteger ThreadCount = new AtomicInteger();
 
-            protected ManagedThreadLimiter(TestThreadManager manager) 
-            {
-                _manager = manager;
-            }
-
-            protected int NextThreadId(bool noException)
-            {
-                if (noException || ThreadCount.Value < Threshold)
-                {
-                    var next = ThreadCount.IncrementValueAndReturn();
-                    if (next <= Threshold) return next;
-                    if(noException) return -next;
-                }
-                throw new RejectedExecutionException();
-            }
-        }
-
-        private class ManagedThreadFactory : ManagedThreadLimiter, IThreadFactory
-        {
-            public ManagedThreadFactory(TestThreadManager manager) : base(manager)
-            {
-            }
-
-            public Thread NewThread(IRunnable runnable)
-            {
-                return _manager.NewVerifiableThread(runnable.Run, "T" + NextThreadId(false));
-            }
-        }
-
-        private class ThreadManagerExecutor : ManagedThreadLimiter, IExecutor
-        {
-            public TimeSpan Delay { get; set; }
-
-            public ThreadManagerExecutor(TestThreadManager manager) : base(manager)
-            {
-            }
-
-            public void Execute(IRunnable command)
-            {
-                Execute(command.Run);
-            }
-
-            public void Execute(Action action)
-            {
-                var useDelay = Delay > TimeSpan.Zero;
-                var tid = NextThreadId(useDelay);
-                ThreadStart ts;
-                if (useDelay && tid < 0)
-                    ts = delegate
-                             {
-                                 Thread.Sleep(Delay);
-                                 action();
-                             };
-                else ts = () => action();
-                _manager.StartAndAssertRegistered("T" + tid, ts);
-            }
-        }
-
-        private int _sampleSize;
-        private const int _parallelism = 5;
-        private ThreadManagerExecutor _executor;
         private ParallelCompletion<T> _sut;
-
-        [SetUp] public void SetUp()
-        {
-            _sampleSize = 20;
-            _executor = new ThreadManagerExecutor(ThreadManager);
-        }
 
         [Test] public void ConstructorChokesOnNullExecutor()
         {
@@ -150,9 +76,9 @@ namespace Spring.Threading.Execution
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             List<T> results = new List<T>(_sampleSize);
             _sut = new ParallelCompletion<T>(_executor, (t, s) => { lock (results) results.Add(t); });
-            _sut.ForEach(sources, new ParallelOptions { MaxDegreeOfParallelism = _parallelism });
+            _sut.ForEach(sources, new ParallelOptions { MaxDegreeOfParallelism = Parallelism });
             Assert.That(results, Is.EquivalentTo(sources));
-            Assert.That(_executor.ThreadCount.Value, Is.LessThanOrEqualTo(_parallelism));
+            Assert.That(_executor.ThreadCount.Value, Is.LessThanOrEqualTo(Parallelism));
             ThreadManager.JoinAndVerify();
         }
 
@@ -163,31 +89,31 @@ namespace Spring.Threading.Execution
             List<T> results = new List<T>(_sampleSize);
             _sut = new ParallelCompletion<T>(_executor,
                 (t, s) => { Thread.Sleep(10); lock (results) results.Add(t); });
-            _sut.ForEach(sources, _parallelism);
+            _sut.ForEach(sources, Parallelism);
             Assert.That(results, Is.EquivalentTo(sources));
-            Assert.That(_executor.ThreadCount.Value, Is.EqualTo(Math.Min(_parallelism, maxThread)));
+            Assert.That(_executor.ThreadCount.Value, Is.EqualTo(Math.Min(Parallelism, maxThread)));
             ThreadManager.JoinAndVerify();
         }
 
         [Test] public void ForEachDoesNotSumitMoreThenMaxDegreeOfParallelism()
         {
-            _executor.Threshold = _parallelism / 2;
+            //_executor.Threshold = Parallelism / 2;
             _executor.Delay = SHORT_DELAY;
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             List<T> results = new List<T>(_sampleSize);
             _sut = new ParallelCompletion<T>(_executor,
                 (t, s) => { Thread.Sleep(10); lock (results) results.Add(t); });
-            _sut.ForEach(sources, _parallelism);
-            Assert.That(_executor.ThreadCount.Value, Is.EqualTo(_parallelism));
+            _sut.ForEach(sources, Parallelism);
+            Assert.That(_executor.ThreadCount.Value, Is.EqualTo(Parallelism));
             Assert.That(results, Is.EquivalentTo(sources));
             ThreadManager.JoinAndVerify();
         }
 
         [Test] public void ForEachLimitsParallismToThreadPoolExecutorCoreSize(
-            [Values(_parallelism - 2, _parallelism + 2)] int coreSize)
+            [Values(Parallelism - 2, Parallelism + 2)] int coreSize)
         {
             var tf = new ManagedThreadFactory(ThreadManager);
-            var executor = new ThreadPoolExecutor(coreSize, _parallelism + 2, 
+            var executor = new ThreadPoolExecutor(coreSize, Parallelism + 2, 
                 TimeSpan.MaxValue, new LinkedBlockingQueue<IRunnable>(1), tf);
             try
             {
@@ -195,9 +121,9 @@ namespace Spring.Threading.Execution
                 List<T> results = new List<T>(_sampleSize);
                 var parallel = new ParallelCompletion<T>(executor,
                     (t, s) => { Thread.Sleep(10); lock (results) results.Add(t); });
-                parallel.ForEach(sources, _parallelism);
+                parallel.ForEach(sources, Parallelism);
                 Assert.That(results, Is.EquivalentTo(sources));
-                Assert.That(parallel.ActualDegreeOfParallelism, Is.EqualTo(Math.Min(_parallelism, coreSize)));
+                Assert.That(parallel.ActualDegreeOfParallelism, Is.EqualTo(Math.Min(Parallelism, coreSize)));
             }
             finally
             {
@@ -226,11 +152,120 @@ namespace Spring.Threading.Execution
             ThreadManager.StartAndAssertRegistered("Driver",
                 () => {
                     var e = Assert.Throws<AggregateException>(() =>
-                        _sut.ForEach(sources, _parallelism));
+                        _sut.ForEach(sources, Parallelism));
                     Assert.That(e.InnerException, Is.SameAs(exception));
-                    Assert.That(_executor.ThreadCount.Value, Is.EqualTo(_parallelism));
+                    Assert.That(_executor.ThreadCount.Value, Is.EqualTo(Parallelism));
                 });
             Thread.Sleep(SHORT_DELAY);
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void ForEachStopsAsSoonAsStopCalledAt(
+            [Values(Parallelism / 2, Parallelism, Parallelism*2)] int cancelAt)
+        {
+            T[] sources = TestData<T>.MakeTestArray(_sampleSize);
+            List<T> completed = new List<T>(_sampleSize);
+            _sut = new ParallelCompletion<T>(_executor,
+                (t, s) =>
+                {
+                    Thread.Sleep(s.CurrentIndex == 0 ? SHORT_DELAY_MS : 10);
+                    if (s.CurrentIndex == cancelAt) s.Stop();
+                    else
+                    {
+                        if (!s.ShouldExitCurrentIteration) lock (completed) completed.Add(t);
+                        else
+                        {
+                            Assert.That(s.LowestBreakIteration, Is.Null);
+                            Assert.That(s.IsExceptional, Is.False);
+                            Assert.That(s.IsStopped, Is.True);
+                        }
+                    }
+                });
+            var result = _sut.ForEach(sources, Parallelism);
+            Assert.That(result.IsCompleted, Is.False);
+            Assert.That(completed, Has.No.Member(sources[0]));
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void ForEachStopsAsSoonAsExceptionThrownAt(
+            [Values(Parallelism / 2, Parallelism, Parallelism * 2)] int cancelAt)
+        {
+            T[] sources = TestData<T>.MakeTestArray(_sampleSize);
+            List<T> completed = new List<T>(_sampleSize);
+            _sut = new ParallelCompletion<T>(_executor,
+                (t, s) =>
+                {
+                    Thread.Sleep(s.CurrentIndex == 0 ? SHORT_DELAY_MS : 10);
+                    if (s.CurrentIndex == cancelAt) throw new Exception();
+                    if (!s.ShouldExitCurrentIteration) lock (completed) completed.Add(t);
+                    else
+                    {
+                        Assert.That(s.LowestBreakIteration, Is.Null);
+                        Assert.That(s.IsExceptional, Is.True);
+                        Assert.That(s.IsStopped, Is.False);
+                    }
+                });
+            Assert.Catch(()=>_sut.ForEach(sources, Parallelism));
+            Assert.That(completed, Has.No.Member(sources[0]));
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void ForEachCompletesIterationsLessThenBreakIndexOf(
+            [Values(Parallelism / 2, Parallelism, Parallelism * 2)] int cancelAt)
+        {
+            T[] sources = TestData<T>.MakeTestArray(_sampleSize);
+            List<T> completed = new List<T>(_sampleSize);
+            _sut = new ParallelCompletion<T>(_executor,
+                (t, s) =>
+                {
+                    Thread.Sleep(s.CurrentIndex == 0 ? SHORT_DELAY_MS : 10);
+                    if (s.CurrentIndex == cancelAt) s.Break();
+                    else
+                    {
+                        if (!s.ShouldExitCurrentIteration) lock (completed) completed.Add(t);
+                        else
+                        {
+                            Assert.That(s.LowestBreakIteration, Is.EqualTo(cancelAt));
+                            Assert.That(s.IsExceptional, Is.False);
+                            Assert.That(s.IsStopped, Is.False);
+                        }
+                    }
+                });
+            var result = _sut.ForEach(sources, Parallelism);
+            Assert.That(result.IsCompleted, Is.False);
+            Assert.That(result.LowestBreakIteration, Is.EqualTo(cancelAt));
+            Assert.That(completed.Count, Is.GreaterThanOrEqualTo(cancelAt));
+            Assert.That(completed, Has.Member(sources[0]));
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void ForEachRecordsTheLowestOfMultipleBreaks(
+            [Values(Parallelism / 2, Parallelism, Parallelism * 2)] int cancelAt)
+        {
+            T[] sources = TestData<T>.MakeTestArray(_sampleSize);
+            _sut = new ParallelCompletion<T>(_executor,
+                (t, s) =>
+                {
+                    if (s.CurrentIndex == cancelAt)
+                    {
+                        Thread.Sleep(SHORT_DELAY); s.Break();
+                    } 
+                    else if (s.CurrentIndex == cancelAt + 1)
+                    {
+                        Thread.Sleep(SHORT_DELAY); s.Break();
+                    }
+                    else if (s.CurrentIndex == cancelAt + 2)
+                    {
+                        Thread.Sleep(10); s.Break();
+                    }
+                    else
+                    {
+                        Thread.Sleep(10);
+                    }
+                });
+            var result = _sut.ForEach(sources, Parallelism);
+            Assert.That(result.IsCompleted, Is.False);
+            Assert.That(result.LowestBreakIteration, Is.EqualTo(cancelAt));
             ThreadManager.JoinAndVerify();
         }
     }

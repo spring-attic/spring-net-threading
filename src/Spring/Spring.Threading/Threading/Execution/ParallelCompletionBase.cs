@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Spring.Threading.AtomicTypes;
 using Spring.Threading.Collections.Generic;
 using Spring.Threading.Future;
 
@@ -12,10 +13,12 @@ namespace Spring.Threading.Execution
         private int _maxDegreeOfParallelism;
         //TODO: use ArrayBlockingQueue after it's fully tested.
         protected LinkedBlockingQueue<KeyValuePair<long, T>> _itemQueue;
+        private readonly AtomicLong _lowestBreakIteration = new AtomicLong(-1);
         private List<IFuture<object>> _futures;
         private Exception _exception;
         private int _taskCount;
         private int _maxCount;
+        private bool _isStopped;
 
         internal ParallelCompletionBase(IExecutor executor)
         {
@@ -25,29 +28,58 @@ namespace Spring.Threading.Execution
 
         public bool IsCompleted
         {
-            get { return !ShouldExitCurrentIteration; }
+            get { return !ShouldExitCurrentIteration(long.MaxValue); }
         }
 
         public long? LowestBreakIteration
         {
-            get;
-            internal set;
+            get
+            {
+                long lowestBreakIteration = _lowestBreakIteration;
+                return lowestBreakIteration == -1 ? (long?) null : lowestBreakIteration;
+            }
         }
 
-        internal bool ShouldExitCurrentIteration
+        internal void Break(long iteration)
         {
-            get { return LowestBreakIteration.HasValue || IsStopped || IsExceptional; }
+            long lowestBreakIteration;
+            do
+            {
+                lowestBreakIteration = _lowestBreakIteration;
+                if (lowestBreakIteration >= 0 && lowestBreakIteration <= iteration) break;
+            } while (!_lowestBreakIteration.CompareAndSet(lowestBreakIteration, iteration));
+        }
+
+        internal bool ShouldExitCurrentIteration(long iteration)
+        {
+            long lowestBreakIteration = _lowestBreakIteration; //this causes memory barrier.
+            var isBroken = (lowestBreakIteration >= 0 && iteration >= lowestBreakIteration);
+            if (isBroken) _itemQueue.Break();
+            return isBroken || _isStopped || _exception != null;
         }
 
         internal bool IsStopped
         {
-            get;
-            set;
+            get
+            {
+                Thread.MemoryBarrier();
+                return _isStopped;
+            }
+        }
+
+        internal void Stop()
+        {
+            _isStopped = true;
+            _itemQueue.Stop();
         }
 
         internal bool IsExceptional
         {
-            get { return _exception != null; }
+            get
+            {
+                Thread.MemoryBarrier();
+                return _exception != null;
+            }
         }
 
         internal int ActualDegreeOfParallelism { get { return _maxCount; } }
@@ -92,7 +124,7 @@ namespace Spring.Threading.Execution
             do success = _itemQueue.TryPut(new KeyValuePair<long, T>(count++, iterator.Current));
             while (success && iterator.MoveNext());
 
-            _itemQueue.Close();
+            _itemQueue.Break();
 
             WaitForAllTaskToComplete();
             return this;
@@ -125,7 +157,7 @@ namespace Spring.Threading.Execution
                             lock (this)
                             {
                                 if (_exception == null) _exception = e;
-                                _itemQueue.Break();
+                                _itemQueue.Stop();
                             }
                         }
                         finally
@@ -199,7 +231,7 @@ namespace Spring.Threading.Execution
 
             public bool ShouldExitCurrentIteration
             {
-                get { return _parent.ShouldExitCurrentIteration; }
+                get { return _parent.ShouldExitCurrentIteration(CurrentIndex); }
             }
 
             public long? LowestBreakIteration
@@ -219,12 +251,12 @@ namespace Spring.Threading.Execution
 
             public void Stop()
             {
-                _parent.IsStopped = true;
+                _parent.Stop();
             }
 
             public void Break()
             {
-                _parent.LowestBreakIteration = CurrentIndex;
+                _parent.Break(CurrentIndex);
             }
 
             public long CurrentIndex { get; internal set; }

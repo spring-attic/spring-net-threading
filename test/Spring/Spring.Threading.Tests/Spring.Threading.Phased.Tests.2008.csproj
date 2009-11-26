@@ -152,6 +152,8 @@
     <Compile Include="Threading\Execution\CancellationExceptionTest.cs" />
     <Compile Include="Threading\Execution\ExecutionExceptionTest.cs" />
     <Compile Include="Threading\Execution\DelegatedExecutorServiceTest.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionLocalTest.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionTestBase.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTest.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\DiscardOldestPolicyTest.cs" />
     <Compile Include="Threading\Execution\ExecutionPolicy\DiscardPolicyTest.cs" />
@@ -161,7 +163,7 @@
     <Compile Include="Threading\CountDownLatchTests.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactoryTest.cs" />
     <Compile Include="System\Threading\Tasks\ParallelOptionsTest.cs" />
-    <Compile Include="Threading\Execution\ParallelCompletionTest.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionNoLocalTest.cs" />
     <Compile Include="Threading\RunnableTest.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />

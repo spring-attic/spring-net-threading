@@ -55,7 +55,7 @@ namespace Spring.Threading.Execution
         {
             var state = new LoopState(this);
             for (bool hasMore = true;
-                hasMore && !ShouldExitCurrentIteration; 
+                hasMore && !ShouldExitCurrentIteration(source.Key); 
                 hasMore = _itemQueue.TryTake(out source) )
             {
                 state.CurrentIndex = source.Key;
@@ -104,7 +104,7 @@ namespace Spring.Threading.Execution
             var state = new LoopState(this);
             var local = _localInit();
             for (bool hasMore = true;
-                hasMore && !ShouldExitCurrentIteration;
+                hasMore && !ShouldExitCurrentIteration(source.Key);
                 hasMore = _itemQueue.TryTake(out source))
             {
                 state.CurrentIndex = source.Key;

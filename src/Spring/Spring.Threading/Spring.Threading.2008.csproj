@@ -120,7 +120,7 @@
     <Compile Include="Threading\BoundedLinkedQueue.cs" />
     <Compile Include="Threading\BoundedPriorityQueue.cs" />
     <Compile Include="Threading\BrokenBarrierException.cs" />
-    <Compile Include="Threading\Collections\Generic\QueueClosedException.cs" />
+    <Compile Include="Threading\Collections\Generic\QueueBrokenException.cs" />
     <Compile Include="Threading\CountDownLatch.cs" />
     <Compile Include="Threading\Execution\ILoopResult.cs" />
     <Compile Include="Threading\Execution\ILoopState.cs" />

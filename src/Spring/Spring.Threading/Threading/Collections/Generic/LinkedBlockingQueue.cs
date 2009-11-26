@@ -87,7 +87,7 @@ namespace Spring.Threading.Collections.Generic {
         private volatile int _activeCount;
 
         [NonSerialized] 
-        private volatile bool _isClosed;
+        private volatile bool _isBroken;
 
         /// <summary>Head of linked list </summary>
         [NonSerialized]
@@ -197,12 +197,12 @@ namespace Spring.Threading.Collections.Generic {
         /// <exception cref="ThreadInterruptedException">
         /// if interrupted while waiting.
         /// </exception>
-        /// <exception cref="QueueClosedException">
-        /// If the queue is already <see cref="IsClosed">closed</see>.
+        /// <exception cref="QueueBrokenException">
+        /// If the queue is already <see cref="IsBroken">closed</see>.
         /// </exception>
         public override void Put(T element)
         {
-            if(!TryPut(element)) throw new QueueClosedException();
+            if(!TryPut(element)) throw new QueueBrokenException();
         }
 
         /// <summary>
@@ -210,14 +210,14 @@ namespace Spring.Threading.Collections.Generic {
         /// for space to become available.
         /// </summary>
         /// <remarks>
-        /// <see cref="Close"/> the queue will cause a waiting <see cref="TryPut"/>
+        /// <see cref="Break"/> the queue will cause a waiting <see cref="TryPut"/>
         /// to returned <c>false</c>. This is very useful to indicate that the
         /// consumer is stopped or going to stop so that the producer should not 
         /// put more items into the queue.
         /// </remarks>
         /// <param name="element">the element to add</param>
         /// <returns>
-        /// <c>true</c> if succesfully and <c>false</c> if queue <see cref="IsClosed"/>.
+        /// <c>true</c> if succesfully and <c>false</c> if queue <see cref="IsBroken"/>.
         /// </returns>
         /// <exception cref="ThreadInterruptedException">
         /// if interrupted while waiting.
@@ -235,13 +235,13 @@ namespace Spring.Threading.Collections.Generic {
                  * signaled if it ever changes from capacity. Similarly 
                  * for all other uses of count in other wait guards.
                  */
-                if (_isClosed) return false;
+                if (_isBroken) return false;
                 try
                 {
                     while(_activeCount == _capacity)
                     {
                         Monitor.Wait(_putLock);
-                        if (_isClosed) return false;
+                        if (_isBroken) return false;
                     }
                 }
                 catch(ThreadInterruptedException e) {
@@ -283,7 +283,7 @@ namespace Spring.Threading.Collections.Generic {
             int tempCount;
             lock(_putLock) {
                 for(; ; ) {
-                    if (_isClosed) return false;
+                    if (_isBroken) return false;
                     if (_activeCount < _capacity) {
                         Insert(element);
                         lock(this) {
@@ -327,11 +327,11 @@ namespace Spring.Threading.Collections.Generic {
         /// <see lang="true"/> if the element was added to this queue.
         /// </returns>
         public override bool Offer(T element) {
-            if(_activeCount == _capacity || _isClosed)
+            if(_activeCount == _capacity || _isBroken)
                 return false;
             int tempCount = -1;
             lock(_putLock) {
-                if(_activeCount < _capacity && !_isClosed) {
+                if(_activeCount < _capacity && !_isBroken) {
                     Insert(element);
                     lock(this) {
                         tempCount = _activeCount++;
@@ -351,13 +351,13 @@ namespace Spring.Threading.Collections.Generic {
         /// until an element becomes available.
         /// </summary>
         /// <returns> the head of this queue</returns>
-        /// <exception cref="QueueClosedException">
-        /// If the queue is empty and already <see cref="IsClosed">closed</see>.
+        /// <exception cref="QueueBrokenException">
+        /// If the queue is empty and already <see cref="IsBroken">closed</see>.
         /// </exception>
         public override T Take()
         {
             T x;
-            if (!TryTake(out x)) throw new QueueClosedException();
+            if (!TryTake(out x)) throw new QueueBrokenException();
             return x;
         }
 
@@ -366,7 +366,7 @@ namespace Spring.Threading.Collections.Generic {
         /// until an element becomes available.
         /// </summary>
         /// <remarks>
-        /// <see cref="Close"/> the queue will cause a waiting <see cref="TryTake"/>
+        /// <see cref="Break"/> the queue will cause a waiting <see cref="TryTake"/>
         /// to returned <c>false</c>. This is very useful to indicate that the
         /// producer is stopped so that the producer should stop waiting for
         /// element from queu.
@@ -376,7 +376,7 @@ namespace Spring.Threading.Collections.Generic {
         /// </param>
         /// <returns>
         /// <c>true</c> if succesfully and <c>false</c> if queue is empty and 
-        /// <see cref="IsClosed">closed</see>.
+        /// <see cref="IsBroken">closed</see>.
         /// </returns>
         public virtual bool TryTake(out T element)
         {
@@ -386,7 +386,7 @@ namespace Spring.Threading.Collections.Generic {
                 try {
                     while(_activeCount == 0)
                     {
-                        if (_isClosed)
+                        if (_isBroken)
                         {
                             element = default(T);
                             return false;
@@ -443,7 +443,7 @@ namespace Spring.Threading.Collections.Generic {
                             Monitor.Pulse(_takeLock);
                         break;
                     }
-                    if (duration.Ticks <= 0 || _isClosed)
+                    if (duration.Ticks <= 0 || _isBroken)
                     {
                         element = default(T);
                         return false;
@@ -724,29 +724,39 @@ namespace Spring.Threading.Collections.Generic {
         #endregion
 
         /// <summary>
-        /// Indicate if current queue is closed.
+        /// Indicate if current queue is broken. A broken queue never blocks.
         /// </summary>
-        public virtual bool IsClosed
+        public virtual bool IsBroken
         {
-            get { return _isClosed; }
+            get { return _isBroken; }
         }
 
         /// <summary>
-        /// Close current queue. 
+        /// Break current queue. 
         /// </summary>
         /// <remarks>
-        /// When a queue is closed, all blocking actions will return with
-        /// unsuccesful status or <see cref="QueueClosedException"/> is 
-        /// thrown if method doesn't return any status.
+        /// <para>
+        /// When a queue is broken, all blocking actions and subsequent put
+        /// actions will return immediately with unsuccesful status or 
+        /// <see cref="QueueBrokenException"/> is thrown if method doesn't 
+        /// return any status. Subsequent get actions will continue to sucess
+        /// until the queue becomes empty.
+        /// </para>
+        /// <para>
+        /// <see cref="Break"/> allows remaining elements in the queue to
+        /// be consumed by subsequent get actions. Use <see cref="Stop"/> 
+        /// to break the queue and empties it in the meantime, which
+        /// effectively ensures any subsequent get action to fail.
+        /// </para>
         /// </remarks>
-        public virtual void Close()
+        public virtual void Break()
         {
-            if (_isClosed) return;
+            if (_isBroken) return;
             lock (_putLock)
             {
                 lock (_takeLock)
                 {
-                    _isClosed = true;
+                    _isBroken = true;
                     Monitor.PulseAll(_putLock);
                     Monitor.PulseAll(_takeLock);
                 }
@@ -754,14 +764,16 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary>
-        /// Empty and close current queue. 
+        /// <see cref="Break"/> and empty current queue. 
         /// </summary>
         /// <remarks>
-        /// When a queue is broken, any queue modification will return with
-        /// unsuccesful status or <see cref="QueueClosedException"/> is 
-        /// thrown if method doesn't return any status.
+        /// As soon as a queue is stopped, all blocking queue modification 
+        /// actions return immediately with unsuccesful status or 
+        /// <see cref="QueueBrokenException"/> is thrown if method doesn't 
+        /// return any status. So does any subsequent queue modification
+        /// actions.
         /// </remarks>
-        public virtual void Break()
+        public virtual void Stop()
         {
             EmptyQueue(true);
         }
@@ -951,7 +963,7 @@ namespace Spring.Threading.Collections.Generic {
         #endregion
 
         #region Private Methods
-        private void EmptyQueue(bool close)
+        private void EmptyQueue(bool @break)
         {
             lock (_putLock)
             {
@@ -968,10 +980,10 @@ namespace Spring.Threading.Collections.Generic {
                         _version++;
                     }
                     bool pulsePut = (c == _capacity);
-                    if (_isClosed != close)
+                    if (_isBroken != @break)
                     {
-                        _isClosed = close;
-                        if(close)
+                        _isBroken = @break;
+                        if(@break)
                         {
                             Monitor.PulseAll(_takeLock);
                             pulsePut = true;

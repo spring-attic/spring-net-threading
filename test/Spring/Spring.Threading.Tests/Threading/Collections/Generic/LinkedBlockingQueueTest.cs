@@ -120,34 +120,34 @@ namespace Spring.Threading.Collections.Generic
             Assert.That(e.ActualValue, Is.EqualTo(capacity));
         }
 
-        [Test] public void IsCloseIndicatesIfQueueIsClosed()
+        [Test] public void IsBrokenIndicatesIfQueueIsBroken()
         {
             var q = NewLinkedBlockingQueue();
-            Assert.IsFalse(q.IsClosed);
-            q.Close();
-            Assert.IsTrue(q.IsClosed);
+            Assert.IsFalse(q.IsBroken);
+            q.Break();
+            Assert.IsTrue(q.IsBroken);
             q.Clear();
-            Assert.IsFalse(q.IsClosed);
+            Assert.IsFalse(q.IsBroken);
         }
 
-        [Test] public void BreakEmptiesAndClosesQueue()
+        [Test] public void StopBreaksAndEmptiesQueue()
         {
             var q = NewLinkedBlockingQueueFilledWithSample();
             Assert.That(q.Count, Is.GreaterThan(0));
-            Assert.IsFalse(q.IsClosed);
-            q.Break();
+            Assert.IsFalse(q.IsBroken);
+            q.Stop();
             Assert.That(q.Count, Is.EqualTo(0));
-            Assert.IsTrue(q.IsClosed);
+            Assert.IsTrue(q.IsBroken);
         }
 
-        [Test] public void TimedOfferReturnsFalseWhenQueueClosed()
+        [Test] public void TimedOfferReturnsFalseWhenQueueIsBroken()
         {
             var q = NewLinkedBlockingQueue();
-            q.Close();
+            q.Break();
             Assert.IsFalse(q.Offer(TestData<T>.One, SHORT_DELAY));
         }
 
-        [Test] public void BlockedTimedOfferReturnsWhenQueueClosed()
+        [Test] public void BlockedTimedOfferReturnsWhenQueueIsBroken()
         {
             Options.SkipWhen(CollectionOptions.Unbounded);
             var q = NewLinkedBlockingQueueFilledWithSample();
@@ -160,43 +160,24 @@ namespace Spring.Threading.Collections.Generic
                 });
             Thread.Sleep(SHORT_DELAY);
             Assert.IsFalse(isOfferReturned);
-            q.Close();
+            q.Break();
             Thread.Sleep(SHORT_DELAY);
             Assert.IsTrue(isOfferReturned);
             ThreadManager.JoinAndVerify();
         }
 
-        [Test] public void TryPutReturnFalseWhenQueueClosed()
+        [Test] public void TryPutReturnFalseWhenQueueIsBroken()
         {
             LinkedBlockingQueue<T> q = NewLinkedBlockingQueue();
-            q.Close();
+            q.Break();
             Assert.IsFalse(q.TryPut(TestData<T>.One));
         }
 
-        [Test] public void PutChokesWhenQueueClosed()
+        [Test] public void PutChokesWhenQueueIsBroken()
         {
             LinkedBlockingQueue<T> q = NewLinkedBlockingQueue();
-            q.Close();
-            Assert.Throws<QueueClosedException>(()=>q.Put(TestData<T>.One));
-        }
-
-        [Test] public void BlockedTryPutPuturnsFalseWhenQueueIsClosed()
-        {
-            Options.SkipWhen(CollectionOptions.Unbounded);
-            var q = NewLinkedBlockingQueueFilledWithSample();
-            var isTryPutReturned = new AtomicBoolean();
-            ThreadManager.StartAndAssertRegistered(
-                "T1", () =>
-                          {
-                              Assert.IsFalse(q.TryPut(TestData<T>.One));
-                              isTryPutReturned.Value = true;
-                          });
-            Thread.Sleep(SHORT_DELAY);
-            Assert.IsFalse(isTryPutReturned);
-            q.Close();
-            Thread.Sleep(SHORT_DELAY);
-            Assert.IsTrue(isTryPutReturned);
-            ThreadManager.JoinAndVerify();
+            q.Break();
+            Assert.Throws<QueueBrokenException>(()=>q.Put(TestData<T>.One));
         }
 
         [Test] public void BlockedTryPutPuturnsFalseWhenQueueIsBroken()
@@ -218,29 +199,48 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.JoinAndVerify();
         }
 
-        [Test] public void TryTakeReturnsFalseOnlyWhenQueueClosedAndEmpty()
+        [Test] public void BlockedTryPutPuturnsFalseWhenQueueIsStopped()
+        {
+            Options.SkipWhen(CollectionOptions.Unbounded);
+            var q = NewLinkedBlockingQueueFilledWithSample();
+            var isTryPutReturned = new AtomicBoolean();
+            ThreadManager.StartAndAssertRegistered(
+                "T1", () =>
+                          {
+                              Assert.IsFalse(q.TryPut(TestData<T>.One));
+                              isTryPutReturned.Value = true;
+                          });
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsFalse(isTryPutReturned);
+            q.Stop();
+            Thread.Sleep(SHORT_DELAY);
+            Assert.IsTrue(isTryPutReturned);
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void TryTakeReturnsFalseOnlyWhenQueueIsBrokenAndEmpty()
         {
             var q = NewLinkedBlockingQueue();
             var one = TestData<T>.One;
             q.Put(one);
-            q.Close();
+            q.Break();
             T result;
             Assert.IsTrue(q.TryTake(out result));
             Assert.That(result, Is.EqualTo(one));
             Assert.IsFalse(q.TryTake(out result));
         }
 
-        [Test] public void TakeChokesOnlyWhenQueueClosedAndEmpty()
+        [Test] public void TakeChokesOnlyWhenQueueIsBrokenAndEmpty()
         {
             var q = NewLinkedBlockingQueue();
             var one = TestData<T>.One;
             q.Put(one);
-            q.Close();
+            q.Break();
             Assert.That(q.Take(), Is.EqualTo(one));
-            Assert.Throws<QueueClosedException>(()=>q.Take());
+            Assert.Throws<QueueBrokenException>(()=>q.Take());
         }
 
-        [Test] public void BlockedTryTakePuturnsWhenQueueIsClosed()
+        [Test] public void BlockedTryTakePuturnsWhenQueueIsBroken()
         {
             Options.SkipWhen(CollectionOptions.Unbounded);
             var q = NewLinkedBlockingQueue();
@@ -254,7 +254,7 @@ namespace Spring.Threading.Collections.Generic
                 });
             Thread.Sleep(SHORT_DELAY);
             Assert.IsFalse(isTryTakeReturned);
-            q.Close();
+            q.Break();
             Thread.Sleep(SHORT_DELAY);
             Assert.IsTrue(isTryTakeReturned);
             ThreadManager.JoinAndVerify();
