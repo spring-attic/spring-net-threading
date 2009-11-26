@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Spring.TestFixture.Collections.Generic
+namespace Spring.TestFixtures.Collections.Generic
 {
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="IEnumerable{T}"/>.

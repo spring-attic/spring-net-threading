@@ -1,6 +1,6 @@
 using System;
 
-namespace Spring.TestFixture.Collections
+namespace Spring.TestFixtures.Collections
 {
     [Flags] public enum CollectionOptions
     {

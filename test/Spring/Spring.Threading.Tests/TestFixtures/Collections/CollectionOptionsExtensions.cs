@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Spring.TestFixture.Collections
+namespace Spring.TestFixtures.Collections
 {
     public static class CollectionOptionsExtensions
     {

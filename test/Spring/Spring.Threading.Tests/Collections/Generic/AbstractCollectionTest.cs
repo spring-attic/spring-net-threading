@@ -42,7 +42,7 @@ namespace Spring.Collections.Generic
 
         [Test] public void CheckToString()
         {
-            Spring.TestFixture.Collections.Generic.CollectionTestFixture<T>.ToStringContainsToStringOfElements(mock);
+            Spring.TestFixtures.Collections.Generic.CollectionTestFixture<T>.ToStringContainsToStringOfElements(mock);
             //Assert.AreEqual("MockCollection`1(0, 1, 2, 3, 4)", mock.ToString());
         }
 

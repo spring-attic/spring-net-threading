@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Spring.TestFixture.Collections.NonGeneric
+namespace Spring.TestFixtures.Collections.Generic
 {
     /// <summary>
-    /// Basic functionality test cases for implementation of <see cref="IEnumerator"/>.
+    /// Basic functionality test cases for implementation of <see cref="IEnumerator{T}"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public abstract class EnumeratorTestFixture
+    public abstract class EnumeratorTestFixture<T> : ThreadingTestFixture
     {
         private int _antiHangingLimit = 512;
         protected int AntiHangingLimit
@@ -17,44 +17,44 @@ namespace Spring.TestFixture.Collections.NonGeneric
             set { _antiHangingLimit = value; }
         }
 
-        protected abstract IEnumerator NewEnumerator();
+        protected abstract IEnumerator<T> NewEnumerator();
 
-        [Test] public void IteratingThroughEnumeratorOnce()
+        [Test]
+        public void IteratingThroughEnumeratorOnce()
         {
             Iterate(NewEnumerator());
         }
 
-        [Test] public void IterateEnumeratorResetAndIterateAgain()
+        [Test]
+        public void IterateEnumeratorResetAndIterateAgain()
         {
-            IEnumerator e = NewEnumerator();
+            IEnumerator<T> e = NewEnumerator();
             int count = Iterate(e);
             try
             {
                 e.Reset();
             }
-            catch(NotSupportedException)
+            catch (NotSupportedException)
             {
                 return;
             }
             Assert.That(Iterate(e), Is.EqualTo(count));
+
         }
 
-        private int Iterate(IEnumerator enumerator)
+        private int Iterate(IEnumerator<T> enumerator)
         {
             int count = 0;
-#pragma warning disable 219
-            object value;
-#pragma warning restore 219
-            Assert.Throws<InvalidOperationException>(delegate { value = enumerator.Current; });
-            while(enumerator.MoveNext())
+            while (enumerator.MoveNext())
             {
-                value = enumerator.Current;
+#pragma warning disable 168
+                T value = enumerator.Current;
+#pragma warning restore 168
                 if (++count >= _antiHangingLimit)
                 {
                     Assert.Fail("Endless enumerator? reached the {0} iteration limit set by AntiHangingLimit property.", _antiHangingLimit);
                 }
             }
-            Assert.Throws<InvalidOperationException>(delegate { value = enumerator.Current; });
             return count;
         }
     }

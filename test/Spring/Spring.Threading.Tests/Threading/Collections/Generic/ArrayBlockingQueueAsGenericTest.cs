@@ -2,9 +2,9 @@
 using NUnit.Framework;
 using Spring.Collections;
 using Spring.Collections.Generic;
-using Spring.TestFixture.Collections;
-using Spring.TestFixture.Collections.NonGeneric;
-using Spring.TestFixture.Threading.Collections.Generic;
+using Spring.TestFixtures.Collections;
+using Spring.TestFixtures.Collections.NonGeneric;
+using Spring.TestFixtures.Threading.Collections.Generic;
 
 namespace Spring.Threading.Collections.Generic
 {

@@ -2,7 +2,7 @@
 using System.Collections;
 using NUnit.Framework;
 
-namespace Spring.TestFixture.Collections.NonGeneric
+namespace Spring.TestFixtures.Collections.NonGeneric
 {
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="ICollection"/>.

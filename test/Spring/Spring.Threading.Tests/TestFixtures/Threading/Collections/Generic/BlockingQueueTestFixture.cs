@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using Spring.Collections.Generic;
-using Spring.TestFixture.Collections;
-using Spring.TestFixture.Collections.Generic;
+using Spring.TestFixtures.Collections;
+using Spring.TestFixtures.Collections.Generic;
 using Spring.Threading.AtomicTypes;
 using Spring.Threading.Collections.Generic;
 
-namespace Spring.TestFixture.Threading.Collections.Generic
+namespace Spring.TestFixtures.Threading.Collections.Generic
 {
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="IBlockingQueue{T}"/>.

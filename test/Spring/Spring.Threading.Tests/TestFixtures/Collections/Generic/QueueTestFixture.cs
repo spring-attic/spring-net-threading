@@ -6,7 +6,7 @@ using NUnit.Framework;
 using Spring.Collections;
 using Spring.Collections.Generic;
 
-namespace Spring.TestFixture.Collections.Generic
+namespace Spring.TestFixtures.Collections.Generic
 {
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="IQueue{T}"/>.

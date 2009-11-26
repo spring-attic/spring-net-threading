@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Spring.TestFixture.Collections.Generic
+namespace Spring.TestFixtures.Collections.Generic
 {
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="ICollection{T}"/>.

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading;
 using NUnit.Framework;
-using Spring.TestFixture.Collections;
-using Spring.TestFixture.Collections.NonGeneric;
-using Spring.TestFixture.Threading.Collections.Generic;
+using Spring.TestFixtures.Collections;
+using Spring.TestFixtures.Collections.NonGeneric;
+using Spring.TestFixtures.Threading.Collections.Generic;
 using Spring.Threading.AtomicTypes;
 
 namespace Spring.Threading.Collections.Generic

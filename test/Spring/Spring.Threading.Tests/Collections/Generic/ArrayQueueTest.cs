@@ -1,8 +1,8 @@
 ﻿using System;
 using NUnit.Framework;
-using Spring.TestFixture.Collections;
-using Spring.TestFixture.Collections.Generic;
-using Spring.TestFixture.Collections.NonGeneric;
+using Spring.TestFixtures.Collections;
+using Spring.TestFixtures.Collections.Generic;
+using Spring.TestFixtures.Collections.NonGeneric;
 
 namespace Spring.Collections.Generic
 {

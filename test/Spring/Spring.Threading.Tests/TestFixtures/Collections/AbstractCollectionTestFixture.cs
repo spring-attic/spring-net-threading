@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Rhino.Mocks;
 using Spring.Collections.Generic;
 
-namespace Spring.TestFixture.Collections
+namespace Spring.TestFixtures.Collections
 {
     public abstract class AbstractCollectionTestFixture<T>
     {

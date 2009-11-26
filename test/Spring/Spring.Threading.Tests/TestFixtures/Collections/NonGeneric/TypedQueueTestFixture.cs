@@ -3,7 +3,7 @@ using NUnit.Framework;
 using Spring.Collections;
 using Spring.Collections.Generic;
 
-namespace Spring.TestFixture.Collections.NonGeneric
+namespace Spring.TestFixtures.Collections.NonGeneric
 {
     /// <summary>
     /// Basic functionality test for implementations of <see cref="IQueue"/> 
