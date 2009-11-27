@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
+using Rhino.Mocks;
 using Spring.Threading.Collections.Generic;
 
 namespace Spring.Threading.Execution
@@ -15,9 +16,19 @@ namespace Spring.Threading.Execution
     public class ParallelCompletionLocalTest<T> : ParallelCompletionTestBase
     {
         private ParallelCompletion<T, int> _sut;
-        private readonly Func<int> _localInit = () => 0;
-        private readonly Action<int> _localFinally = l => { };
-        private readonly Func<T, ILoopState, int, int> _body = (t, s, l) => 0;
+        private Func<int> _localInit;
+        private Action<int> _localFinally;
+        private Func<T, ILoopState, int, int> _body;
+
+        [SetUp] public void SetUpDelegates()
+        {
+            _localInit = MockRepository.GenerateMock<Func<int>>();
+            _localInit.Stub(x => x()).Return(0);
+            _localFinally = MockRepository.GenerateMock<Action<int>>();
+            _localFinally.Stub(x => x(Arg<int>.Is.Anything));
+            _body = MockRepository.GenerateMock<Func<T, ILoopState, int, int>>();
+            _body.Stub(x => x(Arg<T>.Is.Anything, Arg<ILoopState>.Is.Anything, Arg<int>.Is.Anything)).Return(0);
+        }
 
         [Test] public void ConstructorChokesOnNullExecutor()
         {
@@ -250,6 +261,7 @@ namespace Spring.Threading.Execution
                 },
                 _localFinally);
             var result = _sut.ForEach(sources, Parallelism);
+            _localFinally.AssertWasCalled(x => x(0));
             Assert.That(result.IsCompleted, Is.False);
             Assert.That(completed, Has.No.Member(sources[0]));
             ThreadManager.JoinAndVerify();
@@ -306,6 +318,7 @@ namespace Spring.Threading.Execution
                 },
                 _localFinally);
             var result = _sut.ForEach(sources, Parallelism);
+            _localFinally.AssertWasCalled(x => x(0));
             Assert.That(result.IsCompleted, Is.False);
             Assert.That(result.LowestBreakIteration, Is.EqualTo(cancelAt));
             Assert.That(completed.Count, Is.GreaterThanOrEqualTo(cancelAt));
@@ -314,36 +327,78 @@ namespace Spring.Threading.Execution
         }
 
         [Test] public void ForEachRecordsTheLowestOfMultipleBreaks(
-            [Values(Parallelism / 2, Parallelism, Parallelism * 2)] int cancelAt)
+            [Values(Parallelism / 2, Parallelism, Parallelism * 2)] int breakAt)
         {
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             _sut = new ParallelCompletion<T, int>(_executor,
                 _localInit,
                 (t, s, l) =>
                 {
-                    if (s.CurrentIndex == cancelAt)
-                    {
-                        Thread.Sleep(SHORT_DELAY); s.Break();
-                    } 
-                    else if (s.CurrentIndex == cancelAt + 1)
-                    {
-                        Thread.Sleep(SHORT_DELAY); s.Break();
-                    }
-                    else if (s.CurrentIndex == cancelAt + 2)
-                    {
-                        Thread.Sleep(10); s.Break();
-                    }
-                    else
-                    {
-                        Thread.Sleep(10);
-                    }
+                    BreakAt(s, breakAt);
                     return 0;
                 },
                 _localFinally);
             var result = _sut.ForEach(sources, Parallelism);
             Assert.That(result.IsCompleted, Is.False);
-            Assert.That(result.LowestBreakIteration, Is.EqualTo(cancelAt));
+            Assert.That(result.LowestBreakIteration, Is.EqualTo(breakAt));
             ThreadManager.JoinAndVerify();
         }
-    }
+
+        [Test] public void ForEachCallsLocalInitBodyLocalFinallyInOrder()
+        {
+            T[] sources = TestData<T>.MakeTestArray(_sampleSize);
+            _sut = new ParallelCompletion<T, int>(_executor, _localInit, _body, _localFinally);
+            _sut.ForEach(sources, Parallelism);
+
+            (
+                _localFinally.ActivityOf(x => x(Arg<int>.Is.Anything)).First
+                >
+                _body.ActivityOf(x => x(Arg<T>.Is.Anything, Arg<ILoopState>.Is.Anything, Arg<int>.Is.Anything)).First
+                >
+                _localInit.ActivityOf(x => x()).First
+            )
+            .AssertOccured();
+
+            (
+                _localFinally.ActivityOf(x => x(Arg<int>.Is.Anything)).Last
+                >
+                _body.ActivityOf(x => x(Arg<T>.Is.Anything, Arg<ILoopState>.Is.Anything, Arg<int>.Is.Anything)).Last
+                >
+                _localInit.ActivityOf(x => x()).Last
+            )
+            .AssertOccured();
+
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void UseLocalToCount()
+        {
+            object @lock = new object();
+            int count = 0;
+            T[] sources = TestData<T>.MakeTestArray(_sampleSize);
+            _sut = new ParallelCompletion<T, int>(_executor,
+                () => 0,
+                (t, s, l) => l + 1,
+                l => { lock (@lock) count += l; });
+
+            _sut.ForEach(sources, Parallelism);
+            Assert.That(count, Is.EqualTo(_sampleSize));
+            ThreadManager.JoinAndVerify();
+        }
+
+        [Test] public void UseLocalToCollect()
+        {
+            List<T> collected = new List<T>();
+            T[] sources = TestData<T>.MakeTestArray(100);
+            var sut = new ParallelCompletion<T, IList<T>>(_executor,
+                () => new List<T>(),
+                (t, s, l) => { l.Add(t); return l; },
+                l => { lock (collected) collected.AddRange(l); });
+
+            sut.ForEach(sources, Parallelism);
+
+            Assert.That(collected, Is.EquivalentTo(sources));
+            ThreadManager.JoinAndVerify();
+        }
+}
 }

@@ -105,9 +105,10 @@ namespace Spring.Threading.Execution
                 Process(iterator);
                 return this;
             }
-
-            _itemQueue = new LinkedBlockingQueue<KeyValuePair<long, T>>(_maxDegreeOfParallelism);
-            _futures = new List<IFuture<object>>(_maxDegreeOfParallelism);
+            // avoid running out of memory.
+            var capacity = Math.Min(512, _maxDegreeOfParallelism);
+            _itemQueue = new LinkedBlockingQueue<KeyValuePair<long, T>>(capacity);
+            _futures = new List<IFuture<object>>(capacity);
 
             try
             {

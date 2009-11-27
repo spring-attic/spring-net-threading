@@ -240,32 +240,14 @@ namespace Spring.Threading.Execution
         }
 
         [Test] public void ForEachRecordsTheLowestOfMultipleBreaks(
-            [Values(Parallelism / 2, Parallelism, Parallelism * 2)] int cancelAt)
+            [Values(Parallelism / 2, Parallelism, Parallelism * 2)] int breakAt)
         {
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             _sut = new ParallelCompletion<T>(_executor,
-                (t, s) =>
-                {
-                    if (s.CurrentIndex == cancelAt)
-                    {
-                        Thread.Sleep(SHORT_DELAY); s.Break();
-                    } 
-                    else if (s.CurrentIndex == cancelAt + 1)
-                    {
-                        Thread.Sleep(SHORT_DELAY); s.Break();
-                    }
-                    else if (s.CurrentIndex == cancelAt + 2)
-                    {
-                        Thread.Sleep(10); s.Break();
-                    }
-                    else
-                    {
-                        Thread.Sleep(10);
-                    }
-                });
+                (t, s) => BreakAt(s, breakAt));
             var result = _sut.ForEach(sources, Parallelism);
             Assert.That(result.IsCompleted, Is.False);
-            Assert.That(result.LowestBreakIteration, Is.EqualTo(cancelAt));
+            Assert.That(result.LowestBreakIteration, Is.EqualTo(breakAt));
             ThreadManager.JoinAndVerify();
         }
     }

@@ -165,6 +165,8 @@
     <Compile Include="Threading\Execution\ParallelCompletionLocalTest.cs" />
     <Compile Include="Threading\Execution\ParallelCompletionNoLocalTest.cs" />
     <Compile Include="Threading\Execution\ParallelCompletionTestBase.cs" />
+    <Compile Include="Threading\Execution\ParallelExtensionTest.cs" />
+    <Compile Include="Threading\Execution\ParallelOptionsTest.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTest.cs" />
     <Compile Include="Threading\Execution\RejectedExecutionExceptionTests.cs" />
     <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />

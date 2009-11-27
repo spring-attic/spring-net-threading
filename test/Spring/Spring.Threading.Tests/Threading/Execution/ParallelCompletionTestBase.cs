@@ -65,7 +65,7 @@ namespace Spring.Threading.Execution
                 Execute(command.Run);
             }
 
-            public void Execute(Action action)
+            public virtual void Execute(Action action)
             {
                 var useDelay = Delay > TimeSpan.Zero;
                 var tid = NextThreadId(useDelay);
@@ -86,6 +86,30 @@ namespace Spring.Threading.Execution
         {
             _sampleSize = 20;
             _executor = new ThreadManagerExecutor(ThreadManager);
+        }
+
+        protected static bool BreakAt(ILoopState s, long breakAt)
+        {
+            if (s.CurrentIndex == breakAt)
+            {
+                Thread.Sleep(SHORT_DELAY);
+                s.Break();
+                return true;
+            }
+            if (s.CurrentIndex == breakAt + 1)
+            {
+                Thread.Sleep(SHORT_DELAY);
+                s.Break();
+                return true;
+            }
+            if (s.CurrentIndex == breakAt + 2)
+            {
+                Thread.Sleep(10);
+                s.Break();
+                return true;
+            }
+            Thread.Sleep(10);
+            return false;
         }
     }
 }
