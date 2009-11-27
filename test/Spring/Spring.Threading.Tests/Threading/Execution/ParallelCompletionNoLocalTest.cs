@@ -97,7 +97,6 @@ namespace Spring.Threading.Execution
 
         [Test] public void ForEachDoesNotSumitMoreThenMaxDegreeOfParallelism()
         {
-            //_executor.Threshold = Parallelism / 2;
             _executor.Delay = SHORT_DELAY;
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             List<T> results = new List<T>(_sampleSize);

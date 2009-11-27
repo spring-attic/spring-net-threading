@@ -1,3 +1,22 @@
+#region License
+
+/*
+ * Copyright (C) 2002-2009 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#endregion
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -7,12 +26,17 @@ using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
 {
+    /// <summary>
+    /// Implementation of core logic for parallel functions.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <author>Kenneth Xu</author>
     internal abstract class ParallelCompletionBase<T> : ILoopResult
     {
         private readonly IExecutor _executor;
         private int _maxDegreeOfParallelism;
         //TODO: use ArrayBlockingQueue after it's fully tested.
-        protected LinkedBlockingQueue<KeyValuePair<long, T>> _itemQueue;
+        private LinkedBlockingQueue<KeyValuePair<long, T>> _itemQueue;
         private readonly AtomicLong _lowestBreakIteration = new AtomicLong(-1);
         private List<IFuture<object>> _futures;
         private Exception _exception;
@@ -39,6 +63,8 @@ namespace Spring.Threading.Execution
                 return lowestBreakIteration == -1 ? (long?) null : lowestBreakIteration;
             }
         }
+
+        protected abstract void Process(ILoopState state, IEnumerable<T> sources);
 
         internal void Break(long iteration)
         {
@@ -83,8 +109,6 @@ namespace Spring.Threading.Execution
         }
 
         internal int ActualDegreeOfParallelism { get { return _maxCount; } }
-        protected abstract void Process(IEnumerator<T> iterator);
-        protected abstract void Process(KeyValuePair<long, T> source);
 
         internal ILoopResult ForEach(IEnumerable<T> source, ParallelOptions parallelOptions)
         {
@@ -222,7 +246,41 @@ namespace Spring.Threading.Execution
             }
         }
 
-        protected class LoopState : ILoopState
+        private void Process(IEnumerator<T> iterator)
+        {
+            var state = new LoopState(this);
+            Process(state, MakeSources(state, iterator));
+        }
+
+        private void Process(KeyValuePair<long, T> source)
+        {
+            var state = new LoopState(this);
+            Process(state, MakeSources(state, source));
+        }
+
+        private IEnumerable<T> MakeSources(LoopState state, IEnumerator<T> iterator)
+        {
+            long count = 0;
+            do
+            {
+                state.CurrentIndex = count++;
+                yield return iterator.Current;
+            }
+            while (!ShouldExitCurrentIteration(count) && iterator.MoveNext());
+        }
+
+        private IEnumerable<T> MakeSources(LoopState state, KeyValuePair<long, T> source)
+        {
+            for (bool hasMore = true;
+                 hasMore && !ShouldExitCurrentIteration(source.Key);
+                 hasMore = _itemQueue.TryTake(out source))
+            {
+                state.CurrentIndex = source.Key;
+                yield return source.Value;
+            }
+        }
+
+        private class LoopState : ILoopState
         {
             private readonly ParallelCompletionBase<T> _parent;
             public LoopState(ParallelCompletionBase<T> parent)

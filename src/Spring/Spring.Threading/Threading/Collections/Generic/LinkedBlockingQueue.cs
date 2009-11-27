@@ -852,7 +852,7 @@ namespace Spring.Threading.Collections.Generic {
                 lock(_takeLock) {
                     int size = _activeCount;
                     if (targetArray.Length < size)
-                        //targetArray = new T[size];
+                        // new T[size] won't work here when targetArray is subtype of T.
                         targetArray = (T[])Array.CreateInstance(targetArray.GetType().GetElementType(), size);
 
                     int k = 0;

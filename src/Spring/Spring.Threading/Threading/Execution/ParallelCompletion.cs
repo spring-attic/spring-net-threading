@@ -18,13 +18,12 @@
 
 #endregion
 using System;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace Spring.Threading.Execution
 {
     /// <summary>
-    /// Implemetation of parallel functions.
+    /// Support for parallel functions don't use local object.
     /// </summary>
     /// <typeparam name="TSource"></typeparam>
     /// <author>Kenneth Xu</author>
@@ -39,31 +38,21 @@ namespace Spring.Threading.Execution
             _body = body;
         }
 
-        protected override void Process(IEnumerator<TSource> iterator)
+        protected override void Process(ILoopState state, IEnumerable<TSource> sources)
         {
-            var state = new LoopState(this);
-            long count = 0;
-            do
+            foreach (var source in sources)
             {
-                state.CurrentIndex = count++;
-                _body(iterator.Current, state);
-            } 
-            while (!state.ShouldExitCurrentIteration && iterator.MoveNext());
-        }
-
-        protected override void Process(KeyValuePair<long, TSource> source)
-        {
-            var state = new LoopState(this);
-            for (bool hasMore = true;
-                hasMore && !ShouldExitCurrentIteration(source.Key); 
-                hasMore = _itemQueue.TryTake(out source) )
-            {
-                state.CurrentIndex = source.Key;
-                _body(source.Value, state);
+                _body(source, state);
             }
         }
     }
 
+    /// <summary>
+    /// Support for parallel functions use local object.
+    /// </summary>
+    /// <typeparam name="TSource"></typeparam>
+    /// <typeparam name="TLocal"></typeparam>
+    /// <author>Kenneth Xu</author>
     internal class ParallelCompletion<TSource, TLocal> : ParallelCompletionBase<TSource>
     {
         private readonly Func<TLocal> _localInit;
@@ -85,31 +74,14 @@ namespace Spring.Threading.Execution
             _localFinally = localFinally;
         }
 
-        protected override void Process(IEnumerator<TSource> iterator)
+        protected override void Process(ILoopState state, IEnumerable<TSource> sources)
         {
-            var state = new LoopState(this);
-            long count = 0;
             var local = _localInit();
-            do
+            foreach (var source in sources)
             {
-                state.CurrentIndex = count++;
-                local = _body(iterator.Current, state, local);
+                local = _body(source, state, local);
             }
-            while (!state.ShouldExitCurrentIteration && iterator.MoveNext());
-            _localFinally(local);
-        }
-
-        protected override void Process(KeyValuePair<long, TSource> source)
-        {
-            var state = new LoopState(this);
-            var local = _localInit();
-            for (bool hasMore = true;
-                hasMore && !ShouldExitCurrentIteration(source.Key);
-                hasMore = _itemQueue.TryTake(out source))
-            {
-                state.CurrentIndex = source.Key;
-                local = _body(source.Value, state, local);
-            }
+            //TODO should we put this in finally block? MSDN doc isn't clear on this.
             _localFinally(local);
         }
     }
