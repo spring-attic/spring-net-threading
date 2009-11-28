@@ -386,23 +386,37 @@ namespace Spring
         /// <param name="timeToWait">Time to wait for thread to complete.</param>
         public void JoinAndVerify(TimeSpan timeToWait)
         {
+            DateTime deadline = DateTime.UtcNow.Add(timeToWait);
             _isAllJoinAndVerified = true;
-            Thread[] threads;
-            lock(_runningThreads)
+            for (; ; )
             {
-                threads = new Thread[_runningThreads.Count];
-                _runningThreads.CopyTo(threads, 0);
+                Thread[] threads;
+                lock (_runningThreads)
+                {
+                    threads = new Thread[_runningThreads.Count];
+                    _runningThreads.CopyTo(threads, 0);
+                }
+                JoinAndVerify(timeToWait, threads);
+                var alive = FindAliveThread();
+                if(alive == null) break;
+                timeToWait = deadline - DateTime.UtcNow;
+                if (timeToWait.Ticks <= 0)
+                    Assert.Fail("Thread {0} is expected to be terminated but still alive.", alive.Name);
             }
-            JoinAndVerify(timeToWait, threads);
+        }
+
+        private Thread FindAliveThread()
+        {
             lock (_runningThreads)
             {
                 var current = Thread.CurrentThread;
                 foreach (Thread thread in _runningThreads)
                 {
                     if(thread == current || !thread.IsAlive) continue;
-                    Assert.Fail("Thread {0} is expected to be terminated but still alive.", thread.Name);
+                    return thread;
                 }
             }
+            return null;
         }
 
         /// <summary>

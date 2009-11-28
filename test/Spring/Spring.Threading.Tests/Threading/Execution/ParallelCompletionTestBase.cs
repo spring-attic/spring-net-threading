@@ -88,24 +88,26 @@ namespace Spring.Threading.Execution
             _executor = new ThreadManagerExecutor(ThreadManager);
         }
 
-        protected static bool BreakAt(ILoopState s, long breakAt)
+        protected static void BreakAt(ILoopState s, long breakAt)
         {
-            if (s.CurrentIndex == breakAt)
+            if (DelayForBreak(s.CurrentIndex, breakAt)) s.Break();
+        }
+
+        protected static bool DelayForBreak(long currentIndex, long breakAt)
+        {
+            if (currentIndex == breakAt)
             {
                 Thread.Sleep(SHORT_DELAY);
-                s.Break();
                 return true;
             }
-            if (s.CurrentIndex == breakAt + 1)
+            if (currentIndex == breakAt + 1)
             {
                 Thread.Sleep(SHORT_DELAY);
-                s.Break();
                 return true;
             }
-            if (s.CurrentIndex == breakAt + 2)
+            if (currentIndex == breakAt + 2)
             {
                 Thread.Sleep(10);
-                s.Break();
                 return true;
             }
             Thread.Sleep(10);

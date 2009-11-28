@@ -38,16 +38,28 @@ namespace System.Threading.Tasks
     {
         private static readonly IExecutor _executor = new SystemPoolExecutor();
 
-        private class SystemPoolExecutor : IExecutor
+        private class SystemPoolExecutor : IExecutor, IRecommendParallelism
         {
             public void Execute(IRunnable command)
             {
-                ThreadPool.QueueUserWorkItem(a => command.Run());
+                Execute(command.Run);
             }
 
             public void Execute(Action action)
             {
-                ThreadPool.QueueUserWorkItem(a => action());
+                ThreadPool.QueueUserWorkItem(
+                    a =>
+                        {
+                            // workaround .Net bug, clear any pending interruption.
+                            try { Thread.Sleep(1); }
+                            catch (ThreadInterruptedException) {}
+                            action();
+                        });
+            }
+
+            public int MaxParallelism
+            {
+                get { return Environment.ProcessorCount*5; }
             }
         }
 

@@ -39,10 +39,10 @@ namespace Spring.Threading.Execution
         private LinkedBlockingQueue<KeyValuePair<long, T>> _itemQueue;
         private readonly AtomicLong _lowestBreakIteration = new AtomicLong(-1);
         private List<IFuture<object>> _futures;
-        private Exception _exception;
+        private volatile Exception _exception;
         private int _taskCount;
         private int _maxCount;
-        private bool _isStopped;
+        private volatile bool _isStopped;
 
         internal ParallelCompletionBase(IExecutor executor)
         {
@@ -78,7 +78,7 @@ namespace Spring.Threading.Execution
 
         internal bool ShouldExitCurrentIteration(long iteration)
         {
-            long lowestBreakIteration = _lowestBreakIteration; //this causes memory barrier.
+            long lowestBreakIteration = _lowestBreakIteration;
             var isBroken = (lowestBreakIteration >= 0 && iteration >= lowestBreakIteration);
             if (isBroken) _itemQueue.Break();
             return isBroken || _isStopped || _exception != null;
@@ -88,7 +88,6 @@ namespace Spring.Threading.Execution
         {
             get
             {
-                Thread.MemoryBarrier();
                 return _isStopped;
             }
         }
@@ -103,7 +102,6 @@ namespace Spring.Threading.Execution
         {
             get
             {
-                Thread.MemoryBarrier();
                 return _exception != null;
             }
         }
@@ -159,9 +157,9 @@ namespace Spring.Threading.Execution
         {
             if (maxDegreeOfParallelism < 0) maxDegreeOfParallelism = int.MaxValue;
 
-            var tpe = _executor as ThreadPoolExecutor;
-            if (tpe != null)
-                maxDegreeOfParallelism = Math.Min(tpe.CorePoolSize, maxDegreeOfParallelism);
+            var recommend = _executor as IRecommendParallelism;
+            if (recommend != null)
+                maxDegreeOfParallelism = Math.Min(recommend.MaxParallelism, maxDegreeOfParallelism);
 
             var c = source as ICollection<T>;
             if (c != null) maxDegreeOfParallelism = Math.Min(c.Count, maxDegreeOfParallelism);
@@ -197,8 +195,9 @@ namespace Spring.Threading.Execution
             var f = new FutureTask<object>(task, null);
             lock (this)
             {
+                _taskCount++; // Must increase before submit for accurate counting.
                 _executor.Execute(f);
-                _maxCount = Math.Max(++_taskCount,_maxCount);
+                _maxCount = Math.Max(_taskCount,_maxCount);
             }
             _futures.Add(f);
         }
@@ -219,6 +218,7 @@ namespace Spring.Threading.Execution
                     catch (RejectedExecutionException)
                     {
                         // fine we'll just run with less parallelism
+                        lock(this) _taskCount--;
                     }
                 }
                 Process(x);

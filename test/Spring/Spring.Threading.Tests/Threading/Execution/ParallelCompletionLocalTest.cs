@@ -400,5 +400,5 @@ namespace Spring.Threading.Execution
             Assert.That(collected, Is.EquivalentTo(sources));
             ThreadManager.JoinAndVerify();
         }
-}
+    }
 }

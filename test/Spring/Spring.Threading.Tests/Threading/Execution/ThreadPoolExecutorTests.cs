@@ -215,19 +215,17 @@ namespace Spring.Threading.Execution
         }
 
         [Test] public void TaskCountIncreasesWhenTaskSubmittedButDoesNotOverestimate(
-            [Values(1,2)] int poolSize, [Values(1,3)] int taskCount) 
+            [Values(1,2)] int poolSize, [Values(2,6)] int taskCount) 
         {
             var es = NewThreadPoolExecutor(poolSize, poolSize);
             ExecutorService = es;
             Assert.AreEqual(0, es.TaskCount);
 
-            for (int i = 0; i < taskCount; i++) es.Execute(ThreadManager.NewVerifiableTask(() => { }));
-            for (int i = 0; i < taskCount; i++) es.Execute(_mediumInterruptableAction);
+            for (int i = 0; i < taskCount/2; i++) es.Execute(ThreadManager.NewVerifiableTask(() => { }));
+            for (int i = 0; i < taskCount/2; i++) es.Execute(_mediumInterruptableAction);
 
-            Assert.That(es.TaskCount, Is.LessThanOrEqualTo(taskCount * 2));
-            Assert.That(es.TaskCount, Is.GreaterThanOrEqualTo(Math.Min(taskCount * 2, poolSize)));
-            Thread.Sleep(SHORT_DELAY); //TODO: why do we need to wait?
-            Assert.AreEqual(taskCount * 2, es.TaskCount);
+            Thread.Sleep(SHORT_DELAY); // Wait to let task count finally settle.
+            Assert.That(es.TaskCount, Is.EqualTo(taskCount));
             InterruptAndJoinPool(es);
             ThreadManager.JoinAndVerify();
         }

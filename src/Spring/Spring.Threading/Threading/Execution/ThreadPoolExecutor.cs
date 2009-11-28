@@ -318,7 +318,7 @@ namespace Spring.Threading.Execution
     /// <author>Doug Lea</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-    public class ThreadPoolExecutor : AbstractExecutorService, IDisposable //BACKPORT_3_1
+    public class ThreadPoolExecutor : AbstractExecutorService, IDisposable, IRecommendParallelism //BACKPORT_3_1
     {
         #region Worker Class
 
@@ -2003,5 +2003,10 @@ namespace Spring.Threading.Execution
         }
 
         #endregion
+
+        int IRecommendParallelism.MaxParallelism
+        {
+            get { return CorePoolSize; }
+        }
     }
 }

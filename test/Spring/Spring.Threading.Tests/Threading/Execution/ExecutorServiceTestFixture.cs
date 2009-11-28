@@ -171,10 +171,10 @@ namespace Spring.Threading.Execution
             catch (RejectedExecutionException) { }
 
             IList<IRunnable> l = es.ShutdownNow();
-            ThreadManager.JoinAndVerify(LONG_DELAY);
             Assert.IsTrue(es.IsShutdown);
             Assert.IsNotNull(l);
-            Assert.That(l.Count, Is.EqualTo(submitCount-nRun.Value));
+            Assert.That(l.Count, Is.LessThanOrEqualTo(submitCount-nRun.Value));
+            ThreadManager.JoinAndVerify(LONG_DELAY);
         }
 
         [Test, Description("Executor rejects task when saturated")]
