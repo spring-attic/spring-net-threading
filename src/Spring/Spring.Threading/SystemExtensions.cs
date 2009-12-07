@@ -61,7 +61,7 @@ namespace Spring
         /// </remarks>
         /// <param name="exception">The exception to lock the statck trace.</param>
         /// <returns>The same <paramref name="exception"/> with stack traced locked.</returns>
-        public static T PreserveStackTrace<T>(T exception) where T : Exception
+        public static T PreserveStackTrace<T>(this T exception) where T : Exception
         {
             _preserveStackTrace(exception);
             return exception;

@@ -1552,8 +1552,8 @@ namespace Spring.Threading.Execution
                         }
                         catch (Exception x)
                         {
-                            thrown = SystemExtensions.PreserveStackTrace(x);
-                            throw thrown;
+                            thrown = x;
+                            OnThreadException(task, x);
                         }
                         finally
                         {

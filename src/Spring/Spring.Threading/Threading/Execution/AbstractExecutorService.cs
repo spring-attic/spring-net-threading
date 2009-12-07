@@ -76,6 +76,11 @@ namespace Spring.Threading.Execution
             set { _contextCarrierFactory = value; }
         }
 
+        /// <summary>
+        /// Occurs when an untrapped thread exception is thrown.
+        /// </summary>
+        public event ThreadExceptionEventHandler ThreadException;
+
         #region Abstract Methods
 
         /// <summary> 
@@ -1440,6 +1445,22 @@ namespace Spring.Threading.Execution
                 null : _contextCarrierFactory.CreateContextCarrier();
         }
 
+        /// <summary>
+        /// Raises the <see cref="ThreadException"/> event.
+        /// </summary>
+        /// <param name="sender">
+        /// The task that raised the exception.
+        /// </param>
+        /// <param name="exception">
+        /// The exception object.
+        /// </param>
+        protected void OnThreadException(IRunnable sender, Exception exception)
+        {
+            var handler = ThreadException;
+            if (handler != null) handler(sender, new ThreadExceptionEventArgs(exception));
+            else throw exception.PreserveStackTrace();
+        }
+
         private Converter<object, IRunnableFuture<T>> Callable2Future<T>()
         {
             return delegate(object callable) { return NewTaskFor((ICallable<T>)callable); };
@@ -1771,6 +1792,5 @@ namespace Spring.Threading.Execution
             }
             return command;
         }
-
     }
 }

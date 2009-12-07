@@ -124,6 +124,7 @@
     <Compile Include="Threading\CountDownLatch.cs" />
     <Compile Include="Threading\Execution\ILoopResult.cs" />
     <Compile Include="Threading\Execution\ILoopState.cs" />
+    <Compile Include="Threading\Execution\IRecommendParallelism.cs" />
     <Compile Include="Threading\Execution\ParallelCompletion.cs" />
     <Compile Include="Threading\Execution\ParallelCompletionBase.cs" />
     <Compile Include="Threading\Execution\ParallelExtension.cs" />
