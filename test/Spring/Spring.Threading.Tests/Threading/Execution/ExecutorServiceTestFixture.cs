@@ -52,6 +52,7 @@ namespace Spring.Threading.Execution
 
         [SetUp] public void SetUpExecutorAndActions()
         {
+            base.SetUpThreadManager();
             _joinPoolWithInterrupt = null;
             _executorService = null;
             _mediumInterruptableAction = NewInterruptableAction(MEDIUM_DELAY);
