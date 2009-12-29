@@ -71,7 +71,7 @@ namespace Spring.Threading.Execution
         [Test] public void SubmitRunnable()
         {
             var runnable = MockRepository.GenerateStub<IRunnable>();
-            var future = MockRepository.GenerateStub<IFuture<object>>();
+            var future = MockRepository.GenerateStub<IFuture<Void>>();
             _mockService.Stub(s => s.Submit(runnable)).Return(future);
             Assert.That(_sut.Submit(runnable), Is.SameAs(future));
             _mockService.AssertWasCalled(s => s.Submit(runnable));
@@ -80,7 +80,7 @@ namespace Spring.Threading.Execution
         [Test] public void SubmitAction()
         {
             var action = MockRepository.GenerateStub<Action>();
-            var future = MockRepository.GenerateStub<IFuture<object>>();
+            var future = MockRepository.GenerateStub<IFuture<Void>>();
             _mockService.Stub(s => s.Submit(action)).Return(future);
             Assert.That(_sut.Submit(action), Is.SameAs(future));
             _mockService.AssertWasCalled(s => s.Submit(action));

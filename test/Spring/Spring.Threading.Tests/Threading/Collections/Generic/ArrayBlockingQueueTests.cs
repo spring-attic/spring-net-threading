@@ -49,12 +49,12 @@ namespace Spring.Threading.Collections.Generic
 				return true;
 			}
 
-			public IFuture<object> Submit(IRunnable task)
+			public IFuture<Void> Submit(IRunnable task)
 			{
 				throw new NotImplementedException();
 			}
 
-            public IFuture<object> Submit(Action action)
+            public IFuture<Void> Submit(Action action)
             {
                 throw new Exception("The method or operation is not implemented.");
             }

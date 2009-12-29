@@ -118,7 +118,7 @@ namespace Spring.Threading.Execution
 		/// </returns>
 		/// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
 		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		IFuture<object> Submit(IRunnable runnable);
+		IFuture<Void> Submit(IRunnable runnable);
 
         /// <summary> 
         /// Submits a delegate <see cref="Action"/> for execution and returns an
@@ -136,7 +136,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="ArgumentNullException">
         /// If the <paramref name="action"/> is <c>null</c>
         /// </exception>
-        IFuture<object> Submit(Action action);
+        IFuture<Void> Submit(Action action);
 
         /// <summary> 
         /// Submits a <see cref="IRunnable"/> task for execution and returns a

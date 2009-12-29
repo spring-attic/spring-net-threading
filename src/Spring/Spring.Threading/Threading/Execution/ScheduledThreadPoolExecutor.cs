@@ -161,7 +161,7 @@ namespace Spring.Threading.Execution
 		/// </returns>
 		/// <exception cref="ArgumentNullException">if the task cannot be accepted for execution.</exception>
 		/// <exception cref="System.ArgumentNullException">if the command is null</exception>
-		public override IFuture<object> Submit( IRunnable task )
+		public override IFuture<Void> Submit( IRunnable task )
 		{
 			throw new NotImplementedException();
 		}

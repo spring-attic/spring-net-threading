@@ -538,7 +538,7 @@ namespace Spring.Threading.Execution
 				return _executorService.AwaitTermination(duration);
 			}
 
-			public virtual IFuture<object> Submit(IRunnable task)
+			public virtual IFuture<Void> Submit(IRunnable task)
 			{
 				return _executorService.Submit(task);
 			}
@@ -563,7 +563,7 @@ namespace Spring.Threading.Execution
                 return _executorService.Submit(action, result);
             }
 
-            public virtual IFuture<object> Submit(Action action)
+            public virtual IFuture<Void> Submit(Action action)
             {
                 return _executorService.Submit(action);
             }

@@ -370,7 +370,7 @@ namespace Spring.Threading
             return null;
         }
 
-        public IFuture<object> Submit(Action action)
+        public IFuture<Void> Submit(Action action)
         {
             throw new NotImplementedException();
         }
@@ -404,7 +404,7 @@ namespace Spring.Threading
             }
         }
 
-        public IFuture<object> Submit(IRunnable task)
+        public IFuture<Void> Submit(IRunnable task)
         {
             // TODO:  Add NoOpExecutorService.Submit implementation
             return null;

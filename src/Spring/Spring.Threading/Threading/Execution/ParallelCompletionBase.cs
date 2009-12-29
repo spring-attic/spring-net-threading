@@ -38,7 +38,7 @@ namespace Spring.Threading.Execution
         //TODO: use ArrayBlockingQueue after it's fully tested.
         private LinkedBlockingQueue<KeyValuePair<long, T>> _itemQueue;
         private readonly AtomicLong _lowestBreakIteration = new AtomicLong(-1);
-        private List<IFuture<object>> _futures;
+        private List<IFuture<Void>> _futures;
         private volatile Exception _exception;
         private int _taskCount;
         private int _maxCount;
@@ -130,7 +130,7 @@ namespace Spring.Threading.Execution
             // avoid running out of memory.
             var capacity = Math.Min(512, _maxDegreeOfParallelism);
             _itemQueue = new LinkedBlockingQueue<KeyValuePair<long, T>>(capacity);
-            _futures = new List<IFuture<object>>(capacity);
+            _futures = new List<IFuture<Void>>(capacity);
 
             try
             {
@@ -192,7 +192,7 @@ namespace Spring.Threading.Execution
                             }
                         }
                     };
-            var f = new FutureTask<object>(task, null);
+            var f = new FutureTask<Void>(task, null);
             lock (this)
             {
                 _taskCount++; // Must increase before submit for accurate counting.

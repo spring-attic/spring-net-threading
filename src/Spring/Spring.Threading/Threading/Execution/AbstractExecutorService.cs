@@ -214,9 +214,9 @@ namespace Spring.Threading.Execution
         /// </returns>
         /// <exception cref="Spring.Threading.Execution.RejectedExecutionException">if the task cannot be accepted for execution.</exception>
         /// <exception cref="System.ArgumentNullException">if the command is null</exception>
-        public virtual IFuture<object> Submit(IRunnable runnable)
+        public virtual IFuture<Void> Submit(IRunnable runnable)
         {
-            return Submit<object>(runnable, null);
+            return Submit<Void>(runnable, null);
         }
 
         /// <summary> 
@@ -235,9 +235,9 @@ namespace Spring.Threading.Execution
         /// <exception cref="ArgumentNullException">
         /// If the <paramref name="action"/> is <c>null</c>
         /// </exception>
-        public virtual IFuture<object> Submit(Action action)
+        public virtual IFuture<Void> Submit(Action action)
         {
-            return Submit<object>(action, null);
+            return Submit<Void>(action, null);
         }
 
         /// <summary> 

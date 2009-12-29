@@ -207,7 +207,7 @@ namespace Spring.Threading.Execution
         public void SubmitReturnsFutureThatReturnsResultOfCompletedRunnable()
         {
             var runnable = MockRepository.GenerateStub<IRunnable>();
-            IFuture<object> future = ExecutorService.Submit(runnable);
+            IFuture<Void> future = ExecutorService.Submit(runnable);
             future.GetResult();
             runnable.AssertWasCalled(c => c.Run());
             JoinPool(ExecutorService);
@@ -217,7 +217,7 @@ namespace Spring.Threading.Execution
         public void SubmitReturnsFutureThatReturnsResultOfCompletedAction()
         {
             var runnable = MockRepository.GenerateStub<IRunnable>();
-            IFuture<object> future = ExecutorService.Submit(runnable);
+            IFuture<Void> future = ExecutorService.Submit(runnable);
             future.GetResult();
             runnable.AssertWasCalled(c => c.Run());
             JoinPool(ExecutorService);

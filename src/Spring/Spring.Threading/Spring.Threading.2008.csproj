@@ -243,6 +243,7 @@
     <Compile Include="Threading\ThreadedExecutor.cs" />
     <Compile Include="Threading\ThreadFactoryUser.cs" />
     <Compile Include="Threading\TimedCallable.cs" />
+    <Compile Include="Threading\Void.cs" />
     <Compile Include="Threading\WaitableRunnable.cs" />
     <Compile Include="Threading\WaiterPreferenceSemaphore.cs" />
     <Compile Include="Threading\WaitFreeQueue.cs" />
