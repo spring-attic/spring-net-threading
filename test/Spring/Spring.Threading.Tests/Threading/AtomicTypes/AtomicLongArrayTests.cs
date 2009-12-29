@@ -23,6 +23,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
@@ -135,7 +136,7 @@ namespace Spring.Threading.AtomicTypes
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1", () => { while (!a.CompareAndSet(0, 2, 3)) Thread.Sleep(0); });
 			Assert.IsTrue(a.CompareAndSet(0, 1, 2));
-			ThreadManager.JoinAndVerify(LONG_DELAY);
+			ThreadManager.JoinAndVerify(Delays.Long);
 			Assert.IsFalse(t.IsAlive);
 			Assert.AreEqual(a[0], 3);
 		}

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Rhino.Mocks;
 using Spring.Threading.AtomicTypes;
@@ -46,8 +47,8 @@ namespace Spring.Threading
             Assert.AreEqual(0, b.NumberOfWaitingParties);
             if (isTimed)
             {
-                b.Await(SMALL_DELAY);
-                b.Await(SMALL_DELAY);
+                b.Await(Delays.Small);
+                b.Await(Delays.Small);
             }
             else
             {
@@ -80,7 +81,7 @@ namespace Spring.Threading
             Assert.AreEqual(1, b.Parties);
             Assert.AreEqual(0, b.NumberOfWaitingParties);
             b.Await();
-            b.Await(SMALL_DELAY);
+            b.Await(Delays.Small);
             Assert.AreEqual(0, b.NumberOfWaitingParties);
             action.AssertWasCalled(a => a(), m => m.Repeat.Twice());
         }
@@ -92,9 +93,9 @@ namespace Spring.Threading
             ThreadStart action = () =>
                                      {
                                          b.Await();
-                                         b.Await(SMALL_DELAY);
+                                         b.Await(Delays.Small);
                                          b.Await();
-                                         b.Await(SMALL_DELAY);
+                                         b.Await(Delays.Small);
                                      };
             ThreadManager.StartAndAssertRegistered("T", action, action);
             ThreadManager.JoinAndVerify();
@@ -111,7 +112,7 @@ namespace Spring.Threading
                 "T1", () => Assert.Throws<ThreadInterruptedException>(() => AwaitOrTimedAwait(isTimed, c)));
             ThreadManager.StartAndAssertRegistered(
                 "T2", () => Assert.Throws<BrokenBarrierException>(() => AwaitOrTimedAwait(isTimed, c)));
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t1.Interrupt();
             ThreadManager.JoinAndVerify();
         }
@@ -121,7 +122,7 @@ namespace Spring.Threading
         {
             CyclicBarrier c = new CyclicBarrier(2);
             ThreadManager.StartAndAssertRegistered(
-                "T", () => Assert.Throws<TimeoutException>(() => c.Await(SHORT_DELAY)));
+                "T", () => Assert.Throws<TimeoutException>(() => c.Await(Delays.Short)));
 
             ThreadManager.JoinAndVerify();
         }
@@ -132,7 +133,7 @@ namespace Spring.Threading
         {
             CyclicBarrier c = new CyclicBarrier(3);
             ThreadManager.StartAndAssertRegistered(
-                "T1", () => Assert.Throws<TimeoutException>(()=>c.Await(SHORT_DELAY)));
+                "T1", () => Assert.Throws<TimeoutException>(()=>c.Await(Delays.Short)));
             ThreadManager.StartAndAssertRegistered(
                 "T2", () => Assert.Throws<BrokenBarrierException>(() => AwaitOrTimedAwait(isTimed, c)));
             ThreadManager.JoinAndVerify();
@@ -146,7 +147,7 @@ namespace Spring.Threading
                 "T1", 
                 delegate
                     {
-                        Assert.Throws<TimeoutException>(() => c.Await(SHORT_DELAY));
+                        Assert.Throws<TimeoutException>(() => c.Await(Delays.Short));
                         Assert.Throws<BrokenBarrierException>(() => AwaitOrTimedAwait(isTimed, c));
                     });
             ThreadManager.JoinAndVerify();
@@ -158,7 +159,7 @@ namespace Spring.Threading
             CyclicBarrier c = new CyclicBarrier(3);
             ThreadStart action = () => Assert.Throws<BrokenBarrierException>(() => AwaitOrTimedAwait(isTimed, c));
             ThreadManager.StartAndAssertRegistered("T", action, action);
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             c.Reset();
             ThreadManager.JoinAndVerify();
         }
@@ -198,7 +199,7 @@ namespace Spring.Threading
 
             for (int i = 0; i < 4; i++)
             {
-                Thread.Sleep(SHORT_DELAY);
+                Thread.Sleep(Delays.Short);
                 t.Interrupt();
             }
             done.Value = true;
@@ -274,7 +275,7 @@ namespace Spring.Threading
                     delegate
                     {
                         start.Await();
-                        Assert.Catch<TimeoutException>(() => barrier.Await(SHORT_DELAY));
+                        Assert.Catch<TimeoutException>(() => barrier.Await(Delays.Short));
                     },
                     delegate
                     {
@@ -321,7 +322,7 @@ namespace Spring.Threading
 
         private static void AwaitOrTimedAwait(bool isTimed, CyclicBarrier c)
         {
-            if (isTimed) c.Await(LONG_DELAY);
+            if (isTimed) c.Await(Delays.Long);
             else c.Await();
         }
     }

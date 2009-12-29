@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Threading;
 using NUnit.Framework;
 
 namespace Spring.Threading.Locks
@@ -90,7 +92,7 @@ namespace Spring.Threading.Locks
                         _lock.Unlock();
                     });
             t1.Interrupt();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(t1.IsAlive);
             Assert.IsTrue(_lock.IsLocked);
             Assert.IsTrue(_lock.IsHeldByCurrentThread);
@@ -129,16 +131,16 @@ namespace Spring.Threading.Locks
             Assert.IsFalse(_lock.HasQueuedThreads);
             _lock.Lock();
             Thread t1 = ThreadManager.StartAndAssertRegistered("T1", InterruptedLock);
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(_lock.HasQueuedThreads);
             Thread t2 = ThreadManager.StartAndAssertRegistered("T2", InterruptibleLock);
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(_lock.HasQueuedThreads);
             t1.Interrupt();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(_lock.HasQueuedThreads);
             _lock.Unlock();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(_lock.HasQueuedThreads);
 
             ThreadManager.JoinAndVerify(t1, t2);
@@ -154,19 +156,19 @@ namespace Spring.Threading.Locks
             _lock.Lock();
             Thread t1 = ThreadManager.StartAndAssertRegistered("T1", InterruptedLock);
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.AreEqual(1, _lock.QueueLength);
             Thread t2 = ThreadManager.StartAndAssertRegistered("T2", InterruptibleLock);
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.AreEqual(2, _lock.QueueLength);
             t1.Interrupt();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.AreEqual(1, _lock.QueueLength);
             _lock.Unlock();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.AreEqual(0, _lock.QueueLength);
 
             ThreadManager.JoinAndVerify(t1, t2);
@@ -185,31 +187,31 @@ namespace Spring.Threading.Locks
         public void IsQueuedThreadReportsWhetherThreadIsQueued(bool isFair)
         {
             _lock = new ReentrantLock(isFair);
-            Thread t1 = ThreadManager.NewVerifiableThread(InterruptedLock, "T1");
-            Thread t2 = ThreadManager.NewVerifiableThread(InterruptibleLock, "T2");
+            Thread t1 = ThreadManager.NewManagedThread(InterruptedLock, "T1");
+            Thread t2 = ThreadManager.NewManagedThread(InterruptibleLock, "T2");
             Assert.IsFalse(_lock.IsQueuedThread(t1));
             Assert.IsFalse(_lock.IsQueuedThread(t2));
             _lock.Lock();
             t1.Start();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(_lock.IsQueuedThread(t1));
             t2.Start();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(_lock.IsQueuedThread(t1));
             Assert.IsTrue(_lock.IsQueuedThread(t2));
             t1.Interrupt();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(_lock.IsQueuedThread(t1));
             Assert.IsTrue(_lock.IsQueuedThread(t2));
             _lock.Unlock();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(_lock.IsQueuedThread(t1));
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(_lock.IsQueuedThread(t2));
 
             ThreadManager.JoinAndVerify(t1, t2);
@@ -226,21 +228,21 @@ namespace Spring.Threading.Locks
             Assert.IsTrue((_lock.QueuedThreads.Count == 0));
             Thread t1 = ThreadManager.StartAndAssertRegistered("T1", InterruptedLock);
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(_lock.QueuedThreads.Contains(t1));
             Thread t2 = ThreadManager.StartAndAssertRegistered("T2", InterruptibleLock);
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(_lock.QueuedThreads.Contains(t1));
             Assert.IsTrue(_lock.QueuedThreads.Contains(t2));
             t1.Interrupt();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(_lock.QueuedThreads.Contains(t1));
             Assert.IsTrue(_lock.QueuedThreads.Contains(t2));
             _lock.Unlock();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue((_lock.QueuedThreads.Count == 0));
 
             ThreadManager.JoinAndVerify(t1, t2);
@@ -253,7 +255,7 @@ namespace Spring.Threading.Locks
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1",
                 () => Assert.Throws<ThreadInterruptedException>(
-                          () => _lock.TryLock(MEDIUM_DELAY)));
+                          () => _lock.TryLock(Delays.Medium)));
 
             t.Interrupt();
             ThreadManager.JoinAndVerify(t);
@@ -266,10 +268,10 @@ namespace Spring.Threading.Locks
             ThreadStart action =
                 delegate
                     {
-                        Assert.IsTrue(_lock.TryLock(LONG_DELAY));
+                        Assert.IsTrue(_lock.TryLock(Delays.Long));
                         try
                         {
-                            Thread.Sleep(SHORT_DELAY);
+                            Thread.Sleep(Delays.Short);
                         }
                         finally
                         {
@@ -316,7 +318,7 @@ namespace Spring.Threading.Locks
             }));
             RecursiveHolds(delegate
             {
-                Assert.IsTrue(_lock.TryLock(SHORT_DELAY));
+                Assert.IsTrue(_lock.TryLock(Delays.Short));
             });
             RecursiveHolds(delegate { _lock.LockInterruptibly(); });
         }
@@ -347,11 +349,11 @@ namespace Spring.Threading.Locks
                 delegate
                     {
                         _lock.Lock();
-                        Assert.Throws<ThreadInterruptedException>(()=>Thread.Sleep(LONG_DELAY));
+                        Assert.Throws<ThreadInterruptedException>(()=>Thread.Sleep(Delays.Long));
                         _lock.Unlock();
                     });
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(_lock.IsLocked);
             t1.Interrupt();
             ThreadManager.JoinAndVerify();
@@ -407,7 +409,7 @@ namespace Spring.Threading.Locks
 
         [Test] public void AwaitTimeoutWithoutSignal([Values(true, false)] bool isFair)
         {
-            TimeSpan timeToWait = SHORT_DELAY;
+            TimeSpan timeToWait = Delays.Short;
             _lock = new ReentrantLock(isFair);
             ICondition c = _lock.NewCondition();
             _lock.Lock();
@@ -440,7 +442,7 @@ namespace Spring.Threading.Locks
                 "T1",
                 () => { using (_lock.Lock()) c.Await(); });
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             _lock.Lock();
             c.Signal();
             _lock.Unlock();
@@ -538,14 +540,14 @@ namespace Spring.Threading.Locks
                         }
                     });
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             _lock.Lock();
             Assert.IsTrue(_lock.HasWaiters(c));
             Assert.AreEqual(1, _lock.GetWaitQueueLength(c));
             c.Signal();
             _lock.Unlock();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             _lock.Lock();
             Assert.IsFalse(_lock.HasWaiters(c));
             Assert.AreEqual(0, _lock.GetWaitQueueLength(c));
@@ -572,7 +574,7 @@ namespace Spring.Threading.Locks
                         }
                     });
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             ThreadManager.StartAndAssertRegistered(
                 "T2",
                 delegate
@@ -586,14 +588,14 @@ namespace Spring.Threading.Locks
                     });
             try
             {
-                Thread.Sleep(SHORT_DELAY);
+                Thread.Sleep(Delays.Short);
                 _lock.Lock();
                 Assert.IsTrue(_lock.HasWaiters(c));
                 Assert.AreEqual(2, _lock.GetWaitQueueLength(c));
                 c.SignalAll();
                 _lock.Unlock();
 
-                Thread.Sleep(SHORT_DELAY);
+                Thread.Sleep(Delays.Short);
                 _lock.Lock();
                 Assert.IsFalse(_lock.HasWaiters(c));
                 Assert.AreEqual(0, _lock.GetWaitQueueLength(c));
@@ -626,7 +628,7 @@ namespace Spring.Threading.Locks
                     myLock.Unlock();
                 });
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Thread t2 = ThreadManager.StartAndAssertRegistered(
                 "T2",
                 delegate
@@ -637,7 +639,7 @@ namespace Spring.Threading.Locks
                     myLock.Unlock();
                 });
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             myLock.Lock();
             Assert.IsTrue(myLock.HasWaiters(c));
             Assert.IsTrue(myLock.GetWaitingThreadsPublic(c).Contains(t1));
@@ -645,7 +647,7 @@ namespace Spring.Threading.Locks
             c.SignalAll();
             myLock.Unlock();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             myLock.Lock();
             Assert.IsFalse(myLock.HasWaiters(c));
             Assert.IsTrue((myLock.GetWaitingThreadsPublic(c).Count == 0));
@@ -693,7 +695,7 @@ namespace Spring.Threading.Locks
                 () => Assert.Throws<ThreadInterruptedException>(
                           () => { using (_lock.Lock()) c.Await(); }));
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
 
             ThreadManager.JoinAndVerify();
@@ -709,7 +711,7 @@ namespace Spring.Threading.Locks
                 () => Assert.Throws<ThreadInterruptedException>(
                           () => { using (_lock.Lock()) c.Await(new TimeSpan(0, 0, 0, 1)); }));
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
 
             ThreadManager.JoinAndVerify();
@@ -725,7 +727,7 @@ namespace Spring.Threading.Locks
                 () => Assert.Throws<ThreadInterruptedException>(
                           () => { using (_lock.Lock()) c.AwaitUntil(DateTime.Now.AddMilliseconds(10000)); }));
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
 
             ThreadManager.JoinAndVerify();
@@ -739,7 +741,7 @@ namespace Spring.Threading.Locks
 
             ThreadManager.StartAndAssertRegistered("T", cAwait, cAwait);
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             _lock.Lock();
             c.SignalAll();
             _lock.Unlock();
@@ -773,7 +775,7 @@ namespace Spring.Threading.Locks
                         }
                     });
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(_lock.IsLocked);
             using(_lock.Lock()) c.SignalAll();
 

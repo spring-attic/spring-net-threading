@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Spring;
 using Spring.Threading.AtomicTypes;
@@ -380,7 +381,7 @@ namespace System.Threading.Tasks
                     if (i == breakAt) s.Break();
                     else
                     {
-                        try { Thread.Sleep(i == 0 ? SMALL_DELAY_MS : 10); }
+                        try { Thread.Sleep(i == 0 ? Delays.SmallMillis : 10); }
                         catch (ThreadInterruptedException) { }
                         if (!s.ShouldExitCurrentIteration) lock (completed) completed.Add(t);
                         else

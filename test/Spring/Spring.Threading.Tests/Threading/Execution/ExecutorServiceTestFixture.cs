@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Rhino.Mocks;
 using Spring.Threading.AtomicTypes;
@@ -52,10 +53,9 @@ namespace Spring.Threading.Execution
 
         [SetUp] public void SetUpExecutorAndActions()
         {
-            base.SetUpThreadManager();
             _joinPoolWithInterrupt = null;
             _executorService = null;
-            _mediumInterruptableAction = NewInterruptableAction(MEDIUM_DELAY);
+            _mediumInterruptableAction = NewInterruptableAction(Delays.Medium);
             _runnable = MockRepository.GenerateMock<IRunnable>();
             _action = MockRepository.GenerateMock<Action>();
         }
@@ -85,7 +85,7 @@ namespace Spring.Threading.Execution
 
         protected Action NewInterruptableAction(TimeSpan timeout)
         {
-            return ThreadManager.NewVerifiableTask(
+            return ThreadManager.GetManagedAction(
                 () =>
                 {
                     try { Thread.Sleep(timeout); }
@@ -151,11 +151,11 @@ namespace Spring.Threading.Execution
         public void ShutdownNowReturnsTasksThatWereNotRun()
         {
             var nRun = new AtomicInteger(0);
-            var action = ThreadManager.NewVerifiableTask(
+            var action = ThreadManager.GetManagedAction(
                 () =>
                 {
                     nRun.IncrementValueAndReturn();
-                    try { Thread.Sleep(MEDIUM_DELAY); }
+                    try { Thread.Sleep(Delays.Medium); }
                     catch (ThreadInterruptedException) { }
                 });
             var es = ExecutorService;
@@ -175,7 +175,7 @@ namespace Spring.Threading.Execution
             Assert.IsTrue(es.IsShutdown);
             Assert.IsNotNull(l);
             Assert.That(l.Count, Is.LessThanOrEqualTo(submitCount-nRun.Value));
-            ThreadManager.JoinAndVerify(LONG_DELAY);
+            ThreadManager.JoinAndVerify(Delays.Long);
         }
 
         [Test, Description("Executor rejects task when saturated")]
@@ -229,8 +229,8 @@ namespace Spring.Threading.Execution
             bool actionCalled = false;
             bool runnableCalled = false;
             var es = ExecutorService;
-            var action = ThreadManager.NewVerifiableTask(() => actionCalled = true);
-            IRunnable runnable = new Runnable(ThreadManager.NewVerifiableTask(() => runnableCalled = true));
+            var action = ThreadManager.GetManagedAction(() => actionCalled = true);
+            IRunnable runnable = new Runnable(ThreadManager.GetManagedAction(() => runnableCalled = true));
 
             es.Execute(action);
             es.Execute(runnable);
@@ -340,7 +340,7 @@ namespace Spring.Threading.Execution
             _callable.Stub(x => x.Call()).Do(new Delegates.Function<T>(
                 delegate
                 {
-                    Assert.Throws<ThreadInterruptedException>(() => Thread.Sleep(TestData.SmallDelay));
+                    Assert.Throws<ThreadInterruptedException>(() => Thread.Sleep(Delays.Small));
                     return TestData<T>.One;
                 }));
 
@@ -351,7 +351,7 @@ namespace Spring.Threading.Execution
                     var future = ExecutorService.Submit(_callable);
                     Assert.Throws<ThreadInterruptedException>(() => future.GetResult());
                 });
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
             InterruptAndJoinPool(ExecutorService);
             ThreadManager.JoinAndVerify();
@@ -365,7 +365,7 @@ namespace Spring.Threading.Execution
             _callable.Stub(c => c.Call()).Do(new Delegates.Function<T>(
                 delegate
                 {
-                    Thread.Sleep(TestData.ShortDelay);
+                    Thread.Sleep(Delays.Short);
                     throw exception;
                 }));
 
@@ -385,7 +385,7 @@ namespace Spring.Threading.Execution
                 {
                     const Func<T>[] calls = null;
                     if (!isTimed) es.InvokeAny(calls);
-                    else es.InvokeAny(TestData.ShortDelay, calls);
+                    else es.InvokeAny(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("tasks"));
 
@@ -394,7 +394,7 @@ namespace Spring.Threading.Execution
                 {
                     const ICallable<T>[] calls = null;
                     if (!isTimed) es.InvokeAny(calls);
-                    else es.InvokeAny(TestData.ShortDelay, calls);
+                    else es.InvokeAny(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("tasks"));
         }
@@ -408,7 +408,7 @@ namespace Spring.Threading.Execution
                 {
                     Func<T>[] calls = new Func<T>[0];
                     if (!isTimed) es.InvokeAny(calls);
-                    else es.InvokeAny(TestData.ShortDelay, calls);
+                    else es.InvokeAny(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("tasks"));
 
@@ -417,7 +417,7 @@ namespace Spring.Threading.Execution
                 {
                     ICallable<T>[] calls = new ICallable<T>[0];
                     if (!isTimed) es.InvokeAny(calls);
-                    else es.InvokeAny(TestData.ShortDelay, calls);
+                    else es.InvokeAny(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("tasks"));
         }
@@ -425,15 +425,15 @@ namespace Spring.Threading.Execution
         [Test]
         public void InvokeAnyChokesOnNullTaskInCollection([Values(true, false)] bool isTimed)
         {
-            _call.Stub(c => c()).WhenCalled(m => Thread.Sleep(SHORT_DELAY));
-            _callable.Stub(c => c.Call()).WhenCalled(m => Thread.Sleep(SHORT_DELAY));
+            _call.Stub(c => c()).WhenCalled(m => Thread.Sleep(Delays.Short));
+            _callable.Stub(c => c.Call()).WhenCalled(m => Thread.Sleep(Delays.Short));
             var es = ExecutorService;
             var e = Assert.Throws<ArgumentNullException>(
                 delegate
                 {
                     Func<T>[] calls = new Func<T>[] {_call, null };
                     if (!isTimed) es.InvokeAny(calls);
-                    else es.InvokeAny(TestData.ShortDelay, calls);
+                    else es.InvokeAny(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("call"));
 
@@ -442,7 +442,7 @@ namespace Spring.Threading.Execution
                 {
                     ICallable<T>[] calls = new ICallable<T>[] {_callable, null };
                     if (!isTimed) es.InvokeAny(calls);
-                    else es.InvokeAny(TestData.ShortDelay, calls);
+                    else es.InvokeAny(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("callable"));
         }
@@ -456,7 +456,7 @@ namespace Spring.Threading.Execution
                 {
                     const Func<T>[] calls = null;
                     if (!isTimed) es.InvokeAll(calls);
-                    else es.InvokeAll(TestData.ShortDelay, calls);
+                    else es.InvokeAll(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("tasks"));
 
@@ -465,7 +465,7 @@ namespace Spring.Threading.Execution
                 {
                     const ICallable<T>[] calls = null;
                     if (!isTimed) es.InvokeAll(calls);
-                    else es.InvokeAll(TestData.ShortDelay, calls);
+                    else es.InvokeAll(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("tasks"));
         }
@@ -479,7 +479,7 @@ namespace Spring.Threading.Execution
                 {
                     const Func<T>[] calls = null;
                     if (!isTimed) es.InvokeAll(calls);
-                    else es.InvokeAll(TestData.ShortDelay, calls);
+                    else es.InvokeAll(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("tasks"));
 
@@ -488,7 +488,7 @@ namespace Spring.Threading.Execution
                 {
                     const ICallable<T>[] calls = null;
                     if (!isTimed) es.InvokeAllOrFail(calls);
-                    else es.InvokeAllOrFail(TestData.ShortDelay, calls);
+                    else es.InvokeAllOrFail(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("tasks"));
         }
@@ -499,13 +499,13 @@ namespace Spring.Threading.Execution
             Func<T>[] calls = new Func<T>[0];
             var es = ExecutorService;
             var futures = isTimed ?
-                es.InvokeAll(TestData.ShortDelay, calls) :
+                es.InvokeAll(Delays.Short, calls) :
                 es.InvokeAll(calls);
             CollectionAssert.IsEmpty(futures);
 
             ICallable<T>[] callables = new ICallable<T>[0];
             futures = isTimed ?
-                es.InvokeAll(TestData.ShortDelay, callables) :
+                es.InvokeAll(Delays.Short, callables) :
                 es.InvokeAll(callables);
             CollectionAssert.IsEmpty(futures);
         }
@@ -516,13 +516,13 @@ namespace Spring.Threading.Execution
             Func<T>[] calls = new Func<T>[0];
             var es = ExecutorService;
             var futures = isTimed ?
-                es.InvokeAll(TestData.ShortDelay, calls) :
+                es.InvokeAll(Delays.Short, calls) :
                 es.InvokeAll(calls);
             CollectionAssert.IsEmpty(futures);
 
             ICallable<T>[] callables = new ICallable<T>[0];
             futures = isTimed ?
-                es.InvokeAllOrFail(TestData.ShortDelay, callables) :
+                es.InvokeAllOrFail(Delays.Short, callables) :
                 es.InvokeAllOrFail(callables);
             CollectionAssert.IsEmpty(futures);
         }
@@ -536,7 +536,7 @@ namespace Spring.Threading.Execution
                 {
                     Func<T>[] calls = new Func<T>[] { _call, null };
                     if (!isTimed) es.InvokeAll(calls);
-                    else es.InvokeAll(TestData.ShortDelay, calls);
+                    else es.InvokeAll(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("call"));
 
@@ -545,7 +545,7 @@ namespace Spring.Threading.Execution
                 {
                     ICallable<T>[] calls = new ICallable<T>[] { _callable, null };
                     if (!isTimed) es.InvokeAll(calls);
-                    else es.InvokeAll(TestData.ShortDelay, calls);
+                    else es.InvokeAll(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("callable"));
         }
@@ -559,7 +559,7 @@ namespace Spring.Threading.Execution
                 {
                     Func<T>[] calls = new Func<T>[] { _call, null };
                     if (!isTimed) es.InvokeAllOrFail(calls);
-                    else es.InvokeAllOrFail(TestData.ShortDelay, calls);
+                    else es.InvokeAllOrFail(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("call"));
 
@@ -568,7 +568,7 @@ namespace Spring.Threading.Execution
                 {
                     ICallable<T>[] calls = new ICallable<T>[] { _callable, null };
                     if (!isTimed) es.InvokeAllOrFail(calls);
-                    else es.InvokeAllOrFail(TestData.ShortDelay, calls);
+                    else es.InvokeAllOrFail(Delays.Short, calls);
                 });
             Assert.That(e.ParamName, Is.EqualTo("callable"));
         }
@@ -584,7 +584,7 @@ namespace Spring.Threading.Execution
                 {
                     Func<T>[] calls = new Func<T>[] { call };
                     if (!isTimed) es.InvokeAny(calls);
-                    else es.InvokeAny(TestData.ShortDelay, calls);
+                    else es.InvokeAny(Delays.Short, calls);
                 });
             Assert.That(e1.InnerException, Is.SameAs(expected));
 
@@ -593,7 +593,7 @@ namespace Spring.Threading.Execution
                 {
                     ICallable<T>[] calls = new Callable<T>[] { call };
                     if (!isTimed) es.InvokeAny(calls);
-                    else es.InvokeAny(TestData.ShortDelay, calls);
+                    else es.InvokeAny(Delays.Short, calls);
                 });
             Assert.That(e2.InnerException, Is.SameAs(expected));
         }
@@ -604,11 +604,11 @@ namespace Spring.Threading.Execution
             var call1 = _calls[0];
             var call2 = _calls[1];
             call1.Stub(c => c()).Throw(new Exception());
-            call2.Stub(c => c()).Return(TestData<T>.Four).WhenCalled(i => Thread.Sleep(TestData.ShortDelay));
+            call2.Stub(c => c()).Return(TestData<T>.Four).WhenCalled(i => Thread.Sleep(Delays.Short));
 
             Func<T>[] calls = new Func<T>[] { call1, call2, call1, call2 };
             var result = isTimed ?
-                ExecutorService.InvokeAny(TestData.SmallDelay, calls) :
+                ExecutorService.InvokeAny(Delays.Small, calls) :
                 ExecutorService.InvokeAny(calls);
             Assert.That(result, Is.EqualTo(TestData<T>.Four));
             ThreadManager.JoinAndVerify();
@@ -621,12 +621,12 @@ namespace Spring.Threading.Execution
             var call2 = _callables[1];
             var call3 = _callables[2];
             call1.Stub(c => c.Call()).Throw(new Exception());
-            call2.Stub(c => c.Call()).Return(TestData<T>.Four).WhenCalled(i => Thread.Sleep(SHORT_DELAY));
+            call2.Stub(c => c.Call()).Return(TestData<T>.Four).WhenCalled(i => Thread.Sleep(Delays.Short));
             call3.Stub(c => c.Call()).Return(TestData<T>.Four).WhenCalled(i => _mediumInterruptableAction());
 
             ICallable<T>[] calls = new ICallable<T>[] { call1, call2, call3 };
             var result = isTimed ?
-                ExecutorService.InvokeAny(TestData.SmallDelay, calls) :
+                ExecutorService.InvokeAny(Delays.Small, calls) :
                 ExecutorService.InvokeAny(calls);
             call1.AssertWasCalled(c => c.Call());
             Assert.That(result, Is.EqualTo(TestData<T>.Four));
@@ -643,7 +643,7 @@ namespace Spring.Threading.Execution
             _callables[0].Stub(c => c.Call()).Throw(e);
 
             var futures = isTimed ?
-                ExecutorService.InvokeAll(TestData.ShortDelay, _callables) :
+                ExecutorService.InvokeAll(Delays.Short, _callables) :
                 ExecutorService.InvokeAll(_callables);
             Assert.That(futures.Count, Is.EqualTo(_callables.Length));
             for (int i = futures.Count - 1; i > 0; i--)
@@ -667,7 +667,7 @@ namespace Spring.Threading.Execution
             _calls[0].Stub(c => c()).Throw(e);
 
             var futures = isTimed ?
-                ExecutorService.InvokeAll(TestData.ShortDelay, _calls) :
+                ExecutorService.InvokeAll(Delays.Short, _calls) :
                 ExecutorService.InvokeAll(_calls);
             Assert.That(futures.Count, Is.EqualTo(_calls.Length));
             for (int i = futures.Count - 1; i > 0; i--)
@@ -689,7 +689,7 @@ namespace Spring.Threading.Execution
             }
 
             var futures = isTimed ?
-                ExecutorService.InvokeAllOrFail(TestData.ShortDelay, _callables) :
+                ExecutorService.InvokeAllOrFail(Delays.Short, _callables) :
                 ExecutorService.InvokeAllOrFail(_callables);
             Assert.That(futures.Count, Is.EqualTo(_callables.Length));
             for (int i = futures.Count - 1; i >= 0; i--)
@@ -708,7 +708,7 @@ namespace Spring.Threading.Execution
             }
 
             var futures = isTimed ?
-                ExecutorService.InvokeAllOrFail(TestData.ShortDelay, _calls) :
+                ExecutorService.InvokeAllOrFail(Delays.Short, _calls) :
                 ExecutorService.InvokeAllOrFail(_calls);
             Assert.That(futures.Count, Is.EqualTo(_calls.Length));
             for (int i = futures.Count - 1; i >= 0; i--)
@@ -726,7 +726,7 @@ namespace Spring.Threading.Execution
                 new Func<T>(
                     delegate
                     {
-                        Thread.Sleep(TestData.ShortDelay);
+                        Thread.Sleep(Delays.Short);
                         throw expectedException;
                     }));
             bool call1Called = false;
@@ -737,7 +737,7 @@ namespace Spring.Threading.Execution
                     {
                         call1Called = true;
                         Assert.Throws<ThreadInterruptedException>(
-                            () => Thread.Sleep(TestData.LongDelay));
+                            () => Thread.Sleep(Delays.Long));
                         call1Interrupted = true;
                         return default(T);
                     }));
@@ -750,7 +750,7 @@ namespace Spring.Threading.Execution
                 delegate
                 {
                     if (isTimed)
-                        ExecutorService.InvokeAllOrFail(TestData.SmallDelay, _calls);
+                        ExecutorService.InvokeAllOrFail(Delays.Small, _calls);
                     else
                         ExecutorService.InvokeAllOrFail(_calls);
                 });
@@ -767,10 +767,10 @@ namespace Spring.Threading.Execution
             for (int i = _calls.Length - 1; i >= 0; i--)
             {
                 _calls[i].Stub(c => c()).Return(TestData<T>.Four)
-                    .WhenCalled(x => Thread.Sleep(TestData.SmallDelay));
+                    .WhenCalled(x => Thread.Sleep(Delays.Small));
             }
 
-            Assert.Throws<TimeoutException>(() => ExecutorService.InvokeAny(TestData.ShortDelay, _calls));
+            Assert.Throws<TimeoutException>(() => ExecutorService.InvokeAny(Delays.Short, _calls));
             ThreadManager.JoinAndVerify();
         }
 
@@ -781,10 +781,10 @@ namespace Spring.Threading.Execution
             {
                 var x = _callables[i].Stub(c => c.Call()).Return(TestData<T>.MakeData(i));
                 if (i > _halfSize)
-                    x.WhenCalled(invoke => Thread.Sleep(TestData.MediumDelayMillis*2));
+                    x.WhenCalled(invoke => Thread.Sleep(Delays.MediumMillis*2));
             }
 
-            var futures = ExecutorService.InvokeAll(TestData.ShortDelay, _callables);
+            var futures = ExecutorService.InvokeAll(Delays.Short, _callables);
             Assert.That(futures.Count, Is.EqualTo(_callables.Length));
             for (int i = futures.Count - 1; i >= 0; i--)
             {
@@ -807,10 +807,10 @@ namespace Spring.Threading.Execution
             {
                 var x = _calls[i].Stub(c => c()).Return(TestData<T>.MakeData(i));
                 if (i > _halfSize)
-                    x.WhenCalled(invoke => Thread.Sleep(TestData.SmallDelay));
+                    x.WhenCalled(invoke => Thread.Sleep(Delays.Small));
             }
 
-            var futures = ExecutorService.InvokeAll(TestData.ShortDelay, _calls);
+            var futures = ExecutorService.InvokeAll(Delays.Short, _calls);
             Assert.That(futures.Count, Is.EqualTo(_calls.Length));
             for (int i = futures.Count - 1; i >= 0; i--)
             {
@@ -836,7 +836,7 @@ namespace Spring.Threading.Execution
                 new Func<T>(
                     delegate
                     {
-                        Assert.Throws<ThreadInterruptedException>(() => Thread.Sleep(TestData.MediumDelay));
+                        Assert.Throws<ThreadInterruptedException>(() => Thread.Sleep(Delays.Medium));
                         return default(T);
                     }));
             }
@@ -844,7 +844,7 @@ namespace Spring.Threading.Execution
             Assert.Throws<TimeoutException>(
                 delegate
                 {
-                    ExecutorService.InvokeAllOrFail(TestData.ShortDelay, _calls);
+                    ExecutorService.InvokeAllOrFail(Delays.Short, _calls);
                 });
             JoinPool(ExecutorService);
         }

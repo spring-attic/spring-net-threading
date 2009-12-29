@@ -22,6 +22,7 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
@@ -93,7 +94,7 @@ namespace Spring.Threading.AtomicTypes
             var t = ThreadManager.StartAndAssertRegistered("T1",delegate 
                     {
                         while (!ai.CompareAndSet(false, true))
-                            Thread.Sleep(SHORT_DELAY);
+                            Thread.Sleep(Delays.Short);
                     }
                 );
 

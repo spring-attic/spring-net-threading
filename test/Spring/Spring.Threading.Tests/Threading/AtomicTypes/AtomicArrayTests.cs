@@ -23,6 +23,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
@@ -132,12 +133,12 @@ namespace Spring.Threading.AtomicTypes
             Thread t = new Thread(delegate()
             {
                 while (!a.CompareAndSet(0, two, three))
-                    Thread.Sleep(SHORT_DELAY);
+                    Thread.Sleep(Delays.Short);
             });
 
             t.Start();
             Assert.IsTrue(a.CompareAndSet(0, one, two));
-            t.Join(LONG_DELAY);
+            t.Join(Delays.Long);
             Assert.IsFalse(t.IsAlive);
             Assert.AreEqual(a[0], three);
         }

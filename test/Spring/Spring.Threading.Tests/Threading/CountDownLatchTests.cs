@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 
 namespace Spring.Threading
@@ -58,7 +59,7 @@ namespace Spring.Threading
                     });
             Assert.AreEqual(l.Count, 2);
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             l.CountDown();
             Assert.AreEqual(l.Count, 1);
             l.CountDown();
@@ -93,11 +94,11 @@ namespace Spring.Threading
                 delegate
                     {
                         Assert.IsTrue(l.Count > 0);
-                        Assert.IsTrue(l.Await(SMALL_DELAY));
+                        Assert.IsTrue(l.Await(Delays.Small));
                     });
             Assert.AreEqual(l.Count, 2);
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             l.CountDown();
             Assert.AreEqual(l.Count, 1);
             l.CountDown();
@@ -116,10 +117,10 @@ namespace Spring.Threading
                 delegate
                 {
                     Assert.IsTrue(l.Count == 0);
-                    Assert.IsTrue(l.Await(MEDIUM_DELAY));
+                    Assert.IsTrue(l.Await(Delays.Medium));
                     Assert.IsTrue(l.Await(TimeSpan.Zero));
                 });
-            ThreadManager.JoinAndVerify(SHORT_DELAY);
+            ThreadManager.JoinAndVerify(Delays.Short);
         }
 
         [Test]
@@ -134,7 +135,7 @@ namespace Spring.Threading
                     Assert.IsTrue(l.Count == 1);
                     Assert.IsFalse(l.Await(TimeSpan.Zero));
                 });
-            ThreadManager.JoinAndVerify(SHORT_DELAY);
+            ThreadManager.JoinAndVerify(Delays.Short);
         }
 
         [Test]
@@ -163,9 +164,9 @@ namespace Spring.Threading
                 delegate
                     {
                         Assert.IsTrue(l.Count > 0);
-                        Assert.Throws<ThreadInterruptedException>(()=>l.Await(MEDIUM_DELAY));
+                        Assert.Throws<ThreadInterruptedException>(()=>l.Await(Delays.Medium));
                     });
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.AreEqual(l.Count, 1);
             t.Interrupt();
             ThreadManager.JoinAndVerify();
@@ -181,7 +182,7 @@ namespace Spring.Threading
                 delegate
                     {
                         Assert.IsTrue(l.Count > 0);
-                        Assert.IsFalse(l.Await(SHORT_DELAY));
+                        Assert.IsFalse(l.Await(Delays.Short));
                         Assert.IsTrue(l.Count > 0);
 
                     });

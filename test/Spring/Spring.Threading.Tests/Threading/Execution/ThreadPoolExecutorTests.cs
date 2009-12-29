@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Rhino.Mocks;
 using Spring.Threading.AtomicTypes;
@@ -31,25 +32,25 @@ namespace Spring.Threading.Execution
 
         protected static ThreadPoolExecutor NewThreadPoolExecutor(int corePoolSize, int maxPoolSize)
         {
-            return new ThreadPoolExecutor(corePoolSize, maxPoolSize, LONG_DELAY, 
+            return new ThreadPoolExecutor(corePoolSize, maxPoolSize, Delays.Long, 
                 new ArrayBlockingQueue<IRunnable>(10));
         }
 
         private static ThreadPoolExecutor NewThreadPoolExecutorWithThreadFactory(int corePoolSize, int maxPoolSize)
         {
-            return new ThreadPoolExecutor(corePoolSize, maxPoolSize, LONG_DELAY, 
+            return new ThreadPoolExecutor(corePoolSize, maxPoolSize, Delays.Long, 
                 new ArrayBlockingQueue<IRunnable>(10), new SimpleThreadFactory());
         }
 
         private static ThreadPoolExecutor NewThreadPoolExecutorWithRejectHandler(int corePoolSize, int maxPoolSize)
         {
-            return new ThreadPoolExecutor(corePoolSize, maxPoolSize, LONG_DELAY,
+            return new ThreadPoolExecutor(corePoolSize, maxPoolSize, Delays.Long,
                 new ArrayBlockingQueue<IRunnable>(10), new NoOpREHandler());
         }
 
         private static ThreadPoolExecutor NewThreadPoolExecutorWithBoth(int corePoolSize, int maxPoolSize)
         {
-            return new ThreadPoolExecutor(corePoolSize, maxPoolSize, LONG_DELAY,
+            return new ThreadPoolExecutor(corePoolSize, maxPoolSize, Delays.Long,
                 new ArrayBlockingQueue<IRunnable>(10), new SimpleThreadFactory(), new NoOpREHandler());
         }
 
@@ -59,7 +60,7 @@ namespace Spring.Threading.Execution
             Assert.AreEqual(0, es.ActiveCount);
 
             es.Execute(_mediumInterruptableAction);
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
 
             Assert.AreEqual(1, es.ActiveCount);
             InterruptAndJoinPool(es);
@@ -94,8 +95,8 @@ namespace Spring.Threading.Execution
             var es = ExecutorService;
             Assert.AreEqual(0, es.CompletedTaskCount);
 
-            es.Execute(ThreadManager.NewVerifiableTask(() => { }));
-            Thread.Sleep(SHORT_DELAY);
+            es.Execute(ThreadManager.GetManagedAction(() => { }));
+            Thread.Sleep(Delays.Short);
 
             Assert.AreEqual(1, es.CompletedTaskCount);
             JoinPool(es);
@@ -120,7 +121,7 @@ namespace Spring.Threading.Execution
         [Test] public void ThreadFactoryReturnsFactoryGivenInConstructor() {
             IThreadFactory tf = MockRepository.GenerateStub<IThreadFactory>();
 
-            ExecutorService = new ThreadPoolExecutor(1,2,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10), tf, new NoOpREHandler());
+            ExecutorService = new ThreadPoolExecutor(1,2,Delays.Long, new ArrayBlockingQueue<IRunnable>(10), tf, new NoOpREHandler());
 
             Assert.AreSame(tf, ExecutorService.ThreadFactory);
             JoinPool(ExecutorService);
@@ -131,7 +132,7 @@ namespace Spring.Threading.Execution
         {
             IThreadFactory tf = MockRepository.GenerateStub<IThreadFactory>();
             tf.Stub(f => f.NewThread(Arg<IRunnable>.Is.NotNull)).Do(
-                new Delegates.Function<Thread, IRunnable>(r => ThreadManager.NewVerifiableThread(r.Run)));
+                new Delegates.Function<Thread, IRunnable>(r => ThreadManager.NewManagedThread(r.Run)));
 
             var es = ExecutorService;
             es.ThreadFactory=tf;
@@ -151,14 +152,14 @@ namespace Spring.Threading.Execution
         [Test] public void RejectedExecutionHandlerReturnsHandlerGivenInConstructor() {
             var h = MockRepository.GenerateStub<IRejectedExecutionHandler>();
 
-            ExecutorService = new ThreadPoolExecutor(1,2,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(10), h);
+            ExecutorService = new ThreadPoolExecutor(1,2,Delays.Long, new ArrayBlockingQueue<IRunnable>(10), h);
 
             Assert.AreEqual(h, ExecutorService.RejectedExecutionHandler);
             JoinPool(ExecutorService);
         }
 
         [Test] public void RejectedExecutionHandlerSetterSetsTheHandler() {
-            ExecutorService = new ThreadPoolExecutor(1,1,LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1));
+            ExecutorService = new ThreadPoolExecutor(1,1,Delays.Long, new ArrayBlockingQueue<IRunnable>(1));
             var h = MockRepository.GenerateStub<IRejectedExecutionHandler>();
             var es = ExecutorService;
 
@@ -187,7 +188,7 @@ namespace Spring.Threading.Execution
             es.Execute(_mediumInterruptableAction);
             es.Execute(_mediumInterruptableAction);
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.AreEqual(2, es.LargestPoolSize);
             InterruptAndJoinPool(es);
             ThreadManager.JoinAndVerify();
@@ -221,10 +222,10 @@ namespace Spring.Threading.Execution
             ExecutorService = es;
             Assert.AreEqual(0, es.TaskCount);
 
-            for (int i = 0; i < taskCount/2; i++) es.Execute(ThreadManager.NewVerifiableTask(() => { }));
+            for (int i = 0; i < taskCount/2; i++) es.Execute(ThreadManager.GetManagedAction(() => { }));
             for (int i = 0; i < taskCount/2; i++) es.Execute(_mediumInterruptableAction);
 
-            Thread.Sleep(SHORT_DELAY); // Wait to let task count finally settle.
+            Thread.Sleep(Delays.Short); // Wait to let task count finally settle.
             Assert.That(es.TaskCount, Is.EqualTo(taskCount));
             InterruptAndJoinPool(es);
             ThreadManager.JoinAndVerify();
@@ -237,11 +238,11 @@ namespace Spring.Threading.Execution
             var es = ExecutorService;
             Assert.IsFalse(es.IsTerminated);
             Assert.IsFalse(es.IsTerminating);
-            es.Execute(ThreadManager.NewVerifiableTask(()=>Thread.Sleep(SHORT_DELAY)));
+            es.Execute(ThreadManager.GetManagedAction(()=>Thread.Sleep(Delays.Short)));
             es.Shutdown();
             Assert.IsFalse(es.IsTerminated);
             Assert.IsTrue(es.IsTerminating);
-            Assert.IsTrue(es.AwaitTermination(LONG_DELAY));
+            Assert.IsTrue(es.AwaitTermination(Delays.Long));
             Assert.IsFalse(es.IsTerminating);
             Assert.IsTrue(es.IsTerminated);
         }
@@ -250,7 +251,7 @@ namespace Spring.Threading.Execution
         public void QueueRetursWorkQueuContainsQueuedTasks()
         {
             IBlockingQueue<IRunnable> q = new ArrayBlockingQueue<IRunnable>(10);
-            var es = new ThreadPoolExecutor(1, 1, LONG_DELAY, q);
+            var es = new ThreadPoolExecutor(1, 1, Delays.Long, q);
             ExecutorService = es;
             FutureTask<bool>[] tasks = new FutureTask<bool>[_size];
             for (int i = 0; i < _size; i++)
@@ -258,7 +259,7 @@ namespace Spring.Threading.Execution
                 tasks[i] = new FutureTask<bool>(_mediumInterruptableAction, true);
                 es.Execute(tasks[i]);
             }
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             IBlockingQueue<IRunnable> wq = es.Queue;
             Assert.AreEqual(q, wq);
             Assert.IsFalse(wq.Contains(tasks[0]));
@@ -271,7 +272,7 @@ namespace Spring.Threading.Execution
         public void RemoveRunnableRemovesQueuedTaskAndFailesToRemoveActiveTask()
         {
             IBlockingQueue<IRunnable> q = new ArrayBlockingQueue<IRunnable>(10);
-            var es = new ThreadPoolExecutor(1, 1, LONG_DELAY, q);
+            var es = new ThreadPoolExecutor(1, 1, Delays.Long, q);
             ExecutorService = es;
             FutureTask<bool>[] tasks = new FutureTask<bool>[5];
             for (int i = 0; i < 5; i++)
@@ -279,7 +280,7 @@ namespace Spring.Threading.Execution
                 tasks[i] = new FutureTask<bool>(_mediumInterruptableAction, true);
                 es.Execute(tasks[i]);
             }
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(es.Remove(tasks[0]));
             Assert.IsTrue(q.Contains(tasks[4]));
             Assert.IsTrue(q.Contains(tasks[3]));
@@ -296,16 +297,16 @@ namespace Spring.Threading.Execution
         public void RemoveActionRemovesQueuedTaskAndFailesToRemoveActiveTask()
         {
             IBlockingQueue<IRunnable> q = new ArrayBlockingQueue<IRunnable>(10);
-            var es = new ThreadPoolExecutor(1, 1, LONG_DELAY, q);
+            var es = new ThreadPoolExecutor(1, 1, Delays.Long, q);
             ExecutorService = es;
             var tasks = new Action[5];
             for (int i = 0; i < 5; i++)
             {
                 int timeout = i;
-                tasks[i] = NewInterruptableAction(MEDIUM_DELAY + TimeSpan.FromMilliseconds(timeout));
+                tasks[i] = NewInterruptableAction(Delays.Medium + TimeSpan.FromMilliseconds(timeout));
                 es.Execute(tasks[i]);
             }
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(es.Remove(tasks[0]));
             Assert.That(q.Count, Is.EqualTo(4));
             Assert.IsTrue(es.Remove(tasks[4]));
@@ -416,18 +417,18 @@ namespace Spring.Threading.Execution
         {
             const string expected = "workQueue";
             var e = Assert.Throws<ArgumentNullException>(
-                () => new ThreadPoolExecutor(1, 2, LONG_DELAY, null));
+                () => new ThreadPoolExecutor(1, 2, Delays.Long, null));
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentNullException>(
-                () => new ThreadPoolExecutor(1, 2, LONG_DELAY, null, 
+                () => new ThreadPoolExecutor(1, 2, Delays.Long, null, 
                     new SimpleThreadFactory()));
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentNullException>(
-                () => new ThreadPoolExecutor(1, 2, LONG_DELAY, null, 
+                () => new ThreadPoolExecutor(1, 2, Delays.Long, null, 
                     new NoOpREHandler()));
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentNullException>(
-                () => new ThreadPoolExecutor(1, 2, LONG_DELAY, null, 
+                () => new ThreadPoolExecutor(1, 2, Delays.Long, null, 
                     new SimpleThreadFactory(), new NoOpREHandler()));
             Assert.That(e.ParamName, Is.EqualTo(expected));
         }
@@ -438,11 +439,11 @@ namespace Spring.Threading.Execution
             const string expected = "threadFactory";
             const IThreadFactory f = null;
             var e = Assert.Throws<ArgumentNullException>(
-                () => new ThreadPoolExecutor(1, 2, LONG_DELAY, 
+                () => new ThreadPoolExecutor(1, 2, Delays.Long, 
                     new ArrayBlockingQueue<IRunnable>(10), f));
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentNullException>(
-                () => new ThreadPoolExecutor(1, 2, LONG_DELAY, 
+                () => new ThreadPoolExecutor(1, 2, Delays.Long, 
                     new ArrayBlockingQueue<IRunnable>(10), f, new NoOpREHandler()));
             Assert.That(e.ParamName, Is.EqualTo(expected));
         }
@@ -453,11 +454,11 @@ namespace Spring.Threading.Execution
             const string expected = "handler";
             const IRejectedExecutionHandler r = null;
             var e = Assert.Throws<ArgumentNullException>(
-                () => new ThreadPoolExecutor(1, 2, LONG_DELAY, 
+                () => new ThreadPoolExecutor(1, 2, Delays.Long, 
                     new ArrayBlockingQueue<IRunnable>(10), r));
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentNullException>(
-                () => new ThreadPoolExecutor(1, 2, LONG_DELAY, 
+                () => new ThreadPoolExecutor(1, 2, Delays.Long, 
                     new ArrayBlockingQueue<IRunnable>(10), new SimpleThreadFactory(), r));
             Assert.That(e.ParamName, Is.EqualTo(expected));
         }
@@ -466,7 +467,7 @@ namespace Spring.Threading.Execution
         public void ExecuteRunsTaskInCurrentThreadWhenSaturatedWithCallerRunsPolicy()
         {
             IRejectedExecutionHandler h = new CallerRunsPolicy();
-            var es = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
+            var es = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             ExecutorService = es;
             IRunnable[] tasks = new IRunnable[_size];
             var caller = Thread.CurrentThread;
@@ -474,7 +475,7 @@ namespace Spring.Threading.Execution
             {
                 tasks[i] = MockRepository.GenerateStub<IRunnable>();
                 tasks[i].Stub(r => r.Run()).Do(
-                    ThreadManager.NewVerifiableTask(
+                    ThreadManager.GetManagedAction(
                         () => Assert.That(Thread.CurrentThread, Is.EqualTo(caller))));
             }
 
@@ -491,7 +492,7 @@ namespace Spring.Threading.Execution
         public void ExecuteDropsTaskWhenSaturatedWithDiscardPolicy()
         {
             IRejectedExecutionHandler h = new DiscardPolicy();
-            var es = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
+            var es = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             ExecutorService = es;
             IRunnable[] tasks = new IRunnable[_size];
             for (int i = 0; i < _size; ++i)
@@ -510,7 +511,7 @@ namespace Spring.Threading.Execution
         public void ExecuteDropsOldestTaskWhenSaturatedWithDiscardOldestPolicy()
         {
             IRejectedExecutionHandler h = new DiscardOldestPolicy();
-            var es = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
+            var es = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             ExecutorService = es;
             es.Execute(_mediumInterruptableAction);
             var r2 = MockRepository.GenerateStub<IRunnable>();
@@ -538,7 +539,7 @@ namespace Spring.Threading.Execution
         public void ExecuteDropsTaskOnShutdownWithCallerRunsPolicy()
         {
             IRejectedExecutionHandler h = new CallerRunsPolicy();
-            ExecutorService = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
+            ExecutorService = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             AssertExecutorDropsTaskOnShutdown(ExecutorService);
         }
 
@@ -546,7 +547,7 @@ namespace Spring.Threading.Execution
         public void ExecuteDropsTaskOnShutdownWithDiscardPolicy()
         {
             IRejectedExecutionHandler h = new DiscardPolicy();
-            ExecutorService = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
+            ExecutorService = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             AssertExecutorDropsTaskOnShutdown(ExecutorService);
         }
 
@@ -554,7 +555,7 @@ namespace Spring.Threading.Execution
         public void ExecuteDropsOldestTaskOnShutdownWithDiscardOldestPolicy()
         {
             IRejectedExecutionHandler h = new DiscardOldestPolicy();
-            ExecutorService = new ThreadPoolExecutor(1, 1, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(1), h);
+            ExecutorService = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             AssertExecutorDropsTaskOnShutdown(ExecutorService);
         }
 
@@ -594,7 +595,7 @@ namespace Spring.Threading.Execution
         [Test, Description("Terminated is called on termination")]
         public void TerminatedIsCalledOnTermination()
         {
-            var es = Mockery.GeneratePartialMock<ThreadPoolExecutor>(1, 1, LONG_DELAY, new SynchronousQueue<IRunnable>());
+            var es = Mockery.GeneratePartialMock<ThreadPoolExecutor>(1, 1, Delays.Long, new SynchronousQueue<IRunnable>());
             ExecutorService = es;
             es.Shutdown();
             es.AssertWasCalled(e => e.Terminated());
@@ -605,12 +606,12 @@ namespace Spring.Threading.Execution
         public void BeforeAfterExecuteAreCalledWhenExecutingTask()
         {
             var runnable = MockRepository.GenerateStub<IRunnable>();
-            var es = Mockery.GeneratePartialMock<ThreadPoolExecutor>(1, 1, LONG_DELAY, new SynchronousQueue<IRunnable>());
+            var es = Mockery.GeneratePartialMock<ThreadPoolExecutor>(1, 1, Delays.Long, new SynchronousQueue<IRunnable>());
             ExecutorService = es;
             try
             {
                 es.Execute(runnable);
-                Thread.Sleep(SHORT_DELAY);
+                Thread.Sleep(Delays.Short);
                 Mockery.Assert(
                     es.ActivityOf(e => e.AfterExecute(runnable, null))
                     > runnable.ActivityOf(r => r.Run())
@@ -619,7 +620,7 @@ namespace Spring.Threading.Execution
             finally // workaround a bug in RhinoMocks.
             {
                 es.Shutdown(); 
-                Thread.Sleep(SHORT_DELAY); 
+                Thread.Sleep(Delays.Short); 
             }
             JoinPool(es);
             ThreadManager.JoinAndVerify();
@@ -635,20 +636,20 @@ namespace Spring.Threading.Execution
             noExceptionFactory.Stub(f => f.NewThread(Arg<IRunnable>.Is.Anything)).Do(
                 new Delegates.Function<Thread, IRunnable>(
                     r => new Thread(() => { try { r.Run(); } catch(NullReferenceException) { } })));
-            var es = Mockery.GeneratePartialMock<ThreadPoolExecutor>(1, 1, LONG_DELAY,
+            var es = Mockery.GeneratePartialMock<ThreadPoolExecutor>(1, 1, Delays.Long,
                 new SynchronousQueue<IRunnable>(), noExceptionFactory);
             ExecutorService = es;
 
             try
             {
                 es.Execute(runnable);
-                Thread.Sleep(SHORT_DELAY);
+                Thread.Sleep(Delays.Short);
                 es.AssertWasCalled(e => e.AfterExecute(runnable, ex));
             }
             finally // workaround a bug in RhinoMocks.
             {
                 es.Shutdown();
-                Thread.Sleep(SHORT_DELAY);
+                Thread.Sleep(Delays.Short);
             }
             JoinPool(es);
             ThreadManager.JoinAndVerify();
@@ -664,7 +665,7 @@ namespace Spring.Threading.Execution
             failingThreadFactory.Stub(f => f.NewThread(Arg<IRunnable>.Is.NotNull))
                 .Do(new Function<IRunnable, Thread>(r => new Thread(r.Run))).Repeat.Once();
 
-            var es = new ThreadPoolExecutor(nTasks, nTasks, LONG_DELAY,
+            var es = new ThreadPoolExecutor(nTasks, nTasks, Delays.Long,
                 new LinkedBlockingQueue<IRunnable>(), failingThreadFactory);
             ExecutorService = es;
 
@@ -672,7 +673,7 @@ namespace Spring.Threading.Execution
             {
                 es.Execute(() => nRun.IncrementValueAndReturn());
             }
-            for (int i = 0; i < 20 && nRun.Value < nTasks; i++) Thread.Sleep(SHORT_DELAY);
+            for (int i = 0; i < 20 && nRun.Value < nTasks; i++) Thread.Sleep(Delays.Short);
             Assert.That(es.PoolSize, Is.EqualTo(1));
             Assert.AreEqual(nTasks, nRun.Value);
         }
@@ -690,8 +691,8 @@ namespace Spring.Threading.Execution
             var es = new ThreadPoolExecutor(2, 10, TimeSpan.FromMilliseconds(10), new ArrayBlockingQueue<IRunnable>(10));
             ExecutorService = es;
             es.AllowsCoreThreadsToTimeOut = isTimeout;
-            es.Execute(ThreadManager.NewVerifiableTask(() => { }));
-            Thread.Sleep(SHORT_DELAY);
+            es.Execute(ThreadManager.GetManagedAction(() => { }));
+            Thread.Sleep(Delays.Short);
             if (isTimeout)
                 Assert.That(es.PoolSize, Is.EqualTo(0));
             else
@@ -705,7 +706,7 @@ namespace Spring.Threading.Execution
             const int nTasks = 1000;
             AtomicInteger nRun = new AtomicInteger(0);
             IRunnable runnable = new Runnable(() => nRun.IncrementValueAndReturn());
-            var es = new ThreadPoolExecutor(1, 30, LONG_DELAY, new ArrayBlockingQueue<IRunnable>(30));
+            var es = new ThreadPoolExecutor(1, 30, Delays.Long, new ArrayBlockingQueue<IRunnable>(30));
             ExecutorService = es;
             for (int i = 0; i < nTasks; ++i)
             {
@@ -722,7 +723,7 @@ namespace Spring.Threading.Execution
                 }
             }
             // enough time to run all tasks
-            for (int i = 0; i < 20 && nRun.Value < nTasks; i++) Thread.Sleep(SHORT_DELAY);
+            for (int i = 0; i < 20 && nRun.Value < nTasks; i++) Thread.Sleep(Delays.Short);
             Assert.AreEqual(nRun.Value, nTasks);
         }
     }
@@ -733,7 +734,7 @@ namespace Spring.Threading.Execution
     {
         protected override IExecutorService NewExecutorService()
         {
-            return new ThreadPoolExecutor(50, 50, LONG_DELAY, new SynchronousQueue<IRunnable>());
+            return new ThreadPoolExecutor(50, 50, Delays.Long, new SynchronousQueue<IRunnable>());
         }
     }
 
@@ -743,7 +744,7 @@ namespace Spring.Threading.Execution
     {
         protected override IExecutorService NewExecutorService()
         {
-            return new ThreadPoolExecutor(_size, _size, LONG_DELAY, new SynchronousQueue<IRunnable>());
+            return new ThreadPoolExecutor(_size, _size, Delays.Long, new SynchronousQueue<IRunnable>());
         }
     }
 
@@ -753,7 +754,7 @@ namespace Spring.Threading.Execution
     {
         protected override IExecutorService NewExecutorService()
         {
-            return new ThreadPoolExecutor(1, 1, LONG_DELAY, new LinkedBlockingQueue<IRunnable>(10));
+            return new ThreadPoolExecutor(1, 1, Delays.Long, new LinkedBlockingQueue<IRunnable>(10));
         }
     }
 
@@ -763,7 +764,7 @@ namespace Spring.Threading.Execution
     {
         protected override IExecutorService NewExecutorService()
         {
-            return new ThreadPoolExecutor(1, 20, LONG_DELAY, new LinkedBlockingQueue<IRunnable>(10));
+            return new ThreadPoolExecutor(1, 20, Delays.Long, new LinkedBlockingQueue<IRunnable>(10));
         }
     }
 

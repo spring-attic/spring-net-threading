@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using NUnit.CommonFixtures.Threading;
+using NUnit.Framework;
 
 namespace Spring.Threading
 {

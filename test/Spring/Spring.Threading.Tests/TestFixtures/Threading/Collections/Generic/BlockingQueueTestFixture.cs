@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
+using NUnit.CommonFixtures.Threading;
 using NUnit.Framework;
+using Spring.Collections;
 using Spring.Collections.Generic;
 using Spring.TestFixtures.Collections;
 using Spring.TestFixtures.Collections.Generic;
@@ -18,18 +22,20 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
     {
         protected bool IsFair
         {
-            get { return Options.Has(CollectionOptions.Fair); }
-            set { Options = Options.Set(CollectionOptions.Fair, value); }
+            get { return Options.Has(CollectionContractOptions.Fair); }
+            set { Options = Options.Set(CollectionContractOptions.Fair, value); }
         }
 
+        protected TestThreadManager ThreadManager {get; private set;}
+
         /// <summary>
-        /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
-        /// <see cref="CollectionOptions.ReadOnly"/>,
-        /// <see cref="CollectionOptions.Fifo"/> and
-        /// <see cref="CollectionOptions.NoNull"/>.
+        /// Only evaluates option <see cref="CollectionContractOptions.Unique"/>,
+        /// <see cref="CollectionContractOptions.ReadOnly"/>,
+        /// <see cref="CollectionContractOptions.Fifo"/> and
+        /// <see cref="CollectionContractOptions.NoNull"/>.
         /// </summary>
         /// <param name="options"></param>
-        protected BlockingQueueTestFixture(CollectionOptions options) : base(options)
+        protected BlockingQueueTestFixture(CollectionContractOptions options) : base(options)
         {
         }
 
@@ -48,6 +54,16 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
         }
 
         protected abstract IBlockingQueue<T> NewBlockingQueue();
+
+        [SetUp] public void SetUpThreadManager()
+        {
+            ThreadManager = new TestThreadManager();
+        }
+
+        [TearDown] public void TearDownThreadManager()
+        {
+            ThreadManager.TearDown(true);
+        }
 
         public override void AddHandlesNullAsExpexcted()
         {
@@ -89,7 +105,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
         private static void PollOneFromQueue(IBlockingQueue<T> q, T expectedValue)
         {
             T result;
-            Assert.IsTrue(q.Poll(TestData.SmallDelay, out result));
+            Assert.IsTrue(q.Poll(Delays.Small, out result));
             Assert.That(result, Is.EqualTo(expectedValue));
         }
 
@@ -104,24 +120,24 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void PutBlocksInterruptiblyWhenFull()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var q = NewBlockingQueueFilledWithSample();
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1", () => Assert.Throws<ThreadInterruptedException>(
                                 () => q.Put(TestData<T>.MakeData(SampleSize))));
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
             ThreadManager.JoinAndVerify();
         }
 
         [Test] public virtual void PutBlocksWaitingForTakeWhenFull()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var q = NewBlockingQueueFilledWithSample();
             AtomicBoolean added = new AtomicBoolean(false);
             ThreadManager.StartAndAssertRegistered(
                 "T1", () => { q.Put(TestData<T>.One); added.Value = true; });
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(added);
             q.Take();
             ThreadManager.JoinAndVerify();
@@ -130,8 +146,8 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void FairQueueUnblocksOfferingThreadsInFifoOrder()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
-            Options.SkipWhenNot(CollectionOptions.Fair);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Fair);
             const int size = 3;
             var q = NewBlockingQueueFilledWithSample();
             var exitValue = new AtomicInteger();
@@ -144,18 +160,18 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
                     () =>
                         {
                             while (order.Value < index) Thread.Sleep(1);
-                            Thread.Sleep(SHORT_DELAY);
+                            Thread.Sleep(Delays.Short);
                             order.IncrementValueAndReturn();
-                            Assert.IsTrue(q.Offer(TestData<T>.MakeData(index), TestData.LongDelay));
+                            Assert.IsTrue(q.Offer(TestData<T>.MakeData(index), Delays.Long));
                             exitValue.Value = index;
                         });
             }
             while (order.Value <= size) Thread.Sleep(1);
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             for (int i = 1; i <= size; i++)
             {
                 T result;
-                Assert.IsTrue(q.Poll(TestData.ShortDelay, out result));
+                Assert.IsTrue(q.Poll(Delays.Short, out result));
                 for (int j = 0; j < 100 && exitValue.Value != i; j++) Thread.Sleep(1);
                 Assert.That(exitValue.Value, Is.EqualTo(i));
             }
@@ -164,7 +180,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void FairQueueUnblocksTakingThreadsInFifoOrder()
         {
-            Options.SkipWhenNot(CollectionOptions.Fair);
+            Options.SkipWhenNot(CollectionContractOptions.Fair);
             const int size = 3;
             var q = NewBlockingQueue();
             var exitValue = new AtomicInteger();
@@ -177,18 +193,18 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
                     () =>
                         {
                             while (order.Value < index) Thread.Sleep(1);
-                            Thread.Sleep(SHORT_DELAY);
+                            Thread.Sleep(Delays.Short);
                             order.IncrementValueAndReturn();
                             T result;
-                            Assert.IsTrue(q.Poll(TestData.LongDelay, out result));
+                            Assert.IsTrue(q.Poll(Delays.Long, out result));
                             exitValue.Value = index;
                         });
             }
             while (order.Value <= size) Thread.Sleep(1);
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             for (int i = 1; i <= size; i++)
             {
-                Assert.IsTrue(q.Offer(TestData<T>.MakeData(i), TestData.ShortDelay));
+                Assert.IsTrue(q.Offer(TestData<T>.MakeData(i), Delays.Short));
                 for (int j = 0; j < 100 && exitValue.Value != i; j++) Thread.Sleep(1);
                 Assert.That(exitValue.Value, Is.EqualTo(i));
             }
@@ -197,35 +213,35 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void TimedOfferWaitsInterruptablyAndTimesOutIfFullAndSucceedAfterTaken()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var values = TestData<T>.MakeTestArray(SampleSize + 3);
             var q = NewBlockingQueueFilledWithSample();
             var timedout = new AtomicBoolean(false);
             ThreadManager.StartAndAssertRegistered(
-                "T2", () => Assert.IsTrue(q.Offer(values[SampleSize], TestData.LongDelay)));
+                "T2", () => Assert.IsTrue(q.Offer(values[SampleSize], Delays.Long)));
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1",
                 delegate
                     {
-                        Assert.IsFalse(q.Offer(TestData<T>.M1, TestData.ShortDelay));
+                        Assert.IsFalse(q.Offer(TestData<T>.M1, Delays.Short));
                         timedout.Value = true;
                         Assert.Throws<ThreadInterruptedException>(
-                            () => q.Offer(TestData<T>.M2, TestData.LongDelay));
+                            () => q.Offer(TestData<T>.M2, Delays.Long));
                     });
 
-            for (int i = 5; i > 0 && !timedout; i--) Thread.Sleep(TestData.ShortDelay);
+            for (int i = 5; i > 0 && !timedout; i--) Thread.Sleep(Delays.Short);
             Assert.That(timedout.Value, Is.True, "Offer should timeout by now.");
             ThreadManager.StartAndAssertRegistered(
-                "T3", () => Assert.IsTrue(q.Offer(values[SampleSize + 1], TestData.LongDelay)));
-            Thread.Sleep(TestData.ShortDelay);
+                "T3", () => Assert.IsTrue(q.Offer(values[SampleSize + 1], Delays.Long)));
+            Thread.Sleep(Delays.Short);
             ThreadManager.StartAndAssertRegistered(
-                "T4", () => Assert.IsTrue(q.Offer(values[SampleSize + 2], TestData.LongDelay)));
+                "T4", () => Assert.IsTrue(q.Offer(values[SampleSize + 2], Delays.Long)));
             t.Interrupt();
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             for (int i = 0; i < SampleSize + 3; i++)
             {
                 T result;
-                Assert.IsTrue(q.Poll(TestData.ShortDelay, out result));
+                Assert.IsTrue(q.Poll(Delays.Short, out result));
                 if (IsFifo && i<SampleSize) Assert.That(result, Is.EqualTo(values[i]));
                 else CollectionAssert.Contains(values, result);
             }
@@ -237,7 +253,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
             var q = NewBlockingQueueFilledWithSample();
             ThreadManager.StartAndAssertRegistered(
                 "T1", () => Assert.IsTrue(q.Offer(TestData<T>.One, TimeSpan.MaxValue)));
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             q.Take();
             ThreadManager.JoinAndVerify();
         }
@@ -261,7 +277,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
             var q = NewBlockingQueue();
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1", () => Assert.Throws<ThreadInterruptedException>(() => q.Take()));
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
             ThreadManager.JoinAndVerify(t);
         }
@@ -278,7 +294,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
                         isEmpty.Value = true;
                         Assert.Throws<ThreadInterruptedException>(() => q.Take());
                     });
-            for (int i = 5 - 1; i >= 0 && !isEmpty; i--) Thread.Sleep(TestData.ShortDelay);
+            for (int i = 5 - 1; i >= 0 && !isEmpty; i--) Thread.Sleep(Delays.Short);
             t.Interrupt();
             ThreadManager.JoinAndVerify(t);
         }
@@ -312,10 +328,10 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
                         T value;
                         for (int i = 0; i < SampleSize; ++i)
                         {
-                            Assert.IsTrue(q.Poll(TestData.ShortDelay, out value));
+                            Assert.IsTrue(q.Poll(Delays.Short, out value));
                             AssertRetrievedResult(value, i);
                         }
-                        Assert.IsFalse(q.Poll(TestData.ShortDelay, out value));
+                        Assert.IsFalse(q.Poll(Delays.Short, out value));
                     });
             ThreadManager.JoinAndVerify(t);
         }
@@ -331,9 +347,9 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
                         while (q.Count > 0) q.Take();
                         isEmpty.Value = true;
                         Assert.Throws<ThreadInterruptedException>(
-                            () => q.Poll(TestData.MediumDelay, out value));
+                            () => q.Poll(Delays.Medium, out value));
                     });
-            for (int i = 5 - 1; i >= 0 && !isEmpty; i--) Thread.Sleep(TestData.ShortDelay);
+            for (int i = 5 - 1; i >= 0 && !isEmpty; i--) Thread.Sleep(Delays.Short);
             t.Interrupt();
             ThreadManager.JoinAndVerify(t);
         }
@@ -345,14 +361,14 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1",
                 delegate {
-                             Assert.IsFalse(q.Poll(TestData.ShortDelay, out value));
+                             Assert.IsFalse(q.Poll(Delays.Short, out value));
                              timedout.Value = true;
-                             Assert.IsTrue(q.Poll(TestData.LongDelay, out value));
-                             Assert.Throws<ThreadInterruptedException>(()=>q.Poll(TestData.LongDelay, out value));
+                             Assert.IsTrue(q.Poll(Delays.Long, out value));
+                             Assert.Throws<ThreadInterruptedException>(()=>q.Poll(Delays.Long, out value));
                 });
-            for (int i = 5 - 1; i >= 0 && !timedout; i--) Thread.Sleep(TestData.ShortDelay);
-            Assert.IsTrue(q.Offer(TestData<T>.One, TestData.ShortDelay));
-            Thread.Sleep(TestData.ShortDelay);
+            for (int i = 5 - 1; i >= 0 && !timedout; i--) Thread.Sleep(Delays.Short);
+            Assert.IsTrue(q.Offer(TestData<T>.One, Delays.Short));
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
             ThreadManager.JoinAndVerify(t);
         }
@@ -364,7 +380,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
             ThreadManager.StartAndAssertRegistered(
                 "T1", () => Assert.IsTrue(q.Poll(TimeSpan.MaxValue, out result)));
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             q.Put(TestData<T>.One);
             ThreadManager.JoinAndVerify();
         }
@@ -450,23 +466,23 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void OfferTransfersElementsAcrossThreads()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var q = NewBlockingQueueFilledWithSample();
             ThreadManager.StartAndAssertRegistered(
                 "T",
                 delegate
                     {
                         Assert.IsFalse(q.Offer(TestData<T>.Three));
-                        Assert.IsTrue(q.Offer(TestData<T>.Three, TestData.LongDelay));
+                        Assert.IsTrue(q.Offer(TestData<T>.Three, Delays.Long));
                         Assert.AreEqual(0, q.RemainingCapacity);
                     },
                 delegate
                     {
-                        Thread.Sleep(TestData.ShortDelay);
+                        Thread.Sleep(Delays.Short);
                         q.Take();
                     });
 
-            ThreadManager.JoinAndVerify(TestData.MediumDelay);
+            ThreadManager.JoinAndVerify(Delays.Medium);
         }
 
         [Test] public virtual void PollRetrievesElementsAcrossThreads()
@@ -478,16 +494,16 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
                     {
                         T value;
                         Assert.IsFalse(q.Poll(out value));
-                        Assert.IsTrue(q.Poll(TestData.LongDelay, out value));
+                        Assert.IsTrue(q.Poll(Delays.Long, out value));
                         Assert.IsTrue(q.Count == 0); //empty
                     },
                 delegate
                     {
-                        Thread.Sleep(TestData.ShortDelay);
+                        Thread.Sleep(Delays.Short);
                         q.Put(TestData<T>.One);
                     });
 
-            ThreadManager.JoinAndVerify(TestData.MediumDelay);
+            ThreadManager.JoinAndVerify(Delays.Medium);
         }
 
     }

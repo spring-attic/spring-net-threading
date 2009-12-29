@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Threading;
 using NUnit.Framework;
 using Spring.Threading.Execution;
 using Spring.Threading.Future;
@@ -12,7 +14,7 @@ namespace Spring.Threading
     {
         public void JoinPool(IExecutorService exec)
         {
-            JoinPool(exec, BaseThreadingTestCase.LONG_DELAY);
+            JoinPool(exec, Delays.Long);
         }
 
         public void JoinPool(IExecutorService exec, TimeSpan waitTime)
@@ -49,15 +51,6 @@ namespace Spring.Threading
                 return string.Format("Integer({0})", Value);
             }
         }
-
-        public const long SHORT_DELAY_MS = 300;
-        public const long SMALL_DELAY_MS = SHORT_DELAY_MS * 5;
-        public const long MEDIUM_DELAY_MS = SHORT_DELAY_MS * 10;
-        public const long LONG_DELAY_MS = SHORT_DELAY_MS * 50;
-        public static readonly TimeSpan SHORT_DELAY = TimeSpan.FromMilliseconds(SHORT_DELAY_MS);
-        public static readonly TimeSpan SMALL_DELAY = TimeSpan.FromMilliseconds(SMALL_DELAY_MS);
-        public static readonly TimeSpan MEDIUM_DELAY = TimeSpan.FromMilliseconds(MEDIUM_DELAY_MS);
-        public static readonly TimeSpan LONG_DELAY = TimeSpan.FromMilliseconds(LONG_DELAY_MS);
 
         public const string TEST_STRING = "a test string";
         public static int DEFAULT_COLLECTION_SIZE = 20;
@@ -119,7 +112,7 @@ namespace Spring.Threading
 
         public void Run()
         {
-            Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY);
+            Thread.Sleep(Delays.Small);
         }
 
         #endregion
@@ -131,7 +124,7 @@ namespace Spring.Threading
 
         public virtual void Run()
         {
-            Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
         }
 
         #endregion
@@ -152,7 +145,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.SHORT_DELAY);
+                Thread.Sleep(Delays.Short);
                 done = true;
             }
             catch (Exception)
@@ -171,7 +164,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY);
+                Thread.Sleep(Delays.Small);
             }
             catch (Exception e)
             {
@@ -198,7 +191,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.LONG_DELAY);
+                Thread.Sleep(Delays.Long);
                 done = true;
             }
             catch (Exception)
@@ -254,7 +247,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY);
+                Thread.Sleep(Delays.Small);
                 done = true;
             }
             catch (Exception)
@@ -283,7 +276,7 @@ namespace Spring.Threading
 
         public virtual void Run()
         {
-            Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY);
+            Thread.Sleep(Delays.Medium);
         }
 
         #endregion
@@ -309,7 +302,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.MEDIUM_DELAY);
+                Thread.Sleep(Delays.Medium);
             }
             catch (ThreadInterruptedException)
             {
@@ -329,7 +322,7 @@ namespace Spring.Threading
         {
             try
             {
-                Thread.Sleep(BaseThreadingTestCase.SMALL_DELAY);
+                Thread.Sleep(Delays.Small);
                 done = true;
             }
             catch (Exception)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Spring.Collections;
 using Spring.Threading.Execution;
@@ -327,8 +328,8 @@ namespace Spring.Threading.Collections.Generic
 				{
 					q.Put(new Object());
 					q.Put(new Object());
-					Assert.IsFalse(q.Offer(new Object(), SHORT_DELAY));
-					q.Offer(new Object(), LONG_DELAY);
+					Assert.IsFalse(q.Offer(new Object(), Delays.Short));
+					q.Offer(new Object(), Delays.Long);
 					Assert.Fail("should throw an exception");
 				}
 				catch (ThreadInterruptedException)
@@ -404,12 +405,12 @@ namespace Spring.Threading.Collections.Generic
 				    int j;
 					for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 					{
-                        if ( _q.Poll(SHORT_DELAY, out j))
+                        if ( _q.Poll(Delays.Short, out j))
                         {
 						    Assert.AreEqual(i, j);
                         }
 					}
-					Assert.IsFalse(_q.Poll(SHORT_DELAY, out j));
+					Assert.IsFalse(_q.Poll(Delays.Short, out j));
 				}
 				catch (ThreadInterruptedException)
 				{
@@ -431,10 +432,10 @@ namespace Spring.Threading.Collections.Generic
 				try
 				{
 				    object obj;
-					Assert.IsFalse(q.Poll(SHORT_DELAY, out obj));
+					Assert.IsFalse(q.Poll(Delays.Short, out obj));
 					Assert.IsNull(obj);
-					q.Poll(LONG_DELAY, out obj);
-					q.Poll(LONG_DELAY, out obj);
+					q.Poll(Delays.Long, out obj);
+					q.Poll(Delays.Long, out obj);
 					Assert.Fail("should throw an exception");
 				}
 				catch (ThreadInterruptedException)
@@ -458,7 +459,7 @@ namespace Spring.Threading.Collections.Generic
 				Assert.IsFalse(q.Offer(three));
 				try
 				{
-					Assert.IsTrue(q.Offer(three, MEDIUM_DELAY));
+					Assert.IsTrue(q.Offer(three, Delays.Medium));
 					Assert.AreEqual(0, q.RemainingCapacity);
 				}
 				catch (ThreadInterruptedException)
@@ -481,7 +482,7 @@ namespace Spring.Threading.Collections.Generic
 			{
 				try
 				{
-					Thread.Sleep(SMALL_DELAY);
+					Thread.Sleep(Delays.Small);
 					Assert.AreEqual(one, q.Take());
 				}
 				catch (ThreadInterruptedException)
@@ -506,7 +507,7 @@ namespace Spring.Threading.Collections.Generic
 				Assert.IsFalse(q.Poll(out i));
 				try
 				{
-					Assert.IsTrue(q.Poll(MEDIUM_DELAY, out i));
+					Assert.IsTrue(q.Poll(Delays.Medium, out i));
 					Assert.IsTrue((q.Count == 0));
 				}
 				catch (ThreadInterruptedException)
@@ -530,7 +531,7 @@ namespace Spring.Threading.Collections.Generic
 			{
 				try
 				{
-					Thread.Sleep(SMALL_DELAY);
+					Thread.Sleep(Delays.Small);
 					q.Put(one);
 				}
 				catch (ThreadInterruptedException)
@@ -676,7 +677,7 @@ namespace Spring.Threading.Collections.Generic
 			Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable(q).Run));
 			t.Start();
 
-			Thread.Sleep(SHORT_DELAY);
+			Thread.Sleep(Delays.Short);
 			t.Interrupt();
 			t.Join();
 		}
@@ -689,7 +690,7 @@ namespace Spring.Threading.Collections.Generic
 			Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable1(q).Run));
 			t.Start();
 
-			Thread.Sleep(SHORT_DELAY);
+			Thread.Sleep(Delays.Short);
 			q.Take();
 			t.Interrupt();
 			t.Join();
@@ -704,7 +705,7 @@ namespace Spring.Threading.Collections.Generic
 
 			t.Start();
 
-			Thread.Sleep(SHORT_DELAY);
+			Thread.Sleep(Delays.Short);
 			t.Interrupt();
 			t.Join();
 		}
@@ -728,7 +729,7 @@ namespace Spring.Threading.Collections.Generic
 			Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable3(q).Run));
 			t.Start();
 
-			Thread.Sleep(SHORT_DELAY);
+			Thread.Sleep(Delays.Short);
 			t.Interrupt();
 			t.Join();
 		}
@@ -740,7 +741,7 @@ namespace Spring.Threading.Collections.Generic
 			Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable4(populatedQueue(DEFAULT_COLLECTION_SIZE)).Run));
 			t.Start();
 
-			Thread.Sleep(SHORT_DELAY);
+			Thread.Sleep(Delays.Short);
 			t.Interrupt();
 			t.Join();
 		}
@@ -781,10 +782,10 @@ namespace Spring.Threading.Collections.Generic
 		    int j;
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
 			{
-			    q.Poll(SHORT_DELAY, out j);
+			    q.Poll(Delays.Short, out j);
 				Assert.AreEqual(i, j);
 			}
-			Assert.IsFalse(q.Poll(SHORT_DELAY, out j));
+			Assert.IsFalse(q.Poll(Delays.Short, out j));
 		}
 
 
@@ -794,7 +795,7 @@ namespace Spring.Threading.Collections.Generic
 			Thread t = new Thread(new ThreadStart(new AnonymousClassRunnable5(populatedQueue(DEFAULT_COLLECTION_SIZE)).Run));
 			t.Start();
 
-			Thread.Sleep(SHORT_DELAY);
+			Thread.Sleep(Delays.Short);
 			t.Interrupt();
 			t.Join();
 		}
@@ -807,8 +808,8 @@ namespace Spring.Threading.Collections.Generic
 			Thread t = new Thread(new AnonymousClassRunnable6(q).Run);
 			t.Start();
 
-			Thread.Sleep(SMALL_DELAY);
-			Assert.IsTrue(q.Offer(zero, SHORT_DELAY));
+			Thread.Sleep(Delays.Small);
+			Assert.IsTrue(q.Offer(zero, Delays.Short));
 			t.Interrupt();
 			t.Join();
 		}

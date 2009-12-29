@@ -1,4 +1,6 @@
 ﻿using System;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
 using Spring.TestFixtures.Collections;
 using Spring.TestFixtures.Collections.Generic;
@@ -17,7 +19,7 @@ namespace Spring.Collections.Generic
     public class ArrayQueueTest<T> : QueueTestFixture<T>
     {
         public ArrayQueueTest()
-            : base(CollectionOptions.Fifo)
+            : base(CollectionContractOptions.Fifo)
         {
         }
         protected override IQueue<T> NewQueue()
@@ -81,7 +83,7 @@ namespace Spring.Collections.Generic
         public class AsNonGeneric : TypedQueueTestFixture<T>
         {
             public AsNonGeneric()
-                : base(CollectionOptions.Fifo)
+                : base(CollectionContractOptions.Fifo)
             {
             }
 

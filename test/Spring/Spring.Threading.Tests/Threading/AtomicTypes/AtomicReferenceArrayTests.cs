@@ -23,6 +23,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
@@ -130,9 +131,9 @@ namespace Spring.Threading.AtomicTypes
             AtomicReferenceArray<T> a = new AtomicReferenceArray<T>(1);
             a.Exchange(0, one);
             Thread t = ThreadManager.StartAndAssertRegistered(
-                "T1", () => { while (!a.CompareAndSet(0, two, three)) Thread.Sleep(SHORT_DELAY); });
+                "T1", () => { while (!a.CompareAndSet(0, two, three)) Thread.Sleep(Delays.Short); });
 			Assert.IsTrue(a.CompareAndSet(0, one, two));
-			ThreadManager.JoinAndVerify(LONG_DELAY);
+			ThreadManager.JoinAndVerify(Delays.Long);
 			Assert.IsFalse(t.IsAlive);
 			Assert.AreEqual(a[0], three);
 		}

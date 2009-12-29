@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections.Generic;
 using NUnit.Framework;
 
 namespace Spring.Collections.Generic
@@ -42,7 +44,7 @@ namespace Spring.Collections.Generic
 
         [Test] public void CheckToString()
         {
-            Spring.TestFixtures.Collections.Generic.CollectionTestFixture<T>.ToStringContainsToStringOfElements(mock);
+            mock.AssertToStringContainsToStringOfElements();
             //Assert.AreEqual("MockCollection`1(0, 1, 2, 3, 4)", mock.ToString());
         }
 

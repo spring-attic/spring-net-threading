@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Rhino.Mocks;
 using Spring.Threading.Future;
@@ -147,7 +148,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAll(tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAll(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAll(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAll(waitTime, tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAll(waitTime, tasks));
@@ -161,7 +162,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAll(tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAll(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAll(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAll(waitTime, tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAll(waitTime, tasks));
@@ -175,7 +176,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAll(tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAll(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAll(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAll(waitTime, tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAll(waitTime, tasks));
@@ -189,7 +190,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAll(tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAll(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAll(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAll(waitTime, tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAll(waitTime, tasks));
@@ -204,7 +205,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAllOrFail(tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAllOrFail(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAllOrFail(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAllOrFail(waitTime, tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAllOrFail(waitTime, tasks));
@@ -219,7 +220,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAllOrFail(tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAllOrFail(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAllOrFail(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAllOrFail(waitTime, tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAllOrFail(waitTime, tasks));
@@ -234,7 +235,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAllOrFail(tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAllOrFail(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAllOrFail(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAllOrFail(waitTime, tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAllOrFail(waitTime, tasks));
@@ -249,7 +250,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAllOrFail(tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAllOrFail(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAllOrFail(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAllOrFail(waitTime, tasks), Is.SameAs(result));
             _mockService.AssertWasCalled(s => s.InvokeAllOrFail(waitTime, tasks));
@@ -263,7 +264,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAny(tasks), Is.EqualTo(result));
             _mockService.AssertWasCalled(s => s.InvokeAny(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAny(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAny(waitTime, tasks), Is.EqualTo(result));
             _mockService.AssertWasCalled(s => s.InvokeAny(waitTime, tasks));
@@ -277,7 +278,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAny(tasks), Is.EqualTo(result));
             _mockService.AssertWasCalled(s => s.InvokeAny(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAny(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAny(waitTime, tasks), Is.EqualTo(result));
             _mockService.AssertWasCalled(s => s.InvokeAny(waitTime, tasks));
@@ -291,7 +292,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAny(tasks), Is.EqualTo(result));
             _mockService.AssertWasCalled(s => s.InvokeAny(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAny(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAny(waitTime, tasks), Is.EqualTo(result));
             _mockService.AssertWasCalled(s => s.InvokeAny(waitTime, tasks));
@@ -305,7 +306,7 @@ namespace Spring.Threading.Execution
             Assert.That(_sut.InvokeAny(tasks), Is.EqualTo(result));
             _mockService.AssertWasCalled(s => s.InvokeAny(tasks));
 
-            var waitTime = TestData.ShortDelay;
+            var waitTime = Delays.Short;
             _mockService.Stub(s => s.InvokeAny(waitTime, tasks)).Return(result);
             Assert.That(_sut.InvokeAny(waitTime, tasks), Is.EqualTo(result));
             _mockService.AssertWasCalled(s => s.InvokeAny(waitTime, tasks));

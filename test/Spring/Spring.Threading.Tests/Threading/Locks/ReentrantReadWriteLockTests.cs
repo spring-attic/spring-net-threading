@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 
 namespace Spring.Threading.Locks
@@ -514,7 +515,7 @@ namespace Spring.Threading.Locks
                 try
                 {
                     myLock.WriterLock.Lock();
-                    c.Await(MEDIUM_DELAY);
+                    c.Await(Delays.Medium);
                     myLock.WriterLock.Unlock();
                     Assert.Fail("Should throw an exception");
                 }
@@ -724,11 +725,11 @@ namespace Spring.Threading.Locks
 
             t.Start();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*Delays.Short.Milliseconds));
             myLock.WriterLock.Lock();
             c.Signal();
             myLock.WriterLock.Unlock();
-            t.Join(SHORT_DELAY);
+            t.Join(Delays.Short);
             Assert.IsFalse(t.IsAlive);
         }
 
@@ -759,9 +760,9 @@ namespace Spring.Threading.Locks
 
             t.Start();
 
-            Thread.Sleep(SHORT_DELAY.Milliseconds);
+            Thread.Sleep(Delays.Short.Milliseconds);
             t.Interrupt();
-            t.Join(SHORT_DELAY);
+            t.Join(Delays.Short);
             Assert.IsFalse(t.IsAlive);
         }
 
@@ -785,9 +786,9 @@ namespace Spring.Threading.Locks
 
             t.Start();
 
-            Thread.Sleep(new TimeSpan((Int64) 10000*SHORT_DELAY.Milliseconds));
+            Thread.Sleep(new TimeSpan((Int64) 10000*Delays.Short.Milliseconds));
             t.Interrupt();
-            t.Join(SHORT_DELAY);
+            t.Join(Delays.Short);
             Assert.IsFalse(t.IsAlive);
         }
 
@@ -844,9 +845,9 @@ namespace Spring.Threading.Locks
 
             t.Start();
 
-            Thread.Sleep(new TimeSpan(SHORT_DELAY.Milliseconds));
+            Thread.Sleep(new TimeSpan(Delays.Short.Milliseconds));
             t.Interrupt();
-            t.Join(SHORT_DELAY);
+            t.Join(Delays.Short);
             Assert.IsFalse(t.IsAlive);
         }
 
@@ -880,19 +881,19 @@ namespace Spring.Threading.Locks
             myLock.WriterLock.Lock();
             t1.Start();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*Delays.Short.Milliseconds));
             Assert.AreEqual(1, myLock.QueueLength);
             t2.Start();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*Delays.Short.Milliseconds));
             Assert.AreEqual(2, myLock.QueueLength);
             t1.Interrupt();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*Delays.Short.Milliseconds));
             Assert.AreEqual(1, myLock.QueueLength);
             myLock.WriterLock.Unlock();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*Delays.Short.Milliseconds));
             Assert.AreEqual(0, myLock.QueueLength);
             t1.Join();
             t2.Join();
@@ -976,10 +977,10 @@ namespace Spring.Threading.Locks
 
             t1.Start();
             t2.Start();
-            Thread.Sleep(new TimeSpan(SHORT_DELAY.Milliseconds*10000));
+            Thread.Sleep(new TimeSpan(Delays.Short.Milliseconds*10000));
             myLock.WriterLock.Unlock();
-            t1.Join(MEDIUM_DELAY);
-            t2.Join(MEDIUM_DELAY);
+            t1.Join(Delays.Medium);
+            t2.Join(Delays.Medium);
             Assert.IsTrue(!t1.IsAlive);
             Assert.IsTrue(!t2.IsAlive);
         }
@@ -997,12 +998,12 @@ namespace Spring.Threading.Locks
             t2.Start();
             myLock.ReaderLock.Lock();
             myLock.ReaderLock.Unlock();
-            Thread.Sleep(new TimeSpan(SHORT_DELAY.Milliseconds*10000));
+            Thread.Sleep(new TimeSpan(Delays.Short.Milliseconds*10000));
             myLock.ReaderLock.Lock();
             myLock.ReaderLock.Unlock();
             myLock.WriterLock.Unlock();
-            t1.Join(MEDIUM_DELAY);
-            t2.Join(MEDIUM_DELAY);
+            t1.Join(Delays.Medium);
+            t2.Join(Delays.Medium);
             Assert.IsTrue(!t1.IsAlive);
             Assert.IsTrue(!t2.IsAlive);
         }
@@ -1025,7 +1026,7 @@ namespace Spring.Threading.Locks
             myLock.WriterLock.LockInterruptibly();
             Thread t = new Thread(new AnonymousClassRunnable18(myLock).Run);
             t.Start();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
             t.Join();
             myLock.WriterLock.Unlock();
@@ -1038,9 +1039,9 @@ namespace Spring.Threading.Locks
             myLock.WriterLock.Lock();
             Thread t = new Thread(new AnonymousClassRunnable2(myLock).Run);
             t.Start();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             myLock.WriterLock.Unlock();
             t.Join();
         }
@@ -1143,12 +1144,12 @@ namespace Spring.Threading.Locks
             t1.Start();
             t2.Start();
 
-            Thread.Sleep(new TimeSpan(10000*SHORT_DELAY.Milliseconds));
+            Thread.Sleep(new TimeSpan(10000*Delays.Short.Milliseconds));
             myLock.WriterLock.Lock();
             c.SignalAll();
             myLock.WriterLock.Unlock();
-            t1.Join(SHORT_DELAY);
-            t2.Join(SHORT_DELAY);
+            t1.Join(Delays.Short);
+            t2.Join(Delays.Short);
             Assert.IsFalse(t1.IsAlive);
             Assert.IsFalse(t2.IsAlive);
         }
@@ -1208,10 +1209,10 @@ namespace Spring.Threading.Locks
 
             t1.Start();
             t2.Start();
-            Thread.Sleep(new TimeSpan(SHORT_DELAY.Milliseconds*10000));
+            Thread.Sleep(new TimeSpan(Delays.Short.Milliseconds*10000));
             myLock.ReaderLock.Unlock();
-            t1.Join(MEDIUM_DELAY);
-            t2.Join(MEDIUM_DELAY);
+            t1.Join(Delays.Medium);
+            t2.Join(Delays.Medium);
             Assert.IsTrue(!t1.IsAlive);
             Assert.IsTrue(!t2.IsAlive);
         }
@@ -1223,9 +1224,9 @@ namespace Spring.Threading.Locks
             myLock.WriterLock.LockInterruptibly();
             Thread t = new Thread(new AnonymousClassRunnable17(myLock).Run);
             t.Start();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t.Join();
             myLock.WriterLock.Unlock();
         }
@@ -1237,9 +1238,9 @@ namespace Spring.Threading.Locks
             Thread t = new Thread(new AnonymousClassRunnable(myLock).Run);
             myLock.WriterLock.Lock();
             t.Start();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             myLock.WriterLock.Unlock();
             t.Join();
         }

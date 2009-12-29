@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Spring.Threading.Collections.Generic;
 
@@ -97,7 +98,7 @@ namespace Spring.Threading.Execution
 
         [Test] public void ForEachDoesNotSumitMoreThenMaxDegreeOfParallelism()
         {
-            _executor.Delay = SHORT_DELAY;
+            _executor.Delay = Delays.Short;
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             List<T> results = new List<T>(_sampleSize);
             _sut = new ParallelCompletion<T>(_executor,
@@ -141,11 +142,11 @@ namespace Spring.Threading.Execution
                             {
                                 if (Equals(t, sources[0]))
                                 {
-                                    Thread.Sleep(SHORT_DELAY);
+                                    Thread.Sleep(Delays.Short);
                                     throw exception;
                                 }
                                 var e2 = Assert.Throws<ThreadInterruptedException>(
-                                    () => Thread.Sleep(LONG_DELAY_MS));
+                                    () => Thread.Sleep(Delays.LongMillis));
                                 if (!Equals(t, sources[_sampleSize-1])) throw e2;
                             });
             ThreadManager.StartAndAssertRegistered("Driver",
@@ -155,7 +156,7 @@ namespace Spring.Threading.Execution
                     Assert.That(e.InnerException, Is.SameAs(exception));
                     Assert.That(_executor.ThreadCount.Value, Is.EqualTo(Parallelism));
                 });
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             ThreadManager.JoinAndVerify();
         }
 
@@ -167,7 +168,7 @@ namespace Spring.Threading.Execution
             _sut = new ParallelCompletion<T>(_executor,
                 (t, s) =>
                 {
-                    Thread.Sleep(s.CurrentIndex == 0 ? SHORT_DELAY_MS : 10);
+                    Thread.Sleep(s.CurrentIndex == 0 ? Delays.ShortMillis : 10);
                     if (s.CurrentIndex == cancelAt) s.Stop();
                     else
                     {
@@ -194,7 +195,7 @@ namespace Spring.Threading.Execution
             _sut = new ParallelCompletion<T>(_executor,
                 (t, s) =>
                 {
-                    Thread.Sleep(s.CurrentIndex == 0 ? SHORT_DELAY_MS : 10);
+                    Thread.Sleep(s.CurrentIndex == 0 ? Delays.ShortMillis : 10);
                     if (s.CurrentIndex == cancelAt) throw new Exception();
                     if (!s.ShouldExitCurrentIteration) lock (completed) completed.Add(t);
                     else
@@ -217,7 +218,7 @@ namespace Spring.Threading.Execution
             _sut = new ParallelCompletion<T>(_executor,
                 (t, s) =>
                 {
-                    Thread.Sleep(s.CurrentIndex == 0 ? SHORT_DELAY_MS : 10);
+                    Thread.Sleep(s.CurrentIndex == 0 ? Delays.ShortMillis : 10);
                     if (s.CurrentIndex == cancelAt) s.Break();
                     else
                     {

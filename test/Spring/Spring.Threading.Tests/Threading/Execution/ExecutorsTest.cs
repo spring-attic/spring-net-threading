@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Rhino.Mocks;
 using Spring.Threading.Collections.Generic;
@@ -159,7 +160,7 @@ namespace Spring.Threading.Execution
 
         [Test] public void NewDefaultThreadFactoryHasSpecifiedPriorityBackgroundStatusAndName()
         {
-            Action r = ThreadManager.NewVerifiableTask(
+            Action r = ThreadManager.GetManagedAction(
                 delegate
                     {
                         Thread current = Thread.CurrentThread;
@@ -172,7 +173,7 @@ namespace Spring.Threading.Execution
 
             e.Execute(r);
             e.Shutdown();
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             JoinPool(e);
             ThreadManager.JoinAndVerify();
         }

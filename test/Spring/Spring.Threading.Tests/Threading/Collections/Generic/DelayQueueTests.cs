@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Spring.Collections;
 using Spring.Threading.Execution;
 using Spring.Threading.Future;
+using NUnit.CommonFixtures;
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -55,8 +56,8 @@ namespace Spring.Threading.Collections.Generic
                 {
                     q.Put( new PDelay( new TimeSpan( 0 ) ) );
                     q.Put( new PDelay( new TimeSpan( 0 ) ) );
-                    Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), SHORT_DELAY ) );
-                    Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), LONG_DELAY ) );
+                    Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), Delays.Short ) );
+                    Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), Delays.Long ) );
                 }
                 finally {}
             }
@@ -124,10 +125,10 @@ namespace Spring.Threading.Collections.Generic
                     PDelay pDelay;
                     for ( int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i )
                     {
-                        q.Poll(SHORT_DELAY, out pDelay);
+                        q.Poll(Delays.Short, out pDelay);
                         Assert.AreEqual( new PDelay( new TimeSpan( i ) ), pDelay  );
                     }
-                    q.Poll(SHORT_DELAY, out pDelay);
+                    q.Poll(Delays.Short, out pDelay);
                     Assert.IsNull( null );
                 }
                 catch ( ThreadInterruptedException ) {}
@@ -148,10 +149,10 @@ namespace Spring.Threading.Collections.Generic
                 try
                 {
                     PDelay pDelay;
-                    q.Poll(SHORT_DELAY, out pDelay);
+                    q.Poll(Delays.Short, out pDelay);
                     Assert.IsNull( pDelay  );
-                    q.Poll(SHORT_DELAY, out pDelay);
-                    q.Poll(SHORT_DELAY, out pDelay);
+                    q.Poll(Delays.Short, out pDelay);
+                    q.Poll(Delays.Short, out pDelay);
                     Assert.Fail( "Should block" );
                 }
                 catch ( ThreadInterruptedException ) {}
@@ -172,7 +173,7 @@ namespace Spring.Threading.Collections.Generic
                 PDelay pDelay;
                 q.Poll(out pDelay);
                 Assert.IsNull( pDelay );
-                q.Poll(MEDIUM_DELAY, out pDelay);
+                q.Poll(Delays.Medium, out pDelay);
                 Assert.IsTrue( null != pDelay );
                 Assert.IsTrue( q.IsEmpty );
             }
@@ -189,7 +190,7 @@ namespace Spring.Threading.Collections.Generic
 
             public void Run()
             {
-                Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
+                Thread.Sleep( new TimeSpan( (Int64) 10000*Delays.Short.Milliseconds ) );
                 q.Put( new PDelay( new TimeSpan( 1 ) ) );
             }
         }
@@ -624,7 +625,7 @@ namespace Spring.Threading.Collections.Generic
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable( q ).Run ) );
             t.Start();
 
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*Delays.Short.Milliseconds ) );
             q.Take();
             t.Interrupt();
             t.Join();
@@ -638,7 +639,7 @@ namespace Spring.Threading.Collections.Generic
 
             t.Start();
 
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SMALL_DELAY.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*Delays.Small.Milliseconds ) );
             t.Interrupt();
             t.Join();
         }
@@ -660,7 +661,7 @@ namespace Spring.Threading.Collections.Generic
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable2( q ).Run ) );
             t.Start();
 
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*Delays.Short.Milliseconds ) );
             t.Interrupt();
             t.Join();
         }
@@ -670,7 +671,7 @@ namespace Spring.Threading.Collections.Generic
         {
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable3( this ).Run ) );
             t.Start();
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*Delays.Short.Milliseconds ) );
             t.Interrupt();
             t.Join();
         }
@@ -711,10 +712,10 @@ namespace Spring.Threading.Collections.Generic
             PDelay pDelay;
             for ( int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i )
             {
-                q.Poll(SHORT_DELAY, out pDelay);
+                q.Poll(Delays.Short, out pDelay);
                 Assert.AreEqual( new PDelay( new TimeSpan( i ) ), pDelay );
             }
-            q.Poll(SHORT_DELAY, out pDelay);
+            q.Poll(Delays.Short, out pDelay);
             Assert.IsNull( pDelay );
         }
 
@@ -723,7 +724,7 @@ namespace Spring.Threading.Collections.Generic
         {
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable4( this ).Run ) );
             t.Start();
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SHORT_DELAY.Milliseconds ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*Delays.Short.Milliseconds ) );
             t.Interrupt();
             t.Join();
         }
@@ -735,8 +736,8 @@ namespace Spring.Threading.Collections.Generic
             Thread t = new Thread( new ThreadStart( new AnonymousClassRunnable5( q ).Run ) );
             t.Start();
 
-            Thread.Sleep( new TimeSpan( (Int64) 10000*SMALL_DELAY.Milliseconds ) );
-            Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), SHORT_DELAY ) );
+            Thread.Sleep( new TimeSpan( (Int64) 10000*Delays.Small.Milliseconds ) );
+            Assert.IsTrue( q.Offer( new PDelay( new TimeSpan( 0 ) ), Delays.Short ) );
             t.Interrupt();
             t.Join();
         }
@@ -949,7 +950,7 @@ namespace Spring.Threading.Collections.Generic
         public void PeekDelayed()
         {
             DelayQueue<IDelayed> q = new DelayQueue<IDelayed>();
-            q.Add( new NanoDelay( LONG_DELAY ) );
+            q.Add( new NanoDelay( Delays.Long ) );
             IDelayed nd;
             Assert.IsFalse( q.Peek(out nd) );
         }
@@ -958,7 +959,7 @@ namespace Spring.Threading.Collections.Generic
         public void PollDelayed()
         {
             DelayQueue<IDelayed> q = new DelayQueue<IDelayed>();
-            q.Add( new NanoDelay( LONG_DELAY ) );
+            q.Add( new NanoDelay( Delays.Long ) );
             IDelayed nd;
             Assert.IsFalse( q.Poll(out nd) );
         }

@@ -1,4 +1,6 @@
 ﻿using System;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
 using Spring.Collections;
 using Spring.Collections.Generic;
@@ -14,11 +16,11 @@ namespace Spring.TestFixtures.Collections.NonGeneric
     public abstract class TypedQueueTestFixture<T> : QueueTestFixture
     {
         /// <summary>
-        /// Only evaluates option <see cref="CollectionOptions.Unique"/> and
-        /// <see cref="CollectionOptions.Fifo"/>.
+        /// Only evaluates option <see cref="CollectionContractOptions.Unique"/> and
+        /// <see cref="CollectionContractOptions.Fifo"/>.
         /// </summary>
         /// <param name="options"></param>
-        protected TypedQueueTestFixture(CollectionOptions options)
+        protected TypedQueueTestFixture(CollectionContractOptions options)
             : base(options)
         {
         }

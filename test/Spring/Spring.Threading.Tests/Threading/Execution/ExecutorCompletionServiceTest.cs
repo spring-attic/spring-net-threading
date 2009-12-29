@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Rhino.Mocks;
 using Spring.Threading.Collections.Generic;
@@ -120,16 +121,16 @@ namespace Spring.Threading.Execution
         {
             Func<T> call = delegate
                                {
-                                   Thread.Sleep(TestData.SmallDelay);
+                                   Thread.Sleep(Delays.Small);
                                    return TestData<T>.One;
                                };
             ExpectExecuteCallAndRunTheRunnableInNewThread();
 
             Assert.IsNull(_sut.Poll());
             _sut.Submit(call);
-            Assert.IsNull(_sut.Poll(TestData.ShortDelay));
+            Assert.IsNull(_sut.Poll(Delays.Short));
 
-            IFuture<T> f = _sut.Poll(TestData.MediumDelay);
+            IFuture<T> f = _sut.Poll(Delays.Medium);
             Assert.IsNotNull(f);
             Assert.IsTrue(f.IsDone);
             ThreadManager.JoinAndVerify();

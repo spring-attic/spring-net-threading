@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
+using NUnit.CommonFixtures.Collections.NonGeneric;
 using NUnit.Framework;
 using Spring.Collections;
 
@@ -9,33 +12,30 @@ namespace Spring.TestFixtures.Collections.NonGeneric
     /// Basic functionality test cases for implementation of <see cref="IQueue"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public abstract class QueueTestFixture : CollectionTestFixture
+    public abstract class QueueTestFixture : CollectionContract
     {
         protected object[] _samples;
 
         protected int _sampleSize = 9;
 
-        protected CollectionOptions Options { get; set; }
-
         protected bool IsFifo
         {
-            get { return Options.Has(CollectionOptions.Fifo); }
-            set { Options = Options.Set(CollectionOptions.Fifo, value); }
+            get { return Options.Has(CollectionContractOptions.Fifo); }
+            set { Options = Options.Set(CollectionContractOptions.Fifo, value); }
         }
         protected bool IsUnbounded
         {
-            get { return Options.Has(CollectionOptions.Unbounded); }
-            set { Options = Options.Set(CollectionOptions.Unbounded, value); }
+            get { return Options.Has(CollectionContractOptions.Unbounded); }
+            set { Options = Options.Set(CollectionContractOptions.Unbounded, value); }
         }
 
         /// <summary>
-        /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
-        /// <see cref="CollectionOptions.Fifo"/>.
+        /// Only evaluates option <see cref="CollectionContractOptions.Unique"/>,
+        /// <see cref="CollectionContractOptions.Fifo"/>.
         /// </summary>
         /// <param name="options"></param>
-        protected QueueTestFixture(CollectionOptions options)
+        protected QueueTestFixture(CollectionContractOptions options) : base(options)
         {
-            Options = options;
         }
 
         protected override sealed ICollection NewCollection()
@@ -71,7 +71,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
 
         [Test] public void AddChokesWhenQueueIsFull()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             IQueue queue = NewQueueFilledWithSample();
             Assert.Throws<InvalidOperationException>(() => queue.Add(MakeData(0)));
         }
@@ -86,7 +86,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
 
         [Test] public void AddReturnsFalseWhenQueueIsFull()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             IQueue queue = NewQueueFilledWithSample();
             Assert.IsFalse(queue.Offer(MakeData(0)));
             Assert.That(queue.Count, Is.EqualTo(_sampleSize));

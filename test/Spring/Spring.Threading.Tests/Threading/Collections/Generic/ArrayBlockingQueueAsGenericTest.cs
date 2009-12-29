@@ -1,8 +1,9 @@
 ﻿using System;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
 using Spring.Collections;
 using Spring.Collections.Generic;
-using Spring.TestFixtures.Collections;
 using Spring.TestFixtures.Collections.NonGeneric;
 using Spring.TestFixtures.Threading.Collections.Generic;
 
@@ -77,15 +78,15 @@ namespace Spring.Threading.Collections.Generic
             Assert.That(e.ParamName, Is.EqualTo("capacity"));
         }
 
-        [TestFixture(typeof(int), CollectionOptions.Fair)]
+        [TestFixture(typeof(int), CollectionContractOptions.Fair)]
         [TestFixture(typeof(int))]
-        [TestFixture(typeof(string), CollectionOptions.Fair)]
+        [TestFixture(typeof(string), CollectionContractOptions.Fair)]
         [TestFixture(typeof(string))]
         public class AsGeneric : BlockingQueueTestFixture<T>
         {
             public AsGeneric() : this(0) {}
-            public AsGeneric(CollectionOptions options)
-                : base(options | CollectionOptions.Fifo | CollectionOptions.ToStringPrintItems) { }
+            public AsGeneric(CollectionContractOptions options)
+                : base(options | CollectionContractOptions.Fifo | CollectionContractOptions.ToStringPrintItems) { }
 
             protected override IBlockingQueue<T> NewBlockingQueue()
             {
@@ -98,19 +99,19 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-        [TestFixture(typeof(int), CollectionOptions.Fair)]
+        [TestFixture(typeof(int), CollectionContractOptions.Fair)]
         [TestFixture(typeof(int))]
-        [TestFixture(typeof(string), CollectionOptions.Fair)]
+        [TestFixture(typeof(string), CollectionContractOptions.Fair)]
         [TestFixture(typeof(string))]
         public class AsNonGeneric : TypedQueueTestFixture<T>
         {
             private readonly bool _isFair;
 
             public AsNonGeneric() : this(0) {}
-            public AsNonGeneric(CollectionOptions options)
-                : base(options | CollectionOptions.Fifo)
+            public AsNonGeneric(CollectionContractOptions options)
+                : base(options | CollectionContractOptions.Fifo)
             {
-                _isFair = options.Has(CollectionOptions.Fair);
+                _isFair = options.Has(CollectionContractOptions.Fair);
             }
 
             protected override IQueue NewQueue()

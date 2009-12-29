@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
-using Spring.TestFixtures.Collections;
 using Spring.TestFixtures.Collections.NonGeneric;
 using Spring.TestFixtures.Threading.Collections.Generic;
 using Spring.Threading.AtomicTypes;
@@ -14,15 +15,15 @@ namespace Spring.Threading.Collections.Generic
     /// <typeparam name="T"></typeparam>
     /// <author>Doug Lea</author>
     /// <author>Kenneth Xu</author>
-    [TestFixture(typeof(string), CollectionOptions.Unbounded)]
-    [TestFixture(typeof(int), CollectionOptions.Unbounded)]
+    [TestFixture(typeof(string), CollectionContractOptions.Unbounded)]
+    [TestFixture(typeof(int), CollectionContractOptions.Unbounded)]
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
     public class LinkedBlockingQueueTest<T> : BlockingQueueTestFixture<T>
     {
         public LinkedBlockingQueueTest() : this(0) {}
-        public LinkedBlockingQueueTest(CollectionOptions options)
-            : base(options | CollectionOptions.Fifo) {}
+        public LinkedBlockingQueueTest(CollectionContractOptions options)
+            : base(options | CollectionContractOptions.Fifo) {}
 
         protected override IBlockingQueue<T> NewBlockingQueue()
         {
@@ -59,7 +60,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorCreatesQueueWithUnlimitedCapacity()
         {
-            Options.SkipWhenNot(CollectionOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Unbounded);
             var queue = new LinkedBlockingQueue<T>();
             Assert.AreEqual(int.MaxValue, queue.RemainingCapacity);
             Assert.AreEqual(int.MaxValue, queue.Capacity);
@@ -68,7 +69,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorWelcomesNullElememtInCollectionArgument()
         {
-            Options.SkipWhenNot(CollectionOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Unbounded);
             T[] arrayWithDefaulValue = new T[SampleSize];
             var q = new LinkedBlockingQueue<T>(arrayWithDefaulValue);
             foreach (T sample in arrayWithDefaulValue)
@@ -82,7 +83,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorChokesOnNullCollectionArgument()
         {
-            Options.SkipWhenNot(CollectionOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Unbounded);
             var e = Assert.Throws<ArgumentNullException>(
                 () => { new LinkedBlockingQueue<T>(null); });
             Assert.That(e.ParamName, Is.EqualTo("collection"));
@@ -91,7 +92,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorCreatesQueueConstainsAllElementsInCollection()
         {
-            Options.SkipWhenNot(CollectionOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Unbounded);
             var q = new LinkedBlockingQueue<T>(Samples);
             foreach (T sample in Samples)
             {
@@ -104,7 +105,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorCreatesQueueWithGivenCapacity()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var queue = new LinkedBlockingQueue<T>(SampleSize);
             Assert.AreEqual(SampleSize, queue.RemainingCapacity);
             Assert.AreEqual(SampleSize, queue.Capacity);
@@ -113,7 +114,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorChokesOnNonPositiveCapacityArgument([Values(0, -1)] int capacity)
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var e = Assert.Throws<ArgumentOutOfRangeException>(
                 () => { new LinkedBlockingQueue<T>(capacity); });
             Assert.That(e.ParamName, Is.EqualTo("capacity"));
@@ -144,24 +145,24 @@ namespace Spring.Threading.Collections.Generic
         {
             var q = NewLinkedBlockingQueue();
             q.Break();
-            Assert.IsFalse(q.Offer(TestData<T>.One, SHORT_DELAY));
+            Assert.IsFalse(q.Offer(TestData<T>.One, Delays.Short));
         }
 
         [Test] public void BlockedTimedOfferReturnsWhenQueueIsBroken()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var q = NewLinkedBlockingQueueFilledWithSample();
             var isOfferReturned = new AtomicBoolean();
             ThreadManager.StartAndAssertRegistered(
                 "T1", () =>
                 {
-                    Assert.IsFalse(q.Offer(TestData<T>.One, LONG_DELAY));
+                    Assert.IsFalse(q.Offer(TestData<T>.One, Delays.Long));
                     isOfferReturned.Value = true;
                 });
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(isOfferReturned);
             q.Break();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(isOfferReturned);
             ThreadManager.JoinAndVerify();
         }
@@ -182,7 +183,7 @@ namespace Spring.Threading.Collections.Generic
 
         [Test] public void BlockedTryPutPuturnsFalseWhenQueueIsBroken()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var q = NewLinkedBlockingQueueFilledWithSample();
             var isTryPutReturned = new AtomicBoolean();
             ThreadManager.StartAndAssertRegistered(
@@ -191,17 +192,17 @@ namespace Spring.Threading.Collections.Generic
                               Assert.IsFalse(q.TryPut(TestData<T>.One));
                               isTryPutReturned.Value = true;
                           });
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(isTryPutReturned);
             q.Break();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(isTryPutReturned);
             ThreadManager.JoinAndVerify();
         }
 
         [Test] public void BlockedTryPutPuturnsFalseWhenQueueIsStopped()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var q = NewLinkedBlockingQueueFilledWithSample();
             var isTryPutReturned = new AtomicBoolean();
             ThreadManager.StartAndAssertRegistered(
@@ -210,10 +211,10 @@ namespace Spring.Threading.Collections.Generic
                               Assert.IsFalse(q.TryPut(TestData<T>.One));
                               isTryPutReturned.Value = true;
                           });
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(isTryPutReturned);
             q.Stop();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(isTryPutReturned);
             ThreadManager.JoinAndVerify();
         }
@@ -242,7 +243,7 @@ namespace Spring.Threading.Collections.Generic
 
         [Test] public void BlockedTryTakePuturnsWhenQueueIsBroken()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var q = NewLinkedBlockingQueue();
             var isTryTakeReturned = new AtomicBoolean();
             ThreadManager.StartAndAssertRegistered(
@@ -252,10 +253,10 @@ namespace Spring.Threading.Collections.Generic
                     Assert.IsFalse(q.TryTake(out result));
                     isTryTakeReturned.Value = true;
                 });
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsFalse(isTryTakeReturned);
             q.Break();
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(isTryTakeReturned);
             ThreadManager.JoinAndVerify();
         }
@@ -327,15 +328,15 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-        [TestFixture(typeof(string), CollectionOptions.Unbounded)]
-        [TestFixture(typeof(int), CollectionOptions.Unbounded)]
+        [TestFixture(typeof(string), CollectionContractOptions.Unbounded)]
+        [TestFixture(typeof(int), CollectionContractOptions.Unbounded)]
         [TestFixture(typeof(string))]
         [TestFixture(typeof(int))]
         public class AsNonGeneric : TypedQueueTestFixture<T>
         {
             public AsNonGeneric() :  this(0) {}
-            public AsNonGeneric(CollectionOptions options) 
-                : base(options | CollectionOptions.Fifo) {}
+            public AsNonGeneric(CollectionContractOptions options) 
+                : base(options | CollectionContractOptions.Fifo) {}
 
             protected override Spring.Collections.IQueue NewQueue()
             {

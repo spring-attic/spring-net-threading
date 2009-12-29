@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
+using NUnit.CommonFixtures.Collections.Generic;
 using NUnit.Framework;
 using Spring.Collections;
 using Spring.Collections.Generic;
@@ -12,35 +15,35 @@ namespace Spring.TestFixtures.Collections.Generic
     /// Basic functionality test cases for implementation of <see cref="IQueue{T}"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public abstract class QueueTestFixture<T> : CollectionTestFixture<T>
+    public abstract class QueueTestFixture<T> : CollectionContract<T>
     {
         //protected bool _isCapacityRestricted;
 
         protected bool IsFifo
         {
-            get { return Options.Has(CollectionOptions.Fifo); }
-            set { Options = Options.Set(CollectionOptions.Fifo, value); }
+            get { return Options.Has(CollectionContractOptions.Fifo); }
+            set { Options = Options.Set(CollectionContractOptions.Fifo, value); }
         }
         protected bool IsUnbounded
         {
-            get { return Options.Has(CollectionOptions.Unbounded); }
-            set { Options = Options.Set(CollectionOptions.Unbounded, value); }
+            get { return Options.Has(CollectionContractOptions.Unbounded); }
+            set { Options = Options.Set(CollectionContractOptions.Unbounded, value); }
         }
         // Queue in .Net should allow null in gneneral.
         protected bool NoNull
         {
-            get { return Options.Has(CollectionOptions.NoNull); }
-            set { Options = Options.Set(CollectionOptions.NoNull, value); }
+            get { return Options.Has(CollectionContractOptions.NoNull); }
+            set { Options = Options.Set(CollectionContractOptions.NoNull, value); }
         }
 
         /// <summary>
-        /// Only evaluates option <see cref="CollectionOptions.Unique"/>,
-        /// <see cref="CollectionOptions.ReadOnly"/>,
-        /// <see cref="CollectionOptions.Fifo"/> and
-        /// <see cref="CollectionOptions.NoNull"/>.
+        /// Only evaluates option <see cref="CollectionContractOptions.Unique"/>,
+        /// <see cref="CollectionContractOptions.ReadOnly"/>,
+        /// <see cref="CollectionContractOptions.Fifo"/> and
+        /// <see cref="CollectionContractOptions.NoNull"/>.
         /// </summary>
         /// <param name="options"></param>
-        protected QueueTestFixture(CollectionOptions options) : base(options)
+        protected QueueTestFixture(CollectionContractOptions options) : base(options)
         {
         }
 
@@ -72,7 +75,7 @@ namespace Spring.TestFixtures.Collections.Generic
 
         [Test] public virtual void AddChokesWhenQueueIsFull()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             IQueue<T> queue = NewQueueFilledWithSample();
             Assert.Throws<InvalidOperationException>(() => queue.Add(TestData<T>.One));
         }
@@ -102,7 +105,7 @@ namespace Spring.TestFixtures.Collections.Generic
 
         [Test] public virtual void OfferReturnsFalseWhenQueueIsFull()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             IQueue<T> queue = NewQueueFilledWithSample();
             Assert.IsFalse(queue.Offer(TestData<T>.One));
             Assert.That(queue.Count, Is.EqualTo(SampleSize));
@@ -273,7 +276,7 @@ namespace Spring.TestFixtures.Collections.Generic
 
         [Test] public virtual void TransitionsFromEmptyToFullWhenElementsAdded()
         {
-            Options.SkipWhen(CollectionOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Unbounded);
             var q = NewQueue();
             Assert.That(q.Count, Is.EqualTo(0));
             AssertRemainingCapacity(q, SampleSize, "should have room for " + SampleSize);
@@ -309,6 +312,11 @@ namespace Spring.TestFixtures.Collections.Generic
             Assert.AreEqual(q.Count, r.Count);
             while (q.Count>0)
                 Assert.AreEqual(q.Remove(), r.Remove());
+        }
+
+        protected void SkipForCurrentQueueImplementation()
+        {
+            Assert.Pass("Skip test that is not applicable to current implmenetation.");
         }
 
         protected void AssertRemainingCapacity(IQueue<T> queue, int size)

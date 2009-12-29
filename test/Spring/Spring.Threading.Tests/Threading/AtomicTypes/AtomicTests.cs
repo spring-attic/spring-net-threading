@@ -21,6 +21,7 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
@@ -88,11 +89,11 @@ namespace Spring.Threading.AtomicTypes
             Thread t = new Thread(delegate()
             {
                 while (!ai.CompareAndSet(two, three))
-                    Thread.Sleep(SHORT_DELAY);
+                    Thread.Sleep(Delays.Short);
             });
             t.Start();
             Assert.IsTrue(ai.CompareAndSet(one, two), "Value did not equal 'one' reference");
-            t.Join(SMALL_DELAY);
+            t.Join(Delays.Small);
             Assert.IsFalse(t.IsAlive, "Thread is still alive");
             Assert.AreEqual(ai.Value, three, "Object reference not switched from 'two' to 'three'");
         }

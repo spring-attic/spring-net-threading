@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Threading;
 using NUnit.Framework;
 using Spring.Threading.AtomicTypes;
 
@@ -47,7 +49,7 @@ namespace Spring.Threading.Execution
 
             public Thread NewThread(IRunnable runnable)
             {
-                return _manager.NewVerifiableThread(runnable.Run, "T" + NextThreadId(false));
+                return _manager.NewManagedThread(runnable.Run, "T" + NextThreadId(false));
             }
         }
 
@@ -97,12 +99,12 @@ namespace Spring.Threading.Execution
         {
             if (currentIndex == breakAt)
             {
-                Thread.Sleep(SHORT_DELAY);
+                Thread.Sleep(Delays.Short);
                 return true;
             }
             if (currentIndex == breakAt + 1)
             {
-                Thread.Sleep(SHORT_DELAY);
+                Thread.Sleep(Delays.Short);
                 return true;
             }
             if (currentIndex == breakAt + 2)

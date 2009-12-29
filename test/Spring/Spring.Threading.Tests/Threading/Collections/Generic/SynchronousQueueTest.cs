@@ -1,9 +1,10 @@
 using System;
 using System.Threading;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
 using System.Collections.Generic;
 using Spring.Collections;
-using Spring.TestFixtures.Collections;
 using Spring.TestFixtures.Collections.NonGeneric;
 using Spring.TestFixtures.Threading.Collections.Generic;
 
@@ -14,15 +15,15 @@ namespace Spring.Threading.Collections.Generic
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <author>Kenneth Xu</author>
-    [TestFixture(typeof(int), CollectionOptions.Fair)]
+    [TestFixture(typeof(int), CollectionContractOptions.Fair)]
     [TestFixture(typeof(int))]
-    [TestFixture(typeof(string), CollectionOptions.Fair)]
+    [TestFixture(typeof(string), CollectionContractOptions.Fair)]
     [TestFixture(typeof(string))]
     public class SynchronousQueueTest<T> : BlockingQueueTestFixture<T>
     {
         public SynchronousQueueTest() : this(0) {}
-        public SynchronousQueueTest(CollectionOptions options) 
-            : base(options | CollectionOptions.Fifo)
+        public SynchronousQueueTest(CollectionContractOptions options) 
+            : base(options | CollectionContractOptions.Fifo)
         {
             SampleSize = 0;
         }
@@ -53,7 +54,7 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.StartAndAssertRegistered("T1", () => q.Put(TestData<T>.Zero));
             ThreadManager.StartAndAssertRegistered("T2", () => q.Put(TestData<T>.One));
             var l = new List<T>();
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             q.DrainTo(l);
             Assert.That(l.Count, Is.EqualTo(2));
             CollectionAssert.Contains(l, TestData<T>.Zero);
@@ -70,7 +71,7 @@ namespace Spring.Threading.Collections.Generic
                     catch (ThreadInterruptedException){} // ignore
                 });
             var l = new List<T>();
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             q.DrainTo(l, e=>true);
             Assert.That(l.Count, Is.EqualTo(0));
             t.Interrupt();
@@ -102,11 +103,11 @@ namespace Spring.Threading.Collections.Generic
             var q = NewSynchronousQueue();
             T[] values = new T[2];
             ThreadManager.StartAndAssertRegistered(
-                "T1", () => q.Poll(TestData.SmallDelay, out values[0]));
-            Thread.Sleep(TestData.ShortDelay);
+                "T1", () => q.Poll(Delays.Small, out values[0]));
+            Thread.Sleep(Delays.Short);
             ThreadManager.StartAndAssertRegistered(
-                "T2", () => q.Poll(TestData.SmallDelay, out values[1]));
-            Thread.Sleep(TestData.ShortDelay);
+                "T2", () => q.Poll(Delays.Small, out values[1]));
+            Thread.Sleep(Delays.Short);
             q.Offer(TestData<T>.One);
             q.Offer(TestData<T>.Two);
             ThreadManager.JoinAndVerify();
@@ -129,16 +130,16 @@ namespace Spring.Threading.Collections.Generic
             const int size = 2;
             for (int i = 0; i < size; i++)
             {
-                if(i>0) Thread.Sleep(TestData.ShortDelay);
+                if(i>0) Thread.Sleep(Delays.Short);
                 T e = TestData<T>.MakeData(i);
                 ThreadManager.StartAndAssertRegistered(
-                    "T" + i, () => q.Offer(e, TestData.MediumDelay));
+                    "T" + i, () => q.Offer(e, Delays.Medium));
             }
-            Thread.Sleep(TestData.ShortDelay);
+            Thread.Sleep(Delays.Short);
             T[] values = new T[size];
             for (int i = 0; i < size; i++)
             {
-                Assert.IsTrue(q.Poll(TestData.ShortDelay, out values[i]));
+                Assert.IsTrue(q.Poll(Delays.Short, out values[i]));
             }
             ThreadManager.JoinAndVerify();
             for (int i = 0; i < size; i++)
@@ -155,18 +156,18 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-        [TestFixture(typeof(int), CollectionOptions.Fair)]
+        [TestFixture(typeof(int), CollectionContractOptions.Fair)]
         [TestFixture(typeof(int))]
-        [TestFixture(typeof(string), CollectionOptions.Fair)]
+        [TestFixture(typeof(string), CollectionContractOptions.Fair)]
         [TestFixture(typeof(string))]
         public class AsNonGeneric : TypedQueueTestFixture<T>
         {
             private readonly bool _isFair;
 
             public AsNonGeneric() : this(0) {}
-            public AsNonGeneric(CollectionOptions options) : base(options)
+            public AsNonGeneric(CollectionContractOptions options) : base(options)
             {
-                _isFair = options.Has(CollectionOptions.Fair);
+                _isFair = options.Has(CollectionContractOptions.Fair);
                 _sampleSize = 0;
             }
             protected override IQueue NewQueue()

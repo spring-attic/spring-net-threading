@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 using Spring.Threading.Execution;
 
@@ -151,15 +152,15 @@ namespace Spring.Threading.Future
         [Test]
         public void CancelInterruptsRunningTask()
         {
-            var t = ThreadManager.NewVerifiableTask(
+            var t = ThreadManager.GetManagedAction(
                 delegate
                     {
-                        Assert.Throws<ThreadInterruptedException>(() => Thread.Sleep(MEDIUM_DELAY));
+                        Assert.Throws<ThreadInterruptedException>(() => Thread.Sleep(Delays.Medium));
                     });
             FutureTask<T> task = new FutureTask<T>(t, default(T));
             new Thread(task.Run).Start();
 
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(task.Cancel(true));
             ThreadManager.JoinAndVerify();
             Assert.IsTrue(task.IsDone);
@@ -172,15 +173,15 @@ namespace Spring.Threading.Future
         {
             var called = false;
             FutureTask<T> task = new FutureTask<T>(
-                ThreadManager.NewVerifiableTask(
+                ThreadManager.GetManagedAction(
                     delegate
                         {
-                            Thread.Sleep(SMALL_DELAY);
+                            Thread.Sleep(Delays.Small);
                             called = true;
                         }),
                 default(T));
             ThreadManager.StartAndAssertRegistered(new Thread(task.Run){Name="T1"});
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             Assert.IsTrue(task.Cancel());
             ThreadManager.JoinAndVerify();
             Assert.IsTrue(task.IsDone);
@@ -201,7 +202,7 @@ namespace Spring.Threading.Future
                     {
                         Assert.That(ft.GetResult(), Is.EqualTo(result));
                     });
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             ft.Run();
             ThreadManager.JoinAndVerify();
             Assert.IsTrue(ft.IsDone);
@@ -220,7 +221,7 @@ namespace Spring.Threading.Future
                 "T1",
                 delegate
                     {
-                        Assert.That(ft.GetResult(MEDIUM_DELAY), Is.EqualTo(result));
+                        Assert.That(ft.GetResult(Delays.Medium), Is.EqualTo(result));
                     });
             ft.Run();
             ThreadManager.JoinAndVerify();
@@ -232,17 +233,17 @@ namespace Spring.Threading.Future
         public void GetChokesWhenTaskIsCancelled([Values(true, false)] bool isTimed)
         {
             FutureTask<T> ft = new FutureTask<T>(
-                () => Thread.Sleep(MEDIUM_DELAY), default(T));
+                () => Thread.Sleep(Delays.Medium), default(T));
 
             ThreadStart getter = () => Assert.Throws<CancellationException>(
                 delegate
                     {
-                        if (isTimed) ft.GetResult(MEDIUM_DELAY);
+                        if (isTimed) ft.GetResult(Delays.Medium);
                         else ft.GetResult();
                     });
 
             ThreadManager.StartAndAssertRegistered("T", getter, ft.Run);
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             ft.Cancel(true);
             ThreadManager.JoinAndVerify();
         }
@@ -261,7 +262,7 @@ namespace Spring.Threading.Future
             Assert.Throws<ExecutionException>(
                 delegate
                     {
-                        if (isTimed) ft.GetResult(MEDIUM_DELAY);
+                        if (isTimed) ft.GetResult(Delays.Medium);
                         else ft.GetResult();
                     });
         }
@@ -275,10 +276,10 @@ namespace Spring.Threading.Future
                 () => Assert.Throws<ThreadInterruptedException>(
                 delegate
                     {
-                        if (isTimed) ft.GetResult(MEDIUM_DELAY);
+                        if (isTimed) ft.GetResult(Delays.Medium);
                         else ft.GetResult();
                     }));
-            Thread.Sleep(SHORT_DELAY);
+            Thread.Sleep(Delays.Short);
             t.Interrupt();
             ThreadManager.JoinAndVerify();
         }

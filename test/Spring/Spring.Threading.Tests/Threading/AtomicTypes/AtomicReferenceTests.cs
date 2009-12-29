@@ -21,6 +21,7 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
@@ -93,7 +94,7 @@ namespace Spring.Threading.AtomicTypes
         public void CompareAndSetInMultipleThreads() {
             AtomicReference<T> ai = new AtomicReference<T>(one);
             Thread t = ThreadManager.StartAndAssertRegistered(
-                "T1", () => { while (!ai.CompareAndSet(two, three)) Thread.Sleep(SHORT_DELAY); });
+                "T1", () => { while (!ai.CompareAndSet(two, three)) Thread.Sleep(Delays.Short); });
             Assert.IsTrue(ai.CompareAndSet(one, two), "Value did not equal 'one' reference");
             ThreadManager.JoinAndVerify();
             Assert.IsFalse(t.IsAlive, "Thread is still alive");

@@ -21,6 +21,7 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using NUnit.CommonFixtures;
 using NUnit.Framework;
 
 namespace Spring.Threading.AtomicTypes
@@ -106,9 +107,9 @@ namespace Spring.Threading.AtomicTypes
 		{
             AtomicMarkable<T> ai = new AtomicMarkable<T>(one, false);
             Thread t = ThreadManager.StartAndAssertRegistered(
-                "T1", () => { while (!ai.CompareAndSet(two, three, false, false)) Thread.Sleep(SHORT_DELAY); });
+                "T1", () => { while (!ai.CompareAndSet(two, three, false, false)) Thread.Sleep(Delays.Short); });
 			Assert.IsTrue(ai.CompareAndSet(one, two, false, false));
-			ThreadManager.JoinAndVerify(LONG_DELAY);
+			ThreadManager.JoinAndVerify(Delays.Long);
 			Assert.IsFalse(t.IsAlive);
 			Assert.AreEqual(ai.Value, three);
 			Assert.IsFalse(ai.IsMarked);
@@ -119,9 +120,9 @@ namespace Spring.Threading.AtomicTypes
 		{
             AtomicMarkable<T> ai = new AtomicMarkable<T>(one, false);
             Thread t = ThreadManager.StartAndAssertRegistered(
-                "T1", () => { while (!ai.CompareAndSet(one, one, true, false)) Thread.Sleep(SHORT_DELAY); });
+                "T1", () => { while (!ai.CompareAndSet(one, one, true, false)) Thread.Sleep(Delays.Short); });
 			Assert.IsTrue(ai.CompareAndSet(one, one, false, true));
-			ThreadManager.JoinAndVerify(LONG_DELAY);
+			ThreadManager.JoinAndVerify(Delays.Long);
 			Assert.IsFalse(t.IsAlive);
 			Assert.AreEqual(ai.Value, one);
 			Assert.IsFalse(ai.IsMarked);
