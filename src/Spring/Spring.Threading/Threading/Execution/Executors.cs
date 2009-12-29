@@ -313,9 +313,9 @@ namespace Spring.Threading.Execution
         /// <param name="runnable">the task to run</param>
         /// <returns> a callable object</returns>
         /// <exception cref="System.ArgumentNullException">if the task is <see lang="null"/></exception>
-        public static ICallable<object> CreateCallable(IRunnable runnable)
+        public static ICallable<Void> CreateCallable(IRunnable runnable)
         {
-            return CreateCallable<object>(runnable, null);
+            return CreateCallable(runnable, default(Void));
         }
 
         /// <summary>
@@ -328,9 +328,9 @@ namespace Spring.Threading.Execution
         /// When the <paramref name="action"/> is <c>null</c>.
         /// </exception>
         /// <seealso cref="CreateCallable{T}(Action,T)"/>
-        public static ICallable<object> CreateCallable(Action action)
+        public static ICallable<Void> CreateCallable(Action action)
         {
-            return CreateCallable<object>(action, null);
+            return CreateCallable(action, default(Void));
         }
 
         /// <summary> 
@@ -715,7 +715,7 @@ namespace Spring.Threading.Execution
 				e = executor;
 			}
 
-			public virtual IScheduledFuture<object> Schedule(IRunnable command, TimeSpan delay)
+			public virtual IScheduledFuture<Void> Schedule(IRunnable command, TimeSpan delay)
 			{
 				return e.Schedule(command, delay);
 			}
@@ -725,12 +725,12 @@ namespace Spring.Threading.Execution
 				return e.Schedule(callable, delay);
 			}
 
-			public virtual IScheduledFuture<object> ScheduleAtFixedRate(IRunnable command, TimeSpan initialDelay, TimeSpan period)
+			public virtual IScheduledFuture<Void> ScheduleAtFixedRate(IRunnable command, TimeSpan initialDelay, TimeSpan period)
 			{
 				return e.ScheduleAtFixedRate(command, initialDelay, period);
 			}
 
-			public virtual IScheduledFuture<object> ScheduleWithFixedDelay(IRunnable command, TimeSpan initialDelay, TimeSpan delay)
+			public virtual IScheduledFuture<Void> ScheduleWithFixedDelay(IRunnable command, TimeSpan initialDelay, TimeSpan delay)
 			{
 				return e.ScheduleWithFixedDelay(command, initialDelay, delay);
 			}

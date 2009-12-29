@@ -115,7 +115,7 @@ namespace Spring.Threading.Execution
         /// <summary>
         /// <see cref="FutureTask{T}"/> extension to enqueue upon completion
         /// </summary>
-		private class QueueingFuture : FutureTask<object>
+		private class QueueingFuture : FutureTask<Void>
 		{
 			private readonly ExecutorCompletionService<T> _enclosingInstance;
 		    private readonly IFuture<T> _task;

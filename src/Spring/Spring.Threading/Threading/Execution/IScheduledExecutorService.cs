@@ -40,7 +40,7 @@ namespace Spring.Threading.Execution
 		/// and whose <see cref="IFuture{T}.GetResult()"/> method will return <see lang="null"/>
 		/// upon completion.
 		/// </returns>
-		IScheduledFuture<object> Schedule(IRunnable command, TimeSpan delay);
+		IScheduledFuture<Void> Schedule(IRunnable command, TimeSpan delay);
 
 		/// <summary> 
 		/// Creates and executes a <see cref="IScheduledFuture{T}"/> that becomes enabled after the
@@ -77,7 +77,7 @@ namespace Spring.Threading.Execution
 		/// and whose <see cref="IFuture{T}.GetResult()"/> method will throw an exception upon
 		/// cancellation.
 		/// </returns>
-		IScheduledFuture<object> ScheduleAtFixedRate(IRunnable command, TimeSpan initialDelay, TimeSpan period);
+		IScheduledFuture<Void> ScheduleAtFixedRate(IRunnable command, TimeSpan initialDelay, TimeSpan period);
 
 		/// <summary> 
 		/// Creates and executes a periodic action that becomes enabled first
@@ -98,6 +98,6 @@ namespace Spring.Threading.Execution
 		/// and whose <see cref="IFuture{T}.GetResult()"/> method will throw an exception upon
 		/// cancellation.
 		/// </returns>
-		IScheduledFuture<object> ScheduleWithFixedDelay(IRunnable command, TimeSpan initialDelay, TimeSpan delay);
+		IScheduledFuture<Void> ScheduleWithFixedDelay(IRunnable command, TimeSpan initialDelay, TimeSpan delay);
 	}
 }

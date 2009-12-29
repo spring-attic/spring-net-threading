@@ -247,7 +247,7 @@ namespace Spring.Threading.Execution
 		/// and whose <see cref="IFuture{T}.GetResult()"/> method will return <see lang="null"/>
 		/// upon completion.
 		/// </returns>
-		public IScheduledFuture<object> Schedule( IRunnable command, TimeSpan delay )
+		public IScheduledFuture<Void> Schedule( IRunnable command, TimeSpan delay )
 		{
 			throw new NotImplementedException();
 		}
@@ -290,7 +290,7 @@ namespace Spring.Threading.Execution
 		/// and whose <see cref="IFuture{T}.GetResult()"/> method will throw an exception upon
 		/// cancellation.
 		/// </returns>
-		public IScheduledFuture<object> ScheduleAtFixedRate( IRunnable command, TimeSpan initialDelay, TimeSpan period )
+		public IScheduledFuture<Void> ScheduleAtFixedRate( IRunnable command, TimeSpan initialDelay, TimeSpan period )
 		{
 			throw new NotImplementedException();
 		}
@@ -314,7 +314,7 @@ namespace Spring.Threading.Execution
 		/// and whose <see cref="IFuture{T}"/> method will throw an exception upon
 		/// cancellation.
 		/// </returns>
-		public IScheduledFuture<object> ScheduleWithFixedDelay( IRunnable command, TimeSpan initialDelay, TimeSpan delay )
+		public IScheduledFuture<Void> ScheduleWithFixedDelay( IRunnable command, TimeSpan initialDelay, TimeSpan delay )
 		{
 			throw new NotImplementedException();
 		}
