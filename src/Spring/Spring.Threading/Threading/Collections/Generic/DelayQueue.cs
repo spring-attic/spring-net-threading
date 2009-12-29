@@ -329,7 +329,7 @@ namespace Spring.Threading.Collections.Generic
             }
         }
         /// <summary>
-        /// Returns <see lang="true"/> if there are no elements in the <see cref="IQueue"/>, <see lang="false"/> otherwise.
+        /// Returns <see lang="true"/> if there are no elements in the <see cref="IQueue{T}"/>, <see lang="false"/> otherwise.
         /// </summary>
         public override bool IsEmpty
         {
@@ -378,7 +378,7 @@ namespace Spring.Threading.Collections.Generic
         /// </p>
         /// <p>
         /// This implementation repeatedly invokes
-        /// <see cref="Spring.Collections.AbstractQueue.Poll()"/> until it
+        /// <see cref="AbstractQueue{T}.Poll"/> until it
         /// returns <see lang="null"/>.
         /// </p>
         /// </remarks>

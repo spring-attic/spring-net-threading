@@ -13,16 +13,21 @@ namespace Spring.Collections.Generic
     public class AbstractQueueTest<T>
     {
         private AbstractQueue<T> _sut;
+#if !PHASED
         private IQueue _sutAsNonGeneric;
+#endif
         readonly Action<T> _action = x => { };
 
 
         [SetUp] public void SetUp()
         {
             _sut = Mockery.GeneratePartialMock<AbstractQueue<T>>();
+#if !PHASED
             _sutAsNonGeneric = _sut;
+#endif
         }
 
+#if !PHASED
         [Test] public void NonGenericAddDelegatesToGenericAdd()
         {
             _sut.Stub(x => x.Add(Arg<T>.Is.Anything));
@@ -100,6 +105,20 @@ namespace Spring.Collections.Generic
             });
         }
 
+        [Test] public void IsEmptyReturnTrueWhenCountIsZero()
+        {
+            _sut.Stub(x=>x.Count).Return(0);
+            Assert.That(_sutAsNonGeneric.IsEmpty, Is.True);
+        }
+
+        [Test] public void IsEmptyReturnFalseWhenCountIsNotZero()
+        {
+            _sut.Stub(x=>x.Count).Return(1);
+            Assert.That(_sutAsNonGeneric.IsEmpty, Is.False);
+        }
+
+#endif
+
         [Test] public void AddDelegatesToOffer()
         {
             _sut.Stub(x=>x.Offer(Arg<T>.Is.Anything)).Return(true);
@@ -125,7 +144,7 @@ namespace Spring.Collections.Generic
         {
             T dummy;
             _sut.Stub(x=>x.Poll(out dummy)).Return(false);
-            Assert.Throws<NoElementsException>(() => _sut.Remove());
+            Assert.Catch<InvalidOperationException>(() => _sut.Remove());
             _sut.AssertWasCalled(x => x.Poll(out dummy));
         }
 
@@ -140,7 +159,7 @@ namespace Spring.Collections.Generic
         {
             T dummy;
             _sut.Stub(x=>x.Peek(out dummy)).Return(false);
-            Assert.Throws<NoElementsException>(() => _sut.Element());
+            Assert.Catch<InvalidOperationException>(() => _sut.Element());
             _sut.AssertWasCalled(x => x.Peek(out dummy));
         }
 
@@ -153,21 +172,9 @@ namespace Spring.Collections.Generic
             _sut.AssertWasCalled(x => x.Poll(out dummy), m => m.Repeat.Times(6));
         }
 
-        [Test] public void IsEmptyReturnTrueWhenCountIsZero()
-        {
-            _sut.Stub(x=>x.Count).Return(0);
-            Assert.That(_sutAsNonGeneric.IsEmpty, Is.True);
-        }
-
         [Test] public void IsReadOnlyAlwaysReturnFalse()
         {
             Assert.IsFalse(_sut.IsReadOnly);
-        }
-
-        [Test] public void IsEmptyReturnFalseWhenCountIsNotZero()
-        {
-            _sut.Stub(x=>x.Count).Return(1);
-            Assert.That(_sutAsNonGeneric.IsEmpty, Is.False);
         }
 
         [Test] public void AddRangeAddAllElementsInTraversalOrder()

@@ -140,7 +140,7 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary> 
-        /// Reconstitute the <see cref="Spring.Collections.PriorityQueue"/> instance from a stream (that is,
+        /// Reconstitute the <see cref="PriorityQueue{T}"/> instance from a stream (that is,
         /// deserialize it).
         /// </summary>
         /// <param name="serializationInfo">the stream</param>

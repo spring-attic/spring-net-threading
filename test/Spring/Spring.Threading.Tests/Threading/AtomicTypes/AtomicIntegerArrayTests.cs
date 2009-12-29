@@ -47,7 +47,6 @@ namespace Spring.Threading.AtomicTypes
                 ai = a;
             }
 
-            [Test]
             public void Run() {
                 for(; ; ) {
                     bool done = true;

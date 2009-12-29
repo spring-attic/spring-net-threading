@@ -317,7 +317,7 @@ namespace Spring.Threading.Collections.Generic {
         /// </summary>
         /// <remarks>
         /// When using a capacity-restricted queue, this method is generally
-        /// preferable to <see cref="Spring.Collections.IQueue.Add(object)"/>,
+        /// preferable to <see cref="AbstractQueue{T}.Add(T)"/>,
         /// which can fail to insert an element only by throwing an exception.
         /// </remarks>
         /// <param name="element">

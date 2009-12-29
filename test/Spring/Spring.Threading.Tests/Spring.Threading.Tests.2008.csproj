@@ -128,10 +128,11 @@
     <Compile Include="StandardsComplianceTest.cs" />
     <Compile Include="System\Threading\Tasks\ParallelOptionsTest.cs" />
     <Compile Include="System\Threading\Tasks\ParallelTest.cs" />
-    <Compile Include="TestFixtures\Collections\Generic\QueueTestFixture.cs" />
-    <Compile Include="TestFixtures\Collections\NonGeneric\QueueTestFixture.cs" />
-    <Compile Include="TestFixtures\Collections\NonGeneric\TypedQueueTestFixture.cs" />
-    <Compile Include="TestFixtures\Threading\Collections\Generic\BlockingQueueTestFixture.cs" />
+    <Compile Include="TestFixtures\Collections\AbstractCollectionTestFixture.cs" />
+    <Compile Include="TestFixtures\Collections\Generic\QueueContract.cs" />
+    <Compile Include="TestFixtures\Collections\NonGeneric\QueueContract.cs" />
+    <Compile Include="TestFixtures\Collections\NonGeneric\TypedQueueContract.cs" />
+    <Compile Include="TestFixtures\Threading\Collections\Generic\BlockingQueueContract.cs" />
     <Compile Include="TestFixtures\Threading\ThreadingTestFixture.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="Threading\CallableTest.cs" />

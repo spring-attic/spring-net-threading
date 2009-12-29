@@ -234,7 +234,7 @@ namespace Spring.Threading.Future
 	    /// <exception cref="Spring.Threading.Execution.CancellationException">if the computation was cancelled.</exception>
 	    /// <exception cref="Spring.Threading.Execution.ExecutionException">if the computation threw an exception.</exception>
 	    /// <exception cref="System.Threading.ThreadInterruptedException">if the current thread was interrupted while waiting.</exception>
-	    /// <exception cref="Spring.Threading.TimeoutException">if the computation threw an exception.</exception>
+	    /// <exception cref="TimeoutException">if the computation threw an exception.</exception>
 	    public virtual T GetResult(TimeSpan durationToWait)
         {
             lock (this)
@@ -494,7 +494,7 @@ namespace Spring.Threading.Future
 
 	    /// <summary> 
 	    /// Waits for the task to complete for <paramref name="durationToWait"/> or throws a
-	    /// <see cref="Spring.Threading.TimeoutException"/>
+	    /// <see cref="TimeoutException"/>
 	    /// if still not completed after that
 	    /// </summary>
 	    private void WaitFor(TimeSpan durationToWait)

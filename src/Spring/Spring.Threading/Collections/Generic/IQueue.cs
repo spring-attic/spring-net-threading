@@ -112,7 +112,7 @@ namespace Spring.Collections.Generic
         /// exception if this queue is empty. 
         /// </remarks>
         /// <returns>The head of this queue.</returns>
-        /// <exception cref="NoElementsException">
+        /// <exception cref="InvalidOperationException">
         /// If this queue is empty.
         /// </exception>
         T Element();
@@ -169,7 +169,7 @@ namespace Spring.Collections.Generic
         /// Retrieves and removes the head of this queue. 
         /// </summary>
         /// <returns>The head of this queue</returns>
-        /// <exception cref="NoElementsException">
+        /// <exception cref="InvalidOperationException">
         /// If this queue is empty.
         /// </exception>
         T Remove();

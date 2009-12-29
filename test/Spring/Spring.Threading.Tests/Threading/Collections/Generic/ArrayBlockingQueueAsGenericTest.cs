@@ -2,10 +2,14 @@
 using NUnit.CommonFixtures;
 using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
-using Spring.Collections;
 using Spring.Collections.Generic;
 using Spring.TestFixtures.Collections.NonGeneric;
 using Spring.TestFixtures.Threading.Collections.Generic;
+#if !PHASED
+using IQueue = Spring.Collections.IQueue;
+#else
+using IQueue = System.Collections.ICollection;
+#endif
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -82,7 +86,7 @@ namespace Spring.Threading.Collections.Generic
         [TestFixture(typeof(int))]
         [TestFixture(typeof(string), CollectionContractOptions.Fair)]
         [TestFixture(typeof(string))]
-        public class AsGeneric : BlockingQueueTestFixture<T>
+        public class AsGeneric : BlockingQueueContract<T>
         {
             public AsGeneric() : this(0) {}
             public AsGeneric(CollectionContractOptions options)
@@ -103,7 +107,7 @@ namespace Spring.Threading.Collections.Generic
         [TestFixture(typeof(int))]
         [TestFixture(typeof(string), CollectionContractOptions.Fair)]
         [TestFixture(typeof(string))]
-        public class AsNonGeneric : TypedQueueTestFixture<T>
+        public class AsNonGeneric : TypedQueueContract<T>
         {
             private readonly bool _isFair;
 

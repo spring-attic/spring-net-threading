@@ -6,7 +6,6 @@ using NUnit.CommonFixtures;
 using NUnit.CommonFixtures.Collections;
 using NUnit.CommonFixtures.Collections.Generic;
 using NUnit.Framework;
-using Spring.Collections;
 using Spring.Collections.Generic;
 
 namespace Spring.TestFixtures.Collections.Generic
@@ -15,7 +14,7 @@ namespace Spring.TestFixtures.Collections.Generic
     /// Basic functionality test cases for implementation of <see cref="IQueue{T}"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public abstract class QueueTestFixture<T> : CollectionContract<T>
+    public abstract class QueueContract<T> : CollectionContract<T>
     {
         //protected bool _isCapacityRestricted;
 
@@ -43,7 +42,7 @@ namespace Spring.TestFixtures.Collections.Generic
         /// <see cref="CollectionContractOptions.NoNull"/>.
         /// </summary>
         /// <param name="options"></param>
-        protected QueueTestFixture(CollectionContractOptions options) : base(options)
+        protected QueueContract(CollectionContractOptions options) : base(options)
         {
         }
 
@@ -140,7 +139,7 @@ namespace Spring.TestFixtures.Collections.Generic
         [Test] public virtual void RemoveChokesWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
-            Assert.Throws<NoElementsException>(() => queue.Remove());
+            Assert.Catch<InvalidOperationException>(() => queue.Remove());
         }
 
         [Test] public  void RemoveSucceedsWhenQueueIsNotEmpty()
@@ -197,7 +196,7 @@ namespace Spring.TestFixtures.Collections.Generic
         [Test] public virtual void ElementChokesWhenQuqueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
-            Assert.Throws<NoElementsException>(() => queue.Element());
+            Assert.Catch<InvalidOperationException>(() => queue.Element());
         }
 
         [Test] public virtual void ElementSucceedsWhenQueueIsNotEmpty()

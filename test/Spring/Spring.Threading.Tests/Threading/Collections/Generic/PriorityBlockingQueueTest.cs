@@ -519,7 +519,7 @@ namespace Spring.Threading.Collections.Generic
         /// <summary>
         /// element returns next element, or throws NSEE if empty
         /// </summary>
-        [Test, ExpectedException(typeof(NoElementsException))]
+        [Test, ExpectedException(typeof(InvalidOperationException))]
         public void TestElement() {
             PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
             for(int i = 0; i < SIZE; ++i) {
@@ -533,7 +533,7 @@ namespace Spring.Threading.Collections.Generic
         /// <summary>
         /// remove removes next element, or throws NSEE if empty
         /// </summary>
-        [Test, ExpectedException(typeof(NoElementsException))]
+        [Test, ExpectedException(typeof(InvalidOperationException))]
         public void TestRemove() {
             PriorityBlockingQueue<int> q = PopulatedQueue(SIZE);
             for(int i = 0; i < SIZE; ++i) {

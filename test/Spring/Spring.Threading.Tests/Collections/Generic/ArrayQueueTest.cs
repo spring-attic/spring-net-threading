@@ -2,9 +2,13 @@
 using NUnit.CommonFixtures;
 using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
-using Spring.TestFixtures.Collections;
 using Spring.TestFixtures.Collections.Generic;
 using Spring.TestFixtures.Collections.NonGeneric;
+#if !PHASED
+using IQueue = Spring.Collections.IQueue;
+#else
+using IQueue = System.Collections.ICollection;
+#endif
 
 namespace Spring.Collections.Generic
 {
@@ -16,7 +20,7 @@ namespace Spring.Collections.Generic
     /// <author>Kenneth Xu</author>
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
-    public class ArrayQueueTest<T> : QueueTestFixture<T>
+    public class ArrayQueueTest<T> : QueueContract<T>
     {
         public ArrayQueueTest()
             : base(CollectionContractOptions.Fifo)
@@ -80,7 +84,7 @@ namespace Spring.Collections.Generic
 
         [TestFixture(typeof(string))]
         [TestFixture(typeof(int))]
-        public class AsNonGeneric : TypedQueueTestFixture<T>
+        public class AsNonGeneric : TypedQueueContract<T>
         {
             public AsNonGeneric()
                 : base(CollectionContractOptions.Fifo)

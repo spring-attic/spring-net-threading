@@ -111,7 +111,7 @@ namespace Spring.Threading.Future
         /// <exception cref="Spring.Threading.Execution.CancellationException">if the computation was cancelled.</exception>
         /// <exception cref="Spring.Threading.Execution.ExecutionException">if the computation threw an exception.</exception>
         /// <exception cref="System.Threading.ThreadInterruptedException">if the current thread was interrupted while waiting.</exception>
-        /// <exception cref="Spring.Threading.TimeoutException">if the computation threw an exception.</exception>
+        /// <exception cref="TimeoutException">if the computation threw an exception.</exception>
         T GetResult(TimeSpan durationToWait);
     }
 }

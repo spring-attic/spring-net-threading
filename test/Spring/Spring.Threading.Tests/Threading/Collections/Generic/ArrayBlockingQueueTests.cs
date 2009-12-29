@@ -9,7 +9,6 @@ using NUnit.Framework;
 using Spring.Collections;
 using Spring.Threading.Execution;
 using Spring.Threading.Future;
-using Spring.Util;
 using ParallelOptions=Spring.Threading.Execution.ParallelOptions;
 
 namespace Spring.Threading.Collections.Generic
@@ -832,8 +831,8 @@ namespace Spring.Threading.Collections.Generic
 
 
 		[Test]
-		[ExpectedException(typeof (NoElementsException))]
-		public void ElementThrowsNoElementsExceptionWhenEmpty()
+		[ExpectedException(typeof (InvalidOperationException))]
+		public void ElementThrowsInvalidOperationExceptionWhenEmpty()
 		{
 			ArrayBlockingQueue<int> q = populatedQueue(DEFAULT_COLLECTION_SIZE);
 		    int j;
@@ -847,8 +846,8 @@ namespace Spring.Threading.Collections.Generic
 
 
 		[Test]
-		[ExpectedException(typeof (NoElementsException))]
-		public void RemoveThrowsNoElementsExceptionWhenEmpty()
+		[ExpectedException(typeof (InvalidOperationException))]
+		public void RemoveThrowsInvalidOperationExceptionWhenEmpty()
 		{
 			ArrayBlockingQueue<int> q = populatedQueue(DEFAULT_COLLECTION_SIZE);
 			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
@@ -903,20 +902,6 @@ namespace Spring.Threading.Collections.Generic
 			Assert.IsTrue(q.Contains(one));
 			q.Clear();
 			Assert.IsTrue((q.Count == 0));
-		}
-
-
-		[Test]
-		public void ContainsAll()
-		{
-			ArrayBlockingQueue<int> q = populatedQueue(DEFAULT_COLLECTION_SIZE);
-			ArrayBlockingQueue<int> p = new ArrayBlockingQueue<int>(DEFAULT_COLLECTION_SIZE);
-			for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
-			{
-				Assert.IsFalse(CollectionUtils.ContainsAll(p, q));
-				p.Add(i);
-			}
-			Assert.IsTrue(CollectionUtils.ContainsAll(p, q));
 		}
 
 		[Test]

@@ -337,11 +337,11 @@ namespace Spring.Collections.Generic
 		/// <returns> 
 		/// The head of this queue
 		/// </returns>
-		/// <exception cref="Spring.Collections.NoElementsException">if this queue is empty</exception>
+		/// <exception cref="InvalidOperationException">if this queue is empty</exception>
         public override T Remove()
 	    {
 	        if (_count == 0)
-	            throw new NoElementsException("Queue is empty.");
+	            throw new InvalidOperationException("Queue is empty.");
 	        T x = Extract();
 	        return x;
 	    }

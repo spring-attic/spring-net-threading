@@ -28,8 +28,8 @@ using System.Collections.Generic;
 namespace Spring.Collections.Generic
 {
 	/// <summary> 
-	/// This class provides skeletal implementations for some of
-	/// <see cref="IQueue{T}"/> and all of <see cref="IQueue"/> operations.
+	/// This class provides skeletal implementations for some of <see cref="IQueue{T}"/>
+	/// operations.
 	/// </summary>
 	/// <remarks>
 	/// <para>
@@ -44,7 +44,10 @@ namespace Spring.Collections.Generic
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
 	[Serializable]
-	public abstract class AbstractQueue<T> : AbstractCollection<T>, IQueue<T>, IQueue //JDK_1_6
+    public abstract class AbstractQueue<T> : AbstractCollection<T>, IQueue<T> //JDK_1_6
+#if !PHASED
+        , IQueue 
+#endif
 	{
 	    /// <summary>
         /// Returns the remaining capacity of this queue.
@@ -91,7 +94,7 @@ namespace Spring.Collections.Generic
 	    /// </para>
 	    /// </remarks>
 	    /// <returns>The head of this queue.</returns>
-	    /// <exception cref="NoElementsException">
+	    /// <exception cref="InvalidOperationException">
 	    /// If this queue is empty.
 	    /// </exception>
 	    public virtual T Element()
@@ -103,7 +106,7 @@ namespace Spring.Collections.Generic
             }
             else
             {
-                throw new NoElementsException("Queue is empty.");
+                throw new InvalidOperationException("Queue is empty.");
             }
         }
 
@@ -123,7 +126,7 @@ namespace Spring.Collections.Generic
 	    /// Retrieves and removes the head of this queue. 
 	    /// </summary>
 	    /// <returns>The head of this queue</returns>
-	    /// <exception cref="NoElementsException">
+	    /// <exception cref="InvalidOperationException">
 	    /// If this queue is empty.
 	    /// </exception>
 	    public virtual T Remove()
@@ -135,7 +138,7 @@ namespace Spring.Collections.Generic
             }
             else
             {
-                throw new NoElementsException("Queue is empty.");
+                throw new InvalidOperationException("Queue is empty.");
             }
         }
 
@@ -191,6 +194,7 @@ namespace Spring.Collections.Generic
 
         #region IQueue Members
 
+#if !PHASED
         /// <summary>
         /// Add differ from <see cref="IQueue.Offer"/> by throwing exception
         /// When queue is full.
@@ -212,6 +216,33 @@ namespace Spring.Collections.Generic
             return Element();
         }
 
+	    bool IQueue.Offer(object objectToAdd)
+        {
+            return Offer((T) objectToAdd);
+        }
+
+        object IQueue.Peek()
+        {
+            T element;
+            return Peek(out element) ? (object)element : null;
+        }
+
+        object IQueue.Poll()
+        {
+            T element;
+            return Poll(out element) ? (object)element : null;
+        }
+
+        /// <summary>
+        /// Remove differ from <see cref="IQueue.Poll"/> by throwing exception
+        /// When queue is empty.
+        /// </summary>
+        /// <returns></returns>
+        object IQueue.Remove()
+        {
+            return Remove();
+        }
+#endif
         /// <summary>
         /// Returns <see langword="true"/> if there are no elements in the 
         /// <see cref="IQueue{T}"/>, <see langword="false"/> otherwise.
@@ -244,33 +275,6 @@ namespace Spring.Collections.Generic
 	            return false;
 	        }
 	    }
-
-	    bool IQueue.Offer(object objectToAdd)
-        {
-            return Offer((T) objectToAdd);
-        }
-
-        object IQueue.Peek()
-        {
-            T element;
-            return Peek(out element) ? (object)element : null;
-        }
-
-        object IQueue.Poll()
-        {
-            T element;
-            return Poll(out element) ? (object)element : null;
-        }
-
-        /// <summary>
-        /// Remove differ from <see cref="IQueue.Poll"/> by throwing exception
-        /// When queue is empty.
-        /// </summary>
-        /// <returns></returns>
-        object IQueue.Remove()
-        {
-            return Remove();
-        }
 
         #endregion
 

@@ -18,7 +18,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
     /// Basic functionality test cases for implementation of <see cref="IBlockingQueue{T}"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public abstract class BlockingQueueTestFixture<T> : QueueTestFixture<T>
+    public abstract class BlockingQueueContract<T> : QueueContract<T>
     {
         protected bool IsFair
         {
@@ -35,7 +35,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
         /// <see cref="CollectionContractOptions.NoNull"/>.
         /// </summary>
         /// <param name="options"></param>
-        protected BlockingQueueTestFixture(CollectionContractOptions options) : base(options)
+        protected BlockingQueueContract(CollectionContractOptions options) : base(options)
         {
         }
 

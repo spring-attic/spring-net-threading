@@ -8,11 +8,15 @@ using Spring.Collections;
 
 namespace Spring.TestFixtures.Collections.NonGeneric
 {
+#if PHASED
+    using IQueue = ICollection;
+#endif
+
     /// <summary>
     /// Basic functionality test cases for implementation of <see cref="IQueue"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public abstract class QueueTestFixture : CollectionContract
+    public abstract class QueueContract : CollectionContract
     {
         protected object[] _samples;
 
@@ -34,7 +38,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
         /// <see cref="CollectionContractOptions.Fifo"/>.
         /// </summary>
         /// <param name="options"></param>
-        protected QueueTestFixture(CollectionContractOptions options) : base(options)
+        protected QueueContract(CollectionContractOptions options) : base(options)
         {
         }
 
@@ -46,10 +50,12 @@ namespace Spring.TestFixtures.Collections.NonGeneric
         protected virtual IQueue NewQueueFilledWithSample()
         {
             IQueue queue = NewQueue();
+#if !PHASED
             foreach (object o in _samples)
             {
                 queue.Offer(o);
             }
+#endif
             return queue;
         }
 
@@ -69,6 +75,12 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             _samples = NewSamples();
         }
 
+        protected virtual object MakeData(int i)
+        {
+            return new object();
+        }
+
+#if !PHASED
         [Test] public void AddChokesWhenQueueIsFull()
         {
             Options.SkipWhen(CollectionContractOptions.Unbounded);
@@ -106,7 +118,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
         [Test] public void RemoveChokesWhenQuqueIsEmpty()
         {
             IQueue queue = NewQueue();
-            Assert.Throws<NoElementsException>(() => queue.Remove());
+            Assert.Throws<InvalidOperationException>(() => queue.Remove());
         }
 
         [Test] public void RemoveAllSamplesSucessfully()
@@ -141,7 +153,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
         [Test] public void ElementChokesWhenQuqueIsEmpty()
         {
             IQueue queue = NewQueue();
-            Assert.Throws<NoElementsException>(() => queue.Element());
+            Assert.Throws<InvalidOperationException>(() => queue.Element());
         }
 
         [Test] public void ElementGetsAllSamplesSucessfully()
@@ -188,11 +200,6 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             AddRemoveOneLoop(queue, _sampleSize);
         }
 
-        protected virtual object MakeData(int i)
-        {
-            return new object();
-        }
-
         private void AddRemoveOneLoop(IQueue queue, int size)
         {
             for (int i = 0; i < size; i++)
@@ -212,5 +219,6 @@ namespace Spring.TestFixtures.Collections.NonGeneric
                 }
             }
         }
+#endif
     }
 }

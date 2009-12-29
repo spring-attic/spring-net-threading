@@ -782,7 +782,7 @@ namespace Spring.Threading.Collections.Generic
                 q.Element();
                 Assert.Fail( "should throw exception" );
             }
-            catch ( NoElementsException ) {}
+            catch ( InvalidOperationException ) {}
         }
 
         [Test]
@@ -798,7 +798,7 @@ namespace Spring.Threading.Collections.Generic
                 q.Remove();
                 Assert.Fail( "should throw exception" );
             }
-            catch ( NoElementsException ) {}
+            catch ( InvalidOperationException ) {}
         }
 
         [Test]

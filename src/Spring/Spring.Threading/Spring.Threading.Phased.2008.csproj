@@ -77,10 +77,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\dependency\LinqBridge\net\2.0\LinqBridge.dll</HintPath>
     </Reference>
-    <Reference Include="Spring.Core, Version=1.2.0.20313, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\lib\net\2.0\Spring.Core.dll</HintPath>
-    </Reference>
     <Reference Include="System">
       <Name>System</Name>
     </Reference>
@@ -178,7 +174,6 @@
     <Compile Include="Threading\Locks\IExclusiveLock.cs" />
     <Compile Include="Threading\Locks\ILock.cs" />
     <Compile Include="Threading\Locks\ReentrantLock.cs" />
-    <Compile Include="Threading\LogicalThreadContextCarrierFactory.cs" />
     <Compile Include="System\Threading\Tasks\ParallelOptions.cs" />
     <Compile Include="Threading\Runnable.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />

@@ -27,7 +27,7 @@ using System.Runtime.Serialization;
 namespace Spring.Collections.Generic
 {
     /// <summary> 
-    /// An unbounded priority <see cref="Spring.Collections.IQueue"/> based on a priority
+    /// An unbounded priority <see cref="IQueue{T}"/> based on a priority
     /// heap.  This queue orders elements according to an order specified
     /// at construction time, which is specified either according to their
     /// <i>natural order</i> (see <see cref="System.IComparable"/>, or according to a
@@ -61,7 +61,7 @@ namespace Spring.Collections.Generic
     /// 
     /// <p/> 
     /// Note that this implementation is <b>NOT</b> synchronized.
-    /// Multiple threads should not access a <see cref="Spring.Collections.PriorityQueue"/>
+    /// Multiple threads should not access a <see cref="PriorityQueue{T}"/>
     /// instance concurrently if any of the threads modifies the list
     /// structurally. Instead, use the thread-safe PriorityBlockingQueue.
     /// </summary>
@@ -173,7 +173,7 @@ namespace Spring.Collections.Generic
         #region Constructors
 
         /// <summary>
-        /// Creates a <see cref="Spring.Collections.PriorityQueue"/> with the default initial capacity
+        /// Creates a <see cref="PriorityQueue{T}"/> with the default initial capacity
         /// (11) that orders its elements according to their natural
         /// ordering (using <see cref="System.IComparable"/>).
         /// </summary>
@@ -182,7 +182,7 @@ namespace Spring.Collections.Generic
             }
 
         /// <summary> 
-        /// Creates a <see cref="Spring.Collections.PriorityQueue"/> with the specified initial capacity
+        /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial capacity
         /// that orders its elements according to their natural ordering
         /// (using <see cref="System.IComparable"/>).
         /// </summary>
@@ -194,7 +194,7 @@ namespace Spring.Collections.Generic
             }
 
         /// <summary> 
-        /// Creates a <see cref="Spring.Collections.PriorityQueue"/> with the specified initial capacity
+        /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial capacity
         /// that orders its elements according to the specified comparator.
         /// </summary>
         /// <param name="initialCapacity">the initial capacity for this priority queue.</param>
@@ -211,11 +211,11 @@ namespace Spring.Collections.Generic
         }
 
         /// <summary> 
-        /// Creates a <see cref="Spring.Collections.PriorityQueue"/> containing the elements in the
+        /// Creates a <see cref="PriorityQueue{T}"/> containing the elements in the
         /// specified collection.  The priority queue has an initial
         /// capacity of 110% of the size of the specified collection or 1
         /// if the collection is empty.  If the specified collection is an
-        /// instance of a <see cref="Spring.Collections.PriorityQueue"/>, the priority queue will be sorted
+        /// instance of a <see cref="PriorityQueue{T}"/>, the priority queue will be sorted
         /// according to the same comparator, or according to its elements'
         /// natural order if the collection is sorted according to its
         /// elements' natural order.  Otherwise, the priority queue is
@@ -396,7 +396,7 @@ namespace Spring.Collections.Generic
 
         /// <summary> 
         /// Initially fill elements of the queue array under the
-        /// knowledge that it is sorted or is another <see cref="Spring.Collections.PriorityQueue"/>, in which
+        /// knowledge that it is sorted or is another <see cref="PriorityQueue{T}"/>, in which
         /// case we can just place the elements in the order presented.
         /// </summary>
         private void fillFromSorted(ICollection<T> collection) {
@@ -501,7 +501,7 @@ namespace Spring.Collections.Generic
         /// <remarks>
         /// <p>
         /// When using a capacity-restricted queue, this method is generally
-        /// preferable to <see cref="Spring.Collections.IQueue.Add(object)"/>,
+        /// preferable to <see cref="AbstractQueue{T}.Add"/>,
         /// which can fail to insert an element only by throwing an exception.
         /// </p>
         /// </remarks>
@@ -769,7 +769,7 @@ namespace Spring.Collections.Generic
         }
 
         /// <summary> 
-        /// Reconstitute the <see cref="Spring.Collections.PriorityQueue"/> instance from a stream (that is,
+        /// Reconstitute the <see cref="PriorityQueue{T}"/> instance from a stream (that is,
         /// deserialize it).
         /// </summary>
         /// <param name="serializationInfo">the stream</param>

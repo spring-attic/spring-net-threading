@@ -4,6 +4,7 @@ using System.Text;
 using NUnit.Framework;
 using Rhino.Mocks;
 using Spring.Collections.Generic;
+using NUnit.CommonFixtures;
 
 namespace Spring.TestFixtures.Collections
 {

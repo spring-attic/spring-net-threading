@@ -6,6 +6,11 @@ using NUnit.Framework;
 using Spring.TestFixtures.Collections.NonGeneric;
 using Spring.TestFixtures.Threading.Collections.Generic;
 using Spring.Threading.AtomicTypes;
+#if !PHASED
+using IQueue = Spring.Collections.IQueue;
+#else
+using IQueue = System.Collections.ICollection;
+#endif
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -19,7 +24,7 @@ namespace Spring.Threading.Collections.Generic
     [TestFixture(typeof(int), CollectionContractOptions.Unbounded)]
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
-    public class LinkedBlockingQueueTest<T> : BlockingQueueTestFixture<T>
+    public class LinkedBlockingQueueTest<T> : BlockingQueueContract<T>
     {
         public LinkedBlockingQueueTest() : this(0) {}
         public LinkedBlockingQueueTest(CollectionContractOptions options)
@@ -332,22 +337,21 @@ namespace Spring.Threading.Collections.Generic
         [TestFixture(typeof(int), CollectionContractOptions.Unbounded)]
         [TestFixture(typeof(string))]
         [TestFixture(typeof(int))]
-        public class AsNonGeneric : TypedQueueTestFixture<T>
+        public class AsNonGeneric : TypedQueueContract<T>
         {
             public AsNonGeneric() :  this(0) {}
             public AsNonGeneric(CollectionContractOptions options) 
                 : base(options | CollectionContractOptions.Fifo) {}
 
-            protected override Spring.Collections.IQueue NewQueue()
+            protected override IQueue NewQueue()
             {
                 return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, false);
             }
 
-            protected override Spring.Collections.IQueue NewQueueFilledWithSample()
+            protected override IQueue NewQueueFilledWithSample()
             {
                 return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, true);
             }
         }
-
     }
 }
