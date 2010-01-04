@@ -23,7 +23,7 @@ namespace Spring.Collections.Generic
     public class ArrayQueueTest<T> : QueueContract<T>
     {
         public ArrayQueueTest()
-            : base(CollectionContractOptions.Fifo)
+            : base(CollectionContractOptions.Fifo | CollectionContractOptions.WeaklyConsistentEnumerator)
         {
         }
         protected override IQueue<T> NewQueue()

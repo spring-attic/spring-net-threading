@@ -55,9 +55,6 @@ namespace Spring.Collections.Generic
 		/// <summary>The queued items  </summary>
 		private readonly T[] _items;
 
-	    /// <summary>The change revision to fast fail enumerator</summary>
-	    private int _version;
-
 		/// <summary>items index for next take, poll or remove </summary>
 		[NonSerialized] private int _takeIndex;
 
@@ -72,8 +69,7 @@ namespace Spring.Collections.Generic
 		/// </summary>
 		private int RemoveAt(int index)
 		{
-            _version++;
-            T[] items = _items;
+			T[] items = _items;
 			if (index == _takeIndex)
 			{
 				items[_takeIndex] = default(T);
@@ -115,8 +111,7 @@ namespace Spring.Collections.Generic
 		/// </summary>
 		private void Insert(T x)
 		{
-            _version++;
-            _items[_putIndex] = x;
+			_items[_putIndex] = x;
 			_putIndex = Increment(_putIndex);
 			++_count;
 		}
@@ -127,8 +122,7 @@ namespace Spring.Collections.Generic
 		/// </summary>
 		private T Extract()
 		{
-            _version++;
-            T[] items = _items;
+			T[] items = _items;
 			T x = items[_takeIndex];
 			items[_takeIndex] = default(T);
 			_takeIndex = Increment(_takeIndex);
@@ -201,7 +195,6 @@ namespace Spring.Collections.Generic
         /// </summary>
 	    public override void Clear()
 	    {
-            _version++;
 	        T[] items = _items;
 	        int i = _takeIndex;
 	        int k = _count;
@@ -527,10 +520,6 @@ namespace Spring.Collections.Generic
 			/// or a negative number if no such element.
 			/// </summary>
 			private int _nextIndex;
-            /// <summary>
-            /// The change version of the queue when the enumerator was created.
-            /// </summary>
-            private readonly int _startVersion;
 			/// <summary>
 			/// Parent <see cref="ArrayQueue{T}"/> 
 			/// for this <see cref="IEnumerator{T}"/>
@@ -546,65 +535,34 @@ namespace Spring.Collections.Generic
 
 	        protected override T FetchCurrent()
 			{
-			    T x = _nextItem;
-			    _nextIndex = _queue.Increment(_nextIndex);
-			    CheckNext();
-			    return x;
+	            return _nextItem;
 			}
 				
 			internal ArrayQueueEnumerator(ArrayQueue<T> queue)
 			{
 				_queue = queue;
-			    _startVersion = queue._version;
 				SetInitialState();
 			}
 			
 			protected override bool GoNext()
 			{
-                CheckChange();
-                return _nextIndex >= 0;
+			    var index = _nextIndex;
+			    if (index == -1) return false;
+                _nextItem = _queue._items[index];
+                index = _queue.Increment(index);
+			    _nextIndex = index == _queue._putIndex ? -1 : index;
+			    return true;
 			}
 
 			public override void Reset()
 			{
-			    CheckChange();
 				SetInitialState();
 			}
 
 			private void SetInitialState()
 			{
-			    if (_queue.Count == 0)
-					_nextIndex = - 1;
-				else
-				{
-					_nextIndex = _queue._takeIndex;
-					_nextItem = _queue._items[_queue._takeIndex];
-				}
+			    _nextIndex = _queue.Count == 0 ? - 1 : _queue._takeIndex;
 			}
-
-			/// <summary> 
-			/// Checks whether nextIndex is valid; if so setting nextItem.
-			/// Stops iterator when hits putIndex.
-			/// </summary>
-			private void CheckNext()
-			{
-				if (_nextIndex == _queue._putIndex)
-				{
-					_nextIndex = - 1;
-					_nextItem = default(T);
-				}
-				else
-				{
-					_nextItem = _queue._items[_nextIndex];
-				}
-			}
-
-            private void CheckChange()
-            {
-                if (_startVersion != _queue._version)
-                    throw new InvalidOperationException(
-                        "queue has changed during enumeration");
-            }
-        }
+		}
 	}
 }

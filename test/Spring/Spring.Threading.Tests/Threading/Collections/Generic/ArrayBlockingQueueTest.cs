@@ -89,8 +89,10 @@ namespace Spring.Threading.Collections.Generic
         public class AsGeneric : BlockingQueueContract<T>
         {
             public AsGeneric() : this(0) {}
-            public AsGeneric(CollectionContractOptions options)
-                : base(options | CollectionContractOptions.Fifo | CollectionContractOptions.ToStringPrintItems) { }
+            public AsGeneric(CollectionContractOptions options) : base(options | 
+                CollectionContractOptions.Fifo | 
+                CollectionContractOptions.ToStringPrintItems |
+                CollectionContractOptions.WeaklyConsistentEnumerator) { }
 
             protected override IBlockingQueue<T> NewBlockingQueue()
             {

@@ -126,11 +126,9 @@
     <Compile Include="Threading\CallableTest.cs" />
     <Compile Include="Collections\Generic\AbstractCollectionTest.cs" />
     <Compile Include="Collections\Generic\CollectionTestUtils.cs" />
-    <Compile Include="Collections\Generic\EnumeratorFunctionTestBase.cs" />
-    <Compile Include="Collections\Generic\TestEnumerator.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="Threading\AtomicTypes\AtomicIntegerTests.cs" />
-    <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueAsGenericTest.cs" />
+    <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueueTest.cs" />
     <Compile Include="TestFixtures\Threading\Collections\Generic\BlockingQueueContract.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
@@ -158,7 +156,6 @@
     <Compile Include="System\Threading\Tasks\ParallelOptionsTest.cs" />
     <Compile Include="Threading\Execution\ParallelCompletionNoLocalTest.cs" />
     <Compile Include="Threading\RunnableTest.cs" />
-    <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTests.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs" />

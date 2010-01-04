@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using NUnit.CommonFixtures;
 using NUnit.CommonFixtures.Collections;
@@ -311,6 +312,26 @@ namespace Spring.TestFixtures.Collections.Generic
             Assert.AreEqual(q.Count, r.Count);
             while (q.Count>0)
                 Assert.AreEqual(q.Remove(), r.Remove());
+        }
+
+        [Test] public void EnumeratorInQueueOrder()
+        {
+            Options.SkipWhenNot(CollectionContractOptions.Fifo);
+            var q = NewQueueFilledWithSample();
+            var list = q.ToList();
+            for (int i = 0; i < list.Count; i++)
+            {
+                Assert.That(list[i], Is.EqualTo(q.Remove()));
+            }
+        }
+
+        [Test] public void WeeklyConsistentEnumerator()
+        {
+            Options.SkipWhenNot(CollectionContractOptions.WeaklyConsistentEnumerator);
+            var q = NewQueueFilledWithSample();
+#pragma warning disable 168
+            foreach (var item in q) q.Remove();
+#pragma warning restore 168
         }
 
         protected void SkipForCurrentQueueImplementation()

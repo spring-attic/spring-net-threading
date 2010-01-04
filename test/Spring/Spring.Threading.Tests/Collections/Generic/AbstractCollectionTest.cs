@@ -1,7 +1,12 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
 using NUnit.CommonFixtures.Collections.Generic;
+using NUnit.CommonFixtures.Collections.NonGeneric;
 using NUnit.Framework;
+using Rhino.Mocks;
 
 namespace Spring.Collections.Generic
 {
@@ -9,43 +14,119 @@ namespace Spring.Collections.Generic
     /// Test case for <see cref="AbstractCollection{T}"/> class
     /// </summary>
     /// <author>Kenneth Xu</author>
-    //TODO:Ken Fix this test case and move the AddRange tests from AbstractQueueTest to here
     [TestFixture(typeof(string))] // reference type
     [TestFixture(typeof(int))] // value type
-    public class AbstractCollectionTest<T> : BaseAbstractCollectionTest<T>
+    public class AbstractCollectionTest<T>
     {
-        private MockCollection mock;
-        private ICollection<T> _backCollection;
-        private int _size = 5;
-        private T _theTestItem1 = TestData<T>.MakeData(999);
+        private AbstractCollection<T> _sut;
 
-        protected override ICollection<T> BackCollection
+        [SetUp] public void SetUp()
         {
-            get { return _backCollection; }
+            _sut = Mockery.GeneratePartialMock<AbstractCollection<T>>();
         }
 
-        protected override AbstractCollection<T> Testee
+        [Test] public void IsSynchronizedAlwaysReturnFalse()
         {
-            get { return mock; }
+            Assert.IsFalse(((ICollection)_sut).IsSynchronized);
         }
 
-        protected override T TheTestItem1
+        [Test] public void SyncRootAlwaysReturnNull()
         {
-            get { return _theTestItem1; }
+            Assert.That(((ICollection)_sut).SyncRoot, Is.Null);
         }
 
-        [SetUp]
-        public void SetUp()
+        [Test] public void AddRangeAddAllElementsInTraversalOrder()
         {
-            _backCollection = CollectionTestUtils.MakeTestCollection<T>(_size);
-            mock = new MockCollection();
-            mock.TrueCollection = _backCollection;
+            T[] testData = TestData<T>.MakeTestArray(5);
+            _sut.Stub(x => x.Add(Arg<T>.Is.Anything));
+            Assert.That(_sut.AddRange(testData), Is.True);
+            Activities last = null;
+            foreach (T data in testData)
+            {
+                T element = data;
+                var call = _sut.ActivityOf(x => x.Add(element));
+                if (last != null) Mockery.Assert(last < call);
+                last = call;
+            }
         }
 
-        [Test] public void CheckToString()
+        [Test] public void AddRangeWelcomesNullElements()
         {
-            mock.AssertToStringContainsToStringOfElements();
-            //Assert.AreEqual("MockCollection`1(0, 1, 2, 3, 4)", mock.ToString());
+            _sut.Stub(x => x.Add(Arg<T>.Is.Anything));
+            _sut.AddRange(new T[5]);
+        }
+
+        [Test] public void AddRangeReturnsFalseWhenParameterIsEmptyCollection()
+        {
+            T[] testData = new T[0];
+            Assert.That(_sut.AddRange(testData), Is.False);
+        }
+
+        [Test] public void AddRangeChokesOnNullParameter()
+        {
+            var e = Assert.Throws<ArgumentNullException>(() => _sut.AddRange(null));
+            Assert.That(e.ParamName, Is.EqualTo("collection"));
+        }
+
+        [Test] public void AddRangeChokesWhenAddItself()
+        {
+            var e = Assert.Throws<ArgumentException>(() => _sut.AddRange(_sut));
+            Assert.That(e.ParamName, Is.EqualTo("collection"));
+        }
+
+        [Test] public void AddRangeChokesWhenNotEnoughRoom()
+        {
+            _sut.Stub(x => x.Add(Arg<T>.Is.Anything)).Repeat.Once();
+            _sut.Stub(x => x.Add(Arg<T>.Is.Anything)).Throw(new InvalidOperationException()).Repeat.Once();
+
+            Assert.Throws<InvalidOperationException>(
+                () => _sut.AddRange(TestData<T>.MakeTestArray(2)));
+        }
+
+        [TestFixture(typeof(string))] // reference type
+        [TestFixture(typeof(int))] // value type
+        public class AsGeneric : CollectionContract<T>
+        {
+            public AsGeneric() : base(
+                CollectionContractOptions.ReadOnly | 
+                CollectionContractOptions.ToStringPrintItems)
+            {
+            }
+
+            protected override ICollection<T> NewCollectionFilledWithSample()
+            {
+                return new MockCollection
+                {
+                    TrueCollection = TestData<T>.MakeTestArray(SampleSize)
+                };
+            }
+
+            protected override ICollection<T> NewCollection()
+            {
+                return new MockCollection
+                {
+                    TrueCollection = new T[0]
+                };
+            }
+        }
+
+        [TestFixture(typeof(string))] // reference type
+        [TestFixture(typeof(int))] // value type
+        public class AsNonGeneric : CollectionContract
+        {
+            public AsNonGeneric() : base(
+                CollectionContractOptions.ReadOnly | 
+                CollectionContractOptions.ToStringPrintItems)
+            {
+            }
+
+            protected override ICollection NewCollection()
+            {
+                return new MockCollection
+                {
+                    TrueCollection = TestData<T>.MakeTestArray(9)
+                };
+            }
         }
 
         private class MockCollection : AbstractCollection<T>

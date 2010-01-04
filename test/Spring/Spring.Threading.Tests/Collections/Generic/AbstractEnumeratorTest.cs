@@ -1,6 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections.Generic;
+using NUnit.CommonFixtures.Collections.NonGeneric;
 using NUnit.Framework;
 
 namespace Spring.Collections.Generic
@@ -196,53 +199,24 @@ namespace Spring.Collections.Generic
             }
         }
 
-        [TestFixture] public class ValueTypeFunctionTest : EnumeratorFunctionTestBase<int>
+        [TestFixture(typeof(int))]
+        [TestFixture(typeof(string))] 
+        public class AsGeneric<T> : EnumeratorContract<T>
         {
-            private IEnumerator<int> _testee;
-            private IList<int> _list;
-
-            protected override IEnumerator<int> Testee
+            protected override IEnumerator<T> NewEnumerator()
             {
-                get { return _testee; }
+                return new SimpleEnumerator<T>(TestData<T>.MakeTestArray(10));
             }
-
-            [SetUp]
-            public void SetUp()
-            {
-                _list = CollectionTestUtils.MakeTestArray<int>(10);
-                _testee = new SimpleEnumerator<int>(_list);
-            }
-
-            protected override IEnumerator<int> GetExpectedEnumerator()
-            {
-                return _list.GetEnumerator();
-            }
-
         }
 
-        [TestFixture]
-        public class ReferenceTypeFunctionTest : EnumeratorFunctionTestBase<string>
+        [TestFixture(typeof(int))]
+        [TestFixture(typeof(string))]
+        public class AsNonGenric<T> : EnumeratorContract
         {
-            private IEnumerator<string> _testee;
-            private IList<string> _list;
-
-            protected override IEnumerator<string> Testee
+            protected override IEnumerator NewEnumerator()
             {
-                get { return _testee; }
+                return new SimpleEnumerator<T>(TestData<T>.MakeTestArray(10));
             }
-
-            [SetUp]
-            public void SetUp()
-            {
-                _list = CollectionTestUtils.MakeTestArray<string>(10);
-                _testee = new SimpleEnumerator<string>(_list);
-            }
-
-            protected override IEnumerator<string> GetExpectedEnumerator()
-            {
-                return _list.GetEnumerator();
-            }
-
         }
     
     }
