@@ -26,9 +26,14 @@ namespace Spring.Threading.Collections.Generic
     [TestFixture(typeof(int))]
     public class LinkedBlockingQueueTest<T> : BlockingQueueContract<T>
     {
+        private const CollectionContractOptions _defaultContractOptions =
+            CollectionContractOptions.Fifo |
+            CollectionContractOptions.ToStringPrintItems |
+            CollectionContractOptions.WeaklyConsistentEnumerator;
+
         public LinkedBlockingQueueTest() : this(0) {}
         public LinkedBlockingQueueTest(CollectionContractOptions options)
-            : base(options | CollectionContractOptions.Fifo) {}
+            : base(options | _defaultContractOptions) { }
 
         protected override IBlockingQueue<T> NewBlockingQueue()
         {
@@ -325,14 +330,6 @@ namespace Spring.Threading.Collections.Generic
             Assert.That(a2, Is.InstanceOf<string[]>());
         }
 
-        [Test] public void ToStringContainsToStringOfElements() {
-            var q = NewCollectionFilledWithSample();
-            string s = q.ToString();
-            for (int i = 0; i < SampleSize; ++i) {
-                Assert.IsTrue(s.IndexOf(Samples[i].ToString()) >= 0);
-            }
-        }
-
         [TestFixture(typeof(string), CollectionContractOptions.Unbounded)]
         [TestFixture(typeof(int), CollectionContractOptions.Unbounded)]
         [TestFixture(typeof(string))]
@@ -341,7 +338,7 @@ namespace Spring.Threading.Collections.Generic
         {
             public AsNonGeneric() :  this(0) {}
             public AsNonGeneric(CollectionContractOptions options) 
-                : base(options | CollectionContractOptions.Fifo) {}
+                : base(options | _defaultContractOptions) {}
 
             protected override IQueue NewQueue()
             {

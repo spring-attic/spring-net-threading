@@ -23,6 +23,11 @@ namespace Spring.Threading.Collections.Generic
     [TestFixture(typeof(int))]
     public class ArrayBlockingQueueTest<T>
     {
+        private const CollectionContractOptions _defaultContractOptions =
+            CollectionContractOptions.Fifo |
+            CollectionContractOptions.ToStringPrintItems |
+            CollectionContractOptions.WeaklyConsistentEnumerator;
+
         private readonly T[] _samples = TestData<T>.MakeTestArray(9);
 
         [Test] public void ConstructorChokesNonPositiveCapacity([Values(0, -1)] int capacity)
@@ -89,10 +94,7 @@ namespace Spring.Threading.Collections.Generic
         public class AsGeneric : BlockingQueueContract<T>
         {
             public AsGeneric() : this(0) {}
-            public AsGeneric(CollectionContractOptions options) : base(options | 
-                CollectionContractOptions.Fifo | 
-                CollectionContractOptions.ToStringPrintItems |
-                CollectionContractOptions.WeaklyConsistentEnumerator) { }
+            public AsGeneric(CollectionContractOptions options) : base(options |_defaultContractOptions) { }
 
             protected override IBlockingQueue<T> NewBlockingQueue()
             {
@@ -114,8 +116,7 @@ namespace Spring.Threading.Collections.Generic
             private readonly bool _isFair;
 
             public AsNonGeneric() : this(0) {}
-            public AsNonGeneric(CollectionContractOptions options)
-                : base(options | CollectionContractOptions.Fifo)
+            public AsNonGeneric(CollectionContractOptions options) : base(options | _defaultContractOptions)
             {
                 _isFair = options.Has(CollectionContractOptions.Fair);
             }

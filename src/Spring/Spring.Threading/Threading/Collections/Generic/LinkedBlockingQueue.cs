@@ -73,12 +73,6 @@ namespace Spring.Threading.Collections.Generic {
 
         #region private fields
 
-        /// <summary>
-        /// Change version to support enumerator fast fail when queue changes.
-        /// </summary>
-        [NonSerialized]
-        private volatile int _version;
-
         /// <summary>The capacity bound, or <see cref="int.MaxValue"/> if none </summary>
         private readonly int _capacity;
 
@@ -251,7 +245,6 @@ namespace Spring.Threading.Collections.Generic {
                 Insert(element);
                 lock(this) {
                     tempCount = _activeCount++;
-                    _version++;
                 }
                 if(tempCount + 1 < _capacity)
                     Monitor.Pulse(_putLock);
@@ -288,7 +281,6 @@ namespace Spring.Threading.Collections.Generic {
                         Insert(element);
                         lock(this) {
                             tempCount = _activeCount++;
-                            _version++;
                         }
                         if(tempCount + 1 < _capacity)
                             Monitor.Pulse(_putLock);
@@ -335,7 +327,6 @@ namespace Spring.Threading.Collections.Generic {
                     Insert(element);
                     lock(this) {
                         tempCount = _activeCount++;
-                        _version++;
                     }
                     if(tempCount + 1 < _capacity)
                         Monitor.Pulse(_putLock);
@@ -402,7 +393,6 @@ namespace Spring.Threading.Collections.Generic {
                 x = Extract();
                 lock(this) {
                     tempCount = _activeCount--;
-                    _version++;
                 }
                 if(tempCount > 1)
                     Monitor.Pulse(_takeLock);
@@ -437,7 +427,6 @@ namespace Spring.Threading.Collections.Generic {
                         x = Extract();
                         lock(this) {
                             c = _activeCount--;
-                            _version++;
                         }
                         if(c > 1)
                             Monitor.Pulse(_takeLock);
@@ -487,7 +476,6 @@ namespace Spring.Threading.Collections.Generic {
                     x = Extract();
                     lock(this) {
                         c = _activeCount--;
-                        _version++;
                     }
                     if(c > 1)
                         Monitor.Pulse(_takeLock);
@@ -554,7 +542,6 @@ namespace Spring.Threading.Collections.Generic {
                         if(_last == p)
                             _last = trail;
                         lock(this) {
-                            _version++;
                             if(_activeCount-- == _capacity)
                                 Monitor.PulseAll(_putLock);
                         }
@@ -602,7 +589,6 @@ namespace Spring.Threading.Collections.Generic {
                     lock(this) {
                         cold = _activeCount;
                         _activeCount = 0;
-                        _version++;
                     }
                     if(cold == _capacity)
                         Monitor.PulseAll(_putLock);
@@ -655,7 +641,6 @@ namespace Spring.Threading.Collections.Generic {
                         lock(this) {
                             cold = _activeCount;
                             _activeCount -= n;
-                            _version++;
                         }
                         if(cold == _capacity)
                             Monitor.PulseAll(_putLock);
@@ -906,7 +891,6 @@ namespace Spring.Threading.Collections.Generic {
         private class LinkedBlockingQueueEnumerator : AbstractEnumerator<T> {
             private readonly LinkedBlockingQueue<T> _queue;
             private Node _currentNode;
-            private readonly int _startVersion;
             private T _currentElement;
 
             internal LinkedBlockingQueueEnumerator(LinkedBlockingQueue<T> queue) {
@@ -914,7 +898,6 @@ namespace Spring.Threading.Collections.Generic {
                 lock(_queue._putLock) {
                     lock(_queue._takeLock) {
                         _currentNode = _queue._head;
-                        _startVersion = _queue._version;
                     }
                 }
             }
@@ -930,7 +913,6 @@ namespace Spring.Threading.Collections.Generic {
                 {
                     lock (_queue._takeLock)
                     {
-                        CheckChange();
                         _currentNode = _currentNode.Next;
                         if (_currentNode == null) return false;
                         _currentElement = _currentNode.Item;
@@ -943,19 +925,8 @@ namespace Spring.Threading.Collections.Generic {
                 lock(_queue._putLock) {
                     lock(_queue._takeLock)
                     {
-                        CheckChange();
                         _currentNode = _queue._head;
                     }
-                }
-            }
-
-            private void CheckChange()
-            {
-                lock (_queue)
-                {
-                    if(_startVersion != _queue._version)
-                        throw new InvalidOperationException(
-                            "queue has changed during enumeration");
                 }
             }
         }
@@ -977,7 +948,6 @@ namespace Spring.Threading.Collections.Generic {
                     {
                         c = _activeCount;
                         _activeCount = 0;
-                        _version++;
                     }
                     bool pulsePut = (c == _capacity);
                     if (_isBroken != @break)
