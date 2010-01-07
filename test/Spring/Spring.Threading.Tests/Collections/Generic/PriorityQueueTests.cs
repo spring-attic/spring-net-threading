@@ -42,7 +42,7 @@ namespace Spring.Collections.Generic
             for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
             {
                 Assert.AreEqual(i, q.Count);
-                Assert.IsTrue(q.Add(i));
+                q.Add(i);
             }
         }
 
@@ -164,7 +164,7 @@ namespace Spring.Collections.Generic
         {
             var cmp = new MyReverseComparator();
             var q = new PriorityQueue<int>(DEFAULT_COLLECTION_SIZE, cmp);
-            Assert.AreEqual(cmp, q.Comparator());
+            Assert.AreEqual(cmp, q.Comparer);
             var ints = new int[DEFAULT_COLLECTION_SIZE];
             for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
                 ints[i] = i;
@@ -224,7 +224,7 @@ namespace Spring.Collections.Generic
         }
 
         [Test]
-        [ExpectedException(typeof (NoElementsException))]
+        [ExpectedException(typeof (InvalidOperationException))]
         public void testElement()
         {
             PriorityQueue<int> q = populatedQueue(DEFAULT_COLLECTION_SIZE);
@@ -304,7 +304,7 @@ namespace Spring.Collections.Generic
         }
 
         [Test]
-        [ExpectedException(typeof (NoElementsException))]
+        [ExpectedException(typeof (InvalidOperationException))]
         public void testRemove()
         {
             PriorityQueue<int> q = populatedQueue(DEFAULT_COLLECTION_SIZE);

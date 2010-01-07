@@ -27,8 +27,8 @@ namespace Spring.Threading.Future
 	/// <remarks> 
 	/// <p/>
 	/// An implementation of this interface must define a
-	/// <see cref="System.IComparable.CompareTo(object)"/> method that provides an ordering consistent with
-	/// its <see cref="Spring.Threading.Future.IDelayed.GetRemainingDelay()"/> method.
+	/// <see cref="IComparable.CompareTo(object)"/> method that provides an ordering consistent with
+	/// its <see cref="IDelayed.GetRemainingDelay()"/> method.
 	/// </remarks>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>

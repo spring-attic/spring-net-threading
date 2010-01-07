@@ -100,6 +100,8 @@
   <ItemGroup>
     <Compile Include="BaseAbstractCollectionTest.cs" />
     <Compile Include="BaseThreadingTestCase.cs" />
+    <Compile Include="Collections\Generic\PriorityQueueTest.cs" />
+    <Compile Include="Collections\Generic\PriorityQueueTests.cs" />
     <Compile Include="System\Threading\Tasks\ParallelTest.cs" />
     <Compile Include="Collections\Generic\AbstractEnumeratorTest.cs" />
     <Compile Include="Collections\Generic\AbstractListTest.cs" />
@@ -131,6 +133,7 @@
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueueTest.cs" />
     <Compile Include="TestFixtures\Threading\Collections\Generic\BlockingQueueContract.cs" />
+    <Compile Include="Threading\Collections\Generic\DelayQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />

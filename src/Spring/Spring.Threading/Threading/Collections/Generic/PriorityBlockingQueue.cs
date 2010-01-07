@@ -112,7 +112,7 @@ namespace Spring.Threading.Collections.Generic {
         /// <param name="initialCapacity">the initial capacity for this priority queue</param>
         /// <exception cref="ArgumentException">if <tt>initialCapacity</tt> is less than 1</exception>
         public PriorityBlockingQueue(int initialCapacity) {
-            _innerQueue = new PriorityQueue<T>(initialCapacity, null);
+            _innerQueue = new PriorityQueue<T>(initialCapacity);
             notEmpty = _lock.NewCondition();
         }
 
@@ -331,7 +331,7 @@ namespace Spring.Threading.Collections.Generic {
         /// natural ordering} of its elements.
         /// </summary>
         public IComparer<T> Comparator {
-            get { return _innerQueue.Comparator(); }
+            get { return _innerQueue.Comparer; }
         }
 
         /// <summary>
@@ -425,7 +425,7 @@ namespace Spring.Threading.Collections.Generic {
         /// APIs.</p>
         /// </summary>
         /// <returns>an array containing all of the elements in this queue</returns>
-        public T[] ToArray() {
+        public override T[] ToArray() {
             ReentrantLock rl = _lock;
             rl.Lock();
             try {
@@ -548,7 +548,7 @@ namespace Spring.Threading.Collections.Generic {
         /// be stored, if it is big enough; otherwise, a new array of the
         /// same runtime type is allocated for this purpose</param>
         /// <exception cref="ArgumentNullException">if <paramref name="target"/> is null</exception>
-        public T[] ToArray(T[] target) {
+        public override T[] ToArray(T[] target) {
             if(target == null)
                 throw new ArgumentNullException("target must not be null");
             ReentrantLock rl = _lock;

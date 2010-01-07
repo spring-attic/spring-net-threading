@@ -147,12 +147,7 @@ namespace Spring.Threading.Collections.Generic {
         /// <param name="context">The destination (see <see cref="System.Runtime.Serialization.StreamingContext"/>) for this serialization. </param>
         protected LinkedBlockingQueue(SerializationInfo info, StreamingContext context)
         {
-            MemberInfo[] mi = FormatterServices.GetSerializableMembers(GetType(), context);
-            for (int i = 0; i < mi.Length; i++)
-            {
-                FieldInfo fi = (FieldInfo) mi[i];
-                fi.SetValue(this, info.GetValue(fi.Name, fi.FieldType));
-            }
+            SerializationUtilities.DefaultReadObject(info, context, this);
             _last = _head = new Node(default(T));
 
             T[] items = (T[]) info.GetValue("Data", typeof (T[]));
@@ -777,7 +772,7 @@ namespace Spring.Threading.Collections.Generic {
         /// APIs.
         /// </remarks>
         /// <returns> an array containing all of the elements in this queue</returns>
-        public virtual T[] ToArray() {
+        public override T[] ToArray() {
             lock(_putLock) {
                 lock(_takeLock) {
                     int size = _activeCount;
@@ -816,7 +811,7 @@ namespace Spring.Threading.Collections.Generic {
         ///		string[] y = x.ToArray(new string[0]);
         ///	</code>
         ///	<p/>	
-        /// Note that <i>toArray(new object[0])</i> is identical in function to
+        /// Note that <i>ToArray(new T[0])</i> is identical in function to
         /// <see cref="LinkedBlockingQueue{T}.ToArray()"/>.
         /// 
         /// </remarks>
@@ -831,7 +826,7 @@ namespace Spring.Threading.Collections.Generic {
         /// <see lang="null"/> and this queue does not permit <see lang="null"/>
         /// elements.
         /// </exception>
-        public virtual T[] ToArray(T[] targetArray) {
+        public override T[] ToArray(T[] targetArray) {
             if (targetArray == null) throw new ArgumentNullException("targetArray");
             lock(_putLock) {
                 lock(_takeLock) {
@@ -921,7 +916,7 @@ namespace Spring.Threading.Collections.Generic {
                 }
             }
 
-            public override void Reset() {
+            protected override void DoReset() {
                 lock(_queue._putLock) {
                     lock(_queue._takeLock)
                     {

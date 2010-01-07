@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Spring.Collections.Generic;
 
 namespace Spring
 {
@@ -10,6 +13,43 @@ namespace Spring
     /// <author>Kenneth Xu</author>
     public static class SystemExtensions //NET_ONLY
     {
+        /// <summary>
+        /// Convert source to an array possibly in a more optimized way then
+        /// <see cref="Enumerable.ToArray{TSource}"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the source is a <see cref="List{T}"/>, returns the result of
+        /// <see cref="List{T}.ToArray"/>.
+        /// </para>
+        /// <para>
+        /// If the source is a <see cref="AbstractCollection{T}"/>, returns the
+        /// result of <see cref="AbstractCollection{T}.ToArray()"/>.
+        /// </para>
+        /// <para>
+        /// Else, returns the result of <see cref="Enumerable.ToArray{TSource}"/>.
+        /// </para>
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The type of the elements of <paramref name="source"/>.
+        /// </typeparam>
+        /// <param name="source">
+        /// An <see cref="IEnumerable{T}"/> to create an array from.
+        /// </param>
+        /// <returns>
+        /// An array that contains the elements from <paramref name="source"/>.
+        /// </returns>
+        public static T[] ToArrayOptimized<T>(this IEnumerable<T> source)
+        {
+            var list = source as List<T>;
+            if (list != null) return list.ToArray();
+
+            var ac = source as AbstractCollection<T>;
+            if (ac!=null) return ac.ToArray();
+
+            return source.ToArray();
+        }
+
         /// <summary>
         /// Tests whether the current thread has been interrupted.  The
         /// <i>interrupted status</i> of the thread is cleared by this method.

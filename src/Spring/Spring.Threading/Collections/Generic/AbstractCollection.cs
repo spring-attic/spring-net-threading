@@ -103,12 +103,94 @@ namespace Spring.Collections.Generic
             return false;
         }
 
+        /// <summary> 
+        /// Returns an array containing all of the elements in this collection,
+        /// in proper sequence.
+        /// </summary>
+        /// <remarks> 
+        /// <para>
+        /// The returned array will be "safe" in that no references to it are
+        /// maintained by this collection.  (In other words, this method must
+        /// allocate a new array).  The caller is thus free to modify the
+        /// returned array.
+        /// </para>
+        /// <para>
+        /// This method acts as bridge between array-based and collection-based
+        /// APIs.
+        /// </para>
+        /// </remarks>
+        /// <returns>
+        /// An array containing all of the elements in this collection.
+        /// </returns>
+        public virtual T[] ToArray()
+        {
+            var a = new T[Count];
+            DoCopyTo(a, 0);
+            return a;
+        }
+
+        /// <summary>
+        /// Returns an array containing all of the elements in this collection, 
+        /// in proper sequence; the runtime type of the returned array is that 
+        /// of the specified array.  If the queue fits in the specified array, 
+        /// it is returned therein.  Otherwise, a new array is allocated with 
+        /// the runtime type of the specified array and the size of this 
+        /// collection.
+        ///	</summary>	 
+        /// <remarks>
+        /// <para>
+        /// Like the <see cref="ToArray()"/> method, this method acts as bridge
+        /// between array-based and collection-based APIs.  Further, this
+        /// method allows precise control over the runtime type of the output
+        /// array, and may, under certain circumstances, be used to save
+        /// allocation costs.
+        /// </para>
+        /// <para>
+        /// Suppose <i>x</i> is a collection known to contain only strings.
+        /// The following code can be used to dump the queue into a newly
+        /// allocated array of <see lang="string"/>s:
+        /// 
+        /// <code language="c#">
+        ///		string[] y = (string[]) x.ToArray(new string[0]);
+        ///	</code>
+        /// </para>
+        /// <para>
+        /// Note that <i>ToArray(new T[0])</i> is identical in function to
+        /// <see cref="AbstractCollection{T}.ToArray()"/>.
+        /// </para>
+        /// </remarks>
+        /// <param name="targetArray">
+        /// The array into which the elements of the colleciton are to be
+        /// stored, if it is big enough; otherwise, a new array of the same 
+        /// runtime type is allocated for this purpose.
+        /// </param>
+        /// <returns>
+        /// An array containing all of the elements in this collection.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// If the supplied <paramref name="targetArray"/> is
+        /// <see lang="null"/>.
+        /// </exception>
+        public virtual T[] ToArray(T[] targetArray)
+        {
+            if (targetArray == null) throw new ArgumentNullException("targetArray");
+            int size = Count;
+            if (targetArray.Length < size)
+                // new T[size] won't work here when targetArray is subtype of T.
+                targetArray = (T[])Array.CreateInstance(targetArray.GetType().GetElementType(), size);
+            DoCopyTo(targetArray, 0);
+            return targetArray;
+        }
+
         /// <summary>
         /// Copies the elements of the <see cref="ICollection{T}"/> to an 
         /// <see cref="Array"/>, starting at a particular <see cref="Array"/> 
         /// index.
         /// </summary>
-        /// 
+        /// <remarks>
+        /// This method is intentionally sealed. Subclass should override
+        /// <see cref="DoCopyTo(T[], int)"/> instead.
+        /// </remarks>
         /// <param name="array">
         /// The one-dimensional <see cref="Array"/> that is the 
         /// destination of the elements copied from <see cref="ICollection{T}"/>. 
@@ -131,7 +213,7 @@ namespace Spring.Collections.Generic
         /// the destination array. <br/>-or-<br/>
         /// Type T cannot be cast automatically to the type of the destination array.
         /// </exception>
-        public virtual void CopyTo(T[] array, int arrayIndex)
+        public void CopyTo(T[] array, int arrayIndex)
         {
             if (array == null) throw new ArgumentNullException("array");
             if (arrayIndex<array.GetLowerBound(0))
@@ -288,7 +370,20 @@ namespace Spring.Collections.Generic
         /// <filterpriority>2</filterpriority>
         void ICollection.CopyTo(Array array, int index)
         {
-            CopyTo(array, index);
+            if (array == null) throw new ArgumentNullException("array");
+            if (index < array.GetLowerBound(0))
+            {
+                throw new ArgumentOutOfRangeException("index", index, 
+                    "index must not be less then lower bound of the array");
+            }
+            try
+            {
+                CopyTo(array, index);
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                throw new ArgumentException("array is too small to fit the collection.", "array", e);
+            }
         }
 
         ///<summary>
@@ -381,20 +476,7 @@ namespace Spring.Collections.Generic
         /// <filterpriority>2</filterpriority>
         protected virtual void CopyTo(Array array, int index)
         {
-            if (array == null) throw new ArgumentNullException("array");
-            if (index < array.GetLowerBound(0))
-            {
-                throw new ArgumentOutOfRangeException("index", index, 
-                    "index must not be less then lower bound of the array");
-            }
-            try
-            {
-                foreach (T e in this) array.SetValue(e, index++);
-            }
-            catch (IndexOutOfRangeException e)
-            {
-                throw new ArgumentException("array is too small to fit the collection.", "array", e);
-            }
+            foreach (T e in this) array.SetValue(e, index++);
         }
 
         /// <summary>

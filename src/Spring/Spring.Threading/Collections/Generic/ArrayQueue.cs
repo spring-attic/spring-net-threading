@@ -413,7 +413,7 @@ namespace Spring.Collections.Generic
 		/// a new array).  The caller is thus free to modify the returned array.
 		/// </remarks>
 		/// <returns> an <c>T[]</c> containing all of the elements in this queue</returns>
-        public T[] ToArray()
+        public override T[] ToArray()
 	    {
 	        T[] items = _items;
 	        T[] a = new T[_count];
@@ -474,7 +474,7 @@ namespace Spring.Collections.Generic
 		/// </exception>
 		/// <exception cref="System.ArgumentNullException">If the <paramref name="targetArray"/> is <see langword="null"/>
 		/// </exception>
-		public T[] ToArray(T[] targetArray)
+		public override T[] ToArray(T[] targetArray)
 	    {
 	        if (targetArray == null)
 	            throw new ArgumentNullException("targetArray");
@@ -554,7 +554,7 @@ namespace Spring.Collections.Generic
 			    return true;
 			}
 
-			public override void Reset()
+			protected override void DoReset()
 			{
 				SetInitialState();
 			}

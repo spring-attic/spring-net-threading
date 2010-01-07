@@ -162,7 +162,8 @@ namespace Spring.TestFixtures.Collections.Generic
         {
             if (SampleSize == 0) Assert.Pass("Skip due to an empty queue.");
             var q = NewQueueFilledWithSample();
-            Assert.IsTrue(q.Remove(TestData<T>.MakeData(SampleSize/2)));
+            var samples = NewSamples();
+            Assert.IsTrue(q.Remove(samples[SampleSize/2]));
             q.Add(TestData<T>.MakeData(3));
             T dummy; Assert.That(q.Poll(out dummy), Is.True);
         }
@@ -221,15 +222,22 @@ namespace Spring.TestFixtures.Collections.Generic
         [Test] public virtual void PeekSucceedsWhenQueueIsNotEmpty()
         {
             var queue = NewQueueFilledWithSample();
+            var unique = Samples.CountAll();
             for (int i = 0; i < SampleSize; ++i)
             {
                 T value;
                 Assert.IsTrue(queue.Peek(out value));
                 AssertRetrievedResult(value, i);
                 queue.Remove();
+                var count = unique[value];
+                if (count>1)
+                {
+                    unique[value] = count - 1;
+                    continue;
+                }
                 T next;
-                queue.Peek(out next);
-                Assert.That(next, Is.Not.EqualTo(value));
+                if(queue.Peek(out next))
+                    Assert.That(next, Is.Not.EqualTo(value));
             }
         }
 
@@ -332,6 +340,59 @@ namespace Spring.TestFixtures.Collections.Generic
 #pragma warning disable 168
             foreach (var item in q) q.Remove();
 #pragma warning restore 168
+        }
+
+        [Test] public void DrainRemovesAllElementAndSendsThemToAction()
+        {
+            var q = NewQueueFilledWithSample();
+            var sent = new List<T>();
+            q.Drain(sent.Add);
+            Assert.That(sent, Is.EquivalentTo(Samples));
+        }
+
+        [Test] public void DrainActsOnNoMoreThenMaxElementsInQueueOrder()
+        {
+            var size = SampleSize/2;
+            var q = NewQueueFilledWithSample();
+            var expected = new T[size];
+            for (int i = 0; i < size; i++)
+            {
+                expected[i] = q.Remove();
+            }
+            q = NewQueueFilledWithSample();
+            var sent = new List<T>();
+            q.Drain(sent.Add, size);
+            Assert.That(sent, Is.EquivalentTo(expected));
+        }
+
+        [Test] public void DrainActsOnSomeElementsPassedCriteria()
+        {
+            Predicate<T> criteria = o => o.GetHashCode()%2 == 0;
+
+            var size = SampleSize / 2;
+            var q = NewQueueFilledWithSample();
+            var expected = new List<T>();
+            T e;
+            while(expected.Count < size && q.Poll(out e))
+            {
+                if (criteria(e))expected.Add(e);
+            }
+
+            q = NewQueueFilledWithSample();
+            var sent = new List<T>();
+            q.Drain(sent.Add, size, criteria);
+            Assert.That(sent, Is.EquivalentTo(expected));
+        }
+
+        [Test] public void DrainActsOnNoMorethenMaxElementsPassedCriteria()
+        {
+            Predicate<T> criteria = o => o.GetHashCode()%2 == 0;
+            var expected = Samples.Where(e => criteria(e)).ToList();
+
+            var q = NewQueueFilledWithSample();
+            var sent = new List<T>();
+            q.Drain(sent.Add, criteria);
+            Assert.That(sent, Is.EquivalentTo(expected));
         }
 
         protected void SkipForCurrentQueueImplementation()

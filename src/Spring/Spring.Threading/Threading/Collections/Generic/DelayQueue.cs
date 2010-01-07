@@ -16,7 +16,8 @@ namespace Spring.Threading.Collections.Generic
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
-    public class DelayQueue<T> : AbstractBlockingQueue<T> //BACKPORT_2_2 TODO: need to add this back where T : IDelayed
+    public class DelayQueue<T> : AbstractBlockingQueue<T> //BACKPORT_2_2 TODO: need to add this back 
+        where T : IDelayed
     {
         [NonSerialized]
         private object lockObject = new object();
@@ -35,7 +36,7 @@ namespace Spring.Threading.Collections.Generic
         /// <param name="collection">collection of elements to populate queue with.</param>
         /// <exception cref="ArgumentNullException">If the collection is null.</exception>
         /// <exception cref="NullReferenceException">if any of the elements of the collection are null</exception>
-        public DelayQueue(System.Collections.Generic.ICollection<T> collection)
+        public DelayQueue(IEnumerable<T> collection)
         {
             AddRange(collection);
         }
@@ -54,7 +55,7 @@ namespace Spring.Threading.Collections.Generic
                 _queue.Peek(out first);
                 bool emptyBeforeOffer = Object.Equals(first, null);                
                 _queue.Offer(element);
-                if (emptyBeforeOffer || ((IDelayed)element).CompareTo((IDelayed)first) < 0)
+                if (emptyBeforeOffer || (element).CompareTo(first) < 0)
                 {
                     Monitor.PulseAll(lockObject);
                 }

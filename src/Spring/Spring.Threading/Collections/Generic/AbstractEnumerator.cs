@@ -41,7 +41,7 @@ namespace Spring.Collections.Generic
         /// Indicates if the enumerator has not startet, is in progress, 
         /// or has already finished.
         /// </summary>
-        protected EnumeratorState State = EnumeratorState.BeforeStart;
+        private EnumeratorState _state = EnumeratorState.BeforeStart;
 
         #region IEnumerable<T> Members
 
@@ -107,7 +107,7 @@ namespace Spring.Collections.Generic
         {
             get
             {
-                return (State == EnumeratorState.InProgress) ? FetchCurrent() : default(T);
+                return (_state == EnumeratorState.InProgress) ? FetchCurrent() : default(T);
             }
         }
 
@@ -124,7 +124,7 @@ namespace Spring.Collections.Generic
         {
             get
             {
-                if (State == EnumeratorState.InProgress) return FetchCurrent();
+                if (_state == EnumeratorState.InProgress) return FetchCurrent();
                 throw new InvalidOperationException(
                     "Enumeration has either not started or has already finished.");
             }
@@ -146,7 +146,7 @@ namespace Spring.Collections.Generic
         public bool MoveNext()
         {
             bool hasNext = GoNext();
-            State = hasNext ? EnumeratorState.InProgress : EnumeratorState.AfterFinish;
+            _state = hasNext ? EnumeratorState.InProgress : EnumeratorState.AfterFinish;
             return hasNext;
         }
 
@@ -155,6 +155,10 @@ namespace Spring.Collections.Generic
         /// the first element in the collection. This implementation
         /// always throw <see cref="NotSupportedException"/>.
         /// </summary>
+        /// <remarks>
+        /// This method is intentionally sealed. Derived class should override
+        /// <see cref="DoReset"/> protected method instead.
+        /// </remarks>
         /// <exception cref="NotSupportedException">
         /// Always thown.
         /// </exception>
@@ -162,7 +166,17 @@ namespace Spring.Collections.Generic
         /// The collection was modified after the enumerator was created. 
         /// </exception>
         /// <filterpriority>2</filterpriority>
-        public virtual void Reset()
+        public void Reset()
+        {
+            DoReset();
+            _state = EnumeratorState.BeforeStart;
+        }
+
+        /// <summary>
+        /// For derived class to implement the <see cref="Reset"/> function. 
+        /// This implmenetation always throw <see cref="NotSupportedException"/>.
+        /// </summary>
+        protected virtual void DoReset()
         {
             throw new NotSupportedException();
         }
@@ -175,7 +189,7 @@ namespace Spring.Collections.Generic
         /// Indicates if the enumerator has not startet, is in progress, 
         /// or has already finished.
         /// </summary>
-        protected enum EnumeratorState
+        private enum EnumeratorState
         {
             /// <summary>
             /// Enuemrator has not started.

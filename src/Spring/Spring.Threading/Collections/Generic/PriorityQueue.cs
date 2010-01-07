@@ -19,120 +19,88 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.Serialization;
+using Spring.Threading.Collections.Generic;
+using Spring.Utility;
 
 namespace Spring.Collections.Generic
 {
     /// <summary> 
     /// An unbounded priority <see cref="IQueue{T}"/> based on a priority
-    /// heap.  This queue orders elements according to an order specified
-    /// at construction time, which is specified either according to their
-    /// <i>natural order</i> (see <see cref="System.IComparable"/>, or according to a
-    /// <see cref="System.Collections.IComparer"/>, depending on which constructor is
-    /// used. A priority queue does not permit <see lang="null"/> elements.
-    /// A priority queue relying on natural ordering also does not
-    /// permit insertion of non-comparable objects (doing so will result
-    /// <see cref="System.InvalidCastException"/>.
-    /// 
-    /// <p/>
-    /// The <i>head</i> of this queue is the <i>lowest</i> element
+    /// heap. The elements of priority queue are ordered according their
+    /// <see cref="IComparable{T}">natural ordering</see>, or by an
+    /// <see cref="IComparer"/> provided at queue construction time, 
+    /// depending on which constructor is used. A priority queue does not 
+    /// permit <see lang="null"/> elements. A priority queue relying on 
+    /// natural ordering also does not permit insertion of non-comparable 
+    /// objects (doing so will result in <see cref="InvalidCastException"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The <i>head</i> of this queue is the <i>least</i> element
     /// with respect to the specified ordering.  If multiple elements are
-    /// tied for lowest value, the head is one of those elements -- ties are
-    /// broken arbitrarily. 
-    /// 
-    /// <p/>
+    /// tied for least value, the head is one of those elements -- ties are
+    /// broken arbitrarily. The queue retrieval operations <c>Poll</c>, 
+    /// <c>Remove</c>, <c>Peek</c>, and <c>Element</c> access the element at 
+    /// the head of the queue.
+    /// </para>
+    /// <para>
     /// A priority queue is unbounded, but has an internal
     /// <i>capacity</i> governing the size of an array used to store the
     /// elements on the queue.  It is always at least as large as the queue
     /// size.  As elements are added to a priority queue, its capacity
     /// grows automatically.  The details of the growth policy are not
     /// specified.
-    /// 
-    /// <p/>
-    /// This class and its enumerator implement all of the
-    /// <i>optional</i> methods of the <see cref="System.Collections.ICollection"/> and
-    /// <see cref="System.Collections.IEnumerator"/> interfaces.
-    /// The enumerator provided in method <see cref="System.Collections.IEnumerable.GetEnumerator"/> 
-    /// is <b>not</b> guaranteed to traverse the elements of the PriorityQueue in any
-    /// particular order.
-    /// 
-    /// <p/> 
-    /// Note that this implementation is <b>NOT</b> synchronized.
-    /// Multiple threads should not access a <see cref="PriorityQueue{T}"/>
-    /// instance concurrently if any of the threads modifies the list
-    /// structurally. Instead, use the thread-safe PriorityBlockingQueue.
-    /// </summary>
+    /// </para>
+    /// <para>
+    /// This class and its enumerator implement all of the <i>optional</i> 
+    /// methods of the <see cref="ICollection{T}"/> and 
+    /// <see cref="IEnumerator{T}"/> interfaces. The enumerator provided in 
+    /// method <see cref="IEnumerable{T}.GetEnumerator"/> is <b>not</b> 
+    /// guaranteed to traverse the elements of the priority queue in any
+    /// particular order. If you need ordered traversal, consider using 
+    /// <c>Array.Sort(pq.ToArray())</c>.
+    /// </para>
+    /// <para>
+    /// <b>Note that this implementation is NOT synchronized.</b> Multiple 
+    /// threads should not access a <see cref="PriorityQueue{T}"/> instance 
+    /// concurrently if any of the threads modifies the list structurally. 
+    /// Instead, use the thread-safe <see cref="PriorityBlockingQueue{T}"/> .
+    /// </para>
+    /// <para>
+    /// Implementation note: this implementation provides O(log(n)) time for 
+    /// the enqueing and dequeing methods (<c>Offer</c>, <c>Poll</c>, 
+    /// <c>Remove</c> and <c>Add</c>); linear time for the <c>Remove(T)</c> 
+    /// and <c>Contains(T)</c> methods; and constant time for the retrieval 
+    /// methods (<c>Peek</c>, <c>Element</c>, and <c>Count</c>).
+    /// </para>
+    /// </remarks>
     /// <author>Josh Bloch</author>
     /// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
     [Serializable]
-    public class PriorityQueue<T> : AbstractQueue<T>, ISerializable  //BACKPORT_2_2
+    public class PriorityQueue<T> : AbstractQueue<T>, ISerializable  //JDK_1_6
     {
-        private class PriorityQueueEnumerator : IEnumerator<T> {
-            private readonly PriorityQueue<T> _enclosingInstance;
-
-            public PriorityQueueEnumerator(PriorityQueue<T> enclosingInstance) {
-                _enclosingInstance = enclosingInstance;
-            }
-
-            public T Current {
-                get {
-                    return InternalCurrent;
-                }
-            }
-
-            /// <summary> 
-            /// Index (into queue array) of element to be returned by subsequent call to next.
-            /// </summary>
-            private int _cursorIndex = 0;
-
-            public bool MoveNext() {
-                if(_cursorIndex < _enclosingInstance._priorityQueueSize) {
-                    _cursorIndex++;
-                    return true;
-                }
-                return false;
-            }
-
-            public void Reset() {
-                _cursorIndex = 0;
-            }
-
-            #region IDisposable Members
-
-            public void Dispose() {
-
-            }
-
-            #endregion
-
-            #region IEnumerator Members
-
-            object System.Collections.IEnumerator.Current {
-                get { return InternalCurrent; }
-            }
-
-            #endregion
-
-            private T InternalCurrent {
-                get {
-                    T result = default(T);
-                    if(_cursorIndex <= _enclosingInstance._priorityQueueSize) {
-                        result = _enclosingInstance._queue[_cursorIndex];
-                    }
-                    return result;
-                }
-            }
-
-        }
-
 
         #region Private Fields
 
-        private const int DEFAULT_INITIAL_CAPACITY = 11;
+        private static readonly bool _isValueType;
+        private static readonly Func<T, T, bool> _areEqual;
+
+        static PriorityQueue()
+        {
+            var isValueType = typeof(T).IsValueType;
+            _isValueType = isValueType;
+            if (isValueType)
+                _areEqual = (x, y) => x.Equals(y);
+            else
+                _areEqual = (x, y) => ReferenceEquals(x, y);
+        }
+
+        private const int _defaultInitialCapacity = 11;
 
         /// <summary> 
         /// Priority queue represented as a balanced binary heap: the two children
@@ -141,164 +109,171 @@ namespace Spring.Collections.Generic
         /// comparator is null:  For each node n in the heap and each descendant d
         /// of n, n &lt;= d.
         /// 
-        /// The element with the lowest value is in queue[1], assuming the queue is
-        /// nonempty.  (A one-based array is used in preference to the traditional
-        /// zero-based array to simplify parent and child calculations.)
-        /// 
-        /// queue.length must be >= 2, even if size == 0.
+        /// The element with the lowest value is in queue[0], assuming the queue is
+        /// nonempty.
         /// </summary>
         [NonSerialized]
         private T[] _queue;
 
         /// <summary> The number of elements in the priority queue.</summary>
-        private int _priorityQueueSize = 0;
+        [NonSerialized]
+        private int _size;
 
         /// <summary> 
         /// The comparator, or null if priority queue uses elements'
         /// natural ordering.
         /// </summary>
-        private IComparer<T> _comparator;
-
-        private int _capacity;
+        private readonly IComparer<T> _comparator;
 
         /// <summary> 
         /// The number of times this priority queue has been
         /// <i>structurally modified</i>.
         /// </summary>
         [NonSerialized]
-        private int _queueModificationCount = 0;
+        private int _modCount;
 
         #endregion
 
         #region Constructors
 
         /// <summary>
-        /// Creates a <see cref="PriorityQueue{T}"/> with the default initial capacity
-        /// (11) that orders its elements according to their natural
-        /// ordering (using <see cref="System.IComparable"/>).
+        /// Creates a <see cref="PriorityQueue{T}"/> with the default initial 
+        /// capacity (11) that orders its elements according to their natural
+        /// ordering (using <see cref="IComparable"/>).
         /// </summary>
         public PriorityQueue()
-            : this(DEFAULT_INITIAL_CAPACITY, null) {
-            }
+            : this(_defaultInitialCapacity, (IComparer<T>)null) {}
 
         /// <summary> 
-        /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial capacity
-        /// that orders its elements according to their natural ordering
-        /// (using <see cref="System.IComparable"/>).
+        /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial 
+        /// capacity that orders its elements according to their natural ordering
+        /// (using <see cref="IComparable"/>).
         /// </summary>
-        /// <param name="initialCapacity">the initial capacity for this priority queue.
+        /// <param name="initialCapacity">
+        /// The initial capacity for this priority queue.
         /// </param>
-        /// <exception cref="System.ArgumentException">if <paramref name="initialCapacity"/> is less than 1.</exception>
+        /// <exception cref="ArgumentException">
+        /// If <paramref name="initialCapacity"/> is less than 1.
+        /// </exception>
         public PriorityQueue(int initialCapacity)
-            : this(initialCapacity, null) {
-            }
+            : this(initialCapacity, (IComparer<T>)null) {}
 
         /// <summary> 
-        /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial capacity
-        /// that orders its elements according to the specified comparator.
+        /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial
+        /// capacity that orders its elements according to the specified 
+        /// <paramref name="comparison"/>.
         /// </summary>
-        /// <param name="initialCapacity">the initial capacity for this priority queue.</param>
-        /// <param name="comparator">the comparator used to order this priority queue.
-        /// If <see lang="null"/> then the order depends on the elements' natural ordering.
+        /// <param name="initialCapacity">
+        /// The initial capacity for this priority queue.
         /// </param>
-        /// <exception cref="System.ArgumentException">if <paramref name="initialCapacity"/> is less than 1.</exception>
-        public PriorityQueue(int initialCapacity, IComparer<T> comparator) {
-            if(initialCapacity < 1)
+        /// <param name="comparison">
+        /// The comparison delegate used to order this priority queue. If 
+        /// <c>null</c> then the order depends on the elements' natural 
+        /// ordering.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        /// If <paramref name="initialCapacity"/> is less than 1.
+        /// </exception>
+        public PriorityQueue(int initialCapacity, Comparison<T> comparison)
+            : this (initialCapacity, ComparisonComparator.From(comparison)) {}
+
+        /// <summary> 
+        /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial
+        /// capacity that orders its elements according to the specified 
+        /// <paramref name="comparator"/>.
+        /// </summary>
+        /// <param name="initialCapacity">
+        /// The initial capacity for this priority queue.
+        /// </param>
+        /// <param name="comparator">
+        /// The comparator used to order this priority queue. If <see lang="null"/>
+        /// then the order depends on the elements' natural ordering.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        /// If <paramref name="initialCapacity"/> is less than 1.
+        /// </exception>
+        public PriorityQueue(int initialCapacity, IComparer<T> comparator)
+        {
+            // Note: This restriction of at least one is not actually needed,
+            // but for Java compatibility
+            if (initialCapacity < 1)
                 throw new ArgumentException("initialCapacity");
-            _queue = new T[initialCapacity + 1];
-            _capacity = initialCapacity;
+            _queue = new T[initialCapacity];
             _comparator = comparator;
         }
 
         /// <summary> 
-        /// Creates a <see cref="PriorityQueue{T}"/> containing the elements in the
-        /// specified collection.  The priority queue has an initial
-        /// capacity of 110% of the size of the specified collection or 1
-        /// if the collection is empty.  If the specified collection is an
-        /// instance of a <see cref="PriorityQueue{T}"/>, the priority queue will be sorted
-        /// according to the same comparator, or according to its elements'
-        /// natural order if the collection is sorted according to its
-        /// elements' natural order.  Otherwise, the priority queue is
-        /// ordered according to its elements' natural order.
+        /// Creates a <see cref="PriorityQueue{T}"/> containing the elements in
+        /// the specified source.  If the specified source is another 
+        /// <see cref="PriorityQueue{T}"/>, this priority queue will be ordered
+        /// according to the same order.  Otherwise, the priority queue is ordered 
+        /// according to its elements' <see cref="IComparable">natural order</see>.
         /// </summary>
-        /// <param name="collection">the collection whose elements are to be placed into this priority queue.</param>
-        /// <exception cref="System.InvalidCastException">if elements of <paramref name="collection"/> cannot be 
-        /// compared to one another according to the priority queue's ordering</exception>
-        /// <exception cref="System.ArgumentNullException">if <paramref name="collection"/> or any element with it is
-        /// <see lang="null"/>
+        /// <param name="source">
+        /// The collection whose elements are to be placed into this priority queue.
+        /// </param>
+        /// <exception cref="InvalidCastException">
+        /// If elements of <paramref name="source"/> cannot be compared to 
+        /// one another according to the priority queue's ordering.
         /// </exception>
-        public PriorityQueue(ICollection<T> collection) {
-            if(null == collection)
-                throw new ArgumentNullException("collection");
-            initializeArray(collection);
-            if(collection is PriorityQueue<T>) {
-                var s = (PriorityQueue<T>)collection;
-                _comparator = s.Comparator();
-                fillFromSorted(s);
+        /// <exception cref="ArgumentNullException">
+        /// If <paramref name="source"/> or any element with it is
+        /// <see lang="null"/>.
+        /// </exception>
+        public PriorityQueue(IEnumerable<T> source) {
+            InitFromCollection(source);
+            if(source is PriorityQueue<T>) 
+            {
+                _comparator = ((PriorityQueue<T>)source)._comparator;
             }
-            else {
+            // TODO: get comparator from any other known sorted collection.
+            // else if (c instanceof SortedSet)
+            // {
+            //    comparator = (Comparator<? super E>) ((SortedSet<? extends E>)c).comparator();
+            // }
+            else
+            {
                 _comparator = null;
-                fillFromUnsorted(collection);
+                Heapify();
             }
+        }
+
+        /// <summary> 
+        /// Creates a <see cref="PriorityQueue{T}"/> containing the elements in
+        /// the specified priority queue.  This priority queue will be ordered
+        /// according to the same ordering as the given priority queue.
+        /// </summary>
+        /// <param name="soruce">
+        /// The priority queue whose elements are to be placed into this 
+        /// priority queue.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// If <paramref name="soruce"/> is <see lang="null"/>.
+        /// </exception>
+        public PriorityQueue(PriorityQueue<T> soruce)
+        {
+            InitFromCollection(soruce);
+            _comparator = soruce._comparator;
+        }
+
+        /// <summary>
+        /// Initializes queue array with elements from the given
+        /// <paramref name="source"/>.
+        /// </summary>
+        /// <param name="source">
+        /// An <see cref="IEnumerable{T}"/> to create queue array from.
+        /// </param>
+        private void InitFromCollection(IEnumerable<T> source)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            var a = source.ToArrayOptimized();
+            _queue = a;
+            _size = a.Length;
         }
 
         #endregion
 
-        /// <summary>
-        /// Inserts the specified <paramref name="element"/> into this queue 
-        /// if it is possible to do so immediately without violating capacity 
-        /// restrictions. Throws an <see cref="InvalidOperationException"/> 
-        /// if no space is currently available.
-        /// </summary>
-        /// <param name="element">The element to add.</param>
-        /// <exception cref="InvalidOperationException">
-        /// If the <paramref name="element"/> cannot be added at this time due 
-        /// to capacity restrictions. 
-        /// </exception>
-        public new bool Add(T element)
-        {
-            if (!Offer(element))
-            {
-                throw new InvalidOperationException("Queue full.");
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public override int RemainingCapacity {
-            get {
-                return _capacity - _priorityQueueSize;
-            }
-        }
         #region Private Helper Methods
-
-        /// <summary> 
-        /// Common code to initialize underlying queue array across
-        /// constructors below.
-        /// </summary>
-        private void initializeArray(ICollection<T> c) {
-            int size = c.Count;
-            int initialCapacity = getQueueSizeBasedOnPercentage(size, 110);
-            if(initialCapacity < 1)
-                initialCapacity = 1;
-
-            _queue = new T[initialCapacity + 1];
-        }
-
-        /// <summary>
-        /// Performs an unsigned bitwise right shift with the specified number
-        /// </summary>
-        /// <param name="number">Number to operate on</param>
-        /// <param name="bits">Ammount of bits to shift</param>
-        /// <returns>The resulting number from the shift operation</returns>
-        private int urShift(int number, int bits) {
-            if(number >= 0)
-                return number >> bits;
-            else
-                return (number >> bits) + (2 << ~bits);
-        }
 
         /// <summary> 
         /// Establishes the heap invariant assuming the heap
@@ -310,30 +285,43 @@ namespace Spring.Collections.Generic
         /// (by swapping it with its parent) repeatedly until queue[k]
         /// is greater than or equal to its parent.
         /// </remarks>
-        private void fixUp(int k) {
-            if(_comparator == null) {
-                while(k > 1) {
-                    int j = k >> 1;
-                    if(((IComparable)_queue[j]).CompareTo(_queue[k]) <= 0)
-                        break;
-                    T tmp = _queue[j];
-                    _queue[j] = _queue[k];
-                    _queue[k] = tmp;
-                    k = j;
-                }
-            }
-            else {
-                while(k > 1) {
-                    int j = urShift(k, 1);
-                    if(_comparator.Compare(_queue[j], _queue[k]) <= 0)
-                        break;
-                    T tmp = _queue[j];
-                    _queue[j] = _queue[k];
-                    _queue[k] = tmp;
-                    k = j;
-                }
-            }
+        private void SiftUp(int k, T element)
+        {
+            if (_comparator == null)
+                SiftUpComparable(k, element);
+            else
+                SiftUpUsingComparator(k, element);
         }
+
+        private void SiftUpComparable(int k, T x)
+        {
+            IComparable key = (IComparable) x;
+            while (k > 0)
+            {
+                int parent = (k - 1) >> 1;
+                T e = _queue[parent];
+                if (key.CompareTo(e) >= 0)
+                    break;
+                _queue[k] = e;
+                k = parent;
+            }
+            _queue[k] = x;
+        }
+
+        private void SiftUpUsingComparator(int k, T x)
+        {
+            while (k > 0)
+            {
+                int parent = (k - 1) >> 1;
+                T e = _queue[parent];
+                if (_comparator.Compare(x, e) >= 0)
+                    break;
+                _queue[k] = e;
+                k = parent;
+            }
+            _queue[k] = x;
+        }
+
 
         /// <summary> 
         /// Establishes the heap invariant (described above) in the subtree
@@ -345,86 +333,65 @@ namespace Spring.Collections.Generic
         /// (by swapping it with its smaller child) repeatedly until queue[k]
         /// is less than or equal to its children.
         /// </remarks>
-        private void fixDown(int k) {
-            int j;
-            if(_comparator == null) {
-                while((j = k << 1) <= _priorityQueueSize && (j > 0)) {
-                    if(j < _priorityQueueSize && ((IComparable)_queue[j]).CompareTo(_queue[j + 1]) > 0)
-                        j++; // j indexes smallest kid
+        private void SiftDown(int k, T x)
+        {
+            if (_comparator != null)
+                SiftDownUsingComparator(k, x);
+            else
+                SiftDownComparable(k, x);
+        }
 
-                    if(((IComparable)_queue[k]).CompareTo(_queue[j]) <= 0)
-                        break;
-                    T tmp = _queue[j];
-                    _queue[j] = _queue[k];
-                    _queue[k] = tmp;
-                    k = j;
-                }
+        private void SiftDownComparable(int k, T x)
+        {
+            IComparable key = (IComparable) x;
+            int half = _size >> 1; // loop while a non-leaf
+            while (k < half)
+            {
+                int child = (k << 1) + 1; // assume left child is least
+                T c = _queue[child];
+                int right = child + 1;
+                if (right < _size &&
+                    ((IComparable) c).CompareTo(_queue[right]) > 0)
+                    c = _queue[child = right];
+                if (key.CompareTo(c) <= 0)
+                    break;
+                _queue[k] = c;
+                k = child;
             }
-            else {
-                while((j = k << 1) <= _priorityQueueSize && (j > 0)) {
-                    if(j < _priorityQueueSize && _comparator.Compare(_queue[j], _queue[j + 1]) > 0)
-                        j++; // j indexes smallest kid
-                    if(_comparator.Compare(_queue[k], _queue[j]) <= 0)
-                        break;
-                    T tmp = _queue[j];
-                    _queue[j] = _queue[k];
-                    _queue[k] = tmp;
-                    k = j;
-                }
+            _queue[k] = x;
+        }
+
+        private void SiftDownUsingComparator(int k, T x)
+        {
+            int half = _size >> 1;
+            while (k < half)
+            {
+                int child = (k << 1) + 1;
+                T c = _queue[child];
+                int right = child + 1;
+                if (right < _size &&
+                    _comparator.Compare(c, _queue[right]) > 0)
+                    c = _queue[child = right];
+                if (_comparator.Compare(x, c) <= 0)
+                    break;
+                _queue[k] = c;
+                k = child;
             }
+            _queue[k] = x;
         }
 
         /// <summary> 
         /// Establishes the heap invariant in the entire tree,
         /// assuming nothing about the order of the elements prior to the call.
         /// </summary>
-        private void heapify() {
-            for(int i = _priorityQueueSize / 2; i >= 1; i--)
-                fixDown(i);
-        }
-
-        /// <summary>
-        /// Returns the <paramref name="percentage"/> of <paramref name="size"/> or <see cref="System.Int32.MaxValue"/> - 1,
-        /// whichever is smaller. 
-        /// </summary>
-        /// <param name="size">base size</param>
-        /// <param name="percentage">percentage to return</param>
-        /// <returns><paramref name="percentage"/> of <paramref name="size"/></returns>
-        private int getQueueSizeBasedOnPercentage(int size, long percentage) {
-            return (int)Math.Min((size * percentage) / 100, Int32.MaxValue - 1);
+        private void Heapify()
+        {
+            for (int i = (_size >> 1) - 1; i >= 0; i--)
+                SiftDown(i, _queue[i]);
         }
 
         /// <summary> 
-        /// Initially fill elements of the queue array under the
-        /// knowledge that it is sorted or is another <see cref="PriorityQueue{T}"/>, in which
-        /// case we can just place the elements in the order presented.
-        /// </summary>
-        private void fillFromSorted(ICollection<T> collection) {
-            fillArray(collection, true);
-        }
-
-        private void fillArray(ICollection<T> collection, bool sorted) {
-            foreach(T currentObject in collection) {
-                if(null == currentObject)
-                    throw new ArgumentNullException("collection", "Cannot add null elements to queue.");
-                _queue[++_priorityQueueSize] = currentObject;
-            }
-            if(!sorted) {
-                heapify();
-            }
-        }
-
-        /// <summary> 
-        /// Initially fill elements of the queue array that is not to our knowledge
-        /// sorted, so we must rearrange the elements to guarantee the heap
-        /// invariant.
-        /// </summary>
-        private void fillFromUnsorted(ICollection<T> collection) {
-            fillArray(collection, false);
-        }
-
-        /// <summary> 
-        /// Removes and returns element located at <paramref name="index"/> from queue.  (Recall that the queue
+        /// Removes and returns element located at <paramref name="i"/> from queue.  (Recall that the queue
         /// is one-based, so 1 &lt;= i &lt;= size.)
         /// </summary>
         /// <remarks>
@@ -437,40 +404,47 @@ namespace Spring.Collections.Generic
         /// previously at the end of the list and is now at some position between
         /// 2 and i-1 inclusive.
         /// </remarks>
-        private T removeAt(int index) {
-            Debug.Assert(index > 0 && index <= _priorityQueueSize);
-            _queueModificationCount++;
+        private void RemoveAt(int i)
+        {
+            Debug.Assert(i >= 0 && i < _size);
+            _modCount++;
 
-            T moved = _queue[_priorityQueueSize];
-            _queue[index] = moved;
-            _queue[_priorityQueueSize--] = default(T);
-            if(index <= _priorityQueueSize) {
-                fixDown(index);
-                if(_queue[index].Equals(moved)) {
-                    fixUp(index);
-                    if(!_queue[index].Equals(moved))
-                        return moved;
+            int s = --_size;
+
+            if (s == i) // remove last element
+            {
+                _queue[i] = default(T);
+            }
+            else
+            {
+                var moved = _queue[s];
+                _queue[s] = default(T);
+                SiftDown(i, moved);
+                if (_areEqual(_queue[i],moved))
+                {
+                    SiftUp(i, moved);
                 }
             }
-            return default(T);
         }
 
-        /// <summary> Resize array, if necessary, to be able to hold given index</summary>
-        private void grow(int index) {
-            int newLength = _queue.Length;
-            if(index < newLength)
-                return;
-            if(index == Int32.MaxValue)
-                throw new InvalidOperationException("Cannot grow queue to accomdate index " + index + ".  Doing so would result in a memory overflow.");
-            while(newLength <= index) {
-                if(newLength >= Int32.MaxValue / 2) {
-                    newLength = Int32.MaxValue;
-                }
-                else {
-                    newLength <<= 2;
-                }
-            }
-            T[] newQueue = new T[newLength];
+        /// <summary>Increases the capacity of the array.</summary>
+        private void Grow(int minCapacity)
+        {
+            if (minCapacity < 0) // overflow
+                throw new OutOfMemoryException(
+                    "Cannot grow queue to accomdate more then int.MaxValue elements.");
+
+            int oldCapacity = _queue.Length;
+            // Double size if small; else grow by 50%
+            int newCapacity = ((oldCapacity < 64) ?
+                               ((oldCapacity + 1) * 2) :
+                               ((oldCapacity / 2) * 3));
+            if (newCapacity < 0) // overflow
+                newCapacity = Int32.MaxValue;
+            if (newCapacity < minCapacity)
+                newCapacity = minCapacity;
+
+            T[] newQueue = new T[newCapacity];
             Array.Copy(_queue, 0, newQueue, 0, _queue.Length);
             _queue = newQueue;
         }
@@ -479,19 +453,29 @@ namespace Spring.Collections.Generic
 
         #region Public Methods
         /// <summary>
-        /// Gets the Capacity of this queue.  Will equal <see cref="System.Collections.ICollection.Count"/>
+        /// Return <see cref="int.MaxValue"/> as <see cref="PriorityQueue{T}"/>
+        /// is unbounded.
         /// </summary>
-        public override int Capacity {
-            get {
-                return _queue.Length;
-            }
+        public override int RemainingCapacity
+        {
+            get { return Int32.MaxValue; }
+        }
+
+        /// <summary>
+        /// Returns <see cref="int.MaxValue"/> as <see cref="PriorityQueue{T}"/>
+        /// is unbounded.
+        /// </summary>
+        public override int Capacity
+        {
+            get { return int.MaxValue; }
         }
 
         /// <summary>
         /// Returns the queue count.
         /// </summary>
-        public override int Count {
-            get { return _priorityQueueSize; }
+        public override int Count 
+        {
+            get { return _size; }
         }
 
         /// <summary> 
@@ -505,7 +489,7 @@ namespace Spring.Collections.Generic
         /// which can fail to insert an element only by throwing an exception.
         /// </p>
         /// </remarks>
-        /// <param name="objectToAdd">
+        /// <param name="element">
         /// The element to add.
         /// </param>
         /// <returns>
@@ -520,25 +504,32 @@ namespace Spring.Collections.Generic
         /// If the element cannot be added at this time due to capacity restrictions.
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
-        /// If the supplied <paramref name="objectToAdd"/> is
+        /// If the supplied <paramref name="element"/> is
         /// <see lang="null"/> and this queue does not permit <see lang="null"/>
         /// elements.
         /// </exception>
         /// <exception cref="System.ArgumentException">
-        /// If some property of the supplied <paramref name="objectToAdd"/> prevents
+        /// If some property of the supplied <paramref name="element"/> prevents
         /// it from being added to this queue.
         /// </exception>
-        public override bool Offer(T objectToAdd) {
-            if(objectToAdd == null)
-                throw new ArgumentNullException("objectToAdd");
-            _queueModificationCount++;
-            ++_priorityQueueSize;
+        public override bool Offer(T element)
+        {
+            // ReSharper disable CompareNonConstrainedGenericWithNull
+            if(!_isValueType && element == null) 
+                throw new ArgumentNullException("element");
+            // ReSharper restore CompareNonConstrainedGenericWithNull
 
-            if(_priorityQueueSize >= _queue.Length) {
-                grow(_priorityQueueSize);
-            }
-            _queue[_priorityQueueSize] = objectToAdd;
-            fixUp(_priorityQueueSize);
+            _modCount++;
+
+            var i = _size;
+            if (i >= _queue.Length) Grow(i + 1);
+            _size = i+1;
+
+            if (i == 0) 
+                _queue[0] = element;
+            else 
+                SiftUp(i, element);
+
             return true;
         }
 
@@ -550,13 +541,26 @@ namespace Spring.Collections.Generic
         /// The head of this queue, or <see lang="null"/> if this queue is empty.
         /// </returns>
         public override bool Peek(out T element ) {
-            if(_priorityQueueSize == 0)
+            if(_size == 0)
             {
                 element = default(T);
                 return false;
             }
-            element = _queue[1];
+            element = _queue[0];
             return true; 
+        }
+
+        private int IndexOf(T e)
+        {
+// ReSharper disable CompareNonConstrainedGenericWithNull
+            if (_isValueType || e != null)
+// ReSharper restore CompareNonConstrainedGenericWithNull
+            {
+                for (int i = 0; i < _size; i++)
+                    if (e.Equals(_queue[i]))
+                        return i;
+            }
+            return -1;
         }
 
 
@@ -564,28 +568,12 @@ namespace Spring.Collections.Generic
         /// Removes a single instance of the specified element from this
         /// queue, if it is present.
         /// </summary>
-        public override bool Remove(T objectToRemove) {
-            if(objectToRemove == null) {
-                return false;
-            }
-
-            if(_comparator == null) {
-                for(int i = 1; i <= _priorityQueueSize; i++) {
-                    if(((IComparable)_queue[i]).CompareTo(objectToRemove) == 0) {
-                        removeAt(i);
-                        return true;
-                    }
-                }
-            }
-            else {
-                for(int i = 1; i <= _priorityQueueSize; i++) {
-                    if(_comparator.Compare(_queue[i], objectToRemove) == 0) {
-                        removeAt(i);
-                        return true;
-                    }
-                }
-            }
-            return false;
+        public override bool Remove(T item)
+        {
+            var i = IndexOf(item);
+            if (i == -1) return false;
+            RemoveAt(i);
+            return true;
         }
 
         /// <summary> 
@@ -593,7 +581,8 @@ namespace Spring.Collections.Generic
         /// The enumeratoar does not return the elements in any particular order.
         /// </summary>
         /// <returns> an enumerator over the elements in this queue.</returns>
-        public override IEnumerator<T> GetEnumerator() {
+        public override IEnumerator<T> GetEnumerator()
+        {
             return new PriorityQueueEnumerator(this);
         }
 
@@ -602,13 +591,14 @@ namespace Spring.Collections.Generic
         /// Removes all elements from the priority queue.
         /// The queue will be empty after this call returns.
         /// </summary>
-        public override void Clear() {
-            _queueModificationCount++;
+        public override void Clear()
+        {
+            _modCount++;
 
-            for(int i = 1; i <= _priorityQueueSize; i++)
+            for(int i = 0; i < _size; i++)
                 _queue[i] = default(T);
 
-            _priorityQueueSize = 0;
+            _size = 0;
         }
 
         /// <summary> 
@@ -618,43 +608,34 @@ namespace Spring.Collections.Generic
         /// <returns> 
         /// The head of this queue, or <see lang="null"/> if this queue is empty.
         /// </returns>
-        public override bool Poll(out T element) {
-            if(_priorityQueueSize == 0)
+        public override bool Poll(out T element) 
+        {
+            if(_size == 0)
             {
                 element = default(T);
                 return false;
             }
-            _queueModificationCount++;
+            int s = --_size;
 
-            T result = _queue[1];
-            _queue[1] = _queue[_priorityQueueSize];
-            _queue[_priorityQueueSize--] = default(T);
-            if(_priorityQueueSize > 1)
-                fixDown(1);
+            _modCount++;
+
+            T result = _queue[0];
+            var x = _queue[s];
+            _queue[s] = default(T);
+            if(s != 0)
+                SiftDown(0, x);
             element = result;
             return true;
         }
         /// <summary>
-        /// Queries the queue to see if it contains the specified <pararef name="element"/>
+        /// Queries the queue to see if it contains the specified <paramref name="item"/>
         /// </summary>
-        /// <param name="element">element to look for.</param>
-        /// <returns><see lang="true"/> if the queue contains the <pararef name="element"/>, 
+        /// <param name="item">element to look for.</param>
+        /// <returns><see lang="true"/> if the queue contains the <paramref name="item"/>, 
         /// <see lang="false"/> otherwise.</returns>
-        public override bool Contains(T element) {
-            if(element == null) {
-                for(int num1 = 0; num1 < Capacity; num1++) {
-                    if(_queue[num1] == null) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            for(int num2 = 0; num2 < Capacity; num2++) {
-                if(element.Equals(_queue[num2])) {
-                    return true;
-                }
-            }
-            return false;
+        public override bool Contains(T item)
+        {
+            return IndexOf(item) != -1;
         }
 
         /// <summary> 
@@ -668,7 +649,6 @@ namespace Spring.Collections.Generic
         /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
         internal protected override int DoDrain(Action<T> action, int maxElements, Predicate<T> criteria)
         {
-
             return Drain(action, maxElements, criteria, null);
         }
 
@@ -700,7 +680,7 @@ namespace Spring.Collections.Generic
         {
             int n = 0;
             int i;
-            for (i = 1; n < maxElements && i <= _priorityQueueSize; i++ )
+            for (i = 0; n < maxElements && i < _size; i++ )
             {
                 T element = _queue[i];
                 if (stopCriteria != null && stopCriteria(element)) break;
@@ -717,11 +697,11 @@ namespace Spring.Collections.Generic
             }
             if (n>0)
             {
-                for (int j = i; j <= _priorityQueueSize; j++)
+                for (int j = i; j < _size; j++)
                 {
                     _queue[j - n] = _queue[j];
                 }
-                _priorityQueueSize -= n;
+                _size -= n;
             }
             return n;
 
@@ -736,9 +716,11 @@ namespace Spring.Collections.Generic
         /// <returns> the comparator used to order this collection, or <see lang="null"/>
         /// if this collection is sorted according to its elements natural ordering.
         /// </returns>
-        public virtual IComparer<T> Comparator() {
-            return _comparator;
+        public virtual IComparer<T> Comparer
+        {
+            get { return _comparator; }
         }
+
         #endregion
 
         #region ISerializable Implementation
@@ -753,19 +735,12 @@ namespace Spring.Collections.Generic
         /// <param name="serializationInfo">the stream</param>
         /// <param name="context">the context</param>
         public virtual void GetObjectData(SerializationInfo serializationInfo, StreamingContext context) {
-            Type thisType = this.GetType();
-            MemberInfo[] mi = FormatterServices.GetSerializableMembers(thisType, context);
-            for(int i = 0; i < mi.Length; i++) {
-                serializationInfo.AddValue(mi[i].Name, ((FieldInfo)mi[i]).GetValue(this));
-            }
-
+            SerializationUtilities.DefaultWriteObject(serializationInfo, context, this);
             // Write out array length
-            serializationInfo.AddValue("Spring.Collections.PriorityQueuedata1", _queue.Length);
+            serializationInfo.AddValue("Length", _queue.Length);
 
             // Write out all elements in the proper order.
-            for(int i = 1; i <= _priorityQueueSize; i++) {
-                serializationInfo.AddValue("Spring.Collections.PriorityQueueData" + i, _queue[i]);
-            }
+            serializationInfo.AddValue("Data", ToArray());
         }
 
         /// <summary> 
@@ -775,85 +750,91 @@ namespace Spring.Collections.Generic
         /// <param name="serializationInfo">the stream</param>
         /// <param name="context">the context</param>
         protected PriorityQueue(SerializationInfo serializationInfo, StreamingContext context) {
-            Type thisType = this.GetType();
-            MemberInfo[] mi = FormatterServices.GetSerializableMembers(thisType, context);
-            for(int i = 0; i < mi.Length; i++) {
-                FieldInfo fi = (FieldInfo)mi[i];
-                fi.SetValue(this, serializationInfo.GetValue(fi.Name, fi.FieldType));
-            }
-            int arrayLength = serializationInfo.GetInt32("Spring.Collections.PriorityQueuedata1");
+            SerializationUtilities.DefaultReadObject(serializationInfo, context, this);
+
+            int arrayLength = serializationInfo.GetInt32("Length");
             _queue = new T[arrayLength];
 
-            for(int i = 1; i <= _priorityQueueSize; i++) {
-                _queue[i] = (T) serializationInfo.GetValue("Spring.Collections.PriorityQueueData" + i, typeof(Object));
-            }
+            var array = (T[]) serializationInfo.GetValue("Data", typeof(T[]));
+            Array.Copy(array, _queue, array.Length);
+            _size = array.Length;
         }
         #endregion
 
         #region ICollection Implementation
 
-        ///<summary>
-        ///Copies the elements of the <see cref="T:System.Collections.ICollection"></see> to an <see cref="T:System.Array"></see>, starting at a particular <see cref="T:System.Array"></see> index.
-        ///</summary>
-        ///<param name="array">The one-dimensional <see cref="T:System.Array"></see> that is the destination of the elements copied from <see cref="T:System.Collections.ICollection"></see>. The <see cref="T:System.Array"></see> must have zero-based indexing. </param>
-        ///<param name="index">The zero-based index in array at which copying begins. </param>
-        ///<exception cref="T:System.ArgumentNullException">array is null. </exception>
-        ///<exception cref="T:System.ArgumentOutOfRangeException">index is less than zero. </exception>
-        ///<exception cref="T:System.ArgumentException">array is multidimensional.-or- index is equal to or greater than the length of array.-or- The number of elements in the source <see cref="T:System.Collections.ICollection"></see> is greater than the available space from index to the end of the destination array. </exception>
-        ///<exception cref="T:System.InvalidCastException">The type of the source <see cref="T:System.Collections.ICollection"></see> cannot be cast automatically to the type of the destination array. </exception><filterpriority>2</filterpriority>
-        public override void CopyTo(T[] array, Int32 index) {
-            if(_priorityQueueSize > array.Length) throw new ArgumentException("Destination array too small.", "array");
-            if(index > array.Length - 1) throw new ArgumentException("Starting index outside bounds of target array.", "index");
-            if(index + _priorityQueueSize > array.Length) throw new IndexOutOfRangeException("Destination array not long enough to begin copying at index " + index + ".");
-
-            for(int queueElementCount = 1; queueElementCount <= _priorityQueueSize; queueElementCount++) {
-                array.SetValue(_queue[queueElementCount], index);
-                index++;
-            }
-            Array.Sort(array);
-        }
-
-        ///<summary>
-        ///Copies the elements of the <see cref="T:System.Collections.ICollection"></see> to an <see cref="T:System.Array"></see>, starting at index 0.
-        ///</summary>
-        ///<param name="array">The one-dimensional <see cref="T:System.Array"></see> that is the destination of the elements copied from <see cref="T:System.Collections.ICollection"></see>. The <see cref="T:System.Array"></see> must have zero-based indexing. </param>
-        ///<exception cref="T:System.ArgumentNullException">array is null. </exception>
-        ///<exception cref="T:System.ArgumentOutOfRangeException">index is less than zero. </exception>
-        ///<exception cref="T:System.ArgumentException">array is multidimensional.-or- index is equal to or greater than the length of array.-or- The number of elements in the source <see cref="T:System.Collections.ICollection"></see> is greater than the available space from index to the end of the destination array. </exception>
-        ///<exception cref="T:System.InvalidCastException">The type of the source <see cref="T:System.Collections.ICollection"></see> cannot be cast automatically to the type of the destination array. </exception><filterpriority>2</filterpriority>
-        public void CopyTo(Array array) {
-            CopyTo(array, 0);
-        }
-
-        ///<summary>
-        ///Gets an object that can be used to synchronize access to the <see cref="T:System.Collections.ICollection"></see>.
-        ///</summary>
-        ///<returns>
-        ///An object that can be used to synchronize access to the <see cref="T:System.Collections.ICollection"></see>.
-        ///</returns>
-        protected override Object SyncRoot {
-            get { return null; }
-
-        }
-
-        ///<summary>
-        ///Gets a value indicating whether access to the <see cref="T:System.Collections.ICollection"></see> is synchronized (thread safe).
-        ///</summary>
-        ///<returns>
-        ///true if access to the <see cref="T:System.Collections.ICollection"></see> is synchronized (thread safe); otherwise, false.
-        ///</returns>
-        protected override Boolean IsSynchronized {
-            get { return false; }
-
-        }
-
         /// <summary>
-        /// Returns <see lang="true"/> if there are no elements in the <see cref="IQueue{T}"/>, <see lang="false"/> otherwise.
+        /// Does the actual work of copying to array.
         /// </summary>
-        public override bool IsEmpty {
-            get { return _priorityQueueSize == 0; }
+        /// <param name="array">
+        /// The one-dimensional <see cref="Array"/> that is the 
+        /// destination of the elements copied from <see cref="ICollection{T}"/>. 
+        /// The <see cref="Array"/> must have zero-based indexing.
+        /// </param>
+        /// <param name="arrayIndex">
+        /// The zero-based index in array at which copying begins.
+        /// </param>
+        protected override void DoCopyTo(T[] array, int arrayIndex)
+        {
+            Array.Copy(_queue, 0, array, arrayIndex, _size);
         }
 
         #endregion
+
+        private class PriorityQueueEnumerator : AbstractEnumerator<T>
+        {
+            private readonly PriorityQueue<T> _parent;
+            private int _expectedModCount;
+            private int _cursor = -1;
+            private T _current;
+
+            public PriorityQueueEnumerator(PriorityQueue<T> parent)
+            {
+                _parent = parent;
+                _expectedModCount = parent._modCount;
+                _cursor = -1;
+            }
+
+            protected override bool GoNext()
+            {
+                CheckChanges();
+                if (++_cursor >= _parent._size) return false;
+                _current = _parent._queue[_cursor];
+                return true;
+            }
+
+            protected override void DoReset()
+            {
+                CheckChanges();
+                _cursor = -1;
+            }
+
+            private void CheckChanges()
+            {
+                if (_expectedModCount != _parent._modCount)
+                    throw new InvalidOperationException("PriorityQueue is modified.");
+            }
+
+            protected override T FetchCurrent()
+            {
+                return _current;
+            }
+        }
+
+        [Serializable]
+        private class ComparisonComparator : IComparer<T>
+        {
+            private Comparison<T> _comparison;
+
+            public int Compare(T x, T y)
+            {
+                return _comparison(x, y);
+            }
+
+            internal static IComparer<T> From(Comparison<T> comparison)
+            {
+                return comparison == null ? null : new ComparisonComparator{_comparison=comparison};
+            }
+        }
     }
 }

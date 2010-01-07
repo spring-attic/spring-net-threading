@@ -300,11 +300,8 @@ namespace Spring.Threading.Collections.Generic
         }
 
         /// <summary>
-        /// Copies the elements of the <see cref="ICollection{T}"/> to an 
-        /// <see cref="Array"/>, starting at a particular <see cref="Array"/> 
-        /// index.
+        /// Does the actual work of copying to array.
         /// </summary>
-        /// 
         /// <param name="array">
         /// The one-dimensional <see cref="Array"/> that is the 
         /// destination of the elements copied from <see cref="ICollection{T}"/>. 
@@ -313,25 +310,11 @@ namespace Spring.Threading.Collections.Generic
         /// <param name="arrayIndex">
         /// The zero-based index in array at which copying begins.
         /// </param>
-        /// <exception cref="ArgumentOutOfRangeException">
-        /// arrayIndex is less than 0.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        /// array is null.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// array is multidimensional.<br/>-or-<br/>
-        /// arrayIndex is equal to or greater than the length of array. <br/>-or-<br/>
-        /// The number of elements in the source <see cref="ICollection{T}"/> 
-        /// is greater than the available space from arrayIndex to the end of 
-        /// the destination array. <br/>-or-<br/>
-        /// Type T cannot be cast automatically to the type of the destination array.
-        /// </exception>
-        public override void CopyTo(T[] array, int arrayIndex)
+        protected override void DoCopyTo(T[] array, int arrayIndex)
         {
             using(_lock.Lock())
             {
-                base.CopyTo(array, arrayIndex);
+                base.DoCopyTo(array, arrayIndex);
             }
         }
 
@@ -659,7 +642,7 @@ namespace Spring.Threading.Collections.Generic
                 }
             }
 
-            public override void Reset()
+            protected override void DoReset()
             {
                 using(_lock.Lock())
                 {
