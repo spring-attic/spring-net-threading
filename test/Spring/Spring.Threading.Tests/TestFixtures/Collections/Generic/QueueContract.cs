@@ -359,32 +359,37 @@ namespace Spring.TestFixtures.Collections.Generic
             {
                 expected[i] = q.Remove();
             }
+            var restExpected = PollAll(q);
             q = NewQueueFilledWithSample();
             var sent = new List<T>();
             q.Drain(sent.Add, size);
             Assert.That(sent, Is.EquivalentTo(expected));
+            Assert.That(PollAll(q), Is.EquivalentTo(restExpected));
         }
 
-        [Test] public void DrainActsOnSomeElementsPassedCriteria()
+        [Test] public void DrainActsOnNoMoreThenMaxElementsPassedCriteria()
         {
             Predicate<T> criteria = o => o.GetHashCode()%2 == 0;
 
             var size = SampleSize / 2;
             var q = NewQueueFilledWithSample();
-            var expected = new List<T>();
+            var passed = new List<T>();
+            var rejected = new List<T>();
             T e;
-            while(expected.Count < size && q.Poll(out e))
+            while(passed.Count < size && q.Poll(out e))
             {
-                if (criteria(e))expected.Add(e);
+                if (criteria(e)) passed.Add(e);
+                else rejected.Add(e);
             }
-
+            rejected.AddRange(PollAll(q));
             q = NewQueueFilledWithSample();
             var sent = new List<T>();
             q.Drain(sent.Add, size, criteria);
-            Assert.That(sent, Is.EquivalentTo(expected));
+            Assert.That(sent, Is.EquivalentTo(passed));
+            Assert.That(PollAll(q), Is.EquivalentTo(rejected));
         }
 
-        [Test] public void DrainActsOnNoMorethenMaxElementsPassedCriteria()
+        [Test] public void DrainActsOnSomeElementsPassedCriteria()
         {
             Predicate<T> criteria = o => o.GetHashCode()%2 == 0;
             var expected = Samples.Where(e => criteria(e)).ToList();
@@ -415,6 +420,12 @@ namespace Spring.TestFixtures.Collections.Generic
             {
                 Assert.That(queue.RemainingCapacity, Is.EqualTo(size), message);
             }
+        }
+
+        private static IEnumerable<T> PollAll(IQueue<T> queue)
+        {
+            T result;
+            while (queue.Poll(out result)) yield return result;
         }
 
         private void AddRemoveOneLoop(IQueue<T> queue, int size)

@@ -123,7 +123,7 @@ namespace Spring.Collections.Generic
         /// The comparator, or null if priority queue uses elements'
         /// natural ordering.
         /// </summary>
-        private readonly IComparer<T> _comparator;
+        private readonly IComparer<T> _comparer;
 
         /// <summary> 
         /// The number of times this priority queue has been
@@ -196,10 +196,10 @@ namespace Spring.Collections.Generic
         {
             // Note: This restriction of at least one is not actually needed,
             // but for Java compatibility
-            if (initialCapacity < 1)
-                throw new ArgumentException("initialCapacity");
+            if (initialCapacity < 1) throw new ArgumentOutOfRangeException(
+                "initialCapacity", initialCapacity, "Parameter value must be greater or equal to 1.");
             _queue = new T[initialCapacity];
-            _comparator = comparator;
+            _comparer = comparator;
         }
 
         /// <summary> 
@@ -220,11 +220,14 @@ namespace Spring.Collections.Generic
         /// If <paramref name="source"/> or any element with it is
         /// <see lang="null"/>.
         /// </exception>
+        /// <exception cref="NullReferenceException">
+        /// If there is <c>null</c> in source.
+        /// </exception>
         public PriorityQueue(IEnumerable<T> source) {
             InitFromCollection(source);
             if(source is PriorityQueue<T>) 
             {
-                _comparator = ((PriorityQueue<T>)source)._comparator;
+                _comparer = ((PriorityQueue<T>)source)._comparer;
             }
             // TODO: get comparator from any other known sorted collection.
             // else if (c instanceof SortedSet)
@@ -233,7 +236,7 @@ namespace Spring.Collections.Generic
             // }
             else
             {
-                _comparator = null;
+                _comparer = null;
                 Heapify();
             }
         }
@@ -253,7 +256,7 @@ namespace Spring.Collections.Generic
         public PriorityQueue(PriorityQueue<T> soruce)
         {
             InitFromCollection(soruce);
-            _comparator = soruce._comparator;
+            _comparer = soruce._comparer;
         }
 
         /// <summary>
@@ -287,7 +290,7 @@ namespace Spring.Collections.Generic
         /// </remarks>
         private void SiftUp(int k, T element)
         {
-            if (_comparator == null)
+            if (_comparer == null)
                 SiftUpComparable(k, element);
             else
                 SiftUpUsingComparator(k, element);
@@ -314,7 +317,7 @@ namespace Spring.Collections.Generic
             {
                 int parent = (k - 1) >> 1;
                 T e = _queue[parent];
-                if (_comparator.Compare(x, e) >= 0)
+                if (_comparer.Compare(x, e) >= 0)
                     break;
                 _queue[k] = e;
                 k = parent;
@@ -335,7 +338,7 @@ namespace Spring.Collections.Generic
         /// </remarks>
         private void SiftDown(int k, T x)
         {
-            if (_comparator != null)
+            if (_comparer != null)
                 SiftDownUsingComparator(k, x);
             else
                 SiftDownComparable(k, x);
@@ -370,9 +373,9 @@ namespace Spring.Collections.Generic
                 T c = _queue[child];
                 int right = child + 1;
                 if (right < _size &&
-                    _comparator.Compare(c, _queue[right]) > 0)
+                    _comparer.Compare(c, _queue[right]) > 0)
                     c = _queue[child = right];
-                if (_comparator.Compare(x, c) <= 0)
+                if (_comparer.Compare(x, c) <= 0)
                     break;
                 _queue[k] = c;
                 k = child;
@@ -678,10 +681,10 @@ namespace Spring.Collections.Generic
         /// </exception>
         public virtual int Drain(Action<T> action, int maxElements, Predicate<T> selectCriteria, Predicate<T> stopCriteria)
         {
-            if (_comparator==null)
+            if (_comparer==null)
                 Array.Sort(_queue, 0, _size);
             else
-                Array.Sort(_queue, 0, _size, _comparator);
+                Array.Sort(_queue, 0, _size, _comparer);
 
             int n = 0;
             int i;
@@ -723,7 +726,7 @@ namespace Spring.Collections.Generic
         /// </returns>
         public virtual IComparer<T> Comparer
         {
-            get { return _comparator; }
+            get { return _comparer; }
         }
 
         #endregion
