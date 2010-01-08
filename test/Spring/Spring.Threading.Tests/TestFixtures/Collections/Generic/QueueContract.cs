@@ -111,7 +111,7 @@ namespace Spring.TestFixtures.Collections.Generic
             Assert.That(queue.Count, Is.EqualTo(SampleSize));
         }
 
-        [Test] public virtual void OfferHandlesNullAsExpexcted()
+        [Test] public virtual void OfferHandlesNullAsExpected()
         {
             var q = NewQueue();
             if(!typeof(T).IsValueType && NoNull)
@@ -137,7 +137,7 @@ namespace Spring.TestFixtures.Collections.Generic
             CollectionAssert.AreEquivalent(Samples, queue);
         }
 
-        [Test] public virtual void RemoveChokesWhenQuqueIsEmpty()
+        [Test] public virtual void RemoveChokesWhenQueueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             Assert.Catch<InvalidOperationException>(() => queue.Remove());
@@ -168,7 +168,7 @@ namespace Spring.TestFixtures.Collections.Generic
             T dummy; Assert.That(q.Poll(out dummy), Is.True);
         }
 
-        [Test] public virtual void PollReturnsFalseWhenQuqueIsEmpty()
+        [Test] public virtual void PollReturnsFalseWhenQueueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             T result;
@@ -195,7 +195,7 @@ namespace Spring.TestFixtures.Collections.Generic
                 CollectionAssert.Contains(Samples, result);
         }
 
-        [Test] public virtual void ElementChokesWhenQuqueIsEmpty()
+        [Test] public virtual void ElementChokesWhenQueueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             Assert.Catch<InvalidOperationException>(() => queue.Element());
@@ -211,7 +211,7 @@ namespace Spring.TestFixtures.Collections.Generic
             }
         }
 
-        [Test] public virtual void PeekReturnsFalseWhenQuqueIsEmpty()
+        [Test] public virtual void PeekReturnsFalseWhenQueueIsEmpty()
         {
             IQueue<T> queue = NewQueue();
             T result;

@@ -104,7 +104,7 @@ namespace Spring.Collections.Generic
 
         /// <summary> 
         /// Priority queue represented as a balanced binary heap: the two children
-        /// of queue[n] are queue[2*n] and queue[2*n + 1].  The priority queue is
+        /// of queue[n] are queue[2*n+1] and queue[2*(n+1)].  The priority queue is
         /// ordered by comparator, or by the elements' natural ordering, if
         /// comparator is null:  For each node n in the heap and each descendant d
         /// of n, n &lt;= d.
@@ -678,6 +678,11 @@ namespace Spring.Collections.Generic
         /// </exception>
         public virtual int Drain(Action<T> action, int maxElements, Predicate<T> selectCriteria, Predicate<T> stopCriteria)
         {
+            if (_comparator==null)
+                Array.Sort(_queue, 0, _size);
+            else
+                Array.Sort(_queue, 0, _size, _comparator);
+
             int n = 0;
             int i;
             for (i = 0; n < maxElements && i < _size; i++ )

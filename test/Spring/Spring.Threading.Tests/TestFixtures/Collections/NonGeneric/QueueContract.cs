@@ -115,7 +115,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             CollectionAssert.AreEquivalent(_samples, queue);
         }
 
-        [Test] public void RemoveChokesWhenQuqueIsEmpty()
+        [Test] public void RemoveChokesWhenQueueIsEmpty()
         {
             IQueue queue = NewQueue();
             Assert.Throws<InvalidOperationException>(() => queue.Remove());
@@ -133,7 +133,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             }
         }
 
-        [Test] public void PollReturnsNullWhenQuqueIsEmpty()
+        [Test] public void PollReturnsNullWhenQueueIsEmpty()
         {
             IQueue queue = NewQueue();
             Assert.IsNull(queue.Poll());
@@ -150,7 +150,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             }
         }
 
-        [Test] public void ElementChokesWhenQuqueIsEmpty()
+        [Test] public void ElementChokesWhenQueueIsEmpty()
         {
             IQueue queue = NewQueue();
             Assert.Throws<InvalidOperationException>(() => queue.Element());
@@ -166,7 +166,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             }
         }
 
-        [Test] public void PeekReturnsNullWhenQuqueIsEmpty()
+        [Test] public void PeekReturnsNullWhenQueueIsEmpty()
         {
             IQueue queue = NewQueue();
             Assert.IsNull(queue.Peek());
