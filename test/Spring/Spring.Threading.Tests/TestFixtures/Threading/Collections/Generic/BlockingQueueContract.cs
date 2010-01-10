@@ -90,7 +90,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
             if (!typeof(T).IsValueType && NoNull)
             {
                 var e = Assert.Throws<ArgumentNullException>(
-                    () => q.Add(value));
+                    () => q.Put(value));
                 Assert.That(e.ParamName, Is.EqualTo("element"));
             }
             else
@@ -456,7 +456,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
         {
             var q = NewBlockingQueueFilledWithSample();
             List<T> l = new List<T>();
-            q.DrainTo(l, e=>((int)Convert.ChangeType(e, typeof(int)))%2==0);
+            q.DrainTo(l, e=>e.GetHashCode()%2==0);
             Assert.That(l.Count, Is.LessThanOrEqualTo((SampleSize + 1) / 2));
             Assert.That(q.Count, Is.LessThanOrEqualTo((SampleSize + 1) / 2));
             Assert.AreEqual(SampleSize, q.Count + l.Count);

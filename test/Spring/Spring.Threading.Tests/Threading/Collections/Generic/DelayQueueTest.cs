@@ -19,8 +19,12 @@
 #endregion
 
 using System;
+using System.ComponentModel;
+using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
 using Spring.TestFixtures.Threading.Collections.Generic;
+using Spring.Threading.Collections.Generic;
 using Spring.Threading.Future;
 
 namespace Spring.Threading.Collections.Generic
@@ -32,11 +36,18 @@ namespace Spring.Threading.Collections.Generic
     //[TestFixture] 
     public class DelayQueueTest<T> where T : IDelayed
     {
-        //[TestFixture(typeof(int))]
-        //[TestFixture(typeof(string))]
+        [TestFixture(typeof(DelayedStruct))]
+        [TestFixture(typeof(DelayedClass))]
         public class AsGeneric : BlockingQueueContract<T>
         {
-            public AsGeneric() : base(0)
+            static AsGeneric()
+            {
+                DelayedClass.Load();
+                DelayedStruct.Load();
+            }
+
+            public AsGeneric()
+                : base(CollectionContractOptions.Unbounded | CollectionContractOptions.NoNull)
             {
             }
 
@@ -44,6 +55,108 @@ namespace Spring.Threading.Collections.Generic
             {
                 return new DelayQueue<T>();
             }
+        }
+    }
+
+    [Serializable]
+    public struct DelayedStruct : IDelayed
+    {
+        static DelayedStruct()
+        {
+            TestDataGenerator.RegisterConverter(i => new DelayedStruct(i));
+        }
+
+        public static void Load()
+        {
+        }
+
+        private readonly int _delay;
+
+        public DelayedStruct(int delay)
+        {
+            _delay = delay;
+        }
+        public int CompareTo(IDelayed other)
+        {
+            return (GetRemainingDelay() - other.GetRemainingDelay()).Seconds;
+        }
+
+        public int CompareTo(object obj)
+        {
+            return CompareTo((IDelayed)obj);
+        }
+
+        public TimeSpan GetRemainingDelay()
+        {
+            // delay less than 1000 are expired. Hence delay queue behaves as 
+            // normal queue for all test samples used in QueueContract.
+            return TimeSpan.FromSeconds(_delay - 1000);
+        }
+
+        public override string ToString()
+        {
+            return (_delay - 1000).ToString();
+        }
+    }
+
+    [Serializable]
+    public class DelayedClass : IDelayed
+    {
+        static DelayedClass()
+        {
+            TestDataGenerator.RegisterConverter(i => new DelayedClass(i));
+        }
+
+        public static void Load()
+        {
+        }
+
+        private readonly int _delay;
+
+        public DelayedClass(int delay)
+        {
+            _delay = delay;
+        }
+        public int CompareTo(IDelayed other)
+        {
+            return (GetRemainingDelay() - other.GetRemainingDelay()).Seconds;
+        }
+
+        public int CompareTo(object obj)
+        {
+            return CompareTo((IDelayed)obj);
+        }
+
+        public TimeSpan GetRemainingDelay()
+        {
+            // delay less than 1000 are expired. Hence delay queue behaves as 
+            // normal queue for all test samples used in QueueContract.
+            return TimeSpan.FromSeconds(_delay - 1000);
+        }
+
+        public bool Equals(DelayedClass other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return other._delay == _delay;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != typeof(DelayedClass)) return false;
+            return Equals((DelayedClass)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return _delay;
+        }
+
+        public override string ToString()
+        {
+            return (_delay - 1000).ToString();
         }
     }
 }

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using System.Threading;
 using Spring.Collections;
 using Spring.Collections.Generic;
 using Spring.Threading.Future;
+using Spring.Utility;
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -16,7 +18,8 @@ namespace Spring.Threading.Collections.Generic
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
-    public class DelayQueue<T> : AbstractBlockingQueue<T> //BACKPORT_2_2 TODO: need to add this back 
+	[Serializable]
+    public class DelayQueue<T> : AbstractBlockingQueue<T>, IDeserializationCallback //BACKPORT_2_2 TODO: need to add this back 
         where T : IDelayed
     {
         [NonSerialized]
@@ -164,7 +167,7 @@ namespace Spring.Threading.Collections.Generic
             lock (lockObject)
             {
                 T first;
-                if (!_queue.Peek(out first) || ((IDelayed)first).GetRemainingDelay().Ticks > 0)
+                if (!_queue.Peek(out first) || first.GetRemainingDelay().Ticks > 0)
                 {
                     element = default(T);
                     return false;
@@ -227,7 +230,7 @@ namespace Spring.Threading.Collections.Generic
         {
             lock (lockObject)
             {
-                DateTime deadline = DateTime.Now.Add(duration);
+                DateTime deadline = WaitTime.Deadline(duration);
                 for (; ; )
                 {
                     T first;
@@ -240,21 +243,21 @@ namespace Spring.Threading.Collections.Generic
                         }
                         else
                         {
-                            Monitor.Wait(lockObject, duration);
-                            duration = deadline.Subtract(DateTime.Now);
+                            Monitor.Wait(lockObject, WaitTime.Cap(duration));
+                            duration = deadline.Subtract(DateTime.UtcNow);
                         }
                     }
                     else
                     {
-                        TimeSpan delay = ((IDelayed)first).GetRemainingDelay();
+                        TimeSpan delay = first.GetRemainingDelay();
                         if (delay.Ticks > 0)
                         {
                             if (delay > duration)
                             {
                                 delay = duration;
                             }
-                            Monitor.Wait(lockObject, delay);
-                            duration = deadline.Subtract(DateTime.Now);
+                            Monitor.Wait(lockObject, WaitTime.Cap(delay));
+                            duration = deadline.Subtract(DateTime.UtcNow);
                         }
                         else
                         {
@@ -405,5 +408,14 @@ namespace Spring.Threading.Collections.Generic
                 return _queue.Remove(element);
             }
         }
+
+        #region IDeserializationCallback Members
+
+        void IDeserializationCallback.OnDeserialization(object sender)
+        {
+            lockObject = new object();
+        }
+
+        #endregion
     }
 }
