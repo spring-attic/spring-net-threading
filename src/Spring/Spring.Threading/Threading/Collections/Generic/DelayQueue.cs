@@ -55,10 +55,9 @@ namespace Spring.Threading.Collections.Generic
             lock (lockObject)
             {
                 T first;
-                _queue.Peek(out first);
-                bool emptyBeforeOffer = Object.Equals(first, null);                
+                bool emptyBeforeOffer = !_queue.Peek(out first);
                 _queue.Offer(element);
-                if (emptyBeforeOffer || (element).CompareTo(first) < 0)
+                if (emptyBeforeOffer || element.CompareTo(first) < 0)
                 {
                     Monitor.PulseAll(lockObject);
                 }
