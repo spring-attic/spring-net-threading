@@ -90,7 +90,7 @@ namespace Spring.Collections.Generic
             Assert.That(q2.Comparer, Is.Null);
             Assert.That(q3.Comparer, Is.Null);
 
-            q1 = new PriorityQueue<T>(11, new ReverseOrder());
+            q1 = new PriorityQueue<T>(11, new ReverseOrder<T>());
             q2 = new PriorityQueue<T>(q1);
             q3 = new PriorityQueue<T>((IEnumerable<T>)q1);
             Assert.That(q2.Comparer, Is.SameAs(q1.Comparer));
@@ -113,7 +113,7 @@ namespace Spring.Collections.Generic
         {
             private static readonly int[] _randomSamples = new[] { 8,2,3,6,2,4,9,0,9,4,1 };
             private readonly PriorityQueueTestOrdering _order;
-            private ReverseOrder _comparer;
+            private ReverseOrder<T> _comparer;
 
             public AsGeneric() : this(PriorityQueueTestOrdering.None)
             {
@@ -165,7 +165,7 @@ namespace Spring.Collections.Generic
                 switch (_order)
                 {
                     case PriorityQueueTestOrdering.Comparer:
-                        _comparer = new ReverseOrder();
+                        _comparer = new ReverseOrder<T>();
                         return new PriorityQueue<T>(11, _comparer);
                     case PriorityQueueTestOrdering.Comparison:
                         return new PriorityQueue<T>(11, (x, y) => ((IComparable)y).CompareTo(x));
@@ -213,13 +213,13 @@ namespace Spring.Collections.Generic
             }
         }
 
-        [Serializable]
-        private class ReverseOrder : IComparer<T>
+    }
+    [Serializable]
+    public class ReverseOrder<T> : IComparer<T>
+    {
+        public int Compare(T x, T y)
         {
-            public int Compare(T x, T y)
-            {
-                return ((IComparable)y).CompareTo(x);
-            }
+            return ((IComparable)y).CompareTo(x);
         }
     }
 

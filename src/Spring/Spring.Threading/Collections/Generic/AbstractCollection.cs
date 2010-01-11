@@ -124,9 +124,7 @@ namespace Spring.Collections.Generic
         /// </returns>
         public virtual T[] ToArray()
         {
-            var a = new T[Count];
-            DoCopyTo(a, 0);
-            return a;
+            return DoCopyTo(null, 0, true);
         }
 
         /// <summary>
@@ -174,12 +172,7 @@ namespace Spring.Collections.Generic
         public virtual T[] ToArray(T[] targetArray)
         {
             if (targetArray == null) throw new ArgumentNullException("targetArray");
-            int size = Count;
-            if (targetArray.Length < size)
-                // new T[size] won't work here when targetArray is subtype of T.
-                targetArray = (T[])Array.CreateInstance(targetArray.GetType().GetElementType(), size);
-            DoCopyTo(targetArray, 0);
-            return targetArray;
+            return DoCopyTo(targetArray, 0, true);
         }
 
         /// <summary>
@@ -189,7 +182,7 @@ namespace Spring.Collections.Generic
         /// </summary>
         /// <remarks>
         /// This method is intentionally sealed. Subclass should override
-        /// <see cref="DoCopyTo(T[], int)"/> instead.
+        /// <see cref="DoCopyTo(T[], int, bool)"/> instead.
         /// </remarks>
         /// <param name="array">
         /// The one-dimensional <see cref="Array"/> that is the 
@@ -223,7 +216,7 @@ namespace Spring.Collections.Generic
             }
             try
             {
-                DoCopyTo(array, arrayIndex);
+                DoCopyTo(array, arrayIndex, false);
             }
             catch (IndexOutOfRangeException e)
             {
@@ -245,9 +238,46 @@ namespace Spring.Collections.Generic
         /// <param name="arrayIndex">
         /// The zero-based index in array at which copying begins.
         /// </param>
-        protected virtual void DoCopyTo(T[] array, int arrayIndex)
+        /// <param name="ensureCapacity">
+        /// If is <c>true</c>, calls <see cref="EnsureCapacity"/>
+        /// </param>
+        /// <returns>
+        /// A new array of same runtime type as <paramref name="array"/> if 
+        /// <paramref name="array"/> is too small to hold all elements and 
+        /// <paramref name="ensureCapacity"/> is <c>false</c>. Otherwise
+        /// the <paramref name="array"/> instance itself.
+        /// </returns>
+        protected virtual T[] DoCopyTo(T[] array, int arrayIndex, bool ensureCapacity)
         {
+            if (array == null || ensureCapacity) array = EnsureCapacity(array, Count);
             foreach (T e in this) array[arrayIndex++] = e;
+            return array;
+        }
+
+        /// <summary>
+        /// Ensures the returned array has capacity specified by <paramref name="length"/>.
+        /// </summary>
+        /// <remarks>
+        /// If <typeparamref name="T"/> is <see cref="object"/> but array is 
+        /// actaully <c>string[]</c>, the returned array is always <c>string[]</c>.
+        /// </remarks>
+        /// <param name="array">
+        /// The source array.
+        /// </param>
+        /// <param name="length">
+        /// Expected length of array.
+        /// </param>
+        /// <returns>
+        /// <paramref name="array"/> itself if <c>array.Length >= length</c>. 
+        /// Otherwise a new array of same type of <paramref name="array"/> of given
+        /// <paramref name="length"/>.
+        /// </returns>
+        protected static T[] EnsureCapacity(T[] array, int length)
+        {
+            if (array == null) return new T[length];
+            if (array.Length >= length) return array;
+            // new T[size] won't work here when targetArray is subtype of T.
+            return (T[])Array.CreateInstance(array.GetType().GetElementType(), length);
         }
 
         /// <summary>

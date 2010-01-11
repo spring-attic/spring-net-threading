@@ -60,7 +60,10 @@ namespace Spring.Threading.Collections.Generic
         /// <summary>Condition for waiting puts </summary>
         private readonly ICondition _notFullCondition;
 
-        private readonly IQueue<T> _wrapped;
+        /// <summary>
+        /// The wrapped regular queue.
+        /// </summary>
+        protected readonly IQueue<T> _wrapped;
 
         private readonly int _capacity;
 
@@ -119,8 +122,7 @@ namespace Spring.Threading.Collections.Generic
         /// If <paramref name="capacity"/> is negative.
         /// </exception>
         public BlockingQueueWrapper(IQueue<T> queue, int capacity)
-            : 
-            this(queue, capacity, false)
+            : this(queue, capacity, false)
         {
         }
 
@@ -166,7 +168,7 @@ namespace Spring.Threading.Collections.Generic
         /// </summary>
         public override int Capacity
         {
-            get { return _capacity; }
+            get { return _capacity == 0 ? int.MaxValue : _capacity; }
         }
 
         /// <summary>
@@ -174,10 +176,7 @@ namespace Spring.Threading.Collections.Generic
         /// </summary>
         public virtual bool IsFair
         {
-            get
-            {
-                return _lock.IsFair;
-            }
+            get { return _lock.IsFair; }
         }
         #endregion
 
@@ -300,7 +299,8 @@ namespace Spring.Threading.Collections.Generic
         }
 
         /// <summary>
-        /// Does the actual work of copying to array.
+        /// Does the actual work of copying to array. Calls the base method in
+        /// synchronized context.
         /// </summary>
         /// <param name="array">
         /// The one-dimensional <see cref="Array"/> that is the 
@@ -310,11 +310,20 @@ namespace Spring.Threading.Collections.Generic
         /// <param name="arrayIndex">
         /// The zero-based index in array at which copying begins.
         /// </param>
-        protected override void DoCopyTo(T[] array, int arrayIndex)
+        /// <param name="ensureCapacity">
+        /// If is <c>true</c>, calls <see cref="AbstractCollection{T}.EnsureCapacity"/>
+        /// </param>
+        /// <returns>
+        /// A new array of same runtime type as <paramref name="array"/> if 
+        /// <paramref name="array"/> is too small to hold all elements and 
+        /// <paramref name="ensureCapacity"/> is <c>false</c>. Otherwise
+        /// the <paramref name="array"/> instance itself.
+        /// </returns>
+        protected override T[] DoCopyTo(T[] array, int arrayIndex, bool ensureCapacity)
         {
             using(_lock.Lock())
             {
-                base.DoCopyTo(array, arrayIndex);
+                return base.DoCopyTo(array, arrayIndex, ensureCapacity);
             }
         }
 

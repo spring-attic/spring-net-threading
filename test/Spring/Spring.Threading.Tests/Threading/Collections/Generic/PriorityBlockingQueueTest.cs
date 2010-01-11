@@ -12,10 +12,19 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using NUnit.CommonFixtures;
+using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
 using Spring.Collections;
+using Spring.Collections.Generic;
+using Spring.TestFixtures.Collections.NonGeneric;
+using Spring.TestFixtures.Threading.Collections.Generic;
 using Spring.Threading.AtomicTypes;
 using Spring.Threading.Execution;
+#if !PHASED
+using IQueue = Spring.Collections.IQueue;
+#else
+using IQueue = System.Collections.ICollection;
+#endif
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -23,6 +32,12 @@ namespace Spring.Threading.Collections.Generic
     /// <author>Andreas Döhring (.NET)</author>
     [TestFixture]
     public class PriorityBlockingQueueTest : BaseThreadingTestCase {
+
+        private const CollectionContractOptions _defaultContractOptions =
+            CollectionContractOptions.Unbounded |
+            CollectionContractOptions.NoNull |
+            CollectionContractOptions.ToStringPrintItems |
+            CollectionContractOptions.WeaklyConsistentEnumerator;
 
         private const int SIZE = 4;
         private const int NOCAP = Int32.MaxValue;
@@ -63,7 +78,7 @@ namespace Spring.Threading.Collections.Generic
         /// <summary>
         /// Constructor throws IAE if  capacity argument nonpositive
         /// </summary>
-        [Test, ExpectedException(typeof(ArgumentException))]
+        [Test, ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void TestConstructor2() {
             new PriorityBlockingQueue<int>(0);
         }
@@ -79,7 +94,7 @@ namespace Spring.Threading.Collections.Generic
         /// <summary>
         /// Initializing from Collection of null elements throws NPE
         /// </summary>
-        [Test, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(NullReferenceException))]
         public void TestConstructor4() {
             object[] objects = new object[4];
             new PriorityBlockingQueue<object>(objects);
@@ -88,7 +103,7 @@ namespace Spring.Threading.Collections.Generic
         /// <summary>
         /// Initializing from Collection with some null elements throws NPE
         /// </summary>
-        [Test, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(NullReferenceException))]
         public void TestConstructor5() {
             string[] strings = new string[SIZE];
             for(int i = 0; i < SIZE - 1; ++i)
@@ -119,7 +134,7 @@ namespace Spring.Threading.Collections.Generic
         public void TestConstructor7() {
             MyReverseComparator cmp = new MyReverseComparator();
             PriorityBlockingQueue<int> q = new PriorityBlockingQueue<int>(SIZE, cmp);
-            Assert.That(q.Comparator, Is.EqualTo(cmp));
+            Assert.That(q.Comparer, Is.EqualTo(cmp));
             int[] ints = new int[SIZE];
             for(int i = 0; i < SIZE; ++i)
                 ints[i] = i;
@@ -858,6 +873,115 @@ namespace Spring.Threading.Collections.Generic
                     Assert.That(l[j], Is.EqualTo(j));
                 int item;
                 while(q.Poll(out item)) {}
+            }
+        }
+
+        [TestFixture(typeof(int))]
+        [TestFixture(typeof(string))]
+        [TestFixture(typeof(int), PriorityQueueTestOrdering.Comparer)]
+        [TestFixture(typeof(string), PriorityQueueTestOrdering.Comparer)]
+        [TestFixture(typeof(int), PriorityQueueTestOrdering.Comparison)]
+        [TestFixture(typeof(string), PriorityQueueTestOrdering.Comparison)]
+        public class AsGeneric<T> : BlockingQueueContract<T>
+        {
+            private static readonly int[] _randomSamples = new[] { 8, 2, 3, 6, 2, 4, 9, 0, 9, 4, 1 };
+            private readonly PriorityQueueTestOrdering _order;
+            private ReverseOrder<T> _comparer;
+
+            public AsGeneric()
+                : this(PriorityQueueTestOrdering.None)
+            {
+            }
+
+            public AsGeneric(PriorityQueueTestOrdering order)
+                : base(_defaultContractOptions)
+            {
+                _order = order;
+                switch (_order)
+                {
+                    case PriorityQueueTestOrdering.None:
+                        SampleSize = 150;
+                        break;
+                    case PriorityQueueTestOrdering.Comparison:
+                        SampleSize = _randomSamples.Length;
+                        break;
+                }
+            }
+
+            protected override T[] NewSamples()
+            {
+                if (_order == PriorityQueueTestOrdering.Comparison)
+                {
+                    var samples = new T[_randomSamples.Length];
+                    for (int i = samples.Length - 1; i >= 0; i--)
+                    {
+                        samples[i] = TestData<T>.MakeData(_randomSamples[i]);
+                    }
+                    return samples;
+                }
+                return base.NewSamples();
+            }
+
+            protected override IBlockingQueue<T> NewBlockingQueue()
+            {
+                return NewPriorityBlockingQueue();
+            }
+
+            protected override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
+            {
+                if (_order == PriorityQueueTestOrdering.None)
+                    return new PriorityBlockingQueue<T>(Samples);
+                return base.NewBlockingQueueFilledWithSample();
+            }
+
+            private PriorityBlockingQueue<T> NewPriorityBlockingQueue()
+            {
+                switch (_order)
+                {
+                    case PriorityQueueTestOrdering.Comparer:
+                        _comparer = new ReverseOrder<T>();
+                        return new PriorityBlockingQueue<T>(11, _comparer);
+                    case PriorityQueueTestOrdering.Comparison:
+                        return new PriorityBlockingQueue<T>(11, (x, y) => ((IComparable)y).CompareTo(x));
+                    default:
+                        return new PriorityBlockingQueue<T>();
+                }
+            }
+
+            [Test]
+            public void CapacityIsUnbounded()
+            {
+                var c = NewPriorityBlockingQueue();
+                Assert.That(c.Capacity, Is.EqualTo(int.MaxValue));
+            }
+
+            [Test] public void ComparerReturnsOneGivenInConstructor()
+            {
+                var c = NewPriorityBlockingQueue();
+                switch (_order)
+                {
+                    case PriorityQueueTestOrdering.Comparer:
+                        Assert.That(c.Comparer, Is.SameAs(_comparer));
+                        break;
+                    case PriorityQueueTestOrdering.Comparison:
+                        Assert.That(c.Comparer, Is.Not.Null);
+                        break;
+                    default:
+                        Assert.That(c.Comparer, Is.Null);
+                        break;
+                }
+            }
+        }
+
+        [TestFixture(typeof(int))]
+        [TestFixture(typeof(string))]
+        public class AsNonGeneric<T> : QueueContract
+        {
+            public AsNonGeneric() : base(_defaultContractOptions) {}
+
+            protected override IQueue NewQueue()
+            {
+                return new PriorityBlockingQueue<T>();
             }
         }
     }

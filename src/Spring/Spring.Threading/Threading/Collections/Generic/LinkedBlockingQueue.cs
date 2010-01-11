@@ -653,10 +653,7 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary>
-        /// Does the actual work of copying to array. Subclass is recommended to 
-        /// override this method instead of <see cref="AbstractCollection{T}.CopyTo(T[], int)"/> method, which 
-        /// does all neccessary parameter checking and raises proper exception
-        /// before calling this method.
+        /// Does the actual work of copying to array.
         /// </summary>
         /// <param name="array">
         /// The one-dimensional <see cref="Array"/> that is the 
@@ -666,11 +663,22 @@ namespace Spring.Threading.Collections.Generic {
         /// <param name="arrayIndex">
         /// The zero-based index in array at which copying begins.
         /// </param>
-        protected override void DoCopyTo(T[] array, int arrayIndex) {
+        /// <param name="ensureCapacity">
+        /// If is <c>true</c>, calls <see cref="AbstractCollection{T}.EnsureCapacity"/>
+        /// </param>
+        /// <returns>
+        /// A new array of same runtime type as <paramref name="array"/> if 
+        /// <paramref name="array"/> is too small to hold all elements and 
+        /// <paramref name="ensureCapacity"/> is <c>false</c>. Otherwise
+        /// the <paramref name="array"/> instance itself.
+        /// </returns>
+        protected override T[] DoCopyTo(T[] array, int arrayIndex, bool ensureCapacity) {
             lock(_putLock) {
                 lock(_takeLock) {
-                    for(Node p = _head.Next; p != null; p = p.Next)
+                    if (array == null || ensureCapacity) array = EnsureCapacity(array, Count);
+                    for (Node p = _head.Next; p != null; p = p.Next)
                         array[arrayIndex++] = p.Item;
+                    return array;
                 }
             }
         }
@@ -871,11 +879,23 @@ namespace Spring.Threading.Collections.Generic {
 
         #region IEnumerable Members
 
-        /// <summary>
-        /// Returns an enumerator that can iterate through a collection.
+        /// <summary> 
+        /// Returns an <see cref="IEnumerator{T}"/> over the elements in this 
+        /// queue in proper sequence.
         /// </summary>
-        /// <returns>An IEnumerator that can be used to iterate through the collection.</returns>
-        public override IEnumerator<T> GetEnumerator() {
+        /// <remarks>
+        /// The returned <see cref="IEnumerator{T}"/> is a "weakly consistent" 
+        /// enumerator that will not throw <see cref="InvalidOperationException"/> 
+        /// when the queue is concurrently modified, and guarantees to traverse
+        /// elements as they existed upon construction of the enumerator, and
+        /// may (but is not guaranteed to) reflect any modifications subsequent
+        /// to construction.
+        /// </remarks>
+        /// <returns>
+        /// An enumerator over the elements in this queue in proper sequence.
+        /// </returns>
+        public override IEnumerator<T> GetEnumerator()
+        {
             return new LinkedBlockingQueueEnumerator(this);
         }
 

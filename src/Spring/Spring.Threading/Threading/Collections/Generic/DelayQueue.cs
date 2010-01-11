@@ -1,9 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Threading;
-using Spring.Collections;
 using Spring.Collections.Generic;
 using Spring.Threading.Future;
 using Spring.Utility;
@@ -19,47 +19,52 @@ namespace Spring.Threading.Collections.Generic
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
 	[Serializable]
-    public class DelayQueue<T> : AbstractBlockingQueue<T>, IDeserializationCallback //BACKPORT_2_2 TODO: need to add this back 
+    public class DelayQueue<T> : AbstractBlockingQueue<T>, IDeserializationCallback //BACKPORT_2_2
         where T : IDelayed
     {
         [NonSerialized]
-        private object lockObject = new object();
+        private object _lock = new object();
 
-        private PriorityQueue<T> _queue = new PriorityQueue<T>();
+        private readonly PriorityQueue<T> _queue;
 
         /// <summary>
         /// Creates a new, empty <see cref="DelayQueue{T}"/>
         /// </summary>
-        public DelayQueue() { }
+        public DelayQueue()
+        {
+            _queue = new PriorityQueue<T>();
+        }
 
         /// <summary>
         ///Creates a <see cref="DelayQueue{T}"/> initially containing the elements of the
         ///given collection of <see cref="IDelayed"/> instances.
         /// </summary>
-        /// <param name="collection">collection of elements to populate queue with.</param>
+        /// <param name="source">collection of elements to populate queue with.</param>
         /// <exception cref="ArgumentNullException">If the collection is null.</exception>
         /// <exception cref="NullReferenceException">if any of the elements of the collection are null</exception>
-        public DelayQueue(IEnumerable<T> collection)
+        public DelayQueue(IEnumerable<T> source)
         {
-            AddRange(collection);
+            _queue = new PriorityQueue<T>(source);
         }
 
         /// <summary>
         /// Inserts the specified element into this delay queue.
         /// </summary>
         /// <param name="element">element to add</param>
-        /// <returns><see lang="true"/></returns>
-        /// <exception cref="NullReferenceException">if the specified element is <see lang="null"/></exception>
+        /// <returns>Always <see lang="true"/></returns>
+        /// <exception cref="NullReferenceException">
+        /// If the specified element is <see lang="null"/>.
+        /// </exception>
         public override bool Offer(T element)
         {
-            lock (lockObject)
+            lock (_lock)
             {
                 T first;
                 bool emptyBeforeOffer = !_queue.Peek(out first);
                 _queue.Offer(element);
                 if (emptyBeforeOffer || element.CompareTo(first) < 0)
                 {
-                    Monitor.PulseAll(lockObject);
+                    Monitor.PulseAll(_lock);
                 }
                 return true;
             }
@@ -122,21 +127,21 @@ namespace Spring.Threading.Collections.Generic
         /// <returns> the head of this queue</returns>
         public override T Take()
         {
-            lock (lockObject)
+            lock (_lock)
             {
                 for (; ; )
                 {
                     T first;
                     if (!_queue.Peek(out first))
                     {
-                        Monitor.Wait(lockObject);
+                        Monitor.Wait(_lock);
                     }
                     else
                     {
-                        TimeSpan delay = ((IDelayed)first).GetRemainingDelay();
+                        TimeSpan delay = first.GetRemainingDelay();
                         if (delay.Ticks > 0)
                         {
-                            Monitor.Wait(lockObject, delay);
+                            Monitor.Wait(_lock, delay);
                         }
                         else
                         {
@@ -145,7 +150,7 @@ namespace Spring.Threading.Collections.Generic
                             Debug.Assert(hasOne);
                             if (_queue.Count != 0)
                             {
-                                Monitor.PulseAll(lockObject);
+                                Monitor.PulseAll(_lock);
                             }
                             return x;
                         }
@@ -163,7 +168,7 @@ namespace Spring.Threading.Collections.Generic
         /// </returns>
         public override bool Poll(out T element)
         {
-            lock (lockObject)
+            lock (_lock)
             {
                 T first;
                 if (!_queue.Peek(out first) || first.GetRemainingDelay().Ticks > 0)
@@ -171,47 +176,47 @@ namespace Spring.Threading.Collections.Generic
                     element = default(T);
                     return false;
                 }
-                else
+                T x;
+                bool hasOne = _queue.Poll(out x);
+                Debug.Assert(hasOne);
+                if (_queue.Count != 0)
                 {
-                    T x;
-                    bool hasOne = _queue.Poll(out x);
-                    Debug.Assert(hasOne);
-                    if (_queue.Count != 0)
-                    {
-                        Monitor.PulseAll(lockObject);
-                    }
-                    element = x;
-                    return true;
+                    Monitor.PulseAll(_lock);
                 }
+                element = x;
+                return true;
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public override bool Peek(out T element)
+
+	    /// <summary>
+	    /// Retrieves, but does not remove, the head of this queue into out
+	    /// parameter <paramref name="element"/>.
+	    /// </summary>
+	    /// <param name="element">
+	    /// The head of this queue. <c>default(T)</c> if queue is empty.
+	    /// </param>
+	    /// <returns>
+	    /// <c>false</c> is the queue is empty. Otherwise <c>true</c>.
+	    /// </returns>
+	    public override bool Peek(out T element)
         {
-            lock (lockObject)
+            lock (_lock)
             {
                 T first;
-                if (!_queue.Peek(out first) || ((IDelayed)first).GetRemainingDelay().Ticks > 0)
+                if (!_queue.Peek(out first) || first.GetRemainingDelay().Ticks > 0)
                 {
                     element = default(T);
                     return false;
                 }
-                else
+                T x;
+                bool hasOne = _queue.Peek(out x);
+                Debug.Assert(hasOne);
+                if (_queue.Count != 0)
                 {
-                    T x;
-                    bool hasOne = _queue.Peek(out x);
-                    Debug.Assert(hasOne);
-                    if (_queue.Count != 0)
-                    {
-                        Monitor.PulseAll(lockObject);
-                    }
-                    element = x;
-                    return true;
+                    Monitor.PulseAll(_lock);
                 }
+                element = x;
+                return true;
             }
         }
         /// <summary> 
@@ -227,7 +232,7 @@ namespace Spring.Threading.Collections.Generic
         /// </returns>
         public override bool Poll(TimeSpan duration, out T element)
         {
-            lock (lockObject)
+            lock (_lock)
             {
                 DateTime deadline = WaitTime.Deadline(duration);
                 for (; ; )
@@ -240,22 +245,24 @@ namespace Spring.Threading.Collections.Generic
                             element = default(T);
                             return false;
                         }
-                        else
-                        {
-                            Monitor.Wait(lockObject, WaitTime.Cap(duration));
-                            duration = deadline.Subtract(DateTime.UtcNow);
-                        }
+                        Monitor.Wait(_lock, WaitTime.Cap(duration));
+                        duration = deadline.Subtract(DateTime.UtcNow);
                     }
                     else
                     {
                         TimeSpan delay = first.GetRemainingDelay();
                         if (delay.Ticks > 0)
                         {
+                            if (duration.Ticks <= 0)
+                            {
+                                element = default(T);
+                                return false;
+                            }
                             if (delay > duration)
                             {
                                 delay = duration;
                             }
-                            Monitor.Wait(lockObject, WaitTime.Cap(delay));
+                            Monitor.Wait(_lock, WaitTime.Cap(delay));
                             duration = deadline.Subtract(DateTime.UtcNow);
                         }
                         else
@@ -265,7 +272,7 @@ namespace Spring.Threading.Collections.Generic
                             Debug.Assert(hasOne);
                             if (_queue.Count != 0)
                             {
-                                Monitor.PulseAll(lockObject);
+                                Monitor.PulseAll(_lock);
                             }
                             element = x;
                             return true;
@@ -278,16 +285,10 @@ namespace Spring.Threading.Collections.Generic
         /// <summary> 
         /// Returns the number of additional elements that this queue can ideally
         /// (in the absence of memory or resource constraints) accept without
-        /// blocking, or <see cref="System.Int32.MaxValue"/> if there is no intrinsic
-        /// limit.
-        /// 
-        /// <p/>
-        /// Note that you <b>cannot</b> always tell if an attempt to insert
-        /// an element will succeed by inspecting <see cref="IQueue{T}.RemainingCapacity"/>
-        /// because it may be the case that another thread is about to
-        /// insert or remove an element.
+        /// blocking. <see cref="DelayQueue{T}"/> is unbounded so this always
+        /// return <see cref="int.MaxValue"/>.
         /// </summary>
-        /// <returns> the remaining capacity</returns>
+        /// <returns><see cref="int.MaxValue"/></returns>
         public override int RemainingCapacity
         {
             get { return Int32.MaxValue; }
@@ -304,12 +305,12 @@ namespace Spring.Threading.Collections.Generic
 	    /// <seealso cref="IQueue{T}.Drain(System.Action{T}, int, Predicate{T})"/>
 	    internal protected override int DoDrain(Action<T> action, int maxElements, Predicate<T> criteria)
         {
-            lock (lockObject)
+            lock (_lock)
             {
-                int n = _queue.Drain(action, maxElements, criteria, (e => ((IDelayed)e).GetRemainingDelay().Ticks > 0) );
+                int n = _queue.Drain(action, maxElements, criteria, (e => e.GetRemainingDelay().Ticks > 0) );
                 if (n > 0)
                 {
-                    Monitor.PulseAll(lockObject);
+                    Monitor.PulseAll(_lock);
                 }
                 return n;
             }
@@ -327,48 +328,74 @@ namespace Spring.Threading.Collections.Generic
         {
             get
             {
-                lock (lockObject)
+                lock (_lock)
                 {
                     return _queue.Count;
                 }
             }
         }
-        /// <summary>
-        /// Returns <see lang="true"/> if there are no elements in the <see cref="IQueue{T}"/>, <see lang="false"/> otherwise.
+
+        /// <summary> 
+        /// Returns an enumerator over all the elements (both expired and
+        /// unexpired) in this queue. The enumerator does not return the
+        /// elements in any particular order.
         /// </summary>
-        public override bool IsEmpty
-        {
-            get { return _queue.Count == 0; }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-	    public override IEnumerator<T> GetEnumerator()
+        /// <remarks>
+        /// The returned <see cref="IEnumerator{T}"/> is a "weakly consistent" 
+        /// enumerator that will not throw <see cref="InvalidOperationException"/> 
+        /// when the queue is concurrently modified, and guarantees to traverse
+        /// elements as they existed upon construction of the enumerator, and
+        /// may (but is not guaranteed to) reflect any modifications subsequent
+        /// to construction.
+        /// </remarks>
+        /// <returns>
+        /// An enumerator over the elements in this queue.
+        /// </returns>
+        public override IEnumerator<T> GetEnumerator()
 	    {
-	        return _queue.GetEnumerator();
+	        return new ToArrayEnumerator<T>(_queue);
 	    }
 
 	    /// <summary>
         /// When implemented by a class, copies the elements of the ICollection to an Array, starting at a particular Array index.
         /// </summary>
-        /// <param name="targetArray">The one-dimensional Array that is the destination of the elements copied from ICollection. The Array must have zero-based indexing.</param>
+        /// <param name="array">The one-dimensional Array that is the destination of the elements copied from ICollection. The Array must have zero-based indexing.</param>
         /// <param name="index">The zero-based index in array at which copying begins. </param>
-        protected override void CopyTo(Array targetArray, Int32 index)
+        protected override void CopyTo(Array array, int index)
         {
-            if (null == targetArray) throw new ArgumentNullException("targetArray", "destination array is null");
-            lock (lockObject)
+            lock (_lock)
             {
-                int size = _queue.Count;
-                if (targetArray.Length < size)
-                {
-                    targetArray = Array.CreateInstance(targetArray.GetType().GetElementType(), size);
-                }
-                int k = 0;
-                foreach (T currentItem in _queue)
-                {
-                    targetArray.SetValue(currentItem, k++);
-                }
+                ((ICollection)_queue).CopyTo(array, index);
+            }
+        }
+
+	    /// <summary>
+	    /// Does the actual work of copying to array.
+	    /// </summary>
+	    /// <param name="array">
+	    /// The one-dimensional <see cref="Array"/> that is the 
+	    /// destination of the elements copied from <see cref="ICollection{T}"/>. 
+	    /// The <see cref="Array"/> must have zero-based indexing.
+	    /// </param>
+	    /// <param name="arrayIndex">
+	    /// The zero-based index in array at which copying begins.
+	    /// </param>
+	    /// <param name="ensureCapacity">
+	    /// If is <c>true</c>, calls <see cref="AbstractCollection{T}.EnsureCapacity"/>
+	    /// </param>
+	    /// <returns>
+	    /// A new array of same runtime type as <paramref name="array"/> if 
+	    /// <paramref name="array"/> is too small to hold all elements and 
+	    /// <paramref name="ensureCapacity"/> is <c>false</c>. Otherwise
+	    /// the <paramref name="array"/> instance itself.
+	    /// </returns>
+	    protected override T[] DoCopyTo(T[] array, int arrayIndex, bool ensureCapacity)
+        {
+            lock (_lock)
+            {
+                if (array == null || ensureCapacity) array = EnsureCapacity(array, Count);
+                _queue.CopyTo(array, arrayIndex);
+                return array;
             }
         }
 
@@ -378,18 +405,13 @@ namespace Spring.Threading.Collections.Generic
         /// Removes all of the elements from this queue.
         /// </summary>
         /// <remarks>
-        /// <p>
+        /// <para>
         /// The queue will be empty after this call returns.
-        /// </p>
-        /// <p>
-        /// This implementation repeatedly invokes
-        /// <see cref="AbstractQueue{T}.Poll"/> until it
-        /// returns <see lang="null"/>.
-        /// </p>
+        /// </para>
         /// </remarks>
         public override void Clear()
         {
-            lock (lockObject)
+            lock (_lock)
             {
                 _queue.Clear();
             }
@@ -402,7 +424,7 @@ namespace Spring.Threading.Collections.Generic
         /// <param name="element">element to remove</param>
         /// <returns><see lang="true"/> if element was remove, <see lang="false"/> if not.</returns>
         public override bool Remove(T element) {
-            lock (lockObject)
+            lock (_lock)
             {
                 return _queue.Remove(element);
             }
@@ -412,7 +434,7 @@ namespace Spring.Threading.Collections.Generic
 
         void IDeserializationCallback.OnDeserialization(object sender)
         {
-            lockObject = new object();
+            _lock = new object();
         }
 
         #endregion

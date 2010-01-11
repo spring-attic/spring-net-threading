@@ -94,6 +94,7 @@
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CommonAssemblyInfo.cs" />
     <Compile Include="System\Threading\Tasks\ParallelLoopResult.cs" />
+    <Compile Include="Threading\Collections\Generic\ToArrayEnumerator.cs" />
     <Compile Include="Threading\Execution\ILoopResult.cs" />
     <Compile Include="Threading\Execution\ILoopState.cs" />
     <Compile Include="System\Threading\Tasks\Parallel.cs" />

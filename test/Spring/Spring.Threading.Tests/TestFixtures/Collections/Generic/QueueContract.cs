@@ -422,7 +422,7 @@ namespace Spring.TestFixtures.Collections.Generic
             }
         }
 
-        private static IEnumerable<T> PollAll(IQueue<T> queue)
+        protected static IEnumerable<T> PollAll(IQueue<T> queue)
         {
             T result;
             while (queue.Poll(out result)) yield return result;

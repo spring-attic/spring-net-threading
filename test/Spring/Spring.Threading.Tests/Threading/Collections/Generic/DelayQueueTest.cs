@@ -22,10 +22,17 @@ using System;
 using System.ComponentModel;
 using NUnit.CommonFixtures;
 using NUnit.CommonFixtures.Collections;
+using NUnit.CommonFixtures.Threading;
 using NUnit.Framework;
+using Spring.TestFixtures.Collections.NonGeneric;
 using Spring.TestFixtures.Threading.Collections.Generic;
 using Spring.Threading.Collections.Generic;
 using Spring.Threading.Future;
+#if !PHASED
+using IQueue = Spring.Collections.IQueue;
+#else
+using IQueue = System.Collections.ICollection;
+#endif
 
 namespace Spring.Threading.Collections.Generic
 {
@@ -33,25 +40,163 @@ namespace Spring.Threading.Collections.Generic
     /// Class DelayQueueTest
     /// </summary>
     /// <author>Kenneth Xu</author>
-    //[TestFixture] 
-    public class DelayQueueTest<T> where T : IDelayed
+    [TestFixture(typeof(MillisDelayStruct))]
+    [TestFixture(typeof(MillisDelayClass))]
+    public class DelayQueueTest<T>
+        where T : IDelayed, new()
     {
-        [TestFixture(typeof(DelayedStruct))]
-        [TestFixture(typeof(DelayedClass))]
+        private const CollectionContractOptions _defaultContractOptions = 
+            CollectionContractOptions.Unbounded | 
+            CollectionContractOptions.NoNull |
+            CollectionContractOptions.WeaklyConsistentEnumerator;
+
+        private const int DEFAULT_COLLECTION_SIZE = 20;
+
+        static DelayQueueTest()
+            {
+                MillisDelayClass.Load();
+                MillisDelayStruct.Load();
+            }
+
+        [Test] public void CapacityAlwaysReturnMaxInt32Value()
+        {
+            Assert.That(new DelayQueue<T>().Capacity, Is.EqualTo(int.MaxValue));
+        }
+
+        [Test] public void ConstructorChokesOnNullSource()
+        {
+            var e = Assert.Catch<ArgumentNullException>(() => new DelayQueue<T>(null));
+            Assert.That(e.ParamName, Is.EqualTo("source"));
+        }
+
+        [Test] public void ConstructorChokesOnNullElementInSource()
+        {
+            if(typeof(T).IsValueType) Assert.Pass("Value type can never be null.");
+            const int size = 10;
+            T[] source = new T[size];
+            Assert.Catch<NullReferenceException>(() => new DelayQueue<T>(source));
+            for (int i = 0; i < size-1; i++)
+            {
+                source[i] = new T();
+            }
+            Assert.Catch<NullReferenceException>(() => new DelayQueue<T>(source));
+        }
+
+        [Test] public void ConstructorPopulatesQueueWithSource()
+        {
+            const int size = 10;
+            T[] source = new T[size];
+            for (int i = size - 1; i >= 0; i--)
+            {
+                source[size - 1 - i] = TestData<T>.MakeData((i-size)*100);
+            }
+
+            var q = new DelayQueue<T>(source);
+
+            for (int i = size - 1; i >= 0; i--)
+            {
+                T delay;
+                Assert.IsTrue(q.Poll(out delay));
+                Assert.That(delay, Is.EqualTo(source[i]));
+            }
+        }
+
+        [Test] public void TakeReturnsWhenDelayExpires()
+        {
+            DelayQueue<T> q = new DelayQueue<T>();
+            T[] elements = new T[DEFAULT_COLLECTION_SIZE];
+            for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
+            {
+                elements[i] = TestData<T>.MakeData(DEFAULT_COLLECTION_SIZE - i);
+            }
+            for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
+            {
+                q.Add(elements[i]);
+            }
+
+            DateTime last = DateTime.MinValue;
+            for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
+            {
+                IMillesDelayed e = (IMillesDelayed)(q.Take());
+                DateTime tt = e.TriggerTime;
+                Assert.That(tt, Is.LessThanOrEqualTo(DateTime.UtcNow));
+                if (i != 0)
+                {
+                    Assert.That(tt, Is.GreaterThanOrEqualTo(last));
+                }
+                last = tt;
+            }
+        }
+
+        [Test] public void PeekReturnsFalseWhenDelayed()
+        {
+            var q = new DelayQueue<T> {TestData<T>.MakeData(Delays.LongMillis)};
+            T nd;
+            Assert.IsFalse(q.Peek(out nd));
+        }
+
+        [Test] public void PollReturnsFalesWhenDelayed()
+        {
+            var q = new DelayQueue<T> {TestData<T>.MakeData(Delays.LongMillis)};
+            T nd;
+            Assert.IsFalse(q.Poll(out nd));
+        }
+
+        [Test, Timeout(Delays.MediumMillis)] 
+        public void TimedPollReturnsTrueWhenDelayExpired()
+        {
+            var q = new DelayQueue<T> { TestData<T>.MakeData(Delays.ShortMillis) };
+            T nd;
+            Assert.IsFalse(q.Poll(out nd));
+            Assert.IsTrue(q.Poll(Delays.Small, out nd));
+        }
+
+        [Test, Timeout(Delays.MediumMillis)]
+        public void TimedPollReturnsFalseBeforeDelayExpires()
+        {
+            var q = new DelayQueue<T> { TestData<T>.MakeData(Delays.SmallMillis) };
+            T nd;
+            Assert.IsFalse(q.Poll(Delays.Short, out nd));
+        }
+
+
+        [TestFixture(typeof(PseudoDelayStruct))]
+        [TestFixture(typeof(PseudoDelayClass))]
         public class AsGeneric : BlockingQueueContract<T>
         {
+
             static AsGeneric()
             {
-                DelayedClass.Load();
-                DelayedStruct.Load();
+                PseudoDelayClass.Load();
+                PseudoDelayStruct.Load();
             }
 
-            public AsGeneric()
-                : base(CollectionContractOptions.Unbounded | CollectionContractOptions.NoNull)
-            {
-            }
+            public AsGeneric() : base(_defaultContractOptions) {}
 
             protected override IBlockingQueue<T> NewBlockingQueue()
+            {
+                return new DelayQueue<T>();
+            }
+
+            protected override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
+            {
+                return new DelayQueue<T>(Samples);
+            }
+        }
+
+        [TestFixture(typeof(PseudoDelayStruct))]
+        [TestFixture(typeof(PseudoDelayClass))]
+        public class AsNonGeneric : TypedQueueContract<T>
+        {
+            static AsNonGeneric()
+            {
+                PseudoDelayClass.Load();
+                PseudoDelayStruct.Load();
+            }
+
+            public AsNonGeneric() : base(_defaultContractOptions) {}
+
+            protected override IQueue NewQueue()
             {
                 return new DelayQueue<T>();
             }
@@ -59,11 +204,11 @@ namespace Spring.Threading.Collections.Generic
     }
 
     [Serializable]
-    public struct DelayedStruct : IDelayed
+    public struct PseudoDelayStruct : IDelayed
     {
-        static DelayedStruct()
+        static PseudoDelayStruct()
         {
-            TestDataGenerator.RegisterConverter(i => new DelayedStruct(i));
+            TestDataGenerator.RegisterConverter(i => new PseudoDelayStruct(i));
         }
 
         public static void Load()
@@ -72,13 +217,13 @@ namespace Spring.Threading.Collections.Generic
 
         private readonly int _delay;
 
-        public DelayedStruct(int delay)
+        public PseudoDelayStruct(int delay)
         {
             _delay = delay;
         }
         public int CompareTo(IDelayed other)
         {
-            return (GetRemainingDelay() - other.GetRemainingDelay()).Seconds;
+            return (GetRemainingDelay() - other.GetRemainingDelay()).Milliseconds;
         }
 
         public int CompareTo(object obj)
@@ -90,7 +235,7 @@ namespace Spring.Threading.Collections.Generic
         {
             // delay less than 1000 are expired. Hence delay queue behaves as 
             // normal queue for all test samples used in QueueContract.
-            return TimeSpan.FromSeconds(_delay - 1000);
+            return TimeSpan.FromMilliseconds(_delay - 1000);
         }
 
         public override string ToString()
@@ -100,11 +245,11 @@ namespace Spring.Threading.Collections.Generic
     }
 
     [Serializable]
-    public class DelayedClass : IDelayed
+    public class PseudoDelayClass : IDelayed
     {
-        static DelayedClass()
+        static PseudoDelayClass()
         {
-            TestDataGenerator.RegisterConverter(i => new DelayedClass(i));
+            TestDataGenerator.RegisterConverter(i => new PseudoDelayClass(i));
         }
 
         public static void Load()
@@ -113,13 +258,17 @@ namespace Spring.Threading.Collections.Generic
 
         private readonly int _delay;
 
-        public DelayedClass(int delay)
+        public PseudoDelayClass()
+        {
+        }
+
+        public PseudoDelayClass(int delay)
         {
             _delay = delay;
         }
         public int CompareTo(IDelayed other)
         {
-            return (GetRemainingDelay() - other.GetRemainingDelay()).Seconds;
+            return (GetRemainingDelay() - other.GetRemainingDelay()).Milliseconds;
         }
 
         public int CompareTo(object obj)
@@ -131,10 +280,10 @@ namespace Spring.Threading.Collections.Generic
         {
             // delay less than 1000 are expired. Hence delay queue behaves as 
             // normal queue for all test samples used in QueueContract.
-            return TimeSpan.FromSeconds(_delay - 1000);
+            return TimeSpan.FromMilliseconds(_delay - 1000);
         }
 
-        public bool Equals(DelayedClass other)
+        public bool Equals(PseudoDelayClass other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -145,8 +294,8 @@ namespace Spring.Threading.Collections.Generic
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != typeof(DelayedClass)) return false;
-            return Equals((DelayedClass)obj);
+            if (obj.GetType() != typeof(PseudoDelayClass)) return false;
+            return Equals((PseudoDelayClass)obj);
         }
 
         public override int GetHashCode()
@@ -157,6 +306,125 @@ namespace Spring.Threading.Collections.Generic
         public override string ToString()
         {
             return (_delay - 1000).ToString();
+        }
+    }
+
+    public interface IMillesDelayed : IDelayed
+    {
+        DateTime TriggerTime { get; }
+    }
+
+    [Serializable]
+    public struct MillisDelayStruct : IMillesDelayed
+    {
+        static MillisDelayStruct()
+        {
+            TestDataGenerator.RegisterConverter(i => new MillisDelayStruct(i));
+        }
+
+        public static void Load()
+        {
+        }
+
+        private readonly DateTime _trigger;
+
+        public DateTime TriggerTime
+        {
+            get { return _trigger; }
+        }
+
+        public MillisDelayStruct(int delay)
+        {
+            _trigger = DateTime.UtcNow.AddMilliseconds(delay);
+        }
+
+        public int CompareTo(IDelayed other)
+        {
+            return (GetRemainingDelay() - other.GetRemainingDelay()).Milliseconds;
+        }
+
+        public int CompareTo(object obj)
+        {
+            return CompareTo((IDelayed)obj);
+        }
+
+        public TimeSpan GetRemainingDelay()
+        {
+            return _trigger - DateTime.UtcNow;
+        }
+
+        public override string ToString()
+        {
+            return _trigger.TimeOfDay.ToString();
+        }
+    }
+
+    [Serializable]
+    public class MillisDelayClass : IMillesDelayed
+    {
+        static MillisDelayClass()
+        {
+            TestDataGenerator.RegisterConverter(i => new MillisDelayClass(i));
+        }
+
+        public static void Load()
+        {
+        }
+
+        private readonly DateTime _trigger;
+
+        public DateTime TriggerTime
+        {
+            get { return _trigger; }
+        }
+
+        public MillisDelayClass()
+        {
+        }
+
+        public MillisDelayClass(int delay)
+        {
+            _trigger = DateTime.UtcNow.AddMilliseconds(delay);
+        }
+
+        public int CompareTo(IDelayed other)
+        {
+            return (GetRemainingDelay() - other.GetRemainingDelay()).Milliseconds;
+        }
+
+        public int CompareTo(object obj)
+        {
+            return CompareTo((IDelayed)obj);
+        }
+
+        public TimeSpan GetRemainingDelay()
+        {
+            return _trigger - DateTime.UtcNow;
+        }
+
+        public bool Equals(MillisDelayClass other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return other._trigger == _trigger;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != typeof(MillisDelayClass)) return false;
+            return Equals((MillisDelayClass)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return _trigger.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return _trigger.TimeOfDay.ToString();
         }
     }
 }

@@ -495,19 +495,21 @@ namespace Spring.Collections.Generic
 	        return targetArray;
 	    }
 
-		/// <summary> 
-		/// Returns an <see cref="IEnumerator{T}"/> over the elements in this 
-		/// queue in proper sequence.
-		/// </summary>
-		/// <remarks>
-		/// The returned <see cref="IEnumerator{T}"/> is a "weakly consistent" 
-		/// iterator guarantees to traverse elements as they existed upon
-		/// construction of the iterator, and may (but is not guaranteed to)
-		/// reflect any modifications subsequent to construction.
-		/// </remarks>
-		/// <returns>
-		/// An iterator over the elements in this queue in proper sequence.
-		/// </returns>
+        /// <summary> 
+        /// Returns an <see cref="IEnumerator{T}"/> over the elements in this 
+        /// queue in proper sequence.
+        /// </summary>
+        /// <remarks>
+        /// The returned <see cref="IEnumerator{T}"/> is a "weakly consistent" 
+        /// enumerator that will not throw <see cref="InvalidOperationException"/> 
+        /// when the queue is concurrently modified, and guarantees to traverse
+        /// elements as they existed upon construction of the enumerator, and
+        /// may (but is not guaranteed to) reflect any modifications subsequent
+        /// to construction.
+        /// </remarks>
+        /// <returns>
+        /// An enumerator over the elements in this queue in proper sequence.
+        /// </returns>
         public override IEnumerator<T> GetEnumerator()
 		{
 		    return new ArrayQueueEnumerator(this);

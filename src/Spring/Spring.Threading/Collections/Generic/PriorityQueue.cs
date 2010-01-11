@@ -782,9 +782,20 @@ namespace Spring.Collections.Generic
         /// <param name="arrayIndex">
         /// The zero-based index in array at which copying begins.
         /// </param>
-        protected override void DoCopyTo(T[] array, int arrayIndex)
+        /// <param name="ensureCapacity">
+        /// If is <c>true</c>, calls <see cref="AbstractCollection{T}.EnsureCapacity"/>
+        /// </param>
+        /// <returns>
+        /// A new array of same runtime type as <paramref name="array"/> if 
+        /// <paramref name="array"/> is too small to hold all elements and 
+        /// <paramref name="ensureCapacity"/> is <c>false</c>. Otherwise
+        /// the <paramref name="array"/> instance itself.
+        /// </returns>
+        protected override T[] DoCopyTo(T[] array, int arrayIndex, bool ensureCapacity)
         {
+            if (array == null || ensureCapacity) array = EnsureCapacity(array, Count);
             Array.Copy(_queue, 0, array, arrayIndex, _size);
+            return array;
         }
 
         #endregion

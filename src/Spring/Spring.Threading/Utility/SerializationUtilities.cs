@@ -7,10 +7,8 @@ namespace Spring.Utility
 	/// <summary>
 	/// Collection of static methods that aid in serialization.
 	/// </summary>
-	public class SerializationUtilities //NET_ONLY
+	public static class SerializationUtilities //NET_ONLY
 	{
-		private SerializationUtilities() {}
-
 		/// <summary>
 		/// Writes the serializable fields to the SerializationInfo object, which stores all the data needed to serialize the specified object object.
 		/// </summary>

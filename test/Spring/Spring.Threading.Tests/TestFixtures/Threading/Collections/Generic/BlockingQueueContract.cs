@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using NUnit.CommonFixtures;
 using NUnit.CommonFixtures.Collections;
@@ -299,7 +300,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
             ThreadManager.JoinAndVerify(t);
         }
 
-        [Test] public virtual void TimedPoolWithZeroTimeoutSucceedsWhenNonEmptyElseTimesOut()
+        [Test] public virtual void TimedPollWithZeroTimeoutSucceedsWhenNonEmptyElseTimesOut()
         {
             var q = NewBlockingQueueFilledWithSample();
             // run it in a separate thread so test won't hang due to bad queue implementation.
@@ -318,7 +319,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
             ThreadManager.JoinAndVerify(t);
         }
 
-        [Test] public virtual void TimedPoolWithNonZeroTimeoutSucceedsWhenNonEmptyElseTimesOut() {
+        [Test] public virtual void TimedPollWithNonZeroTimeoutSucceedsWhenNonEmptyElseTimesOut() {
             var q = NewBlockingQueueFilledWithSample();
             // run it in a separate thread so test won't hang due to bad queue implementation.
             Thread t = ThreadManager.StartAndAssertRegistered(
@@ -402,15 +403,21 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
         }
 
         [Test] public virtual void DrainToEmptiesQueueIntoAnotherCollection() {
+            var expected = PollAll(NewBlockingQueueFilledWithSample()).ToArray();
             var q = NewBlockingQueueFilledWithSample();
             List<T> l = new List<T>();
             q.DrainTo(l);
             Assert.AreEqual(q.Count, 0);
             Assert.AreEqual(l.Count, SampleSize);
             for (int i = 0; i < SampleSize; ++i)
-                Assert.AreEqual(l[i], TestData<T>.MakeData(i));
+                Assert.AreEqual(l[i], expected[i]);
             int count = Math.Min(2, SampleSize);
-            for (int i = 0; i < count; i++) q.Add(Samples[i]);
+            expected = new T[count];
+            for (int i = 0; i < count; i++)
+            {
+                expected[i] = Samples[i];
+                q.Add(expected[i]);
+            }
             Assert.AreEqual(count, q.Count);
             for (int i = 0; i < count; i++) Assert.IsTrue(q.Contains(Samples[i]));
             l.Clear();
@@ -418,35 +425,38 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
             Assert.AreEqual(0, q.Count);
             Assert.AreEqual(count, l.Count);
             for (int i = 0; i < count; ++i)
-                Assert.AreEqual(l[i], TestData<T>.MakeData(i));
+                Assert.IsTrue(expected.Contains(l[i]));
         }
 
         [Test] public virtual void DrainToEmptiesFullQueueAndUnblocksWaitingPut() {
+            var expected = PollAll(NewBlockingQueueFilledWithSample()).ToArray();
             var q = NewBlockingQueueFilledWithSample();
-            Thread t = ThreadManager.StartAndAssertRegistered(
-                "T1", () => q.Put(TestData<T>.MakeData(SampleSize + 1)));
+            T toPut = TestData<T>.MakeData(SampleSize + 1);
+            Thread t = ThreadManager.StartAndAssertRegistered("T1", () => q.Put(toPut));
             List<T> l = new List<T>();
             q.DrainTo(l);
             Assert.IsTrue(l.Count >= SampleSize);
+            l.Remove(toPut);
             for (int i = 0; i < SampleSize; ++i)
-                Assert.AreEqual(l[i], TestData<T>.MakeData(i));
+                Assert.AreEqual(l[i], expected[i]);
             ThreadManager.JoinAndVerify(t);
             Assert.IsTrue(q.Count + l.Count >= SampleSize);
         }
 
         [Test] public virtual void LimitedDrainToEmptiesFirstNElementsIntoCollection() {
+            var expected = PollAll(NewBlockingQueueFilledWithSample()).ToArray();
             var q = NewBlockingQueue();
             for (int i = 0; i < SampleSize + 2; ++i)
             {
                 for(int j = 0; j < SampleSize; j++)
-                    Assert.IsTrue(q.Offer(TestData<T>.MakeData(j)));
+                    Assert.IsTrue(q.Offer(Samples[j]));
                 List<T> l = new List<T>();
                 q.DrainTo(l, i);
                 int k = (i < SampleSize)? i : SampleSize;
                 Assert.AreEqual(l.Count, k);
                 Assert.AreEqual(q.Count, SampleSize-k);
                 for (int j = 0; j < k; ++j)
-                    Assert.AreEqual(l[j], TestData<T>.MakeData(j));
+                    Assert.AreEqual(l[j], expected[j]);
                 T v;
                 while (q.Poll(out v)) {}
             }
@@ -454,14 +464,15 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void SelectiveDrainToMovesSelectedElementsIntoCollection()
         {
+            var expected = PollAll(NewBlockingQueueFilledWithSample()).Where(e=>e.GetHashCode()%2==0).ToArray();
             var q = NewBlockingQueueFilledWithSample();
             List<T> l = new List<T>();
             q.DrainTo(l, e=>e.GetHashCode()%2==0);
-            Assert.That(l.Count, Is.LessThanOrEqualTo((SampleSize + 1) / 2));
-            Assert.That(q.Count, Is.LessThanOrEqualTo((SampleSize + 1) / 2));
+            Assert.That(l.Count, Is.EqualTo(expected.Length));
+            Assert.That(q.Count, Is.LessThanOrEqualTo(SampleSize - expected.Length));
             Assert.AreEqual(SampleSize, q.Count + l.Count);
             for (int i = 0; i < l.Count; i++)
-                Assert.AreEqual(l[i], TestData<T>.MakeData(i*2));
+                Assert.AreEqual(l[i], expected[i]);
         }
 
         [Test] public virtual void OfferTransfersElementsAcrossThreads()
