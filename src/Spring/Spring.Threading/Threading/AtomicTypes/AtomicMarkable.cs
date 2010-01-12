@@ -137,7 +137,7 @@ namespace Spring.Threading.AtomicTypes
         /// The new value for the mark
         /// </param>
         /// <returns> 
-        /// <see lang="true"/> if successful, <see lang="false"/> otherwise
+        /// <c>true</c> if successful, <c>false</c> otherwise
         /// </returns>
         public virtual bool WeakCompareAndSet(T expectedValue, T newValue, bool expectedMark, bool newMark) {
             ValueBooleanPair current = Pair;
@@ -164,7 +164,7 @@ namespace Spring.Threading.AtomicTypes
         /// The new value for the mark
         /// </param>
         /// <returns> 
-        /// <see lang="true"/> if successful, <see lang="false"/> otherwise
+        /// <c>true</c> if successful, <c>false</c> otherwise
         /// </returns>
         public bool CompareAndSet(T expectedValue, T newValue, bool expectedMark, bool newMark) {
             ValueBooleanPair current = Pair;
@@ -204,7 +204,7 @@ namespace Spring.Threading.AtomicTypes
         /// The new value for the mark
         /// </param>
         /// <returns> 
-        /// <see lang="true"/> if successful, <see lang="false"/> otherwise
+        /// <c>true</c> if successful, <c>false</c> otherwise
         /// </returns>
         public bool AttemptMark(T expectedValue, bool newMark) {
             ValueBooleanPair current = Pair;

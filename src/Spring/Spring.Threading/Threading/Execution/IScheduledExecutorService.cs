@@ -37,7 +37,7 @@ namespace Spring.Threading.Execution
 		/// <param name="delay">the <see cref="System.TimeSpan"/> from now to delay execution.</param>
 		/// <returns> 
 		/// a <see cref="IScheduledFuture{T}"/> representing pending completion of the task,
-		/// and whose <see cref="IFuture{T}.GetResult()"/> method will return <see lang="null"/>
+		/// and whose <see cref="IFuture{T}.GetResult()"/> method will return <c>null</c>
 		/// upon completion.
 		/// </returns>
 		IScheduledFuture<Void> Schedule(IRunnable command, TimeSpan delay);

@@ -24,7 +24,7 @@ using System.Threading;
 
 namespace Spring.Threading.AtomicTypes
 {
-    /// <summary> A <see lang="int"/> array in which elements may be updated atomically.
+    /// <summary> A <see cref="int"/> array in which elements may be updated atomically.
     /// <p/>
     /// Based on the on the back port of JCP JSR-166.
     /// </summary>

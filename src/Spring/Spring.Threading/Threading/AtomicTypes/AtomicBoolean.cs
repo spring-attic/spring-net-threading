@@ -24,8 +24,8 @@ using System.Threading;
 namespace Spring.Threading.AtomicTypes
 {
     /// <summary>
-    /// A <see lang="bool"/> value that may be updated atomically. An <see cref="AtomicBoolean"/> 
-    /// is used for instances of atomically updated flags, and cannot be used as a replacement for a <see lang="bool"/> value.
+    /// A <see cref="bool"/> value that may be updated atomically. An <see cref="AtomicBoolean"/> 
+    /// is used for instances of atomically updated flags, and cannot be used as a replacement for a <see cref="bool"/> value.
     /// <p/>
     /// Based on the on the back port of JCP JSR-166.
     /// </summary>
@@ -37,7 +37,7 @@ namespace Spring.Threading.AtomicTypes
     public class AtomicBoolean : IAtomic<bool>  //JDK_1_6
     {
         /// <summary>
-        /// Holds a <see lang="Int32"/> representation of the flag value.
+        /// Holds a <see cref="Int32"/> representation of the flag value.
         /// </summary>
         private volatile int _booleanValue;
 
@@ -52,7 +52,7 @@ namespace Spring.Threading.AtomicTypes
         }
 
         /// <summary> 
-        /// Creates a new <see cref="AtomicBoolean"/> with initial value of <see lang="false"/>.
+        /// Creates a new <see cref="AtomicBoolean"/> with initial value of <c>false</c>.
         /// </summary>
         public AtomicBoolean()
             : this(false) {
@@ -77,7 +77,7 @@ namespace Spring.Threading.AtomicTypes
         /// The new value to use of the current value equals the expected value.
         /// </param>
         /// <returns> 
-        /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
+        /// <c>true</c> if the current value equaled the expected value, <c>false</c> otherwise.
         /// </returns>
         public bool CompareAndSet(bool expectedValue, bool newValue) {
             int e = expectedValue ? 1 : 0;
@@ -97,7 +97,7 @@ namespace Spring.Threading.AtomicTypes
         /// The new value to use of the current value equals the expected value.
         /// </param>
         /// <returns>
-        /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
+        /// <c>true</c> if the current value equaled the expected value, <c>false</c> otherwise.
         /// </returns>
         public virtual bool WeakCompareAndSet(bool expectedValue, bool newValue) {
             return CompareAndSet(expectedValue, newValue);

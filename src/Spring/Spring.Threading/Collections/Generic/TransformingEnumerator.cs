@@ -40,8 +40,8 @@ namespace Spring.Collections.Generic
     /// <author>Kenneth Xu</author>
     public class TransformingEnumerator<TSource, TTarget> : AbstractEnumerator<TTarget>
     {
-        private readonly IEnumerator<TSource> e;
-        private readonly Converter<TSource, TTarget> t;
+        private readonly IEnumerator<TSource> _enumerator;
+        private readonly Converter<TSource, TTarget> _transformer;
 
         /// <summary>
         /// The only constructor of <c>TransformingEnumerator</c>
@@ -61,11 +61,9 @@ namespace Spring.Collections.Generic
         {
             if (source == null) throw new ArgumentNullException("source");
             if (transformer == null) throw new ArgumentNullException("transformer");
-            e = source;
-            t = transformer;
+            _enumerator = source;
+            _transformer = transformer;
         }
-        
-
 
         #region IDisposable Members
 
@@ -76,25 +74,19 @@ namespace Spring.Collections.Generic
         ///<filterpriority>2</filterpriority>
         public override void Dispose()
         {
-            e.Dispose();
+            _enumerator.Dispose();
         }
 
         #endregion
 
         #region IEnumerator Members
 
-        ///<summary>
-        ///Sets the enumerator to its initial position, which is before the 
-        /// first element in the collection.
-        ///</summary>
-        ///
-        ///<exception cref="T:System.InvalidOperationException">
-        /// The collection was modified after the enumerator was created. 
-        /// </exception>
-        /// <filterpriority>2</filterpriority>
-        public override void Reset()
+        /// <summary>
+        /// Implement the <see cref="AbstractEnumerator{T}.Reset"/> function.
+        /// </summary>
+        protected override void DoReset()
         {
-            e.Reset();
+            _enumerator.Reset();
         }
 
         #endregion
@@ -117,7 +109,7 @@ namespace Spring.Collections.Generic
         /// <filterpriority>2</filterpriority>
         protected override bool GoNext()
         {
-            return e.MoveNext();
+            return _enumerator.MoveNext();
         }
 
         ///<summary>
@@ -132,7 +124,7 @@ namespace Spring.Collections.Generic
         ///
         protected override TTarget FetchCurrent()
         {
-            return t(e.Current);
+            return _transformer(_enumerator.Current);
         }
 
         #endregion
@@ -150,8 +142,8 @@ namespace Spring.Collections.Generic
     /// <author>Kenneth Xu</author>
     public class TransformingEnumerator<TTarget> : AbstractEnumerator<TTarget>
     {
-        private readonly IEnumerator e;
-        private readonly Converter<object, TTarget> t;
+        private readonly IEnumerator _enumerator;
+        private readonly Converter<object, TTarget> _transformer;
 
         /// <summary>
         /// The only constructor of <c>TransformingEnumerator</c>
@@ -171,8 +163,8 @@ namespace Spring.Collections.Generic
         {
             if (source == null) throw new ArgumentNullException("source");
             if (transformer == null) throw new ArgumentNullException("transformer");
-            e = source;
-            t = transformer;
+            _enumerator = source;
+            _transformer = transformer;
         }
 
         #region IDisposable Members
@@ -185,7 +177,7 @@ namespace Spring.Collections.Generic
         ///<filterpriority>2</filterpriority>
         public override void Dispose()
         {
-            IDisposable d = e as IDisposable;
+            IDisposable d = _enumerator as IDisposable;
             if (d!=null) d.Dispose();
         }
 
@@ -193,19 +185,12 @@ namespace Spring.Collections.Generic
 
         #region IEnumerator Members
 
-
-        ///<summary>
-        ///Sets the enumerator to its initial position, which is before 
-        /// the first element in the collection.
-        ///</summary>
-        ///
-        ///<exception cref="T:System.InvalidOperationException">
-        /// The collection was modified after the enumerator was created. 
-        /// </exception>
-        /// <filterpriority>2</filterpriority>
-        public override void Reset()
+        /// <summary>
+        /// Implements the <see cref="AbstractEnumerator{T}.Reset"/> function.
+        /// </summary>
+        protected override void DoReset()
         {
-            e.Reset();
+            _enumerator.Reset();
         }
 
         #endregion
@@ -224,7 +209,7 @@ namespace Spring.Collections.Generic
         ///
         protected override TTarget FetchCurrent()
         {
-            return t(e.Current);
+            return _transformer(_enumerator.Current);
         }
 
         ///<summary>
@@ -243,7 +228,7 @@ namespace Spring.Collections.Generic
         /// <filterpriority>2</filterpriority>
         protected override bool GoNext()
         {
-            return e.MoveNext();
+            return _enumerator.MoveNext();
         }
 
         #endregion

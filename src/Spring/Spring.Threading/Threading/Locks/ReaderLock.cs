@@ -105,7 +105,7 @@ namespace Spring.Threading.Locks
 		/// <p/>
 		/// Acquires the read lock if the write lock is not held by
 		/// another thread and returns immediately with the value
-		/// <see lang="true"/>. Even when this lock has been set to use a
+		/// <c>true</c>. Even when this lock has been set to use a
 		/// fair ordering policy, a call to <see cref="Spring.Threading.Locks.ReaderLock.TryLock()"/>
 		/// <b>will</b> immediately acquire the read lock if it is
 		/// available, whether or not other threads are currently
@@ -118,9 +118,9 @@ namespace Spring.Threading.Locks
 		/// <p/>
 		/// If the write lock is held by another thread then
 		/// this method will return immediately with the value
-		/// <see lang="false"/>.
+		/// <c>false</c>.
 		/// </remarks>
-		/// <returns> <see lang="true"/> if the read lock was acquired, <see lang="false"/> otherwise.</returns>
+		/// <returns> <c>true</c> if the read lock was acquired, <c>false</c> otherwise.</returns>
 		public override bool TryLock()
 		{
 			return ReentrantReadWriteLock.StartRead();
@@ -135,7 +135,7 @@ namespace Spring.Threading.Locks
 		/// <p/>
 		/// Acquires the read lock if the write lock is not held by
 		/// another thread and returns immediately with the value
-		/// <see lang="true"/>. If this lock has been set to use a fair
+		/// <c>true</c>. If this lock has been set to use a fair
 		/// ordering policy then an available lock <b>will not</b> be
 		/// acquired if any other threads are waiting for the
 		/// lock. This is in contrast to the <see cref="Spring.Threading.Locks.ReaderLock.TryLock()"/>
@@ -158,7 +158,7 @@ namespace Spring.Threading.Locks
 		/// <li>The <paramref name="durationToWait"/> elapses</li>
 		/// </ul>
 		/// 
-		/// <p/>If the read lock is acquired then the value <see lang="true"/> is
+		/// <p/>If the read lock is acquired then the value <c>true</c> is
 		/// returned.
 		/// 
 		/// <p/>
@@ -167,7 +167,7 @@ namespace Spring.Threading.Locks
 		/// 
 		/// <p/>
 		/// If the specified waiting time elapses then the value
-		/// <see lang="false"/> is returned.  If the time is less than or
+		/// <c>false</c> is returned.  If the time is less than or
 		/// equal to zero, the method will not wait at all.
 		/// 
 		/// <p/>
@@ -177,7 +177,7 @@ namespace Spring.Threading.Locks
 		/// lock, and over reporting the elapse of the waiting time.
 		/// </remarks>
 		/// <param name="durationToWait">the <see cref="System.TimeSpan"/> to wait for the read lock</param>
-		/// <returns> <see lang="true"/> if the read lock was acquired, <see lang="false"/> otherwise.</returns>
+		/// <returns> <c>true</c> if the read lock was acquired, <c>false</c> otherwise.</returns>
 		/// <exception cref="System.Threading.ThreadInterruptedException">if the current thread is interrupted.</exception>
 		public override bool TryLock(TimeSpan durationToWait)
 		{

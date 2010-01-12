@@ -5,7 +5,7 @@ namespace Spring.Threading.Locks
 #pragma warning disable 1574 //TODO PHASED
     /// <summary> 
 	/// <see cref="Spring.Threading.Locks.ILock"/> implementations provide more extensive locking
-	/// operations than can be obtained using <see lang="lock"/> 
+	/// operations than can be obtained using <c>lock</c> 
 	/// statements.  They allow more flexible structuring, may have
 	/// quite different properties, and may support multiple associated
 	/// <see cref="Spring.Threading.Locks.ICondition"/> objects.
@@ -17,14 +17,14 @@ namespace Spring.Threading.Locks
 	/// acquired first. However, some locks may allow concurrent access to
 	/// a shared resource, such as the read lock of a <see cref="Spring.Threading.Locks.IReadWriteLock"/> 
 	/// <p/>
-	/// The use of <see lang="lock"/> statement provides
+	/// The use of <c>lock</c> statement provides
 	/// access to the implicit monitor lock associated with every object, but
 	/// forces all lock acquisition and release to occur in a block-structured way:
 	/// when multiple locks are acquired they must be released in the opposite
 	/// order, and all locks must be released in the same lexical scope in which
 	/// they were acquired.
 	/// <p/>
-	/// While the scoping mechanism for <see lang="lock"/> 
+	/// While the scoping mechanism for <c>lock</c> 
 	/// statements makes it much easier to program with monitor locks,
 	/// and helps avoid many common programming errors involving locks,
 	/// there are occasions where you need to work with locks in a more
@@ -40,7 +40,7 @@ namespace Spring.Threading.Locks
 	/// <p/>
 	/// With this increased flexibility comes additional
 	/// responsibility. The absence of block-structured locking removes the
-	/// automatic release of locks that occurs with <see lang="lock"/> 
+	/// automatic release of locks that occurs with <c>lock</c> 
 	/// statements. In most cases, the following idiom
 	/// should be used:
 	/// 
@@ -61,7 +61,7 @@ namespace Spring.Threading.Locks
 	/// 
 	/// <p/>
 	/// <see cref="Spring.Threading.Locks.ILock"/> implementations provide additional functionality
-	/// over the use of <see lang="lock"/> statement by
+	/// over the use of <c>lock</c> statement by
 	/// providing a non-blocking attempt to acquire a lock (<see cref="Spring.Threading.Locks.ILock.TryLock()"/>)
 	/// , an attempt to acquire the lock that can be
 	/// interrupted <see cref="Spring.Threading.Locks.ILock.LockInterruptibly()"/>}, and an attempt to acquire
@@ -76,14 +76,14 @@ namespace Spring.Threading.Locks
 	/// 
 	/// <p/>
 	/// Note that <see cref="Spring.Threading.Locks.ILock"/> instances are just normal objects and can
-	/// themselves be used as the target in a <see lang="lock"/> statement.
+	/// themselves be used as the target in a <c>lock</c> statement.
 	/// Acquiring the monitor lock of a <see cref="Spring.Threading.Locks.ILock"/> instance has no specified relationship
 	/// with invoking any of the <see cref="Spring.Threading.Locks.ILock.Lock()"/> methods of that instance.
 	/// It is recommended that to avoid confusion you never use <see cref="Spring.Threading.Locks.ILock"/> 
 	/// instances in this way, except within their own implementation.
 	/// 
 	/// <p/>
-	/// Except where noted, passing a <see lang="null"/> value for any
+	/// Except where noted, passing a <c>null</c> value for any
 	/// parameter will result in a <see cref="System.NullReferenceException"/> being
 	/// thrown.
 	/// 
@@ -206,9 +206,9 @@ namespace Spring.Threading.Locks
 		/// Acquires the lock only if it is free at the time of invocation.
 		/// <p/>
 		/// Acquires the lock if it is available and returns immediately
-		/// with the value <see lang="true"/>. 
+		/// with the value <c>true</c>. 
 		/// If the lock is not available then this method will return
-		/// immediately with the value <see lang="false"/>.
+		/// immediately with the value <c>false</c>.
 		/// <p/>
 		/// A typical usage idiom for this method would be:
 		/// <code> 
@@ -226,7 +226,7 @@ namespace Spring.Threading.Locks
 		/// This usage ensures that the lock is unlocked if it was acquired, and
 		/// doesn't try to unlock if the lock was not acquired.
 		/// </summary>
-		/// <returns> <see lang="true"/> if the lock was acquired and <see lang="false"/> otherwise.</returns>
+		/// <returns> <c>true</c> if the lock was acquired and <c>false</c> otherwise.</returns>
 		bool TryLock();
 
 		/// <summary> 
@@ -235,7 +235,7 @@ namespace Spring.Threading.Locks
 		/// 
 		/// <p/>
 		/// If the lock is available this method returns immediately
-		/// with the value <see lang="true"/>.
+		/// with the value <c>true</c>.
 		/// If the lock is not available then
 		/// the current thread becomes disabled for thread scheduling
 		/// purposes and lies dormant until one of three things happens:
@@ -245,7 +245,7 @@ namespace Spring.Threading.Locks
 		/// thread, and interruption of lock acquisition is supported</li>
 		/// <li>The specified <see cref="System.TimeSpan"/> elapses</li>
 		/// </ul>
-		/// <p/>If the lock is acquired then the value <see lang="true"/> is returned.
+		/// <p/>If the lock is acquired then the value <c>true</c> is returned.
 		/// <p/>If the current thread:
 		/// <ul>
 		/// <li>has its interrupted status set on entry to this method</li>
@@ -256,7 +256,7 @@ namespace Spring.Threading.Locks
 		/// interrupted status is cleared.
 		/// 
 		/// <p/>
-		/// If the specified <paramref name="timeSpan"/> elapses then the value <see lang="false"/>
+		/// If the specified <paramref name="timeSpan"/> elapses then the value <c>false</c>
 		/// is returned.  If the <see cref="System.TimeSpan"/> is less than or equal to zero, the method will not wait at all.
 		/// 
 		/// <p/>
@@ -277,7 +277,7 @@ namespace Spring.Threading.Locks
 		/// <see cref="Spring.Threading.Locks.ILock"/> implementation.
 		/// </summary>
 		/// <param name="timeSpan">the specificed <see cref="System.TimeSpan"/> to wait to aquire lock.</param>
-		/// <returns> <see lang="true"/> if the lock was acquired and <see lang="false"/>
+		/// <returns> <c>true</c> if the lock was acquired and <c>false</c>
 		/// if the waiting time elapsed before the lock was acquired.
 		/// </returns>
 		/// <seealso cref="System.Threading.Thread.Interrupt()"/>

@@ -164,7 +164,7 @@ namespace Spring.Threading.Collections.Generic
 		/// </returns>
 		/// <exception cref="System.ArgumentNullException">
 		/// If the specified element is <see langword="null"/> and this queue 
-		/// does not permit <see lang="null"/> elements.
+		/// does not permit <c>null</c> elements.
 		/// </exception>
 		/// <exception cref="System.ArgumentException">
         /// If some property of the supplied <paramref name="element"/> prevents
@@ -217,7 +217,7 @@ namespace Spring.Threading.Collections.Generic
 		/// from being used for the elemetns from the queue.
 		/// </exception>
 		/// <exception cref="System.ArgumentNullException">
-		/// If the specified collection is <see lang="null"/>.
+		/// If the specified collection is <c>null</c>.
 		/// </exception>
 		/// <exception cref="System.ArgumentException">
 		/// If <paramref name="collection"/> represents the queue itself.
@@ -253,7 +253,7 @@ namespace Spring.Threading.Collections.Generic
         /// from being used for the elemetns from the queue.
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
-        /// If the specified collection is <see lang="null"/>.
+        /// If the specified collection is <c>null</c>.
         /// </exception>
         /// <exception cref="System.ArgumentException">
         /// If <paramref name="collection"/> represents the queue itself.
@@ -289,7 +289,7 @@ namespace Spring.Threading.Collections.Generic
 		/// from being used for the elemetns from the queue.
 		/// </exception>
 		/// <exception cref="System.ArgumentNullException">
-		/// If the specified collection is <see lang="null"/>.
+		/// If the specified collection is <c>null</c>.
 		/// </exception>
 		/// <exception cref="System.ArgumentException">
 		/// If <paramref name="collection"/> represents the queue itself.
@@ -327,7 +327,7 @@ namespace Spring.Threading.Collections.Generic
         /// from being used for the elemetns from the queue.
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
-        /// If the specified collection is <see lang="null"/>.
+        /// If the specified collection is <c>null</c>.
         /// </exception>
         /// <exception cref="System.ArgumentException">
         /// If <paramref name="collection"/> represents the queue itself.

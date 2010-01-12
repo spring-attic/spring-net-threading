@@ -88,7 +88,7 @@ namespace Spring.Threading.AtomicTypes
         /// The new value to use of the current value equals the expected value.
         /// </param>
         /// <returns> 
-        /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
+        /// <c>true</c> if the current value equaled the expected value, <c>false</c> otherwise.
         /// </returns>
         public bool CompareAndSet(T expectedValue, T newValue) {
             return ReferenceEquals(expectedValue, 
@@ -107,7 +107,7 @@ namespace Spring.Threading.AtomicTypes
         /// The new value to use of the current value equals the expected value.
         /// </param>
         /// <returns>
-        /// <see lang="true"/> if the current value equaled the expected value, <see lang="false"/> otherwise.
+        /// <c>true</c> if the current value equaled the expected value, <c>false</c> otherwise.
         /// </returns>
         public virtual bool WeakCompareAndSet(T expectedValue, T newValue) {
             return ReferenceEquals(expectedValue,

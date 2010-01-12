@@ -121,6 +121,8 @@
     <Compile Include="Threading\BoundedPriorityQueue.cs" />
     <Compile Include="Threading\BrokenBarrierException.cs" />
     <Compile Include="Threading\Collections\Generic\QueueBrokenException.cs" />
+    <Compile Include="Threading\Collections\Generic\ToArrayEnumerator.cs" />
+    <Compile Include="Threading\Collections\Generic\TransformingBlockingQueue.cs" />
     <Compile Include="Threading\CountDownLatch.cs" />
     <Compile Include="Threading\Execution\ILoopResult.cs" />
     <Compile Include="Threading\Execution\ILoopState.cs" />

@@ -256,7 +256,7 @@ namespace Spring.Threading.Collections.Generic {
         /// </summary>
         /// <param name="element">the element to add</param>
         /// <param name="duration">how long to wait before giving up</param>
-        /// <returns> <see lang="true"/> if successful, or <see lang="false"/> if
+        /// <returns> <c>true</c> if successful, or <c>false</c> if
         /// the specified waiting time elapses before space is available
         /// </returns>
         /// <exception cref="System.InvalidOperationException">
@@ -311,7 +311,7 @@ namespace Spring.Threading.Collections.Generic {
         /// The element to add.
         /// </param>
         /// <returns>
-        /// <see lang="true"/> if the element was added to this queue.
+        /// <c>true</c> if the element was added to this queue.
         /// </returns>
         public override bool Offer(T element) {
             if(_activeCount == _capacity || _isBroken)
@@ -512,11 +512,11 @@ namespace Spring.Threading.Collections.Generic {
         /// </summary>
         /// <remarks> 
         ///	If this queue contains one or more such elements.
-        /// Returns <see lang="true"/> if this queue contained the specified element
+        /// Returns <c>true</c> if this queue contained the specified element
         /// (or equivalently, if this queue changed as a result of the call).
         /// </remarks>
         /// <param name="objectToRemove">element to be removed from this queue, if present</param>
-        /// <returns><see lang="true"/> if this queue changed as a result of the call</returns>
+        /// <returns><c>true</c> if this queue changed as a result of the call</returns>
         public override bool Remove(T objectToRemove) {
             bool removed = false;
             lock(_putLock) {
@@ -804,7 +804,7 @@ namespace Spring.Threading.Collections.Generic {
         /// If this queue fits in the specified array with room to spare
         /// (i.e., the array has more elements than this queue), the element in
         /// the array immediately following the end of the queue is set to
-        /// <see lang="null"/>.
+        /// <c>null</c>.
         /// <p/>
         /// Like the <see cref="LinkedBlockingQueue{T}.ToArray()"/>  method, this method acts as bridge between
         /// array-based and collection-based APIs.  Further, this method allows
@@ -813,7 +813,7 @@ namespace Spring.Threading.Collections.Generic {
         /// <p/>
         /// Suppose <i>x</i> is a queue known to contain only strings.
         /// The following code can be used to dump the queue into a newly
-        /// allocated array of <see lang="string"/>s:
+        /// allocated array of <see cref="string"/>s:
         /// 
         /// <code>
         ///		string[] y = x.ToArray(new string[0]);
@@ -831,7 +831,7 @@ namespace Spring.Threading.Collections.Generic {
         /// <returns> an array containing all of the elements in this queue</returns>
         /// <exception cref="System.ArgumentNullException">
         /// If the supplied <paramref name="targetArray"/> is
-        /// <see lang="null"/> and this queue does not permit <see lang="null"/>
+        /// <c>null</c> and this queue does not permit <c>null</c>
         /// elements.
         /// </exception>
         public override T[] ToArray(T[] targetArray) {

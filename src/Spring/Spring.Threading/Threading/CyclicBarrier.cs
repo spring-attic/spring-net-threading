@@ -103,7 +103,7 @@ namespace Spring.Threading
     /// the barrier until all rows have been processed. When all rows are 
     /// processed the supplied barrier action is executed and merges the rows. 
     /// If the merger determines that a solution has been found then IsDone 
-    /// will return <see lang="true"/> and each worker will terminate. 
+    /// will return <c>true</c> and each worker will terminate. 
     /// </para>
     /// <para>
     /// If the barrier action does not rely on the parties being suspended when
@@ -208,7 +208,7 @@ namespace Spring.Threading
         /// </param>
         /// <param name="barrierAction">
         /// The <see cref="IRunnable"/> to execute when the barrier is
-        /// tripped, or <see lang="null"/>  if there is no action.
+        /// tripped, or <c>null</c>  if there is no action.
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException">
         /// If <paramref name="parties"/> is less than 1.
@@ -231,7 +231,7 @@ namespace Spring.Threading
         /// </param>
         /// <param name="barrierAction">
         /// The <see cref="Action"/> delegate to execute when the barrier is
-        /// tripped, or <see lang="null"/>  if there is no action.
+        /// tripped, or <c>null</c>  if there is no action.
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException">
         /// If <paramref name="parties"/> is less than 1.

@@ -120,7 +120,7 @@ namespace Spring.Threading.Execution
         /// if the task cannot be accepted. 
         /// </exception>
         /// <exception cref="ArgumentNullException">
-        /// if <paramref name="command"/> is <see lang="null"/>
+        /// if <paramref name="command"/> is <c>null</c>
         /// </exception>
         protected abstract void DoExecute(IRunnable command);
 
@@ -131,28 +131,28 @@ namespace Spring.Threading.Execution
         /// </summary>
         /// <param name="timeSpan">the time span to wait.
         /// </param>
-        /// <returns> <see lang="true"/> if this executor terminated and <see lang="false"/>
+        /// <returns> <c>true</c> if this executor terminated and <c>false</c>
         /// if the timeout elapsed before termination
         /// </returns>
         public abstract bool AwaitTermination(TimeSpan timeSpan);
 
         /// <summary> 
-        /// Returns <see lang="true"/> if all tasks have completed following shut down.
+        /// Returns <c>true</c> if all tasks have completed following shut down.
         /// </summary>
         /// <remarks>
-        /// Note that this will never return <see lang="true"/> unless
+        /// Note that this will never return <c>true</c> unless
         /// either <see cref="Spring.Threading.Execution.IExecutorService.Shutdown()"/> or 
         /// <see cref="Spring.Threading.Execution.IExecutorService.ShutdownNow()"/> was called first.
         /// </remarks>
-        /// <returns> <see lang="true"/> if all tasks have completed following shut down
+        /// <returns> <c>true</c> if all tasks have completed following shut down
         /// </returns>
         public abstract bool IsTerminated { get; }
 
         /// <summary> 
-        /// Returns <see lang="true"/> if this executor has been shut down.
+        /// Returns <c>true</c> if this executor has been shut down.
         /// </summary>
         /// <returns> 
-        /// Returns <see lang="true"/> if this executor has been shut down.
+        /// Returns <c>true</c> if this executor has been shut down.
         /// </returns>
         public abstract bool IsShutdown { get; }
 
@@ -206,7 +206,7 @@ namespace Spring.Threading.Execution
         /// <summary> 
         /// Submits a Runnable task for execution and returns a Future
         /// representing that task. The Future's <see cref="IFuture{T}.GetResult()"/> method will
-        /// return <see lang="null"/> upon successful completion.
+        /// return <c>null</c> upon successful completion.
         /// </summary>
         /// <param name="runnable">the task to submit
         /// </param>

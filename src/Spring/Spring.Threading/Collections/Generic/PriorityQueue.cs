@@ -34,7 +34,7 @@ namespace Spring.Collections.Generic
     /// <see cref="IComparable{T}">natural ordering</see>, or by an
     /// <see cref="IComparer"/> provided at queue construction time, 
     /// depending on which constructor is used. A priority queue does not 
-    /// permit <see lang="null"/> elements. A priority queue relying on 
+    /// permit <c>null</c> elements. A priority queue relying on 
     /// natural ordering also does not permit insertion of non-comparable 
     /// objects (doing so will result in <see cref="InvalidCastException"/>.
     /// </summary>
@@ -186,7 +186,7 @@ namespace Spring.Collections.Generic
         /// The initial capacity for this priority queue.
         /// </param>
         /// <param name="comparator">
-        /// The comparator used to order this priority queue. If <see lang="null"/>
+        /// The comparator used to order this priority queue. If <c>null</c>
         /// then the order depends on the elements' natural ordering.
         /// </param>
         /// <exception cref="ArgumentException">
@@ -218,7 +218,7 @@ namespace Spring.Collections.Generic
         /// </exception>
         /// <exception cref="ArgumentNullException">
         /// If <paramref name="source"/> or any element with it is
-        /// <see lang="null"/>.
+        /// <c>null</c>.
         /// </exception>
         /// <exception cref="NullReferenceException">
         /// If there is <c>null</c> in source.
@@ -251,7 +251,7 @@ namespace Spring.Collections.Generic
         /// priority queue.
         /// </param>
         /// <exception cref="ArgumentNullException">
-        /// If <paramref name="soruce"/> is <see lang="null"/>.
+        /// If <paramref name="soruce"/> is <c>null</c>.
         /// </exception>
         public PriorityQueue(PriorityQueue<T> soruce)
         {
@@ -399,7 +399,7 @@ namespace Spring.Collections.Generic
         /// </summary>
         /// <remarks>
         /// Normally this method leaves the elements at positions from 1 up to i-1,
-        /// inclusive, untouched.  Under these circumstances, it returns <see lang="null"/>.
+        /// inclusive, untouched.  Under these circumstances, it returns <c>null</c>.
         /// Occasionally, in order to maintain the heap invariant, it must move
         /// the last element of the list to some index in the range [2, i-1],
         /// and move the element previously at position (i/2) to position i.
@@ -496,7 +496,7 @@ namespace Spring.Collections.Generic
         /// The element to add.
         /// </param>
         /// <returns>
-        /// <see lang="true"/> if the element was added to this queue.
+        /// <c>true</c> if the element was added to this queue.
         /// </returns>
         /// <exception cref="System.InvalidCastException">
         /// if the specified element cannot be compared
@@ -508,7 +508,7 @@ namespace Spring.Collections.Generic
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
         /// If the supplied <paramref name="element"/> is
-        /// <see lang="null"/> and this queue does not permit <see lang="null"/>
+        /// <c>null</c> and this queue does not permit <c>null</c>
         /// elements.
         /// </exception>
         /// <exception cref="System.ArgumentException">
@@ -538,10 +538,10 @@ namespace Spring.Collections.Generic
 
         /// <summary> 
         /// Retrieves, but does not remove, the head of this queue,
-        /// or returns <see lang="null"/> if this queue is empty.
+        /// or returns <c>null</c> if this queue is empty.
         /// </summary>
         /// <returns> 
-        /// The head of this queue, or <see lang="null"/> if this queue is empty.
+        /// The head of this queue, or <c>null</c> if this queue is empty.
         /// </returns>
         public override bool Peek(out T element ) {
             if(_size == 0)
@@ -606,10 +606,10 @@ namespace Spring.Collections.Generic
 
         /// <summary> 
         /// Retrieves and removes the head of this queue,
-        /// or returns <see lang="null"/> if this queue is empty.
+        /// or returns <c>null</c> if this queue is empty.
         /// </summary>
         /// <returns> 
-        /// The head of this queue, or <see lang="null"/> if this queue is empty.
+        /// The head of this queue, or <c>null</c> if this queue is empty.
         /// </returns>
         public override bool Poll(out T element) 
         {
@@ -634,8 +634,8 @@ namespace Spring.Collections.Generic
         /// Queries the queue to see if it contains the specified <paramref name="item"/>
         /// </summary>
         /// <param name="item">element to look for.</param>
-        /// <returns><see lang="true"/> if the queue contains the <paramref name="item"/>, 
-        /// <see lang="false"/> otherwise.</returns>
+        /// <returns><c>true</c> if the queue contains the <paramref name="item"/>, 
+        /// <c>false</c> otherwise.</returns>
         public override bool Contains(T item)
         {
             return IndexOf(item) != -1;
@@ -716,12 +716,12 @@ namespace Spring.Collections.Generic
         }
 
 
-        /// <summary> Returns the comparator used to order this collection, or <see lang="null"/>
+        /// <summary> Returns the comparator used to order this collection, or <c>null</c>
         /// if this collection is sorted according to its elements natural ordering
         /// (using <see cref="System.IComparable"/>).
         /// 
         /// </summary>
-        /// <returns> the comparator used to order this collection, or <see lang="null"/>
+        /// <returns> the comparator used to order this collection, or <c>null</c>
         /// if this collection is sorted according to its elements natural ordering.
         /// </returns>
         public virtual IComparer<T> Comparer

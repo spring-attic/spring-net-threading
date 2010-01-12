@@ -176,7 +176,7 @@ namespace Spring.Threading.Collections.Generic {
         /// </summary>
         /// <param name="collection">the collection of initially held elements
         /// </param>
-        /// <exception cref="ArgumentNullException">If <paramref name="collection"/> is <see lang="null"/></exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="collection"/> is <c>null</c></exception>
         public CopyOnWriteArrayList(ICollection<T> collection) {
             if(null == collection) {
                 throw new ArgumentNullException("collection", "Collection cannot be null");
@@ -223,9 +223,9 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary> 
-        /// Returns <see lang="true"/> if this list contains no elements.
+        /// Returns <c>true</c> if this list contains no elements.
         /// </summary>
-        /// <returns> <see lang="true"/> if this list contains no elements
+        /// <returns> <c>true</c> if this list contains no elements
         /// </returns>
         public bool IsEmpty {
             get { return Count == 0; }
@@ -296,11 +296,11 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary> 
-        /// Returns <see lang="true"/> if this list contains the specified element.
+        /// Returns <c>true</c> if this list contains the specified element.
         /// </summary>
         /// <param name="element">element to look for.
         /// </param>
-        /// <returns> <see lang="true"/> if this list contains the specified element
+        /// <returns> <c>true</c> if this list contains the specified element
         /// </returns>
         public bool Contains(T element) {
             T[] elements = Array;

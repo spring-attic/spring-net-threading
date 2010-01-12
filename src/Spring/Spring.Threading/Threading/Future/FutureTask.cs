@@ -166,10 +166,10 @@ namespace Spring.Threading.Future
 	    /// Determines if this task was cancelled.
 	    /// </summary>
 	    /// <remarks> 
-	    /// Returns <see lang="true"/> if this task was cancelled before it completed
+	    /// Returns <c>true</c> if this task was cancelled before it completed
 	    /// normally.
 	    /// </remarks>
-	    /// <returns> <see lang="true"/>if task was cancelled before it completed
+	    /// <returns> <c>true</c>if task was cancelled before it completed
 	    /// </returns>
 	    public virtual bool IsCancelled
 	    {
@@ -183,14 +183,14 @@ namespace Spring.Threading.Future
 	    }
 
 	    /// <summary> 
-	    /// Returns <see lang="true"/> if this task completed.
+	    /// Returns <c>true</c> if this task completed.
 	    /// </summary>
 	    /// <remarks> 
 	    /// Completion may be due to normal termination, an exception, or
 	    /// cancellation -- in all of these cases, this method will return
-	    /// <see lang="true"/> if this task completed.
+	    /// <c>true</c> if this task completed.
 	    /// </remarks>
-	    /// <returns> <see lang="true"/>if this task completed.</returns>
+	    /// <returns> <c>true</c>if this task completed.</returns>
 	    public virtual bool IsDone
 	    {
 	        get
@@ -254,9 +254,9 @@ namespace Spring.Threading.Future
 	    /// this task should never run.  If the task has already started, the in-progress tasks are allowed
 	    /// to complete
 	    /// </remarks>
-	    /// <returns> <see lang="false"/> if the task could not be cancelled,
+	    /// <returns> <c>false</c> if the task could not be cancelled,
 	    /// typically because it has already completed normally;
-	    /// <see lang="true"/> otherwise
+	    /// <c>true</c> otherwise
 	    /// </returns>
 	    public virtual bool Cancel()
 	    {
@@ -275,13 +275,13 @@ namespace Spring.Threading.Future
 	    /// whether the thread executing this task should be interrupted in
 	    /// an attempt to stop the task.
 	    /// </remarks>
-	    /// <param name="mayInterruptIfRunning"><see lang="true"/> if the thread executing this
+	    /// <param name="mayInterruptIfRunning"><c>true</c> if the thread executing this
 	    /// task should be interrupted; otherwise, in-progress tasks are allowed
 	    /// to complete
 	    /// </param>
-	    /// <returns> <see lang="false"/> if the task could not be cancelled,
+	    /// <returns> <c>false</c> if the task could not be cancelled,
 	    /// typically because it has already completed normally;
-	    /// <see lang="true"/> otherwise
+	    /// <c>true</c> otherwise
 	    /// </returns>
 	    public virtual bool Cancel(bool mayInterruptIfRunning)
 	    {
@@ -386,7 +386,7 @@ namespace Spring.Threading.Future
 	    /// This is designed for use with tasks that intrinsically execute more
 	    /// than once.
 	    /// </remarks>
-	    /// <returns> <see lang="true"/> if successfully run and reset</returns>
+	    /// <returns> <c>true</c> if successfully run and reset</returns>
 	    protected virtual bool RunAndReset()
 	    {
 	        lock (this)

@@ -30,9 +30,9 @@ namespace Spring.Threading.Locks
 		/// </summary>
 		/// <remarks>
 		/// Acquires the lock if it is available and returns immediately
-		/// with the value <see lang="true"/>. 
+		/// with the value <c>true</c>. 
 		/// If the lock is not available then this method will return
-		/// immediately with the value <see lang="false"/>.
+		/// immediately with the value <c>false</c>.
 		/// <p/>
 		/// A typical usage idiom for this method would be:
 		/// <code> 
@@ -50,7 +50,7 @@ namespace Spring.Threading.Locks
 		/// This usage ensures that the lock is unlocked if it was acquired, and
 		/// doesn't try to unlock if the lock was not acquired.
 		/// </remarks>
-		/// <returns> <see lang="true"/> if the lock was acquired and <see lang="false"/> otherwise.</returns>
+		/// <returns> <c>true</c> if the lock was acquired and <c>false</c> otherwise.</returns>
 		public abstract bool TryLock();
 
 		/// <summary> 
@@ -59,7 +59,7 @@ namespace Spring.Threading.Locks
 		/// </summary>
 		/// <remarks> 
 		/// If the lock is available this method returns immediately
-		/// with the value <see lang="true"/>.
+		/// with the value <c>true</c>.
 		/// If the lock is not available then
 		/// the current thread becomes disabled for thread scheduling
 		/// purposes and lies dormant until one of three things happens:
@@ -69,7 +69,7 @@ namespace Spring.Threading.Locks
 		/// thread, and interruption of lock acquisition is supported</li>
 		/// <li>The specified <see cref="Thread.Interrupt"/> elapses</li>
 		/// </ul>
-		/// <p/>If the lock is acquired then the value <see lang="true"/> is returned.
+		/// <p/>If the lock is acquired then the value <c>true</c> is returned.
 		/// <p/>If the current thread:
 		/// <ul>
 		/// <li>has its interrupted status set on entry to this method</li>
@@ -80,7 +80,7 @@ namespace Spring.Threading.Locks
 		/// interrupted status is cleared.
 		/// 
 		/// <p/>
-		/// If the specified <paramref name="timeSpan"/> elapses then the value <see lang="false"/>
+		/// If the specified <paramref name="timeSpan"/> elapses then the value <c>false</c>
 		/// is returned.  If the <see cref="ThreadInterruptedException"/> is less than or equal to zero, the method will not wait at all.
 		/// 
 		/// <p/>
@@ -101,7 +101,7 @@ namespace Spring.Threading.Locks
 		/// <see cref="Spring.Threading.Locks.ILock"/> implementation.
 		/// </remarks>
 		/// <param name="timeSpan">the specificed <see cref="ILock"/> to wait to aquire lock.</param>
-		/// <returns> <see lang="true"/> if the lock was acquired and <see lang="false"/>
+		/// <returns> <c>true</c> if the lock was acquired and <c>false</c>
 		/// if the waiting time elapsed before the lock was acquired.
 		/// </returns>
 		/// <seealso cref="TimeSpan"/>

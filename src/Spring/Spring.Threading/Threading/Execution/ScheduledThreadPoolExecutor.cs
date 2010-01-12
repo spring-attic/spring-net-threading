@@ -24,7 +24,7 @@ namespace Spring.Threading.Execution
 		/// </summary>
 		/// <param name="corePoolSize">the number of threads to keep in the pool.</param>
 		/// <exception cref="ArgumentException">if corePoolSize is less than 0</exception>
-		public ScheduledThreadPoolExecutor( int corePoolSize ) : base(corePoolSize, Int32.MaxValue, new TimeSpan(0), new DelayQueue<IRunnable>())
+		public ScheduledThreadPoolExecutor( int corePoolSize ) : base(corePoolSize, Int32.MaxValue, new TimeSpan(0), Transform(new DelayQueue<IDelayed>()))
 		{
 			
 		}
@@ -34,16 +34,21 @@ namespace Spring.Threading.Execution
 		/// </summary>
 		/// <param name="corePoolSize"></param>
 		/// <param name="threadFactory"></param>
-		public ScheduledThreadPoolExecutor(int corePoolSize, IThreadFactory threadFactory): base(corePoolSize, Int32.MaxValue, new TimeSpan(0), new DelayQueue<IRunnable>(), threadFactory )
+		public ScheduledThreadPoolExecutor(int corePoolSize, IThreadFactory threadFactory): base(corePoolSize, Int32.MaxValue, new TimeSpan(0), Transform(new DelayQueue<IDelayed>()), threadFactory )
 		{
 			
 		}
 
+        private static IBlockingQueue<IRunnable> Transform(IBlockingQueue<IDelayed> delayQueue)
+        {
+            return new TransformingBlockingQueue<IDelayed, IRunnable>(delayQueue, d => (IRunnable) d, r => (IDelayed) r);
+        }
+
 		/// <summary> 
-		/// Returns <see lang="true"/> if this executor has been shut down.
+		/// Returns <c>true</c> if this executor has been shut down.
 		/// </summary>
 		/// <returns> 
-		/// Returns <see lang="true"/> if this executor has been shut down.
+		/// Returns <c>true</c> if this executor has been shut down.
 		/// </returns>
 		public override bool IsShutdown
 		{
@@ -51,14 +56,14 @@ namespace Spring.Threading.Execution
 		}
 
 		/// <summary> 
-		/// Returns <see lang="true"/> if all tasks have completed following shut down.
+		/// Returns <c>true</c> if all tasks have completed following shut down.
 		/// </summary>
 		/// <remarks>
-		/// Note that this will never return <see lang="true"/> unless
+		/// Note that this will never return <c>true</c> unless
 		/// either <see cref="Spring.Threading.Execution.IExecutorService.Shutdown()"/> or 
 		/// <see cref="Spring.Threading.Execution.IExecutorService.ShutdownNow()"/> was called first.
 		/// </remarks>
-		/// <returns> <see lang="true"/> if all tasks have completed following shut down
+		/// <returns> <c>true</c> if all tasks have completed following shut down
 		/// </returns>
 		public override bool IsTerminated
 		{
@@ -100,7 +105,7 @@ namespace Spring.Threading.Execution
 		/// </summary>
 		/// <param name="timeSpan">the time span to wait.
 		/// </param>
-		/// <returns> <see lang="true"/> if this executor terminated and <see lang="false"/>
+		/// <returns> <c>true</c> if this executor terminated and <c>false</c>
 		/// if the timeout elapsed before termination
 		/// </returns>
 		public override bool AwaitTermination( TimeSpan timeSpan )
@@ -153,7 +158,7 @@ namespace Spring.Threading.Execution
 
 		/// <summary> Submits a Runnable task for execution and returns a Future
 		/// representing that task. The Future's <see cref="RejectedExecutionException"/> method will
-		/// return <see lang="null"/> upon successful completion.
+		/// return <c>null</c> upon successful completion.
 		/// </summary>
 		/// <param name="task">the task to submit
 		/// </param>
@@ -172,7 +177,7 @@ namespace Spring.Threading.Execution
 		/// </summary>
 		/// <remarks>
 		/// <see cref="ArgumentNullException"/>
-		/// is <see lang="true"/> for each element of the returned list.
+		/// is <c>true</c> for each element of the returned list.
 		/// Note that a <b>completed</b> task could have
 		/// terminated either normally or by throwing an exception.
 		/// The results of this method are undefined if the given
@@ -196,7 +201,7 @@ namespace Spring.Threading.Execution
 		/// </summary>
 		/// <remarks>
 		/// <see cref="RejectedExecutionException"/>
-		/// is <see lang="true"/> for each element of the returned list.
+		/// is <c>true</c> for each element of the returned list.
 		/// Note that a <b>completed</b> task could have
 		/// terminated either normally or by throwing an exception.
 		/// The results of this method are undefined if the given
@@ -244,7 +249,7 @@ namespace Spring.Threading.Execution
 		/// <param name="delay">the <see cref="IScheduledFuture{T}"/> from now to delay execution.</param>
 		/// <returns> 
 		/// a <see cref="TimeSpan"/> representing pending completion of the task,
-		/// and whose <see cref="IFuture{T}.GetResult()"/> method will return <see lang="null"/>
+		/// and whose <see cref="IFuture{T}.GetResult()"/> method will return <c>null</c>
 		/// upon completion.
 		/// </returns>
 		public IScheduledFuture<Void> Schedule( IRunnable command, TimeSpan delay )

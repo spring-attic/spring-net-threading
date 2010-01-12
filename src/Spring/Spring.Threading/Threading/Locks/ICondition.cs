@@ -8,7 +8,7 @@ namespace Spring.Threading.Locks
 	/// and <see cref="System.Threading.Monitor.PulseAll(object)"/> into distinct objects to
 	/// give the effect of having multiple wait-sets per object, by
 	/// combining them with the use of arbitrary <see cref="Spring.Threading.Locks.ILock"/> implementations.
-	/// Where a <see cref="Spring.Threading.Locks.ILock"/> replaces the use of <see lang="lock"/>
+	/// Where a <see cref="Spring.Threading.Locks.ILock"/> replaces the use of <c>lock</c>
 	/// statements, a <see cref="Spring.Threading.Locks.ICondition"/> replaces the use of the <see cref="System.Threading.Monitor"/>
 	/// methods.
 	/// 
@@ -105,7 +105,7 @@ namespace Spring.Threading.Locks
 	/// instances in this way, except perhaps within their own implementation.
 	/// 
 	/// <p/>
-	/// Except where noted, passing a <see lang="null"/> value for any parameter
+	/// Except where noted, passing a <c>null</c> value for any parameter
 	/// will result in a <see cref="System.NullReferenceException"/> being thrown.
 	/// 
 	/// <h3>Implementation Considerations</h3>
@@ -246,8 +246,8 @@ namespace Spring.Threading.Locks
 		/// </summary>
 		/// <param name="timeSpan">the maximum time to wait
 		/// </param>
-		/// <returns> <see lang="false"/> if the waiting time detectably elapsed
-		/// before return from the method, else <see lang="true"/>.
+		/// <returns> <c>false</c> if the waiting time detectably elapsed
+		/// before return from the method, else <c>true</c>.
 		/// </returns>
 		/// <exception cref="System.Threading.ThreadInterruptedException">
 		/// if the current thread is interrupted ( and interruption of thread suspension is supported.
@@ -324,7 +324,7 @@ namespace Spring.Threading.Locks
 		/// </summary>
 		/// <param name="deadline">the absolute time to wait</param>
 		/// <returns> 
-		/// <see lang="false"/> if the deadline has elapsed upon return, else <see lang="true"/>.
+		/// <c>false</c> if the deadline has elapsed upon return, else <c>true</c>.
 		/// </returns>
 		/// <exception cref="System.Threading.ThreadInterruptedException">
 		/// if the current thread is interrupted ( and interruption of thread suspension is supported.

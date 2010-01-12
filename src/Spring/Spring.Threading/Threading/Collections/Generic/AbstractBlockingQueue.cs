@@ -153,7 +153,7 @@ namespace Spring.Threading.Collections.Generic
         /// from being used for the elemetns from the queue.
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
-        /// If the specified collection is <see lang="null"/>.
+        /// If the specified collection is <c>null</c>.
         /// </exception>
         /// <exception cref="System.ArgumentException">
         /// If <paramref name="collection"/> represents the queue itself.
@@ -234,7 +234,7 @@ namespace Spring.Threading.Collections.Generic
         /// from being used for the elemetns from the queue.
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
-        /// If the specified collection is <see lang="null"/>.
+        /// If the specified collection is <c>null</c>.
         /// </exception>
         /// <exception cref="System.ArgumentException">
         /// If <paramref name="collection"/> represents the queue itself.

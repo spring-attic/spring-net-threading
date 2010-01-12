@@ -25,7 +25,7 @@ using System.Threading;
 namespace Spring.Threading.AtomicTypes
 {
 	/// <summary> 
-	/// An <see lang="int"/> value that may be updated atomically.
+	/// An <see cref="int"/> value that may be updated atomically.
 	/// An <see cref="AtomicInteger"/> is used in applications such as atomically
 	/// incremented counters, and cannot be used as a replacement for an
 	/// <see cref="int"/>. 
@@ -128,7 +128,7 @@ namespace Spring.Threading.AtomicTypes
 		/// <param name="newValue">
 		/// The new value
 		/// </param>
-		/// <returns> <see lang="true"/> if successful. <see lang="false"/> return indicates that
+		/// <returns> <c>true</c> if successful. <c>false</c> return indicates that
 		/// the actual value was not equal to the expected value.
 		/// </returns>
 		public bool CompareAndSet(int expectedValue, int newValue)
@@ -147,7 +147,7 @@ namespace Spring.Threading.AtomicTypes
 		/// <param name="newValue">
 		/// The new value
 		/// </param>
-		/// <returns> <see lang="true"/> if successful. <see lang="false"/> return indicates that
+		/// <returns> <c>true</c> if successful. <c>false</c> return indicates that
 		/// the actual value was not equal to the expected value.
 		/// </returns>
 		public virtual bool WeakCompareAndSet(int expectedValue, int newValue)

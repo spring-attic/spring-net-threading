@@ -14,13 +14,13 @@ namespace Spring.Threading.Future
     public interface IRunnableScheduledFuture<T> : IRunnableFuture<T>, IScheduledFuture<T>
     {
         /// <summary>
-        /// Returns <see lang="true"/> if this is a periodic task. 
+        /// Returns <c>true</c> if this is a periodic task. 
         /// </summary>
         /// <remarks>
         /// A periodic task may re-run according to some schedule. A non-periodic task can be
         /// run only once.
         /// </remarks>
-        /// <returns><see lang="true"/> if this task is periodic, <see lang="false"/> otherwise.</returns>
+        /// <returns><c>true</c> if this task is periodic, <c>false</c> otherwise.</returns>
         bool IsPeriodic { get; }
     }
 }

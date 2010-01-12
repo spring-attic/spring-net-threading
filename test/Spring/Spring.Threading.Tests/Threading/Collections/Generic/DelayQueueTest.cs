@@ -50,7 +50,7 @@ namespace Spring.Threading.Collections.Generic
             CollectionContractOptions.NoNull |
             CollectionContractOptions.WeaklyConsistentEnumerator;
 
-        private const int DEFAULT_COLLECTION_SIZE = 20;
+        private const int _sampleSize = 20;
 
         static DelayQueueTest()
             {
@@ -104,18 +104,18 @@ namespace Spring.Threading.Collections.Generic
         [Test] public void TakeReturnsWhenDelayExpires()
         {
             DelayQueue<T> q = new DelayQueue<T>();
-            T[] elements = new T[DEFAULT_COLLECTION_SIZE];
-            for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
+            T[] elements = new T[_sampleSize];
+            for (int i = 0; i < _sampleSize; ++i)
             {
-                elements[i] = TestData<T>.MakeData(DEFAULT_COLLECTION_SIZE - i);
+                elements[i] = TestData<T>.MakeData(_sampleSize - i);
             }
-            for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
+            for (int i = 0; i < _sampleSize; ++i)
             {
                 q.Add(elements[i]);
             }
 
             DateTime last = DateTime.MinValue;
-            for (int i = 0; i < DEFAULT_COLLECTION_SIZE; ++i)
+            for (int i = 0; i < _sampleSize; ++i)
             {
                 IMillesDelayed e = (IMillesDelayed)(q.Take());
                 DateTime tt = e.TriggerTime;

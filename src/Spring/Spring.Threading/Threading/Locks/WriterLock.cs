@@ -155,7 +155,7 @@ namespace Spring.Threading.Locks
 		/// <remarks>
 		/// Acquires the write lock if neither the read nor write lock
 		/// are held by another thread
-		/// and returns immediately with the value <see lang="true"/>,
+		/// and returns immediately with the value <c>true</c>,
 		/// setting the write lock hold count to one. Even when this lock has
 		/// been set to use a fair ordering policy, a call to
 		/// <see cref="Spring.Threading.Locks.WriterLock.TryLock()"/>
@@ -170,16 +170,16 @@ namespace Spring.Threading.Locks
 		/// <p/> 
 		/// If the current thread already holds this lock then the
 		/// hold count is incremented by one and the method returns
-		/// <see lang="true"/>.
+		/// <c>true</c>.
 		/// 
 		/// <p/>
 		/// If the lock is held by another thread then this method
-		/// will return immediately with the value <see lang="false"/>.
+		/// will return immediately with the value <c>false</c>.
 		/// 
 		/// </remarks>
-		/// <returns> <see lang="true"/> if the lock was free and was acquired
+		/// <returns> <c>true</c> if the lock was free and was acquired
 		/// by the current thread, or the write lock was already held
-		/// by the current thread; and <see lang="false"/> otherwise.
+		/// by the current thread; and <c>false</c> otherwise.
 		/// </returns>
 		public override bool TryLock()
 		{
@@ -193,7 +193,7 @@ namespace Spring.Threading.Locks
 		/// <remarks>
 		/// Acquires the write lock if neither the read nor write lock
 		/// are held by another thread
-		/// and returns immediately with the value <see lang="true"/>,
+		/// and returns immediately with the value <c>true</c>,
 		/// setting the write lock hold count to one. If this lock has been
 		/// set to use a fair ordering policy then an available lock
 		/// <b>will not</b> be acquired if any other threads are
@@ -209,7 +209,7 @@ namespace Spring.Threading.Locks
 		/// <p/>
 		/// If the current thread already holds this lock then the
 		/// hold count is incremented by one and the method returns
-		/// <see lang="true"/>.
+		/// <c>true</c>.
 		/// 
 		/// <p/>
 		/// If the lock is held by another thread then the current
@@ -224,7 +224,7 @@ namespace Spring.Threading.Locks
 		/// </ul>
 		/// 
 		/// <p/>
-		/// If the write lock is acquired then the value <see lang="true"/> is
+		/// If the write lock is acquired then the value <c>true</c> is
 		/// returned and the write lock hold count is set to one.
 		/// 
 		/// <p/>
@@ -233,7 +233,7 @@ namespace Spring.Threading.Locks
 		/// 
 		/// <p/>
 		/// If the specified <see cref="System.TimeSpan"/> elapses then the value
-		/// <see lang="false"/> is returned.  If the time is less than or
+		/// <c>false</c> is returned.  If the time is less than or
 		/// equal to zero, the method will not wait at all.
 		/// 
 		/// <p/>
@@ -244,9 +244,9 @@ namespace Spring.Threading.Locks
 		/// 
 		/// </remarks>
 		/// <param name="durationToWait">the time to wait for the write lock</param>
-		/// <returns> <see lang="true"/> if the lock was free and was acquired
+		/// <returns> <c>true</c> if the lock was free and was acquired
 		/// by the current thread, or the write lock was already held by the
-		/// current thread; and <see lang="false"/> if the waiting time
+		/// current thread; and <c>false</c> if the waiting time
 		/// elapsed before the lock could be acquired.
 		/// </returns>
 		/// 

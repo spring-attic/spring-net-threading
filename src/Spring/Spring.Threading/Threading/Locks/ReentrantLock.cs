@@ -10,7 +10,7 @@ namespace Spring.Threading.Locks
 	/// <summary> 
 	/// A reentrant mutual exclusion <see cref="ILock"/> with the same basic
 	/// behavior and semantics as the implicit monitor lock accessed using
-	/// <see lang="lock"/> statements, but with extended capabilities.
+	/// <c>lock</c> statements, but with extended capabilities.
     /// </summary>
     /// <remarks>
 	/// <para>
@@ -24,7 +24,7 @@ namespace Spring.Threading.Locks
     /// </para>
     /// <para>
 	/// The constructor for this class accepts an optional
-	/// <b>fairness</b> parameter.  When set <see lang="true"/>, under
+	/// <b>fairness</b> parameter.  When set <c>true</c>, under
 	/// contention, locks favor granting access to the longest-waiting
 	/// thread.  Otherwise this lock does not guarantee any particular
 	/// access order.  Programs using fair locks accessed by many threads
@@ -42,7 +42,7 @@ namespace Spring.Threading.Locks
     /// </para>
     /// <para>
     /// It is recommended practice to <b>always</b> immediately follow a call 
-    /// to <see cref="Lock()"/> with a <see lang="try"/> block or make user of
+    /// to <see cref="Lock()"/> with a <c>try</c> block or make user of
     /// the <c>using</c> keyward in C#, most typically in a before/after 
     /// construction such as:
 	/// 
@@ -66,7 +66,7 @@ namespace Spring.Threading.Locks
     /// In addition to implementing the <see cref="ILock"/> interface, this
 	/// class defines methods <see cref="IsLocked"/> and
 	/// <see cref="GetWaitQueueLength"/> , as well as some associated
-	/// <see lang="protected"/> access methods that may be useful for
+	/// <c>protected</c> access methods that may be useful for
 	/// instrumentation and monitoring.
     /// </para>
     /// <para>
@@ -567,8 +567,8 @@ namespace Spring.Threading.Locks
 		/// }
 		/// </code>
 		/// </summary>
-		/// <returns> <see lang="true"/> if current thread holds this lock and
-		/// <see lang="false"/> otherwise.
+		/// <returns> <c>true</c> if current thread holds this lock and
+		/// <c>false</c> otherwise.
 		/// </returns>
 		public virtual bool IsHeldByCurrentThread
 		{
@@ -581,8 +581,8 @@ namespace Spring.Threading.Locks
 		/// designed for use in monitoring of the system state,
 		/// not for synchronization control.
 		/// </summary>
-		/// <returns> <see lang="true"/> if any thread holds this lock and
-		/// <see lang="false"/> otherwise.
+		/// <returns> <c>true</c> if any thread holds this lock and
+		/// <c>false</c> otherwise.
 		/// </returns>
 		public virtual bool IsLocked
 		{
@@ -590,8 +590,8 @@ namespace Spring.Threading.Locks
 
 		}
 
-		/// <summary> Returns <see lang="true"/> if this lock has fairness set true.</summary>
-		/// <returns> <see lang="true"/> if this lock has fairness set true.
+		/// <summary> Returns <c>true</c> if this lock has fairness set true.</summary>
+		/// <returns> <c>true</c> if this lock has fairness set true.
 		/// </returns>
 		public virtual bool IsFair
 		{
@@ -601,13 +601,13 @@ namespace Spring.Threading.Locks
 
 		/// <summary> 
 		/// Returns the thread that currently owns this lock, or
-		/// <see lang="null"/> if not owned. Note that the owner may be
-		/// momentarily <see lang="null"/> even if there are threads trying to
+		/// <c>null</c> if not owned. Note that the owner may be
+		/// momentarily <c>null</c> even if there are threads trying to
 		/// acquire the lock but have not yet done so.  This method is
 		/// designed to facilitate construction of subclasses that provide
 		/// more extensive lock monitoring facilities.
 		/// </summary>
-		/// <returns> the owner, or <see lang="null"/> if not owned.
+		/// <returns> the owner, or <c>null</c> if not owned.
 		/// </returns>
 		protected internal virtual Thread Owner
 		{
@@ -643,7 +643,7 @@ namespace Spring.Threading.Locks
 		///	Creates an instance of <see cref="Spring.Threading.Locks.ReentrantLock"/> with the
 		/// given fairness policy.
 		/// </summary>
-		/// <param name="fair"><see lang="true"/> if this lock will be fair, else <see lang="false"/>
+		/// <param name="fair"><c>true</c> if this lock will be fair, else <c>false</c>
 		/// </param>
 		public ReentrantLock(bool fair)
 		{
@@ -843,7 +843,7 @@ namespace Spring.Threading.Locks
 		/// 
 		/// <p/>
 		/// Acquires the lock if it is not held by another thread and
-		/// returns immediately with the value <see lang="true"/>, setting the
+		/// returns immediately with the value <c>true</c>, setting the
 		/// lock hold count to one. Even when this lock has been set to use a
 		/// fair ordering policy, a call to <see cref="Spring.Threading.Locks.ReentrantLock.TryLock()"/> <b>will</b>
 		/// immediately acquire the lock if it is available, whether or not
@@ -857,16 +857,16 @@ namespace Spring.Threading.Locks
 		/// <p/> 
 		/// If the current thread
 		/// already holds this lock then the hold count is incremented by one and
-		/// the method returns <see lang="true"/>.
+		/// the method returns <c>true</c>.
 		/// 
 		/// <p/>
 		/// If the lock is held by another thread then this method will return
-		/// immediately with the value <see lang="false"/>.
+		/// immediately with the value <c>false</c>.
 		/// 
 		/// </summary>
-		/// <returns> <see lang="true"/> if the lock was free and was acquired by the
+		/// <returns> <c>true</c> if the lock was free and was acquired by the
 		/// current thread, or the lock was already held by the current thread,
-		/// <see lang="false"/> otherwise.
+		/// <c>false</c> otherwise.
 		/// </returns>
 		public virtual bool TryLock()
 		{
@@ -879,7 +879,7 @@ namespace Spring.Threading.Locks
 		/// 
 		/// <p/>
 		/// Acquires the lock if it is not held by another thread and returns
-		/// immediately with the value <see lang="true"/>, setting the lock hold count
+		/// immediately with the value <c>true</c>, setting the lock hold count
 		/// to one. If this lock has been set to use a fair ordering policy then
 		/// an available lock <b>will not</b> be acquired if any other threads
 		/// are waiting for the lock. This is in contrast to the <see cref="Spring.Threading.Locks.ReentrantLock.TryLock()"/> 
@@ -893,7 +893,7 @@ namespace Spring.Threading.Locks
 		/// <p/>
 		/// If the current thread
 		/// already holds this lock then the hold count is incremented by one and
-		/// the method returns <see lang="true"/>.
+		/// the method returns <c>true</c>.
 		/// 
 		/// <p/>
 		/// If the lock is held by another thread then the
@@ -907,7 +907,7 @@ namespace Spring.Threading.Locks
 		/// </ul>
 		/// 
 		/// <p/>
-		/// If the lock is acquired then the value <see lang="true"/> is returned and
+		/// If the lock is acquired then the value <c>true</c> is returned and
 		/// the lock hold count is set to one.
 		/// 
 		/// <p/>If the current thread:
@@ -920,7 +920,7 @@ namespace Spring.Threading.Locks
 		/// interrupted status is cleared.
 		/// 
 		/// <p/>
-		/// If the specified waiting time elapses then the value <see lang="false"/>
+		/// If the specified waiting time elapses then the value <c>false</c>
 		/// is returned.  If the time is less than or equal to zero, the method will not wait at all.
 		/// 
 		/// <p/>
@@ -931,9 +931,9 @@ namespace Spring.Threading.Locks
 		/// 
 		/// </summary>
 		/// <param name="timeSpan">the <see cref="System.TimeSpan"/> to wait for the lock</param>
-		/// <returns> <see lang="true"/> if the lock was free and was acquired by the
+		/// <returns> <c>true</c> if the lock was free and was acquired by the
 		/// current thread, or the lock was already held by the current thread; and
-		/// <see lang="false"/> if the waiting time elapsed before the lock could be
+		/// <c>false</c> if the waiting time elapsed before the lock could be
 		/// acquired.
 		/// </returns>
 		/// <throws>  InterruptedException if the current thread is interrupted </throws>
@@ -998,13 +998,13 @@ namespace Spring.Threading.Locks
 
 		/// <summary> 
 		/// Queries whether any threads are waiting to acquire this lock. Note that
-		/// because cancellations may occur at any time, a <see lang="true"/>
+		/// because cancellations may occur at any time, a <c>true</c>
 		/// return does not guarantee that any other thread will ever
 		/// acquire this lock.  This method is designed primarily for use in
 		/// monitoring of the system state.
 		/// </summary>
-		/// <returns> <see lang="true"/>if there may be other threads waiting to acquire
-		/// the lock, <see lang="false"/> otherwise.
+		/// <returns> <c>true</c>if there may be other threads waiting to acquire
+		/// the lock, <c>false</c> otherwise.
 		/// </returns>
 		public bool HasQueuedThreads
 		{
@@ -1015,13 +1015,13 @@ namespace Spring.Threading.Locks
 		/// <summary> 
 		/// Queries whether the <paramref name="thread"/> is waiting to acquire this
 		/// lock. Note that because cancellations may occur at any time, a
-		/// <see lang="true"/> return does not guarantee that this thread
+		/// <c>true</c> return does not guarantee that this thread
 		/// will ever acquire this lock.  This method is designed primarily for use
 		/// in monitoring of the system state.
 		/// </summary>
 		/// <param name="thread">the <see cref="System.Threading.Thread"/> instance.
 		/// </param>
-		/// <returns> <see lang="true"/> if the given thread is queued waiting for this lock, <see lang="false"/> otherwise.
+		/// <returns> <c>true</c> if the given thread is queued waiting for this lock, <c>false</c> otherwise.
 		/// </returns>
 		/// <throws>  NullPointerException if thread is null </throws>
 		/// <exception cref="System.NullReferenceException">if <paramref name="thread"/> is null.</exception>
@@ -1049,13 +1049,13 @@ namespace Spring.Threading.Locks
 		/// <summary> 
 		/// Queries whether any threads are waiting on the <paramref name="condition"/>
 		/// associated with this lock. Note that because timeouts and
-		/// interrupts may occur at any time, a <see lang="true"/> return does
+		/// interrupts may occur at any time, a <c>true</c> return does
 		/// not guarantee that a future <tt>signal</tt> will awaken any
 		/// threads.  This method is designed primarily for use in
 		/// monitoring of the system state.
 		/// </summary>
 		/// <param name="condition">the condition</param>
-		/// <returns> <see lang="true"/> if there are any waiting threads.</returns>
+		/// <returns> <c>true</c> if there are any waiting threads.</returns>
 		/// <exception cref="System.NullReferenceException">if the <paramref name="condition"/> is null</exception>
 		/// <exception cref="System.ArgumentException">if the <paramref name="condition"/> is not associated with this lock</exception>
 		public virtual bool HasWaiters(ICondition condition)

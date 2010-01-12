@@ -308,11 +308,11 @@ namespace Spring.Threading.Execution
 
         /// <summary> 
         /// Returns a <see cref="ICallable{T}"/> object that, when
-        /// called, runs the given task and returns <see lang="null"/>.
+        /// called, runs the given task and returns <c>null</c>.
         /// </summary>
         /// <param name="runnable">the task to run</param>
         /// <returns> a callable object</returns>
-        /// <exception cref="System.ArgumentNullException">if the task is <see lang="null"/></exception>
+        /// <exception cref="System.ArgumentNullException">if the task is <c>null</c></exception>
         public static ICallable<Void> CreateCallable(IRunnable runnable)
         {
             return CreateCallable(runnable, default(Void));

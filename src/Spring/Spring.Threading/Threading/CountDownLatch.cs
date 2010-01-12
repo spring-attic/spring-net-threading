@@ -245,13 +245,13 @@ namespace Spring.Threading
         /// </para>
         /// <para>
         /// If the specified <paramref name="duration"/> elapses then the value
-        /// <see lang="false"/> is returned. If the time is less than or equal
+        /// <c>false</c> is returned. If the time is less than or equal
         /// to zero, the method will not wait at all.
         /// </para>
         /// </remarks>
         /// <param name="duration">The maximum time to wait.</param>
         /// <returns>
-        /// <see lang="true"/> if the count reached zero and <see lang="false"/>
+        /// <c>true</c> if the count reached zero and <c>false</c>
         /// if the waiting time elapsed before the count reached zero.
         /// </returns>
         /// <exception cref="ThreadInterruptedException">

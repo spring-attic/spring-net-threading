@@ -11,24 +11,42 @@ using Spring.Utility;
 namespace Spring.Threading.Collections.Generic
 {
 	/// <summary>
-	/// An unbounded <see cref="IBlockingQueue{T}"/> of
-	/// <see cref="IDelayed"/> elements, in which an element can only be taken
-	/// when its delay has expired. 
+	/// An unbounded <see cref="IBlockingQueue{T}"/> of <see cref="IDelayed"/>
+	/// elements, in which an element can only be taken when its delay has expired.
 	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// The <b>head</b> of the queue is that <see cref="IDelayed"/> element whose
+	/// delay expired furthest in the past.  If no delay has expired there is no
+	/// head and <see cref="Poll(out T)"/> will return <c>false</c>. Expiration
+	/// occurs when an element's <see cref="IDelayed.GetRemainingDelay"/> method
+	/// returns a value less then or equals to zero.  Even though unexpired elements
+	/// cannot be removed using <see cref="Take"/> or <see cref="Poll(out T)"/>,
+    /// they are otherwise treated as normal elements. For example, the 
+    /// <see cref="Count"/> property returns the count of both expired and unexpired
+    /// elements. This queue does not permit <c>null</c> elements.
+	/// </para>
+	/// <para>
+	/// This class implement all of the <em>optional</em> methods of the 
+	/// <see cref="ICollection{T}"/> interfaces.
+	/// </para>
+	/// </remarks>
+	/// <typeparam name="T">
+	/// The type of elements that implements <see cref="IDelayed"/>.
+	/// </typeparam>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
 	[Serializable]
-    public class DelayQueue<T> : AbstractBlockingQueue<T>, IDeserializationCallback //BACKPORT_2_2
+    public class DelayQueue<T> : AbstractBlockingQueue<T>, IDeserializationCallback // BACKPORT_3_1
         where T : IDelayed
     {
-        [NonSerialized]
-        private object _lock = new object();
+        [NonSerialized] private object _lock = new object();
 
         private readonly PriorityQueue<T> _queue;
 
         /// <summary>
-        /// Creates a new, empty <see cref="DelayQueue{T}"/>
+        /// Creates a new, empty <see cref="DelayQueue{T}"/>.
         /// </summary>
         public DelayQueue()
         {
@@ -36,12 +54,19 @@ namespace Spring.Threading.Collections.Generic
         }
 
         /// <summary>
-        ///Creates a <see cref="DelayQueue{T}"/> initially containing the elements of the
-        ///given collection of <see cref="IDelayed"/> instances.
+        /// Creates a <see cref="DelayQueue{T}"/> initially containing the
+        /// elements of the given collection of <see cref="IDelayed"/>
+        /// instances specified by parameter <paramref name="source"/>.
         /// </summary>
-        /// <param name="source">collection of elements to populate queue with.</param>
-        /// <exception cref="ArgumentNullException">If the collection is null.</exception>
-        /// <exception cref="NullReferenceException">if any of the elements of the collection are null</exception>
+        /// <param name="source">
+        /// Collection of elements to populate queue with.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// If the collection is <c>null</c>.
+        /// </exception>
+        /// <exception cref="NullReferenceException">
+        /// If any of the elements of the collection are <c>null</c>.
+        /// </exception>
         public DelayQueue(IEnumerable<T> source)
         {
             _queue = new PriorityQueue<T>(source);
@@ -50,10 +75,10 @@ namespace Spring.Threading.Collections.Generic
         /// <summary>
         /// Inserts the specified element into this delay queue.
         /// </summary>
-        /// <param name="element">element to add</param>
-        /// <returns>Always <see lang="true"/></returns>
+        /// <param name="element">The element to add.</param>
+        /// <returns>Always <c>true</c></returns>
         /// <exception cref="NullReferenceException">
-        /// If the specified element is <see lang="null"/>.
+        /// If the specified element is <c>null</c>.
         /// </exception>
         public override bool Offer(T element)
         {
@@ -75,7 +100,7 @@ namespace Spring.Threading.Collections.Generic
         ///	unbounded this method will never block.
         /// </summary>
         /// <param name="element">element to add</param>
-        /// <exception cref="NullReferenceException">if the element is <see lang="null"/></exception>
+        /// <exception cref="NullReferenceException">if the element is <c>null</c></exception>
         public override void Put(T element)
         {
             Offer(element);
@@ -97,7 +122,7 @@ namespace Spring.Threading.Collections.Generic
         /// </summary>
         /// <param name="objectToAdd">the element to add</param>
         /// <param name="duration">how long to wait before giving up</param>
-        /// <returns> <see lang="true"/> if successful, or <see lang="false"/> if
+        /// <returns> <c>true</c> if successful, or <c>false</c> if
         /// the specified waiting time elapses before space is available
         /// </returns>
         /// <exception cref="System.InvalidOperationException">
@@ -108,8 +133,8 @@ namespace Spring.Threading.Collections.Generic
         /// from being added to this queue.
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
-        /// If the specified element is <see lang="null"/> and this queue does not
-        /// permit <see lang="null"/> elements.
+        /// If the specified element is <c>null</c> and this queue does not
+        /// permit <c>null</c> elements.
         /// </exception>
         /// <exception cref="System.ArgumentException">
         /// If some property of the supplied <paramref name="objectToAdd"/> prevents
@@ -161,10 +186,10 @@ namespace Spring.Threading.Collections.Generic
 
         /// <summary> 
         /// Retrieves and removes the head of this queue
-        /// or returns <see lang="null"/> if this queue is empty or if the head has not expired.
+        /// or returns <c>null</c> if this queue is empty or if the head has not expired.
         /// </summary>
         /// <returns> 
-        /// The head of this queue, or <see lang="null"/> if this queue is empty or if the head has not expired.
+        /// The head of this queue, or <c>null</c> if this queue is empty or if the head has not expired.
         /// </returns>
         public override bool Poll(out T element)
         {
@@ -227,7 +252,7 @@ namespace Spring.Threading.Collections.Generic
         /// <param name="duration">how long to wait before giving up</param>a
         /// <param name="element"></param>
         /// <returns> 
-        /// the head of this queue, or <see lang="null"/> if the
+        /// the head of this queue, or <c>null</c> if the
         /// specified waiting time elapses before an element is available
         /// </returns>
         public override bool Poll(TimeSpan duration, out T element)
@@ -422,7 +447,7 @@ namespace Spring.Threading.Collections.Generic
         /// queue, if it is present, whether or not it has expired.
         /// </summary>
         /// <param name="element">element to remove</param>
-        /// <returns><see lang="true"/> if element was remove, <see lang="false"/> if not.</returns>
+        /// <returns><c>true</c> if element was remove, <c>false</c> if not.</returns>
         public override bool Remove(T element) {
             lock (_lock)
             {

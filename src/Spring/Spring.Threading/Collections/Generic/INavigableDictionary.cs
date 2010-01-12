@@ -35,7 +35,7 @@ namespace Spring.Collections.Generic
     /// and <see cref="HigherEntry"/> 
     /// return objects associated with keys respectively less than, less than or equal,
     /// greater than or equal, and greater than a given key, returning
-    /// <see lang="null"/> if there is no such key.  Similarly, methods
+    /// <c>null</c> if there is no such key.  Similarly, methods
     /// <see cref="LowerKey"/>, 
     /// <see cref="FloorKey"/>, 
     /// <see cref="CeilingKey"/>, and
@@ -61,7 +61,7 @@ namespace Spring.Collections.Generic
     /// <see cref="PollFirstEntry"/>, 
     /// <see cref="LastEntry"/>, 
     /// and <see cref="PollLastEntry"/> that return and/or remove the least and
-    /// greatest mappings, if any exist, else returning <see lang="null"/>.
+    /// greatest mappings, if any exist, else returning <c>null</c>.
     /// </remarks>
     /// 
     /// <author>Doug Lea</author>
@@ -70,124 +70,124 @@ namespace Spring.Collections.Generic
     {
         /// <summary> 
         /// Returns a <see cref="System.Collections.DictionaryEntry"/>  associated with the greatest key
-        /// strictly less than the given key, or <see lang="null"/> if there is
+        /// strictly less than the given key, or <c>null</c> if there is
         /// no such key.
         /// </summary>
         /// <param name="key">the key</param>
         /// <returns> 
         /// an entry with the greatest key less than <paramref name="key"/>,
-        /// or <see lang="null"/> if there is no such key
+        /// or <c>null</c> if there is no such key
         /// </returns>
         DictionaryEntry LowerEntry(TKey key);
 
         /// <summary> 
         /// Returns the greatest key strictly less than the given key, or
-        /// <see lang="null"/> if there is no such key.
+        /// <c>null</c> if there is no such key.
         /// </summary>
         /// <param name="key">the key</param>
         /// <returns> the greatest key less than <paramref name="key"/>,
-        /// or <see lang="null"/> if there is no such key
+        /// or <c>null</c> if there is no such key
         /// </returns>
         TKey LowerKey(TKey key);
 
         /// <summary> 
         /// Returns a <see cref="System.Collections.DictionaryEntry"/> associated with the greatest key
-        /// less than or equal to the given key, or <see lang="null"/> if there
+        /// less than or equal to the given key, or <c>null</c> if there
         /// is no such key.
         /// </summary>
         /// <param name="key">the key</param>
         /// <returns> an entry with the greatest key less than or equal to
-        /// <paramref name="key"/>, or <see lang="null"/> if there is no such key
+        /// <paramref name="key"/>, or <c>null</c> if there is no such key
         /// </returns>
         DictionaryEntry FloorEntry(TKey key);
 
         /// <summary> 
         /// Returns the greatest key less than or equal to the given key,
-        /// or <see lang="null"/> if there is no such key.
+        /// or <c>null</c> if there is no such key.
         /// </summary>
         /// <param name="key">the key
         /// </param>
         /// <returns> the greatest key less than or equal to <paramref name="key"/>,
-        /// or <see lang="null"/> if there is no such key
+        /// or <c>null</c> if there is no such key
         /// </returns>
         TKey FloorKey(TKey key);
 
         /// <summary> 
         /// Returns a <see cref="System.Collections.DictionaryEntry"/> associated with the least key
-        /// greater than or equal to the given key, or <see lang="null"/> if
+        /// greater than or equal to the given key, or <c>null</c> if
         /// there is no such key.
         /// </summary>
         /// <param name="key">the key</param>
         /// <returns> an entry with the least key greater than or equal to
-        /// <paramref name="key"/>, or <see lang="null"/> if there is no such key
+        /// <paramref name="key"/>, or <c>null</c> if there is no such key
         /// </returns>
         DictionaryEntry CeilingEntry(TKey key);
 
         /// <summary> 
         /// Returns the least key greater than or equal to the given key,
-        /// or <see lang="null"/> if there is no such key.
+        /// or <c>null</c> if there is no such key.
         /// </summary>
         /// <param name="key">the key
         /// </param>
         /// <returns> the least key greater than or equal to <paramref name="key"/>,
-        /// or <see lang="null"/> if there is no such key
+        /// or <c>null</c> if there is no such key
         /// </returns>
         TKey CeilingKey(TKey key);
 
         /// <summary> 
         /// Returns a <see cref="System.Collections.DictionaryEntry"/> associated with the least key
-        /// strictly greater than the given key, or <see lang="null"/> if there
+        /// strictly greater than the given key, or <c>null</c> if there
         /// is no such key.
         /// </summary>
         /// <param name="key">the key</param>
         /// <returns> an entry with the least key greater than <paramref name="key"/>,
-        /// or <see lang="null"/> if there is no such key
+        /// or <c>null</c> if there is no such key
         /// </returns>
         DictionaryEntry HigherEntry(TKey key);
 
         /// <summary> 
         /// Returns the least key strictly greater than the given key, or
-        /// <see lang="null"/> if there is no such key.
+        /// <c>null</c> if there is no such key.
         /// </summary>
         /// <param name="key">the key</param>
         /// <returns> the least key greater than <paramref name="key"/>,
-        /// or <see lang="null"/> if there is no such key
+        /// or <c>null</c> if there is no such key
         /// </returns>
         TKey HigherKey(TKey key);
 
         /// <summary> 
         /// Returns a <see cref="System.Collections.DictionaryEntry"/> associated with the least
-        /// key in this dictionary, or <see lang="null"/> if the dictionary is empty.
+        /// key in this dictionary, or <c>null</c> if the dictionary is empty.
         /// </summary>
         /// <returns> an entry with the least key,
-        /// or <see lang="null"/> if this dictionary is empty
+        /// or <c>null</c> if this dictionary is empty
         /// </returns>
         DictionaryEntry FirstEntry { get; }
 
         /// <summary> 
         /// Returns a <see cref="System.Collections.DictionaryEntry"/> associated with the greatest
-        /// key in this dictionary, or <see lang="null"/> if the dictionary is empty.
+        /// key in this dictionary, or <c>null</c> if the dictionary is empty.
         /// </summary>
         /// <returns> an entry with the greatest key,
-        /// or <see lang="null"/> if this dictionary is empty
+        /// or <c>null</c> if this dictionary is empty
         /// </returns>
         DictionaryEntry LastEntry { get; }
 
         /// <summary> 
         /// Removes and returns a <see cref="System.Collections.DictionaryEntry"/> associated with
-        /// the least key in this dictionary, or <see lang="null"/> if the dictionary is empty.
+        /// the least key in this dictionary, or <c>null</c> if the dictionary is empty.
         /// </summary>
         /// <returns> the removed first entry of this dictionary,
-        /// or <see lang="null"/> if this dictionary is empty
+        /// or <c>null</c> if this dictionary is empty
         /// </returns>
         DictionaryEntry PollFirstEntry();
 
         /// <summary> 
         /// Removes and returns a <see cref="System.Collections.DictionaryEntry"/> associated with
-        /// the greatest key in this dictionary, or <see lang="null"/> if the dictionary is empty.
+        /// the greatest key in this dictionary, or <c>null</c> if the dictionary is empty.
         /// </summary>
         /// <returns> the removed last entry of this dictionary,
-        /// or <see lang="null"/> if this dictionary is empty
+        /// or <c>null</c> if this dictionary is empty
         /// </returns>
         DictionaryEntry PollLastEntry();
 

@@ -189,7 +189,7 @@ namespace Spring.Threading.Execution
         /// </summary>
         /// <returns>
         /// The <see cref="IFuture{T}"/> representing the next completed task, 
-        /// or <see lang="null"/> if none are present.
+        /// or <c>null</c> if none are present.
         /// </returns>
         IFuture<T> Poll();
 
@@ -203,7 +203,7 @@ namespace Spring.Threading.Execution
         /// </param>
         /// <returns> 
         /// the <see cref="IFuture{T}"/> representing the next completed task or
-        /// <see lang="null"/> if the specified waiting time elapses before one
+        /// <c>null</c> if the specified waiting time elapses before one
         /// is present.
         /// </returns>
         IFuture<T> Poll(TimeSpan durationToWait);

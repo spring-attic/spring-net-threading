@@ -23,7 +23,7 @@ using System.Threading;
 
 namespace Spring.Threading.AtomicTypes
 {
-	/// <summary> A <see lang="long"/> value that may be updated atomically.  See the
+	/// <summary> A <see cref="long"/> value that may be updated atomically.  See the
 	/// An <see cref="AtomicLong"/> is used in applications such as atomically
 	/// incremented sequence numbers, and cannot be used as a replacement
 	/// for a <see cref="long"/>. 

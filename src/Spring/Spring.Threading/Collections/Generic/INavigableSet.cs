@@ -38,7 +38,7 @@ namespace Spring.Collections.Generic
 	/// and <see cref="INavigableSet{T}.Higher(T)"/>
 	/// return elements respectively less than, less than or equal,
 	/// greater than or equal, and greater than a given element, returning
-	/// <see lang="null"/> if there is no such element.
+	/// <c>null</c> if there is no such element.
 	/// </p>
 	/// <p>
 	/// A <see cref="INavigableSet{T}"/> may be viewed and traversed
@@ -54,7 +54,7 @@ namespace Spring.Collections.Generic
 	/// methods <see cref="INavigableSet{T}.PollFirst"/> and
 	/// <see cref="INavigableSet{T}.PollLast"/> that return and
 	/// remove the lowest and highest element, if one exists, else returning
-	/// <see lang="null"/>. Methods <see cref="INavigableSet{T}.NavigableSubSet"/>
+	/// <c>null</c>. Methods <see cref="INavigableSet{T}.NavigableSubSet"/>
 	/// <see cref="INavigableSet{T}.NavigableHeadSet"/>, and
 	/// <see cref="INavigableSet{T}.NavigableTailSet"/> differ from
 	/// the similarly named <see cref="Spring.Collections.SortedSet"/> methods only
@@ -63,11 +63,11 @@ namespace Spring.Collections.Generic
 	/// </p>
 	/// <p>
 	/// The return values of navigation methods may be ambiguous in implementations
-	/// that permit <see lang="null"/> elements. However, even in this case the
+	/// that permit <c>null</c> elements. However, even in this case the
 	/// result can be disambiguated by checking the return value of the
 	/// <see cref="ISet{T}.Contains(T)"/> (via <c>Contains(null)</c>).
 	/// To avoid such issues, implementations of this interface are encouraged to
-	/// <em>not</em> permit the insertion of <see lang="null"/> elements.
+	/// <em>not</em> permit the insertion of <c>null</c> elements.
 	/// </p>
 	/// </remarks>
 	/// <author>Griffin Caprio</author>
@@ -76,49 +76,49 @@ namespace Spring.Collections.Generic
 	{
 		/// <summary>
 		/// Returns the greatest element in this set strictly less than the
-		/// supplied <paramref name="element"/>, or <see lang="null"/> if there
+		/// supplied <paramref name="element"/>, or <c>null</c> if there
 		/// is no such element.
 		/// </summary>
 		/// <param name="element">The value to match.</param>
 		/// <returns>
 		/// The greatest element less than <paramref name="element"/>, or
-		/// <see lang="null"/> if there is no such element.
+		/// <c>null</c> if there is no such element.
 		/// </returns>
 		T Lower( T element );
 
 		/// <summary>
 		/// Returns the greatest element in this set less than or equal to
-		/// the supplied <paramref name="element"/>, or <see lang="null"/> if there
+		/// the supplied <paramref name="element"/>, or <c>null</c> if there
 		/// is no such element.
 		/// </summary>
 		/// <param name="element">The value to match.</param>
 		/// <returns>
 		/// The greatest element less than or equal to <paramref name="element"/>,
-		/// or <see lang="null"/> if there is no such element.
+		/// or <c>null</c> if there is no such element.
 		/// </returns>
 		T Floor( T element );
 
 		/// <summary>
 		/// Returns the least element in this set greater than or equal to
-		/// the supplied <paramref name="element"/>, or <see lang="null"/> if there
+		/// the supplied <paramref name="element"/>, or <c>null</c> if there
 		/// is no such element.
 		/// </summary>
 		/// <param name="element">The value to match.</param>
 		/// <returns>
 		/// The least element greater than or equal to <paramref name="element"/>,
-		/// or <see lang="null"/> if there is no such element.
+		/// or <c>null</c> if there is no such element.
 		/// </returns>
 		T Ceiling( T element );
 
 		/// <summary>
 		/// Returns the least element in this set strictly greater than the
-		/// supplied <paramref name="element"/>, or <see lang="null"/> if there
+		/// supplied <paramref name="element"/>, or <c>null</c> if there
 		/// is no such element.
 		/// </summary>
 		/// <param name="element">The value to match.</param>
 		/// <returns>
 		/// The least element greater than <paramref name="element"/>,
-		/// or <see lang="null"/> if there is no such element.
+		/// or <c>null</c> if there is no such element.
 		/// </returns>
 		T Higher( T element );
 
@@ -126,7 +126,7 @@ namespace Spring.Collections.Generic
 		/// Retrieves and removes the first (lowest) element.
 		/// </summary>
 		/// <returns>
-		/// The first element, or <see lang="null"/> if this set is empty.
+		/// The first element, or <c>null</c> if this set is empty.
 		/// </returns>
 		T PollFirst();
 
@@ -134,7 +134,7 @@ namespace Spring.Collections.Generic
 		/// Retrieves and removes the last (highest) element.
 		/// </summary>
 		/// <returns>
-		/// The last element, or <see lang="null"/> if this set is empty.
+		/// The last element, or <c>null</c> if this set is empty.
 		/// </returns>
 		T PollLast();
 

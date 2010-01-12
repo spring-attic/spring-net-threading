@@ -146,7 +146,7 @@ namespace Spring.Collections.Generic
         /// <para>
         /// Suppose <i>x</i> is a collection known to contain only strings.
         /// The following code can be used to dump the queue into a newly
-        /// allocated array of <see lang="string"/>s:
+        /// allocated array of <see cref="string"/>s:
         /// 
         /// <code language="c#">
         ///		string[] y = (string[]) x.ToArray(new string[0]);
@@ -167,7 +167,7 @@ namespace Spring.Collections.Generic
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// If the supplied <paramref name="targetArray"/> is
-        /// <see lang="null"/>.
+        /// <c>null</c>.
         /// </exception>
         public virtual T[] ToArray(T[] targetArray)
         {

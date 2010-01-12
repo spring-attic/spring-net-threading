@@ -58,7 +58,7 @@ namespace Spring.Threading.Helpers
 		/// </param>
 		/// <returns> wrapped runnable
 		/// </returns>
-		/// <exception cref="System.ArgumentNullException">If either parameter is <see lang="null"/></exception>
+		/// <exception cref="System.ArgumentNullException">If either parameter is <c>null</c></exception>
 		public static IRunnable AssignExceptionHandler(IRunnable runnable, UncaughtExceptionHandlerDelegate handler)
 		{
 			if ( runnable == null )

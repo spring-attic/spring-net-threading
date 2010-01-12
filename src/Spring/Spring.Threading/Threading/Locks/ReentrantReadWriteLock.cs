@@ -217,8 +217,8 @@ namespace Spring.Threading.Locks
 
 		#region Properties
 
-		/// <summary>Returns <see lang="true"/> if this lock has fairness set true. This implementation always returns <see lang="false"/></summary>
-		/// <returns><see lang="false"/> if this lock has fairness set false.</returns>
+		/// <summary>Returns <c>true</c> if this lock has fairness set true. This implementation always returns <c>false</c></summary>
+		/// <returns><c>false</c> if this lock has fairness set false.</returns>
 		public bool IsFair
 		{
 			get { return false; }
@@ -226,13 +226,13 @@ namespace Spring.Threading.Locks
 
 		/// <summary> 
 		/// Returns the <see cref="System.Threading.Thread"/> that currently owns the write lock, or
-		/// <see lang="null"/> if not owned. Note that the owner may be
-		/// momentarily <see lang="null"/> even if there are threads trying to
+		/// <c>null</c> if not owned. Note that the owner may be
+		/// momentarily <c>null</c> even if there are threads trying to
 		/// acquire the lock but have not yet done so.  This method is
 		/// designed to facilitate construction of subclasses that provide
 		/// more extensive lock monitoring facilities.
 		/// </summary>
-		/// <returns> the owner, or <see lang="null"/> if not owned.
+		/// <returns> the owner, or <c>null</c> if not owned.
 		/// </returns>
 		protected internal Thread Owner
 		{
@@ -269,8 +269,8 @@ namespace Spring.Threading.Locks
 		/// designed for use in monitoring system state, not for
 		/// synchronization control.
 		/// </summary>
-		/// <returns> <see lang="true"/> if any thread holds the write lock and
-		/// <see lang="false"/> otherwise.
+		/// <returns> <c>true</c> if any thread holds the write lock and
+		/// <c>false</c> otherwise.
 		/// </returns>
 		public bool IsWriteLockHeld
 		{
@@ -286,8 +286,8 @@ namespace Spring.Threading.Locks
 
 		/// <summary> 
 		/// Queries if the write lock is held by the current thread.</summary>
-		/// <returns> <see lang="true"/> if the current thread holds the write lock and
-		/// <see lang="false"/> otherwise.
+		/// <returns> <c>true</c> if the current thread holds the write lock and
+		/// <c>false</c> otherwise.
 		/// </returns>
 		public bool WriterLockedByCurrentThread
 		{
@@ -414,7 +414,7 @@ namespace Spring.Threading.Locks
 		/// Attemptes to aquire a new read lock for the current thread. If the read lock was not aquired, the number of readers waiting for a 
 		/// read lock is incremented. 
 		/// </summary>
-		/// <returns><see lang="true"/> if a read lock was aquired, <see lang="false"/> otherwise.</returns>
+		/// <returns><c>true</c> if a read lock was aquired, <c>false</c> otherwise.</returns>
 		internal bool StartReadFromNewReader()
 		{
 			lock (this)
@@ -430,7 +430,7 @@ namespace Spring.Threading.Locks
 		/// Attemps to aquire a new write lock for the current thread.  If the write lock was not aquired, the number of writers waiting for a 
 		/// write lock is incremented.
 		/// </summary>
-		/// <returns><see lang="true"/> if the write lock was aquired, <see lang="false"/> otherwise.</returns>
+		/// <returns><c>true</c> if the write lock was aquired, <c>false</c> otherwise.</returns>
 		internal bool StartWriteFromNewWriter()
 		{
 			lock (this)
@@ -446,7 +446,7 @@ namespace Spring.Threading.Locks
 		/// Attemps to aquire a new read lock from the current threads waiting readers.  If the read lock was aquired, the number of waiting readers
 		/// is decremented.
 		/// </summary>
-		/// <returns><see lang="true"/> if the read lock was aquired, <see lang="false"/> otherwise.</returns>
+		/// <returns><c>true</c> if the read lock was aquired, <c>false</c> otherwise.</returns>
 		internal bool StartReadFromWaitingReader()
 		{
 			lock (this)
@@ -462,7 +462,7 @@ namespace Spring.Threading.Locks
 		/// Attempes to aquire a new write lock for the current thread.  If the write lock was aquired, the number of waiting writers for a write lock
 		/// is decremented.
 		/// </summary>
-		/// <returns><see lang="true"/> if the write lock was aquired, <see lang="false"/> otherwise.</returns>
+		/// <returns><c>true</c> if the write lock was aquired, <c>false</c> otherwise.</returns>
 		internal bool StartWriteFromWaitingWriter()
 		{
 			lock (this)
@@ -550,7 +550,7 @@ namespace Spring.Threading.Locks
 		///	If the current thread does not have a read lock, and new read locks are <b>not</b> allowed, false is returned and a new read lock is <b>not</b>
 		///	aquired.   
 		/// </remarks>
-		/// <returns><see lang="trur"/> if a read lock was aquired, <see lang="false"/> otherwise.</returns>
+		/// <returns><c>true</c> if a read lock was aquired, <c>false</c> otherwise.</returns>
 		internal bool StartRead()
 		{
 			lock (this)
@@ -581,7 +581,7 @@ namespace Spring.Threading.Locks
 		///	If the current thread is already the active writer, the number of writer holds is simply incremented.  Otherwise, if there are no current
 		///	write holds and writers are allowed, the current thread becomes the active writer. 
 		/// </remarks>
-		/// <returns><see lang="trur"/> if a write lock was aquired, <see lang="false"/> otherwise.</returns>
+		/// <returns><c>true</c> if a write lock was aquired, <c>false</c> otherwise.</returns>
 		internal bool StartWrite()
 		{
 			lock (this)

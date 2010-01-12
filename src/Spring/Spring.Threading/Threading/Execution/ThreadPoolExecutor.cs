@@ -544,8 +544,8 @@ namespace Spring.Threading.Execution
         private long _keepAliveTicks;
 
         /// <summary> 
-        /// If <see lang="false"/> (the default), core threads stay alive even when idle.
-        /// If <see lang="true"/>, core threads use <see cref="KeepAliveTime"/> 
+        /// If <c>false</c> (the default), core threads stay alive even when idle.
+        /// If <c>true</c>, core threads use <see cref="KeepAliveTime"/> 
         /// to time out waiting for work.
         /// </summary>
         private volatile bool _allowCoreThreadToTimeOut;
@@ -634,7 +634,7 @@ namespace Spring.Threading.Execution
         /// <exception cref="ArgumentException">
         /// if <i>value</i> is less than 0 or if <i>value</i> equals 0 and 
         /// <see cref="AllowsCoreThreadsToTimeOut"/> is 
-        /// <see lang="true"/>
+        /// <c>true</c>
         /// </exception>
         public TimeSpan KeepAliveTime
         {
@@ -661,7 +661,7 @@ namespace Spring.Threading.Execution
         }
 
         /// <summary>
-        /// Returns <see lang="true"/> if this pool allows core threads to time out and
+        /// Returns <c>true</c> if this pool allows core threads to time out and
         /// terminate if no tasks arrive within the keepAlive time, being
         /// replaced if needed when new tasks arrive. 
         /// </summary>
@@ -682,7 +682,7 @@ namespace Spring.Threading.Execution
         /// should in general be called before the pool is actively used.
         /// </returns>
         /// <exception cref="System.ArgumentException">
-        /// If <see lang="true"/> and keep alive time is less than or equal to 0
+        /// If <c>true</c> and keep alive time is less than or equal to 0
         /// </exception>
         public bool AllowsCoreThreadsToTimeOut
         {
@@ -702,18 +702,18 @@ namespace Spring.Threading.Execution
         }
 
         /// <summary> 
-        /// Returns <see lang="true"/> if this executor is in the process of terminating
+        /// Returns <c>true</c> if this executor is in the process of terminating
         /// after <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Shutdown()"/> or
         /// <see cref="Spring.Threading.Execution.ThreadPoolExecutor.ShutdownNow()"/> but has not
         /// completely terminated.  
         /// </summary>
         /// <remarks>
-        /// This method may be useful for debugging. A return of <see lang="true"/> reported a sufficient
+        /// This method may be useful for debugging. A return of <c>true</c> reported a sufficient
         /// period after shutdown may indicate that submitted tasks have
         /// ignored or suppressed interruption, causing this executor not
         /// to properly terminate.
         /// </remarks>
-        /// <returns><see lang="true"/>if terminating but not yet terminated.</returns>
+        /// <returns><c>true</c>if terminating but not yet terminated.</returns>
         public bool IsTerminating
         {
             get
@@ -1126,10 +1126,10 @@ namespace Spring.Threading.Execution
         #region AbstractExecutorService Implementations
 
         /// <summary> 
-        /// Returns <see lang="true"/> if this executor has been shut down.
+        /// Returns <c>true</c> if this executor has been shut down.
         /// </summary>
         /// <returns> 
-        /// Returns <see lang="true"/> if this executor has been shut down.
+        /// Returns <c>true</c> if this executor has been shut down.
         /// </returns>
         public override bool IsShutdown
         {
@@ -1137,14 +1137,14 @@ namespace Spring.Threading.Execution
         }
 
         /// <summary> 
-        /// Returns <see lang="true"/> if all tasks have completed following shut down.
+        /// Returns <c>true</c> if all tasks have completed following shut down.
         /// </summary>
         /// <remarks>
-        /// Note that this will never return <see lang="true"/> unless
+        /// Note that this will never return <c>true</c> unless
         /// either <see cref="Spring.Threading.Execution.IExecutorService.Shutdown()"/> or 
         /// <see cref="Spring.Threading.Execution.IExecutorService.ShutdownNow()"/> was called first.
         /// </remarks>
-        /// <returns> <see lang="true"/> if all tasks have completed following shut down</returns>
+        /// <returns> <c>true</c> if all tasks have completed following shut down</returns>
         public override bool IsTerminated
         {
             get { return RunStateAtLeast(_controlState.Value, TERMINATED); }
@@ -1165,7 +1165,7 @@ namespace Spring.Threading.Execution
         /// if the task cannot be accepted. 
         /// </exception>
         /// <exception cref="ArgumentNullException">
-        /// if <paramref name="command"/> is <see lang="null"/>
+        /// if <paramref name="command"/> is <c>null</c>
         /// </exception>
         protected override void DoExecute(IRunnable command)
         {
@@ -1303,7 +1303,7 @@ namespace Spring.Threading.Execution
         /// </summary>
         /// <param name="duration">the time span to wait.
         /// </param>
-        /// <returns> <see lang="true"/> if this executor terminated and <see lang="false"/>
+        /// <returns> <c>true</c> if this executor terminated and <c>false</c>
         /// if the timeout elapsed before termination
         /// </returns>
         public override bool AwaitTermination(TimeSpan duration)
@@ -1639,7 +1639,7 @@ namespace Spring.Threading.Execution
         /// <see cref="MaximumPoolSize"/>. (A bool indicator is used here rather than a
         /// value to ensure reads of fresh values after checking other pool
         /// state).</param>
-        /// <returns><see lang="true"/> if successful</returns>
+        /// <returns><c>true</c> if successful</returns>
         private bool AddWorker(IRunnable firstTask, bool core)
         {
             retry:
@@ -1751,7 +1751,7 @@ namespace Spring.Threading.Execution
         /// enable running tasks during shutdown.
         /// </summary>
         ///
-        /// <param name="shutdownOK"><see lang="true"> if should return true if SHUTDOWN</see></param>
+        /// <param name="shutdownOK"><c>true</c> if should return true if SHUTDOWN.</param>
         internal virtual bool IsRunningOrShutdown(bool shutdownOK)
         {
             var rs = RunStateOf(_controlState.Value);
@@ -1771,7 +1771,7 @@ namespace Spring.Threading.Execution
         ///    {@code allowCoreThreadTimeOut || workerCount > corePoolSize})
         ///    both before and after the timed wait.
         /// </summary> 
-        ///<returns><see cref="IRunnable"/> task or <see lang="null"/>
+        ///<returns><see cref="IRunnable"/> task or <c>null</c>
         /// if the worker must exit, in which case workerCount is decremented
         /// </returns>
         private IRunnable GetTask()
@@ -1985,8 +1985,8 @@ namespace Spring.Threading.Execution
         /// <summary>
         /// Helper method to dispose of this <see cref="Spring.Threading.Execution.ThreadPoolExecutor"/>
         /// </summary>
-        /// <param name="disposing"><see lang="true"/> if being called from <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Dispose()"/>,
-        /// <see lang="false"/> if being called from finalizer.</param>
+        /// <param name="disposing"><c>true</c> if being called from <see cref="Spring.Threading.Execution.ThreadPoolExecutor.Dispose()"/>,
+        /// <c>false</c> if being called from finalizer.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (_termination != null) Shutdown();

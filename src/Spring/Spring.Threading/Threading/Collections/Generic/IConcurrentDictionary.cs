@@ -36,7 +36,7 @@ namespace Spring.Threading.Collections.Generic
         ///</summary>
         ///<param name="key">key with which the specified value is to be associated</param>
         ///<param name="value">value to be associated with the specified key</param>
-        ///<returns>the previous value associated with the specified key, or <see lang="null"/> if there was no mapping for the key. (A <see lang="null"/> return can also indicate that the dictionary previously associated <see lang="null"/> with the key, if the implementation supports null values.)</returns>
+        ///<returns>the previous value associated with the specified key, or <c>null</c> if there was no mapping for the key. (A <c>null</c> return can also indicate that the dictionary previously associated <c>null</c> with the key, if the implementation supports null values.)</returns>
         /// <exception cref="InvalidOperationException">if the put operation is not supported by this dictionary</exception>
         /// <exception cref="NullReferenceException">if the specific key or value is null ( and this dictionary does not support null keys or values )</exception>
         /// <exception cref="ArgumentException">if some property of the specific key or value prevents if from being stored in this dictionary.</exception>
@@ -55,7 +55,7 @@ namespace Spring.Threading.Collections.Generic
         ///</summary>
         ///<param name="key">key with which the specified value is to be associated</param>
         ///<param name="value">value expected to be associated with the specified key</param>
-        ///<returns><see lang="true"/> if the value was removed, <see lang="false"/> otherwise.</returns>
+        ///<returns><c>true</c> if the value was removed, <c>false</c> otherwise.</returns>
         /// <exception cref="InvalidOperationException">if the put operation is not supported by this dictionary</exception>
         /// <exception cref="NullReferenceException">if the specific key or value is null ( and this dictionary does not support null keys or values )</exception>
         /// <exception cref="ArgumentException">if some property of the specific key or value prevents if from being stored in this dictionary.</exception>
@@ -74,7 +74,7 @@ namespace Spring.Threading.Collections.Generic
         ///<param name="key">key with which the specified value is associated</param>
         ///<param name="oldValue">value expected to be associated with the specified key</param>
         ///<param name="newValue">value to be associated with the specified key</param>
-        ///<returns><see lang="true"/> if the value was replaced, <see lang="false"/> otherwise.</returns>
+        ///<returns><c>true</c> if the value was replaced, <c>false</c> otherwise.</returns>
         /// <exception cref="InvalidOperationException">if the put operation is not supported by this dictionary</exception>
         /// <exception cref="NullReferenceException">if the specific key or value is null ( and this dictionary does not support null keys or values )</exception>
         /// <exception cref="ArgumentException">if some property of the specific key or value prevents if from being stored in this dictionary.</exception>
@@ -92,7 +92,7 @@ namespace Spring.Threading.Collections.Generic
         ///</summary>
         ///<param name="key">key with which the specified value is associated</param>
         ///<param name="value">value to be associated with the specified key</param>
-        ///<returns>the previous value associated with the specified key, or <see lang="null"/> if there was no mapping for the key. (A <see lang="null"/> return can also indicate that the dictionary previously associated <see lang="null"/> with the key, if the implementation supports null values.)</returns>
+        ///<returns>the previous value associated with the specified key, or <c>null</c> if there was no mapping for the key. (A <c>null</c> return can also indicate that the dictionary previously associated <c>null</c> with the key, if the implementation supports null values.)</returns>
         /// <exception cref="InvalidOperationException">if the put operation is not supported by this dictionary</exception>
         /// <exception cref="NullReferenceException">if the specific key or value is null ( and this dictionary does not support null keys or values )</exception>
         /// <exception cref="ArgumentException">if some property of the specific key or value prevents if from being stored in this dictionary.</exception>
