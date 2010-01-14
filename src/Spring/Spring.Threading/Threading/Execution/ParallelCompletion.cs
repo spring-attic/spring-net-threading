@@ -27,7 +27,7 @@ namespace Spring.Threading.Execution
     /// </summary>
     /// <typeparam name="TSource"></typeparam>
     /// <author>Kenneth Xu</author>
-    internal class ParallelCompletion<TSource> : ParallelCompletionBase<TSource>
+    internal class ParallelCompletion<TSource> : ParallelCompletionBase<TSource> // NET_ONLY
     {
         private readonly Action<TSource, ILoopState> _body;
 

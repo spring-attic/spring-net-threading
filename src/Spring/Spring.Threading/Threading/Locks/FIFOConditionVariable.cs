@@ -1,3 +1,23 @@
+#region License
+
+/*
+ * Copyright (C) 2002-2010 the original author or authors.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -5,29 +25,20 @@ using Spring.Threading.Helpers;
 
 namespace Spring.Threading.Locks
 {
-	/// <summary>
-	/// 
-	/// </summary>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
 	[Serializable]
-	internal class FIFOConditionVariable : ConditionVariable
+	internal class FIFOConditionVariable : ConditionVariable // BACKPORT_3_1
 	{
         private static readonly IQueuedSync _sync = new Sync();
 
-        private readonly IWaitNodeQueue _wq = new FIFOWaitNodeQueue();
+        private readonly IWaitQueue _wq = new FIFOWaitQueue();
 
 		private class Sync : IQueuedSync
 		{
-			public bool Recheck(WaitNode node)
-			{
-				return false;
-			}
-
-			public void TakeOver(WaitNode node)
-			{
-			}
+			public bool Recheck(WaitNode node) { return false; }
+			public void TakeOver(WaitNode node) {}
 		}
 
 		protected internal override int WaitQueueLength
@@ -35,7 +46,7 @@ namespace Spring.Threading.Locks
 			get
 			{
                 AssertOwnership();
-                return _wq.Count;
+                return _wq.Length;
 			}
 
 		}
@@ -50,30 +61,35 @@ namespace Spring.Threading.Locks
 
 		}
 
-		internal FIFOConditionVariable(IExclusiveLock exclusiveLock) : base(exclusiveLock)
+        /// <summary>
+        /// Create a new <see cref="FIFOConditionVariable"/> that relies on the
+        /// given mutual exclusion lock.
+        /// </summary>
+        /// <param name="lock">A non-reentrant mutual exclusion lock.</param>
+		internal FIFOConditionVariable(IExclusiveLock @lock) : base(@lock)
 		{
 		}
 
         public override void AwaitUninterruptibly()
         {
-            DoWait(delegate(WaitNode n) { n.DoWaitUninterruptibly(_sync); });
+            DoWait(n => n.DoWaitUninterruptibly(_sync));
         }
 
 	    public override void Await()
 		{
-            DoWait(delegate(WaitNode n) { n.DoWait(_sync); });
+            DoWait(n => n.DoWait(_sync));
 		}
 
 		public override bool Await(TimeSpan timespan)
 		{
 			bool success = false;
-            DoWait(delegate(WaitNode n) { success = n.DoTimedWait(_sync, timespan); });
+            DoWait(n => success = n.DoTimedWait(_sync, timespan));
             return success;
 		}
 
 		public override bool AwaitUntil(DateTime deadline)
 		{
-			return Await(deadline.Subtract(DateTime.Now));
+			return Await(deadline.Subtract(DateTime.UtcNow));
 		}
 
 		public override void Signal()
@@ -124,14 +140,6 @@ namespace Spring.Threading.Locks
             finally
             {
                 for (int i = holdCount; i > 0; i--) Lock.Lock();
-            }
-        }
-
-        private void AssertOwnership()
-        {
-            if (!Lock.IsHeldByCurrentThread)
-            {
-                throw new SynchronizationLockException();
             }
         }
 	}

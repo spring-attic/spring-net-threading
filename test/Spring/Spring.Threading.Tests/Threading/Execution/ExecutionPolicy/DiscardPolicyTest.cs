@@ -9,7 +9,7 @@ namespace Spring.Threading.Execution.ExecutionPolicy
     {
         private IBlockingQueue<IRunnable> _queue;
         private IRunnable _runnable;
-        private DiscardPolicy _discardPolicy;
+        private ThreadPoolExecutor.DiscardPolicy _discardPolicy;
         private ThreadPoolExecutor _threadPoolExecutor;
 
         [SetUp]
@@ -17,7 +17,7 @@ namespace Spring.Threading.Execution.ExecutionPolicy
         {
             _queue = MockRepository.GenerateStub<IBlockingQueue<IRunnable>>();
             _runnable = MockRepository.GenerateMock<IRunnable>();
-            _discardPolicy = new DiscardPolicy();
+            _discardPolicy = new ThreadPoolExecutor.DiscardPolicy();
             _threadPoolExecutor = Mockery.GenerateStrickMock<ThreadPoolExecutor>(1, 1, TimeSpan.FromSeconds(1), _queue);
         }
 

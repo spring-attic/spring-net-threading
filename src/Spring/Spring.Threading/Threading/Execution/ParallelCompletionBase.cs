@@ -31,7 +31,7 @@ namespace Spring.Threading.Execution
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <author>Kenneth Xu</author>
-    internal abstract class ParallelCompletionBase<T> : ILoopResult
+    internal abstract class ParallelCompletionBase<T> : ILoopResult // NET_ONLY
     {
         private readonly IExecutor _executor;
         private int _maxDegreeOfParallelism;

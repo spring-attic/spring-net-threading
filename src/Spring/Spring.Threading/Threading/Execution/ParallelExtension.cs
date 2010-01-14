@@ -27,7 +27,7 @@ namespace Spring.Threading.Execution
     /// Extension methods to provide parallel functions.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public static class ParallelExtension
+    public static class ParallelExtension // NET_ONLY
     {
         internal static IEnumerable<long> Loop(this long fromInclusive, long toExclusive)
         {

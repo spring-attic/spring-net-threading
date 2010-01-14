@@ -26,7 +26,7 @@ namespace Spring.Threading.Future
 	/// Enumeration representing a task execution status.
 	/// </summary>
 	[Flags]
-	internal enum TaskState : short 
+	internal enum TaskState : short // NET_ONLY
 	{
 		/// <summary>State value representing that task is ready to run </summary>
         Ready = 0,

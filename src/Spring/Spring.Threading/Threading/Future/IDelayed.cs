@@ -33,9 +33,9 @@ namespace Spring.Threading.Future
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <changes>
-	/// <ol>
-	/// <li>Changed GetDelay return type from long to TimeSpan, and remove parameter.</li>
-	/// </ol>
+	/// <list type="number">
+	/// <item>Changed GetDelay return type from long to TimeSpan, and remove parameter.</item>
+	/// </list>
 	/// </changes>
 	public interface IDelayed : IComparable<IDelayed>, IComparable //JDK_1_6
 	{

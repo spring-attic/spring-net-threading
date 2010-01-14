@@ -27,7 +27,7 @@ namespace Spring.Threading
     /// </summary>
     /// <typeparam name="T">Data type of the result to be returned.</typeparam>
     /// <author>Kenneth Xu</author>
-    public class Callable<T> : ICallable<T> //NET_0NLY
+    public class Callable<T> : ICallable<T> //NET_ONLY
     {
         private readonly Func<T> _call;
 

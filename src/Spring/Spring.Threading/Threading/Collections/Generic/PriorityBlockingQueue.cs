@@ -48,13 +48,13 @@ namespace Spring.Threading.Collections.Generic {
     /// <tt>ClassCastException</tt>).
     /// 
     /// <p>This class and its iterator implement all of the
-    /// <em>optional</em> methods of the {@link Collection} and {@link
+    /// <i>optional</i> methods of the {@link Collection} and {@link
     /// Iterator} interfaces.  The Iterator provided in method {@link
-    /// #iterator()} is <em>not</em> guaranteed to traverse the elements of
+    /// #iterator()} is <i>not</i> guaranteed to traverse the elements of
     /// the PriorityBlockingQueue in any particular order. If you need
     /// ordered traversal, consider using
     /// <tt>Arrays.sort(pq.toArray())</tt>.  Also, method <tt>drainTo</tt>
-    /// can be used to <em>remove</em> some or all elements in priority
+    /// can be used to <i>remove</i> some or all elements in priority
     /// order and place them in another collection.</p>
     /// 
     /// <p>Operations on this class make no guarantees about the ordering
@@ -87,7 +87,7 @@ namespace Spring.Threading.Collections.Generic {
     /// <author>Andreas Döhring (.NET)</author>
     /// <author>Kenneth Xu</author>
     [Serializable]
-    public class PriorityBlockingQueue<T> : BlockingQueueWrapper<T>
+    public class PriorityBlockingQueue<T> : BlockingQueueWrapper<T> // BACKPORT_2_2
     {
         /// <summary>
         /// Creates a <tt>PriorityBlockingQueue</tt> with the default

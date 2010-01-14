@@ -9,14 +9,14 @@ namespace Spring.Threading.Execution.ExecutionPolicy
     {
         private IBlockingQueue<IRunnable> _queue;
         private IRunnable _runnable;
-        private DiscardOldestPolicy _discardOldestPolicy;
+        private ThreadPoolExecutor.DiscardOldestPolicy _discardOldestPolicy;
         private ThreadPoolExecutor _threadPoolExecutor;
 
         [SetUp] public void SetUp()
         {
             _queue = MockRepository.GenerateStub<IBlockingQueue<IRunnable>>();
             _runnable = MockRepository.GenerateMock<IRunnable>();
-            _discardOldestPolicy = new DiscardOldestPolicy();
+            _discardOldestPolicy = new ThreadPoolExecutor.DiscardOldestPolicy();
             _threadPoolExecutor = Mockery.GeneratePartialMock<ThreadPoolExecutor>(1, 1, TimeSpan.FromSeconds(1), _queue);
         }
 

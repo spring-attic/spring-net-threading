@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Spring.Threading.Execution
 {
-    internal interface IRecommendParallelism
+    internal interface IRecommendParallelism // NET_ONLY
     {
         int MaxParallelism { get; }
     }

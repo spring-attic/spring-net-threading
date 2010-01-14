@@ -27,7 +27,7 @@ namespace Spring.Threading.Collections.Generic
     /// elements. This queue does not permit <c>null</c> elements.
 	/// </para>
 	/// <para>
-	/// This class implement all of the <em>optional</em> methods of the 
+	/// This class implement all of the <i>optional</i> methods of the 
 	/// <see cref="ICollection{T}"/> interfaces.
 	/// </para>
 	/// </remarks>
@@ -53,7 +53,7 @@ namespace Spring.Threading.Collections.Generic
             _queue = new PriorityQueue<T>();
         }
 
-        /// <summary>
+	    /// <summary>
         /// Creates a <see cref="DelayQueue{T}"/> initially containing the
         /// elements of the given collection of <see cref="IDelayed"/>
         /// instances specified by parameter <paramref name="source"/>.
@@ -72,7 +72,25 @@ namespace Spring.Threading.Collections.Generic
             _queue = new PriorityQueue<T>(source);
         }
 
-        /// <summary>
+	    /// <summary>
+	    /// Returns the capacity of this queue. Since this is a unbounded queue, <see cref="int.MaxValue"/> is returned.
+	    /// </summary>
+	    public override int Capacity
+	    {
+	        get { return Int32.MaxValue; }
+	    }
+
+	    /// <summary> 
+	    /// <see cref="DelayQueue{T}"/> is unbounded so this always
+	    /// return <see cref="int.MaxValue"/>.
+	    /// </summary>
+	    /// <returns><see cref="int.MaxValue"/></returns>
+	    public override int RemainingCapacity
+	    {
+	        get { return Int32.MaxValue; }
+	    }
+
+	    /// <summary>
         /// Inserts the specified element into this delay queue.
         /// </summary>
         /// <param name="element">The element to add.</param>
@@ -95,101 +113,47 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-        /// <summary>
-        ///	Inserts the specified element into this delay queue. As the queue is
-        ///	unbounded this method will never block.
+	    /// <summary>
+	    ///	Inserts the specified element into this delay queue. As the queue is
+	    ///	unbounded this method will never block.
+	    /// </summary>
+	    /// <param name="element">Element to add.</param>
+	    /// <exception cref="NullReferenceException">
+	    /// If the element is <c>null</c>.
+	    /// </exception>
+	    public override void Put(T element)
+	    {
+	        Offer(element);
+	    }
+
+	    /// <summary> 
+        /// Inserts the specified element into this delay queue. As the queue
+        /// is unbounded this method will never block.
         /// </summary>
-        /// <param name="element">element to add</param>
-        /// <exception cref="NullReferenceException">if the element is <c>null</c></exception>
-        public override void Put(T element)
+        /// <param name="element">The element to add.</param>
+        /// <param name="duration">
+        /// This parameter is ignored as this method never blocks.
+        /// </param>
+        /// <returns>Always <c>true</c>.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// If the specified element is <c>null</c>.
+        /// </exception>
+        public override bool Offer(T element, TimeSpan duration)
         {
-            Offer(element);
+            return Offer(element);
         }
 
-        /// <summary>
-        /// Returns the capacity of this queue. Since this is a unbounded queue, <see cref="int.MaxValue"/> is returned.
+	    /// <summary> 
+        /// Retrieves and removes the head of this queue, or returns 
+        /// <c>false</c> if this has queue no elements with an expired delay.
         /// </summary>
-        public override int Capacity
-        {
-            get { return Int32.MaxValue; }
-        }
-
-        #region IBlockingQueue Members
-
-        /// <summary> 
-        /// Inserts the specified element into this queue, waiting up to the
-        /// specified wait time if necessary for space to become available.
-        /// </summary>
-        /// <param name="objectToAdd">the element to add</param>
-        /// <param name="duration">how long to wait before giving up</param>
-        /// <returns> <c>true</c> if successful, or <c>false</c> if
-        /// the specified waiting time elapses before space is available
-        /// </returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// If the element cannot be added at this time due to capacity restrictions.
-        /// </exception>
-        /// <exception cref="System.InvalidCastException">
-        /// If the class of the supplied <paramref name="objectToAdd"/> prevents it
-        /// from being added to this queue.
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the specified element is <c>null</c> and this queue does not
-        /// permit <c>null</c> elements.
-        /// </exception>
-        /// <exception cref="System.ArgumentException">
-        /// If some property of the supplied <paramref name="objectToAdd"/> prevents
-        /// it from being added to this queue.
-        /// </exception>
-        public override bool Offer(T objectToAdd, TimeSpan duration)
-        {
-            return Offer(objectToAdd);
-        }
-
-        /// <summary> 
-        /// Retrieves and removes the head of this queue, waiting if necessary
-        /// until an element becomes available and/or expired.
-        /// </summary>
-        /// <returns> the head of this queue</returns>
-        public override T Take()
-        {
-            lock (_lock)
-            {
-                for (; ; )
-                {
-                    T first;
-                    if (!_queue.Peek(out first))
-                    {
-                        Monitor.Wait(_lock);
-                    }
-                    else
-                    {
-                        TimeSpan delay = first.GetRemainingDelay();
-                        if (delay.Ticks > 0)
-                        {
-                            Monitor.Wait(_lock, delay);
-                        }
-                        else
-                        {
-                            T x;
-                            bool hasOne = _queue.Poll(out x);
-                            Debug.Assert(hasOne);
-                            if (_queue.Count != 0)
-                            {
-                                Monitor.PulseAll(_lock);
-                            }
-                            return x;
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary> 
-        /// Retrieves and removes the head of this queue
-        /// or returns <c>null</c> if this queue is empty or if the head has not expired.
-        /// </summary>
+        /// <param name="element">
+        /// Set to the elemented retrieved from the queue if the return value
+        /// is <c>true</c>. Otherwise, set to <c>default(T)</c>.
+        /// </param>
         /// <returns> 
-        /// The head of this queue, or <c>null</c> if this queue is empty or if the head has not expired.
+        /// <c>false</c> if this queue has no elements with an expired delay.
+        /// Otherwise <c>true</c>.
         /// </returns>
         public override bool Poll(out T element)
         {
@@ -213,47 +177,62 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-	    /// <summary>
-	    /// Retrieves, but does not remove, the head of this queue into out
-	    /// parameter <paramref name="element"/>.
+	    /// <summary> 
+	    /// Retrieves and removes the head of this queue, waiting if necessary
+	    /// until an element with an expired delay is available on this queue.
 	    /// </summary>
-	    /// <param name="element">
-	    /// The head of this queue. <c>default(T)</c> if queue is empty.
-	    /// </param>
-	    /// <returns>
-	    /// <c>false</c> is the queue is empty. Otherwise <c>true</c>.
-	    /// </returns>
-	    public override bool Peek(out T element)
-        {
-            lock (_lock)
-            {
-                T first;
-                if (!_queue.Peek(out first) || first.GetRemainingDelay().Ticks > 0)
-                {
-                    element = default(T);
-                    return false;
-                }
-                T x;
-                bool hasOne = _queue.Peek(out x);
-                Debug.Assert(hasOne);
-                if (_queue.Count != 0)
-                {
-                    Monitor.PulseAll(_lock);
-                }
-                element = x;
-                return true;
-            }
-        }
-        /// <summary> 
+	    /// <returns>The head of this queue.</returns>
+	    /// <exception cref="ThreadInterruptedException">
+	    /// If thread is interruped when waiting.
+	    /// </exception>
+	    public override T Take()
+	    {
+	        lock (_lock)
+	        {
+	            for (; ; )
+	            {
+	                T first;
+	                if (!_queue.Peek(out first))
+	                {
+	                    Monitor.Wait(_lock);
+	                }
+	                else
+	                {
+	                    TimeSpan delay = first.GetRemainingDelay();
+	                    if (delay.Ticks > 0)
+	                    {
+	                        Monitor.Wait(_lock, delay);
+	                    }
+	                    else
+	                    {
+	                        T x;
+	                        bool hasOne = _queue.Poll(out x);
+	                        Debug.Assert(hasOne);
+	                        if (_queue.Count != 0)
+	                        {
+	                            Monitor.PulseAll(_lock);
+	                        }
+	                        return x;
+	                    }
+	                }
+	            }
+	        }
+	    }
+
+	    /// <summary> 
         /// Retrieves and removes the head of this queue, waiting if necessary
         /// until an element with an expired delay is available on this queue,
         /// or the specified wait time expires.
         /// </summary>
-        /// <param name="duration">how long to wait before giving up</param>a
-        /// <param name="element"></param>
+        /// <param name="duration">How long to wait before giving up.</param>
+        /// <param name="element">
+        /// Set to the head of this queue, or <c>default(T)</c> if the specified
+        /// waiting time elapses before an element with an expired delay becomes
+        /// available
+        /// </param>
         /// <returns> 
-        /// the head of this queue, or <c>null</c> if the
-        /// specified waiting time elapses before an element is available
+        /// <c>false</c> if the specified waiting time elapses before an element
+        /// is available. Otherwise <c>true</c>.
         /// </returns>
         public override bool Poll(TimeSpan duration, out T element)
         {
@@ -307,17 +286,25 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-        /// <summary> 
-        /// Returns the number of additional elements that this queue can ideally
-        /// (in the absence of memory or resource constraints) accept without
-        /// blocking. <see cref="DelayQueue{T}"/> is unbounded so this always
-        /// return <see cref="int.MaxValue"/>.
-        /// </summary>
-        /// <returns><see cref="int.MaxValue"/></returns>
-        public override int RemainingCapacity
-        {
-            get { return Int32.MaxValue; }
-        }
+	    /// <summary>
+	    /// Retrieves, but does not remove, the head of this queue into out
+	    /// parameter <paramref name="element"/>. Unlike <see cref="Poll(out T)"/>,
+	    /// if no expired elements are available in the queue, this method returns
+	    /// the element that will expire next, if one exists.
+	    /// </summary>
+	    /// <param name="element">
+	    /// The head of this queue. <c>default(T)</c> if queue is empty.
+	    /// </param>
+	    /// <returns>
+	    /// <c>false</c> is the queue is empty. Otherwise <c>true</c>.
+	    /// </returns>
+	    public override bool Peek(out T element)
+	    {
+	        lock (_lock)
+	        {
+	            return _queue.Peek(out element);
+	        }
+	    }
 
 	    /// <summary> 
 	    /// Does the real work for all drain methods. Caller must
@@ -341,10 +328,7 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-        #endregion
-
         #region ICollection Members
-
 
         /// <summary>
         /// Returns the current number of elements in this queue.
@@ -424,8 +408,6 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-        #endregion
-
         /// <summary> 
         /// Removes all of the elements from this queue.
         /// </summary>
@@ -454,6 +436,8 @@ namespace Spring.Threading.Collections.Generic
                 return _queue.Remove(element);
             }
         }
+
+        #endregion
 
         #region IDeserializationCallback Members
 

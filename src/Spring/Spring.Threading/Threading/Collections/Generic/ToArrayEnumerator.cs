@@ -2,7 +2,7 @@ using Spring.Collections.Generic;
 
 namespace Spring.Threading.Collections.Generic
 {
-    internal class ToArrayEnumerator<T> : AbstractEnumerator<T>
+    internal class ToArrayEnumerator<T> : AbstractEnumerator<T> // NET_ONLY
     {
         private readonly AbstractQueue<T> _queue;
         private T[] _array;

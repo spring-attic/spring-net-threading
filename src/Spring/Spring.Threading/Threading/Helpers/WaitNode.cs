@@ -1,34 +1,52 @@
+#region License
+
+/*
+ * Copyright (C) 2002-2010 the original author or authors.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#endregion
+
 using System;
 using System.Threading;
 
 namespace Spring.Threading.Helpers
 {
 	/// <summary>
-	/// 
+	/// The wait node used by implementations of <see cref="IWaitQueue"/>.
+	/// NOTE: this class is NOT present in java.util.concurrent.
 	/// </summary>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu</author>
-	internal class WaitNode //BACKPORT_3_1
+	internal class WaitNode // was WaitQueue.WaitNode in BACKPORT_3_1
 	{
 		internal Thread _owner;
 		internal bool _waiting = true;
 		internal WaitNode _nextWaitNode;
-		/// <summary>
-		/// 
-		/// </summary>
-		public WaitNode()
+
+        public WaitNode()
 		{
 			_owner = Thread.CurrentThread;
 		}
-		/// <summary>
-		/// 
-		/// </summary>
-		internal virtual Thread Owner
+
+        internal virtual Thread Owner
 		{
 			get { return _owner; }
 
 		}
+
 		internal virtual bool IsWaiting
 		{
 			get
@@ -43,11 +61,6 @@ namespace Spring.Threading.Helpers
 			set { _nextWaitNode = value; }
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sync"></param>
-		/// <returns></returns>
 		public virtual bool Signal(IQueuedSync sync)
 		{
 			lock (this)
@@ -62,68 +75,51 @@ namespace Spring.Threading.Helpers
 				return signalled;
 			}
 		}
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sync"></param>
-		/// <param name="duration"></param>
-		/// <returns></returns>
-		public virtual bool DoTimedWait( IQueuedSync sync, TimeSpan duration)
+
+        public virtual bool DoTimedWait( IQueuedSync sync, TimeSpan duration)
 		{
 			lock (this)
 			{
-				if (sync.Recheck(this) || !_waiting)
+			    if (sync.Recheck(this) || !_waiting)
 				{
 					return true;
 				}
-				else if (duration.Ticks <= 0)
-				{
-					_waiting = false;
-					return false;
-				}
-				else
-				{
-					DateTime deadline = DateTime.UtcNow.Add(duration);
-					try
-					{
-						for (;; )
-						{
-							Monitor.Wait(this, duration);
-							if (!_waiting)
-								return true;
-							else
-							{
-							    duration = deadline.Subtract(DateTime.UtcNow);
-								if (duration.Ticks <= 0)
-								{
-									_waiting = false;
-									return false;
-								}
-							}
-						}
-					}
-					catch (ThreadInterruptedException ex)
-					{
-						if (_waiting)
-						{
-							_waiting = false; // invalidate for the signaller
-							throw SystemExtensions.PreserveStackTrace(ex);
-						}
-						else
-						{
-							Thread.CurrentThread.Interrupt();
-							return true;
-						}
-					}
-				}
+			    if (duration.Ticks <= 0)
+			    {
+			        _waiting = false;
+			        return false;
+			    }
+			    DateTime deadline = DateTime.UtcNow.Add(duration);
+			    try
+			    {
+			        for (;; )
+			        {
+			            Monitor.Wait(this, duration);
+			            if (!_waiting) // definitely signalled
+			                return true;
+			            duration = deadline.Subtract(DateTime.UtcNow);
+			            if (duration.Ticks <= 0) // time out
+			            {
+			                _waiting = false;
+			                return false;
+			            }
+			        }
+			    }
+			    catch (ThreadInterruptedException ex)
+			    {
+			        if (_waiting) // no notification
+			        {
+			            _waiting = false; // invalidate for the signaller
+			            throw SystemExtensions.PreserveStackTrace(ex);
+			        }
+                    // thread was interrupted after it was notified
+			        Thread.CurrentThread.Interrupt();
+			        return true;
+			    }
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sync"></param>
-		public virtual void DoWait(IQueuedSync sync)
+        public virtual void DoWait(IQueuedSync sync)
 		{
 			lock (this)
 			{
@@ -131,8 +127,7 @@ namespace Spring.Threading.Helpers
 				{
 					try
 					{
-						while (_waiting)
-							Monitor.Wait(this);
+						while (_waiting) Monitor.Wait(this);
 					}
 					catch (ThreadInterruptedException ex)
 					{
@@ -142,21 +137,14 @@ namespace Spring.Threading.Helpers
 							_waiting = false; // invalidate for the signaller
 							throw SystemExtensions.PreserveStackTrace(ex);
 						}
-						else
-						{
-							// thread was interrupted after it was notified
-							Thread.CurrentThread.Interrupt();
-							return;
-						}
+					    // thread was interrupted after it was notified
+					    Thread.CurrentThread.Interrupt();
+					    return;
 					}
 				}
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sync"></param>
 		public virtual void DoWaitUninterruptibly(IQueuedSync sync)
 		{
 			lock (this)
@@ -172,9 +160,10 @@ namespace Spring.Threading.Helpers
 						}
 						catch (ThreadInterruptedException)
 						{
-							
 							wasInterrupted = true;
-						}
+                            // no need to notify; if we were signalled, we
+                            // must be not waiting, and we'll act like signalled
+                        }
 					}
 					if (wasInterrupted)
 					{

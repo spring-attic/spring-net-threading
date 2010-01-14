@@ -11,14 +11,14 @@ namespace Spring.Threading.Execution.ExecutionPolicy
     {
         private IBlockingQueue<IRunnable> _queue;
         private IRunnable _runnable;
-        private CallerRunsPolicy _callerRunsPolicy;
+        private ThreadPoolExecutor.CallerRunsPolicy _callerRunsPolicy;
         private ThreadPoolExecutor _threadPoolExecutor;
 
         [SetUp] public void SetUp()
         {
             _queue = MockRepository.GenerateStub<IBlockingQueue<IRunnable>>();
             _runnable = MockRepository.GenerateMock<IRunnable>();
-            _callerRunsPolicy = new CallerRunsPolicy();
+            _callerRunsPolicy = new ThreadPoolExecutor.CallerRunsPolicy();
             _threadPoolExecutor = new ThreadPoolExecutor(1, 1, TimeSpan.FromSeconds(1), _queue);
         }
 

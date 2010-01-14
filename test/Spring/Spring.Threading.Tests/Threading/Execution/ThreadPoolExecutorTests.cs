@@ -5,7 +5,6 @@ using NUnit.Framework;
 using Rhino.Mocks;
 using Spring.Threading.AtomicTypes;
 using Spring.Threading.Collections.Generic;
-using Spring.Threading.Execution.ExecutionPolicy;
 using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
@@ -466,7 +465,7 @@ namespace Spring.Threading.Execution
         [Test, Description("Executor using CallerRunsPolicy runs task in caller thread if saturated")]
         public void ExecuteRunsTaskInCurrentThreadWhenSaturatedWithCallerRunsPolicy()
         {
-            IRejectedExecutionHandler h = new CallerRunsPolicy();
+            IRejectedExecutionHandler h = new ThreadPoolExecutor.CallerRunsPolicy();
             var es = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             ExecutorService = es;
             IRunnable[] tasks = new IRunnable[_size];
@@ -491,7 +490,7 @@ namespace Spring.Threading.Execution
         [Test, Description("Executor using DiscardPolicy drops task if saturated")]
         public void ExecuteDropsTaskWhenSaturatedWithDiscardPolicy()
         {
-            IRejectedExecutionHandler h = new DiscardPolicy();
+            IRejectedExecutionHandler h = new ThreadPoolExecutor.DiscardPolicy();
             var es = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             ExecutorService = es;
             IRunnable[] tasks = new IRunnable[_size];
@@ -510,7 +509,7 @@ namespace Spring.Threading.Execution
         [Test, Description("Executor using DiscardOldestPolicy drops oldest task if saturated")]
         public void ExecuteDropsOldestTaskWhenSaturatedWithDiscardOldestPolicy()
         {
-            IRejectedExecutionHandler h = new DiscardOldestPolicy();
+            IRejectedExecutionHandler h = new ThreadPoolExecutor.DiscardOldestPolicy();
             var es = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             ExecutorService = es;
             es.Execute(_mediumInterruptableAction);
@@ -538,7 +537,7 @@ namespace Spring.Threading.Execution
         [Test, Description("Executor using CallerRunsPolicy drops task on shutdown")]
         public void ExecuteDropsTaskOnShutdownWithCallerRunsPolicy()
         {
-            IRejectedExecutionHandler h = new CallerRunsPolicy();
+            IRejectedExecutionHandler h = new ThreadPoolExecutor.CallerRunsPolicy();
             ExecutorService = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             AssertExecutorDropsTaskOnShutdown(ExecutorService);
         }
@@ -546,7 +545,7 @@ namespace Spring.Threading.Execution
         [Test, Description("Executor using DiscardPolicy drops task on shutdown")]
         public void ExecuteDropsTaskOnShutdownWithDiscardPolicy()
         {
-            IRejectedExecutionHandler h = new DiscardPolicy();
+            IRejectedExecutionHandler h = new ThreadPoolExecutor.DiscardPolicy();
             ExecutorService = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             AssertExecutorDropsTaskOnShutdown(ExecutorService);
         }
@@ -554,7 +553,7 @@ namespace Spring.Threading.Execution
         [Test, Description("Executor using DiscardOldestPolicy drops task on shutdown")]
         public void ExecuteDropsOldestTaskOnShutdownWithDiscardOldestPolicy()
         {
-            IRejectedExecutionHandler h = new DiscardOldestPolicy();
+            IRejectedExecutionHandler h = new ThreadPoolExecutor.DiscardOldestPolicy();
             ExecutorService = new ThreadPoolExecutor(1, 1, Delays.Long, new ArrayBlockingQueue<IRunnable>(1), h);
             AssertExecutorDropsTaskOnShutdown(ExecutorService);
         }

@@ -128,11 +128,13 @@ namespace Spring.Threading.Collections.Generic
             }
         }
 
-        [Test] public void PeekReturnsFalseWhenDelayed()
+        [Test] public void PeekReturnsTrueWhenDelayed()
         {
-            var q = new DelayQueue<T> {TestData<T>.MakeData(Delays.LongMillis)};
-            T nd;
-            Assert.IsFalse(q.Peek(out nd));
+            T expected = TestData<T>.MakeData(Delays.LongMillis);
+            var q = new DelayQueue<T> {expected};
+            T result;
+            Assert.IsTrue(q.Peek(out result));
+            Assert.That(result, Is.EqualTo(expected));
         }
 
         [Test] public void PollReturnsFalesWhenDelayed()

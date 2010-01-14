@@ -1,3 +1,23 @@
+#region License
+
+/*
+ * Copyright (C) 2002-2010 the original author or authors.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -84,7 +104,7 @@ namespace Spring.Threading.Locks
 	/// <author>Griffin Caprio (.NET)</author>
     /// <author>Kenneth Xu (.NET)</author>
 	[Serializable]
-	public class ReentrantLock : IExclusiveLock, IDisposable
+	public class ReentrantLock : ILock, IDisposable, ConditionVariable.IExclusiveLock
 	{
 		#region Internal Helper Classes
 
@@ -95,66 +115,33 @@ namespace Spring.Threading.Locks
 		[Serializable]
 		private abstract class Sync
 		{
-			// TODO: Should this be an interface some how?  Many of these methods are shared by ILock and IExclusiveLock
 			[NonSerialized] protected Thread _owner;
 			[NonSerialized] protected int _holds;
 
 			internal Thread Owner
 			{
-				get
-				{
-					lock (this)
-					{
-						return _owner;
-					}
-				}
-
+				get { lock (this) return _owner; }
 			}
 
 			public int HoldCount
 			{
-				get
-				{
-					lock (this)
-					{
-						return IsHeldByCurrentThread ? _holds : 0;
-					}
-				}
-
+				get { lock (this) return IsHeldByCurrentThread ? _holds : 0; }
 			}
 
-			public virtual bool IsHeldByCurrentThread
+			public bool IsHeldByCurrentThread
 			{
-				get
-				{
-					lock (this)
-					{
-						return Thread.CurrentThread == _owner;
-					}
-				}
-
+				get { lock (this) return Thread.CurrentThread == _owner; }
 			}
 
-			public virtual bool IsLocked
+			public bool IsLocked
 			{
-				get
-				{
-					lock (this)
-					{
-						return _owner != null;
-					}
-				}
-
+				get { lock (this) return _owner != null; }
 			}
 
-
-            public virtual bool TryLock()
+            public bool TryLock()
 			{
 				Thread caller = Thread.CurrentThread;
-				lock (this)
-				{
-				    return GetHold(caller);
-				}
+                lock (this) return GetHold(caller);
 			}
 
 			public virtual bool HasQueuedThreads
@@ -209,7 +196,6 @@ namespace Spring.Threading.Locks
 		    public override bool IsFair
 			{
 				get { return false; }
-
 			}
 
             /// <summary>
@@ -286,10 +272,10 @@ namespace Spring.Threading.Locks
 				    if (GetHold(caller)) return true;
 				    if (durationToWait.Ticks <= 0)
 				        return false;
-				    DateTime deadline = DateTime.UtcNow + durationToWait;
+				    DateTime deadline = DateTime.UtcNow.Add(durationToWait);
 				    try
 				    {
-				        for (;; )
+				        for (;;)
 				        {
 				            Monitor.Wait(this, durationToWait);
                             if (_owner == null)
@@ -298,7 +284,7 @@ namespace Spring.Threading.Locks
                                 _holds = 1;
                                 return true;
                             }
-                            durationToWait = deadline - DateTime.UtcNow;
+                            durationToWait = deadline.Subtract(DateTime.UtcNow);
 				            if ( durationToWait.Ticks <= 0)
 				                return false;
 				        }
@@ -331,14 +317,12 @@ namespace Spring.Threading.Locks
 
 		[Serializable]
         private sealed class FairSync : Sync, IQueuedSync, IDeserializationCallback 
-
 		{
-			[NonSerialized] private IWaitNodeQueue _wq = new FIFOWaitNodeQueue();
+			[NonSerialized] private IWaitQueue _wq = new FIFOWaitQueue();
 
 			public override bool IsFair
 			{
 				get { return true; }
-
 			}
 
 			public bool Recheck(WaitNode node)
@@ -446,7 +430,7 @@ namespace Spring.Threading.Locks
 				{
 					lock (this)
 					{
-						return _wq.Count;
+						return _wq.Length;
 					}
 				}
 			}
@@ -476,7 +460,7 @@ namespace Spring.Threading.Locks
             {
                 lock (this)
                 {
-                    _wq = new FIFOWaitNodeQueue();
+                    _wq = new FIFOWaitQueue();
                 }
             }
 
@@ -724,20 +708,20 @@ namespace Spring.Threading.Locks
 		/// current thread becomes disabled for thread scheduling
 		/// purposes and lies dormant until one of two things happens:
 		/// 
-		/// <ul>
-		/// <li>The lock is acquired by the current thread</li>
-		/// <li>Some other thread calls <see cref="System.Threading.Thread.Interrupt()"/> on the current thread.</li>
-		/// </ul>
+		/// <list type="bullet">
+		/// <item>The lock is acquired by the current thread</item>
+		/// <item>Some other thread calls <see cref="System.Threading.Thread.Interrupt()"/> on the current thread.</item>
+		/// </list>
 		/// 
 		/// <p/>If the lock is acquired by the current thread then the lock hold
 		/// count is set to one.
 		/// 
 		/// <p/>If the current thread:
 		/// 
-		/// <ul>
-		/// <li>has its interrupted status set on entry to this method</li> 
-		/// <li><see cref="System.Threading.Thread.Interrupt()"/> is called while acquiring the lock</li>
-		/// </ul>
+		/// <list type="bullet">
+		/// <item>has its interrupted status set on entry to this method</item> 
+		/// <item><see cref="System.Threading.Thread.Interrupt()"/> is called while acquiring the lock</item>
+		/// </list>
 		/// 
 		/// then <see cref="System.Threading.ThreadInterruptedException"/> is thrown and the current thread's
 		/// interrupted status is cleared.
@@ -900,21 +884,21 @@ namespace Spring.Threading.Locks
 		/// current thread becomes disabled for thread scheduling
 		/// purposes and lies dormant until one of three things happens:
 		/// 
-		/// <ul>
-		/// <li>The lock is acquired by the current thread</li>	
-		/// <li>Some other thread calls <see cref="System.Threading.Thread.Interrupt()"/> the current thread</li>
-		/// <li>The specified waiting time elapses</li>
-		/// </ul>
+		/// <list type="bullet">
+		/// <item>The lock is acquired by the current thread</item>	
+		/// <item>Some other thread calls <see cref="System.Threading.Thread.Interrupt()"/> the current thread</item>
+		/// <item>The specified waiting time elapses</item>
+		/// </list>
 		/// 
 		/// <p/>
 		/// If the lock is acquired then the value <c>true</c> is returned and
 		/// the lock hold count is set to one.
 		/// 
 		/// <p/>If the current thread:
-		/// <ul>
-		/// <li>has its interrupted status set on entry to this method</li>	
-		/// <li>has <see cref="System.Threading.Thread.Interrupt()"/> called on it while acquiring the lock</li>	
-		/// </ul>
+		/// <list type="bullet">
+		/// <item>has its interrupted status set on entry to this method</item>	
+		/// <item>has <see cref="System.Threading.Thread.Interrupt()"/> called on it while acquiring the lock</item>	
+		/// </list>
 		/// 
 		/// then <see cref="System.Threading.ThreadInterruptedException"/> is thrown and the current thread's
 		/// interrupted status is cleared.
@@ -968,26 +952,26 @@ namespace Spring.Threading.Locks
 		/// usages as do the <see cref="System.Threading.Monitor"/> methods <see cref="System.Threading.Monitor.Wait(object)"/>,
 		/// <see cref="System.Threading.Monitor.Pulse(object)"/>, and <see cref="System.Threading.Monitor.PulseAll(object)"/>) when used with the built-in
 		/// monitor lock.
-		/// <ul>
-		/// <li>
+		/// <list type="bullet">
+		/// <item>
 		/// If this lock is not held when either 
 		/// <see cref="Spring.Threading.Locks.ICondition.Await()"/> or <see cref="Spring.Threading.Locks.ICondition.Signal()"/>
-		/// methods are called, then an <see cref="System.InvalidOperationException"/>  is thrown.</li>
-		/// <li>When the condition <see cref="Spring.Threading.Locks.ICondition"/>await() waiting}
+		/// methods are called, then an <see cref="System.InvalidOperationException"/>  is thrown.</item>
+		/// <item>When the condition <see cref="Spring.Threading.Locks.ICondition"/>await() waiting}
 		/// methods are called the lock is released and, before they
 		/// return, the lock is reacquired and the lock hold count restored
-		/// to what it was when the method was called.</li>
-		/// <li>If <see cref="System.Threading.Thread.Interrupt()"/> is called while
+		/// to what it was when the method was called.</item>
+		/// <item>If <see cref="System.Threading.Thread.Interrupt()"/> is called while
 		/// waiting then the wait will terminate, an <see cref="System.Threading.ThreadInterruptedException"/>
-		/// and the thread's interrupted status will be cleared.</li>
-		/// <li> Waiting threads are signalled in FIFO order</li>
-		/// <li>
+		/// and the thread's interrupted status will be cleared.</item>
+		/// <item> Waiting threads are signalled in FIFO order</item>
+		/// <item>
 		/// The ordering of lock reacquisition for threads returning
 		/// from waiting methods is the same as for threads initially
 		/// acquiring the lock, which is in the default case not specified,
 		/// but for <b>fair</b> locks favors those threads that have been
-		/// waiting the longest.</li>
-		/// </ul>
+		/// waiting the longest.</item>
+		/// </list>
 		/// </summary>
 		/// <returns> the ICondition object
 		/// </returns>

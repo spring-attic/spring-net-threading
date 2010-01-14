@@ -26,7 +26,7 @@ namespace Spring.Threading.Execution
     /// Stores options that configure the parallel operation of methods on the 
     /// <see cref="IExecutorService"/> class.
     /// </summary>
-    public class ParallelOptions
+    public class ParallelOptions // NET_ONLY
     {
         private int _maxDegreeOfParallelism = -1;
 

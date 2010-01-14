@@ -23,7 +23,7 @@ namespace Spring.Threading.Execution
     /// <see cref="IExecutorService"/> loop.
     /// </summary>
     /// <author>Kenneth Xu</author>
-    public interface ILoopResult
+    public interface ILoopResult // NET_ONLY
     {
         /// <summary>
         /// Gets whether the loop ran to completion, such that all iterations 

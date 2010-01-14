@@ -847,8 +847,8 @@ namespace Spring.Threading.Collections.Generic {
         /// Compares the specified object with this list for equality.
         /// Returns true if and only if the specified object is also a {@link
         /// List}, both lists have the same size, and all corresponding pairs
-        /// of elements in the two lists are <em>equal</em>.  (Two elements
-        /// e1 and e2 are <em>equal</em> if (e1==null ?
+        /// of elements in the two lists are <i>equal</i>.  (Two elements
+        /// e1 and e2 are <i>equal</i> if (e1==null ?
         /// e2==null : e1.equals(e2)).)  In other words, two lists are
         /// defined to be equal if they contain the same elements in the same
         /// order.

@@ -4,7 +4,7 @@ using System.Threading;
 namespace Spring.Threading.Locks
 {
 	[Serializable]
-	internal class WriterLock : AbstractSignallerLock, IExclusiveLock
+	internal class WriterLock : AbstractSignallerLock, ConditionVariable.IExclusiveLock
 	{
 		#region Constructors
 

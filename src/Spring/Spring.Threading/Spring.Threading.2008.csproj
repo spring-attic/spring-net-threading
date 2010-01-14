@@ -144,6 +144,8 @@
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueue.cs" />
+    <Compile Include="Threading\Helpers\FIFOWaitQueue.cs" />
+    <Compile Include="Threading\Helpers\IWaitQueue.cs" />
     <Compile Include="Threading\IContextCarrier.cs" />
     <Compile Include="Threading\ContextCopyingRunnable.cs" />
     <Compile Include="Threading\CountDown.cs" />
@@ -153,10 +155,6 @@
     <Compile Include="Threading\Execution\AbstractExecutorService.cs" />
     <Compile Include="Threading\Execution\CancellationException.cs" />
     <Compile Include="Threading\Execution\ExecutionException.cs" />
-    <Compile Include="Threading\Execution\ExecutionPolicy\AbortPolicy.cs" />
-    <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicy.cs" />
-    <Compile Include="Threading\Execution\ExecutionPolicy\DiscardOldestPolicy.cs" />
-    <Compile Include="Threading\Execution\ExecutionPolicy\DiscardPolicy.cs" />
     <Compile Include="Threading\Execution\ExecutorCompletionService.cs" />
     <Compile Include="Threading\Execution\Executors.cs" />
     <Compile Include="Threading\Execution\ICompletionService.cs" />
@@ -179,9 +177,7 @@
     <Compile Include="Threading\Future\IScheduledFuture.cs" />
     <Compile Include="Threading\Heap.cs" />
     <Compile Include="Threading\Helpers\Exchanger.cs" />
-    <Compile Include="Threading\Helpers\FIFOWaitNodeQueue.cs" />
     <Compile Include="Threading\Helpers\IQueuedSync.cs" />
-    <Compile Include="Threading\Helpers\IWaitNodeQueue.cs" />
     <Compile Include="Threading\Helpers\ThreadExceptionHandlerHelpers.cs" />
     <Compile Include="Threading\Helpers\WaitNode.cs" />
     <Compile Include="Threading\IBarrier.cs" />
@@ -221,7 +217,6 @@
     <Compile Include="Threading\Locks\ConditionVariable.cs" />
     <Compile Include="Threading\Locks\FIFOConditionVariable.cs" />
     <Compile Include="Threading\Locks\ICondition.cs" />
-    <Compile Include="Threading\Locks\IExclusiveLock.cs" />
     <Compile Include="Threading\Locks\ILock.cs" />
     <Compile Include="Threading\Locks\IReadWriteLock.cs" />
     <Compile Include="Threading\Locks\ISignaller.cs" />

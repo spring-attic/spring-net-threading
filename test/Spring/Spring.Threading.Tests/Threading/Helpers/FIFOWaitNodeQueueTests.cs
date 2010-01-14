@@ -10,19 +10,19 @@ namespace Spring.Threading.Helpers
 		[Test]
 			public void FIFOWaitQueueNoNodesCount()
 		{
-			FIFOWaitNodeQueue queue = new FIFOWaitNodeQueue();
-			Assert.AreEqual(0, queue.Count);
+			FIFOWaitQueue queue = new FIFOWaitQueue();
+			Assert.AreEqual(0, queue.Length);
 		}
 		[Test]
 			public void EnqueueAndDequeueElements()
 		{
 			WaitNode node = new WaitNode();
 			WaitNode node1 = new WaitNode();
-			FIFOWaitNodeQueue queue = new FIFOWaitNodeQueue();
+			FIFOWaitQueue queue = new FIFOWaitQueue();
 			Assert.AreEqual(null, queue.Dequeue());
 			queue.Enqueue(node1);
 			queue.Enqueue(node);
-			Assert.AreEqual(2, queue.Count);
+			Assert.AreEqual(2, queue.Length);
 			Assert.IsTrue(queue.HasNodes);
 			Assert.AreEqual(node1, queue.Dequeue());
 			Assert.AreEqual(node, queue.Dequeue());
@@ -32,7 +32,7 @@ namespace Spring.Threading.Helpers
 			public void WaitingThreads()
 		{
 			WaitNode node = new WaitNode();
-			FIFOWaitNodeQueue queue = new FIFOWaitNodeQueue();
+			FIFOWaitQueue queue = new FIFOWaitQueue();
 			Assert.AreEqual(0, queue.WaitingThreads.Count);
 			Assert.IsFalse(queue.IsWaiting(Thread.CurrentThread));
 			queue.Enqueue(node);
@@ -43,7 +43,7 @@ namespace Spring.Threading.Helpers
 		[ExpectedException(typeof(ArgumentNullException))]
 		public void IsWaitingWithNullThread()
 		{
-			FIFOWaitNodeQueue queue = new FIFOWaitNodeQueue();
+			FIFOWaitQueue queue = new FIFOWaitQueue();
 			Assert.IsFalse(queue.IsWaiting(null));
 		}
 	}

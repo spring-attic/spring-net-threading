@@ -24,7 +24,7 @@ namespace Spring.Threading.Execution
     /// with other iterations. A different <see cref="ILoopState"/> instance 
     /// is provided to each thread involved in a loop.
     /// </summary>
-    public interface ILoopState
+    public interface ILoopState // NET_ONLY
     {
         /// <summary>
         /// Gets whether the current iteration of the loop should exit based 

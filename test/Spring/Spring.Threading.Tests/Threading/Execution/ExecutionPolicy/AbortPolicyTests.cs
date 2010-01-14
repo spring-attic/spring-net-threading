@@ -14,7 +14,7 @@ namespace Spring.Threading.Execution.ExecutionPolicy
 
             var executor = Mockery.GeneratePartialMock<ThreadPoolExecutor>(1, 1, TimeSpan.FromSeconds(1), queue);
             var runnable = MockRepository.GenerateStub<IRunnable>();
-            AbortPolicy abortPolicy = new AbortPolicy();
+            ThreadPoolExecutor.AbortPolicy abortPolicy = new ThreadPoolExecutor.AbortPolicy();
             Assert.Throws<RejectedExecutionException>(
                 ()=>abortPolicy.RejectedExecution(runnable, executor));
             executor.AssertWasNotCalled(e=>e.Execute(Arg<IRunnable>.Is.Anything));

@@ -25,35 +25,36 @@ using Spring.Threading.Future;
 
 namespace Spring.Threading.Execution
 {
-#pragma warning disable 1574 //TODO PHASED
+    //TODO PHASED correct the link to Spring.Threading.Execution.IScheduledExecutorService
     /// <summary> 
-	/// Factory and utility methods for <see cref="Spring.Threading.IExecutor"/>, 
-	/// <see cref="Spring.Threading.Execution.IExecutorService"/>,
-	/// <see cref="Spring.Threading.Execution.IScheduledExecutorService"/>,
-	/// <see cref="Spring.Threading.IThreadFactory"/>,
-	/// and <see cref="ICallable{T}"/> classes defined in this
-	/// package. This class supports the following kinds of methods:
-	/// 
-	/// <ul>
-	/// <li> Methods that create and return an <see cref="Spring.Threading.Execution.IExecutorService"/>
-	/// set up with commonly useful configuration settings.</li>
-	/// <li> Methods that create and return a <see cref="Spring.Threading.Execution.IScheduledExecutorService"/>
-	/// set up with commonly useful configuration settings.</li>
-	/// <li> Methods that create and return a "wrapped" ExecutorService, that
-	/// disables reconfiguration by making implementation-specific methods
-	/// inaccessible.</li>
-	/// <li> Methods that create and return a <see cref="Spring.Threading.IThreadFactory"/>
-	/// that sets newly created threads to a known state.</li>
-	/// <li> Methods that create and return a <see cref="ICallable{T}"/>
-	/// out of other closure-like forms, so they can be used
-	/// in execution methods requiring <see cref="ICallable{T}"/>.</li>
-	/// </ul>
+	/// Factory and utility methods for <see cref="IExecutor"/>, 
+	/// <see cref="IExecutorService"/>,
+	/// <see cref="T:Spring.Threading.Execution.IScheduledExecutorService"/>,
+	/// <see cref="IThreadFactory"/>, and <see cref="ICallable{T}"/> classes
+	/// defined in this package.
 	/// </summary>
+	/// <remarks>
+	/// This class supports the following kinds of
+	/// methods:
+	/// <list type="bullet">
+	/// <item>Methods that create and return an <see cref="IExecutorService"/>
+	/// set up with commonly useful configuration settings.</item>
+	/// <item>Methods that create and return a <see cref="T:Spring.Threading.Execution.IScheduledExecutorService"/>
+	/// set up with commonly useful configuration settings.</item>
+	/// <item>Methods that create and return a "wrapped"
+	/// <see cref="IExecutorService"/>, that disables reconfiguration by
+	/// making implementation-specific methods inaccessible.</item>
+	/// <item>Methods that create and return a <see cref="IThreadFactory"/>
+	/// that sets newly created threads to a known state.</item>
+	/// <item>Methods that create and return a <see cref="ICallable{T}"/>
+	/// out of other closure-like forms, so they can be used
+	/// in execution methods requiring <see cref="ICallable{T}"/>.</item>
+	/// </list>
+	/// </remarks>
 	/// <author>Doug Lea</author>
 	/// <author>Griffin Caprio (.NET)</author>
 	/// <author>Kenneth Xu</author>
     public static class Executors //JDK_1_6
-#pragma warning restore 1574
     {
 		#region Public Static Methods
 		/// <summary> 

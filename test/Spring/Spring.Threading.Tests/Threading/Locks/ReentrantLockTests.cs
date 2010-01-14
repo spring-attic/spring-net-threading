@@ -427,9 +427,9 @@ namespace Spring.Threading.Locks
             _lock = new ReentrantLock(isFair);
             ICondition c = _lock.NewCondition();
             _lock.Lock();
-            DateTime until = DateTime.Now.AddMilliseconds(10);
+            DateTime until = DateTime.UtcNow.AddMilliseconds(10);
             bool result = c.AwaitUntil(until);
-            Assert.That(DateTime.Now, Is.GreaterThanOrEqualTo(until));
+            Assert.That(DateTime.UtcNow, Is.GreaterThanOrEqualTo(until));
             Assert.IsFalse(result);
             _lock.Unlock();
         }
@@ -725,7 +725,7 @@ namespace Spring.Threading.Locks
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1", 
                 () => Assert.Throws<ThreadInterruptedException>(
-                          () => { using (_lock.Lock()) c.AwaitUntil(DateTime.Now.AddMilliseconds(10000)); }));
+                          () => { using (_lock.Lock()) c.AwaitUntil(DateTime.UtcNow.AddMilliseconds(10000)); }));
 
             Thread.Sleep(Delays.Short);
             t.Interrupt();
