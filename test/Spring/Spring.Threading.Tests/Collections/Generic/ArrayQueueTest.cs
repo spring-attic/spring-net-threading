@@ -95,12 +95,12 @@ namespace Spring.Collections.Generic
 
             protected override IQueue NewQueue()
             {
-                return new ArrayQueue<T>(_sampleSize);
+                return new ArrayQueue<T>(SampleSize);
             }
 
             protected override IQueue NewQueueFilledWithSample()
             {
-                return new ArrayQueue<T>(_sampleSize, TestData<T>.MakeTestArray(_sampleSize));
+                return new ArrayQueue<T>(SampleSize, TestData<T>.MakeTestArray(SampleSize));
             }
         }
     }

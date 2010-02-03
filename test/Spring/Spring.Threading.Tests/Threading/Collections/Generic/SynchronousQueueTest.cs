@@ -172,7 +172,7 @@ namespace Spring.Threading.Collections.Generic
             public AsNonGeneric(CollectionContractOptions options) : base(options)
             {
                 _isFair = options.Has(CollectionContractOptions.Fair);
-                _sampleSize = 0;
+                SampleSize = 0;
             }
             protected override IQueue NewQueue()
             {

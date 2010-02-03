@@ -24,18 +24,8 @@ namespace Spring.TestFixtures.Collections.NonGeneric
         /// </summary>
         /// <param name="options"></param>
         protected TypedQueueContract(CollectionContractOptions options)
-            : base(options)
+            : base(typeof(T).IsValueType ? CollectionContractOptions.NoNull | options : options)
         {
-        }
-
-        protected override object[] NewSamples()
-        {
-            object[] samples = new object[_sampleSize];
-            for (int i = 0; i < _sampleSize; i++)
-            {
-                samples[i] = TestData<T>.MakeData(i);
-            }
-            return samples;
         }
 
         protected override object MakeData(int i)

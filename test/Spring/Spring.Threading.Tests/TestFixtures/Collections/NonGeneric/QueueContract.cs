@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using NUnit.CommonFixtures;
 using NUnit.CommonFixtures.Collections;
 using NUnit.CommonFixtures.Collections.NonGeneric;
 using NUnit.Framework;
@@ -18,10 +17,6 @@ namespace Spring.TestFixtures.Collections.NonGeneric
     /// <author>Kenneth Xu</author>
     public abstract class QueueContract : CollectionContract
     {
-        protected object[] _samples;
-
-        protected int _sampleSize = 9;
-
         protected bool IsFifo
         {
             get { return Options.Has(CollectionContractOptions.Fifo); }
@@ -50,17 +45,12 @@ namespace Spring.TestFixtures.Collections.NonGeneric
         {
             IQueue queue = NewQueue();
 #if !PHASED
-            foreach (object o in _samples)
+            foreach (object o in Samples)
             {
                 queue.Offer(o);
             }
 #endif
             return queue;
-        }
-
-        protected virtual object[] NewSamples()
-        {
-            return TestData<object>.MakeTestArray(_sampleSize);
         }
 
         /// <summary>
@@ -69,49 +59,59 @@ namespace Spring.TestFixtures.Collections.NonGeneric
         /// <returns></returns>
         protected abstract IQueue NewQueue();
 
-        [SetUp] public virtual void SetUpSamples()
-        {
-            _samples = NewSamples();
-        }
-
         protected virtual object MakeData(int i)
         {
             return new object();
         }
 
+        protected virtual object[] MakeTestArray(int count)
+        {
+            var result = new object[count];
+            for (int i = 0; i < count; i++)
+            {
+                result[i] = MakeData(i);
+            }
+            return result;
+        }
+
+        protected override object[] NewSamples()
+        {
+            return MakeTestArray(SampleSize);
+        }
+
 #if !PHASED
         [Test] public void AddChokesWhenQueueIsFull()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             IQueue queue = NewQueueFilledWithSample();
             Assert.Throws<InvalidOperationException>(() => queue.Add(MakeData(0)));
         }
 
-        [Test] public void AddAllSamplesSuccessfully()
+        [Test] public void AddAllSamplesuccessfully()
         {
             IQueue queue = NewQueue();
-            foreach (object o in _samples) queue.Add(o);
-            Assert.That(queue.Count, Is.EqualTo(_samples.Length));
-            CollectionAssert.AreEquivalent(_samples, queue);
+            foreach (object o in Samples) queue.Add(o);
+            Assert.That(queue.Count, Is.EqualTo(Samples.Length));
+            CollectionAssert.AreEquivalent(Samples, queue);
         }
 
         [Test] public void AddReturnsFalseWhenQueueIsFull()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             IQueue queue = NewQueueFilledWithSample();
             Assert.IsFalse(queue.Offer(MakeData(0)));
-            Assert.That(queue.Count, Is.EqualTo(_sampleSize));
+            Assert.That(queue.Count, Is.EqualTo(SampleSize));
         }
 
-        [Test] public void OfferAllSamplesSuccessfully()
+        [Test] public void OfferAllSamplesuccessfully()
         {
             IQueue queue = NewQueue();
-            foreach (object o in _samples)
+            foreach (object o in Samples)
             {
                 Assert.IsTrue(queue.Offer(o));
             }
-            Assert.That(queue.Count, Is.EqualTo(_samples.Length));
-            CollectionAssert.AreEquivalent(_samples, queue);
+            Assert.That(queue.Count, Is.EqualTo(Samples.Length));
+            CollectionAssert.AreEquivalent(Samples, queue);
         }
 
         [Test] public void RemoveChokesWhenQueueIsEmpty()
@@ -120,7 +120,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             Assert.Throws<InvalidOperationException>(() => queue.Remove());
         }
 
-        [Test] public void RemoveAllSamplesSucessfully()
+        [Test] public void RemoveAllSamplesucessfully()
         {
             IQueue queue = NewQueueFilledWithSample();
 
@@ -128,7 +128,7 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             {
                 object o = queue.Remove();
                 Assert.IsNotNull(o);
-                CollectionAssert.Contains(_samples, o);
+                CollectionAssert.Contains(Samples, o);
             }
         }
 
@@ -138,14 +138,14 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             Assert.IsNull(queue.Poll());
         }
 
-        [Test] public void PollAllSamplesSucessfully()
+        [Test] public void PollAllSamplesucessfully()
         {
             IQueue queue = NewQueueFilledWithSample();
             for (int i = queue.Count - 1; i >= 0; i--)
             {
                 object o = queue.Poll();
                 Assert.IsNotNull(o);
-                CollectionAssert.Contains(_samples, o);
+                CollectionAssert.Contains(Samples, o);
             }
         }
 
@@ -155,12 +155,12 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             Assert.Throws<InvalidOperationException>(() => queue.Element());
         }
 
-        [Test] public void ElementGetsAllSamplesSucessfully()
+        [Test] public void ElementGetsAllSamplesucessfully()
         {
             IQueue queue = NewQueueFilledWithSample();
             for (int i = queue.Count - 1; i >= 0; i--)
             {
-                CollectionAssert.Contains(_samples, queue.Element());
+                CollectionAssert.Contains(Samples, queue.Element());
                 queue.Remove();
             }
         }
@@ -171,12 +171,12 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             Assert.IsNull(queue.Peek());
         }
 
-        [Test] public void PeekAllSamplesSucessfully()
+        [Test] public void PeekAllSamplesucessfully()
         {
             IQueue queue = NewQueueFilledWithSample();
             for (int i = queue.Count - 1; i >= 0; i--)
             {
-                CollectionAssert.Contains(_samples, queue.Peek());
+                CollectionAssert.Contains(Samples, queue.Peek());
                 queue.Remove();
             }
         }
@@ -185,36 +185,36 @@ namespace Spring.TestFixtures.Collections.NonGeneric
         {
             IQueue queue = NewQueue();
             Assert.IsTrue(queue.IsEmpty);
-            if (_sampleSize ==0) Assert.Pass();
-            queue.Add(_samples[0]);
+            if (SampleSize ==0) Assert.Pass();
+            queue.Add(Samples[0]);
             Assert.IsFalse(queue.IsEmpty);
         }
 
         [Test] public void AddRemoveInMultipeLoops()
         {
             IQueue queue = NewQueue();
-            AddRemoveOneLoop(queue, _sampleSize / 2);
-            AddRemoveOneLoop(queue, _sampleSize );
-            AddRemoveOneLoop(queue, _sampleSize *2 / 3);
-            AddRemoveOneLoop(queue, _sampleSize);
+            AddRemoveOneLoop(queue, SampleSize / 2);
+            AddRemoveOneLoop(queue, SampleSize );
+            AddRemoveOneLoop(queue, SampleSize *2 / 3);
+            AddRemoveOneLoop(queue, SampleSize);
         }
 
         private void AddRemoveOneLoop(IQueue queue, int size)
         {
             for (int i = 0; i < size; i++)
             {
-                queue.Add(_samples[i]);
+                queue.Add(Samples[i]);
             }
             for (int i = 0; i < size; i++)
             {
                 object o = queue.Remove();
                 if(IsFifo)
                 {
-                    Assert.That(o, Is.EqualTo(_samples[i]));
+                    Assert.That(o, Is.EqualTo(Samples[i]));
                 }
                 else
                 {
-                    CollectionAssert.Contains(_samples, o);
+                    CollectionAssert.Contains(Samples, o);
                 }
             }
         }

@@ -199,7 +199,7 @@ namespace Spring.Collections.Generic
 
         [TestFixture(typeof(int))]
         [TestFixture(typeof(string))]
-        public class AsNonGeneric : QueueContract
+        public class AsNonGeneric : TypedQueueContract<T>
         {
             public AsNonGeneric()
                 : base(_defaultContractOptions)

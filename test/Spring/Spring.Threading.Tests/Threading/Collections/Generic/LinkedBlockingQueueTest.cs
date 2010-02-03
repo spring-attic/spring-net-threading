@@ -342,12 +342,12 @@ namespace Spring.Threading.Collections.Generic
 
             protected override IQueue NewQueue()
             {
-                return NewLinkedBlockingQueue(IsBounded, _sampleSize, false);
+                return NewLinkedBlockingQueue(IsBounded, SampleSize, false);
             }
 
             protected override IQueue NewQueueFilledWithSample()
             {
-                return NewLinkedBlockingQueue(IsBounded, _sampleSize, true);
+                return NewLinkedBlockingQueue(IsBounded, SampleSize, true);
             }
         }
     }

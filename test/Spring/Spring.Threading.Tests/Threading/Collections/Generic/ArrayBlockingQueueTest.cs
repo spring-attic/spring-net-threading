@@ -124,12 +124,12 @@ namespace Spring.Threading.Collections.Generic
 
             protected override IQueue NewQueue()
             {
-                return new ArrayBlockingQueue<T>(_sampleSize, _isFair);
+                return new ArrayBlockingQueue<T>(SampleSize, _isFair);
             }
 
             protected override IQueue NewQueueFilledWithSample()
             {
-                return new ArrayBlockingQueue<T>(_sampleSize, _isFair, TestData<T>.MakeTestArray(_sampleSize));
+                return new ArrayBlockingQueue<T>(SampleSize, _isFair, TestData<T>.MakeTestArray(SampleSize));
             }
 
             [Test] public void BlockingQueueIsSynchronized()
