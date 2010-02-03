@@ -120,6 +120,8 @@
     <Compile Include="Threading\BoundedLinkedQueue.cs" />
     <Compile Include="Threading\BoundedPriorityQueue.cs" />
     <Compile Include="Threading\BrokenBarrierException.cs" />
+    <Compile Include="Threading\Collections\Generic\CopyOnWriteList.cs" />
+    <Compile Include="Threading\Collections\Generic\EnumerableToArrayBuffer.cs" />
     <Compile Include="Threading\Collections\Generic\QueueBrokenException.cs" />
     <Compile Include="Threading\Collections\Generic\ToArrayEnumerator.cs" />
     <Compile Include="Threading\Collections\Generic\TransformingBlockingQueue.cs" />

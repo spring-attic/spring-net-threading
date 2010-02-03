@@ -34,7 +34,6 @@ namespace Spring.Threading.Collections.Generic
     public class PriorityBlockingQueueTest : BaseThreadingTestCase {
 
         private const CollectionContractOptions _defaultContractOptions =
-            CollectionContractOptions.Unbounded |
             CollectionContractOptions.NoNull |
             CollectionContractOptions.ToStringPrintItems |
             CollectionContractOptions.WeaklyConsistentEnumerator;

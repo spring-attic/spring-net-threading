@@ -20,8 +20,8 @@ namespace Spring.Threading.Collections.Generic
     /// <typeparam name="T"></typeparam>
     /// <author>Doug Lea</author>
     /// <author>Kenneth Xu</author>
-    [TestFixture(typeof(string), CollectionContractOptions.Unbounded)]
-    [TestFixture(typeof(int), CollectionContractOptions.Unbounded)]
+    [TestFixture(typeof(string), CollectionContractOptions.Bounded)]
+    [TestFixture(typeof(int), CollectionContractOptions.Bounded)]
     [TestFixture(typeof(string))]
     [TestFixture(typeof(int))]
     public class LinkedBlockingQueueTest<T> : BlockingQueueContract<T>
@@ -37,7 +37,7 @@ namespace Spring.Threading.Collections.Generic
 
         protected override IBlockingQueue<T> NewBlockingQueue()
         {
-            return NewLinkedBlockingQueue(IsUnbounded, SampleSize, false);
+            return NewLinkedBlockingQueue(IsBounded, SampleSize, false);
         }
 
         protected sealed override IBlockingQueue<T> NewBlockingQueueFilledWithSample()
@@ -47,18 +47,18 @@ namespace Spring.Threading.Collections.Generic
 
         protected virtual LinkedBlockingQueue<T> NewLinkedBlockingQueueFilledWithSample()
         {
-            return NewLinkedBlockingQueue(IsUnbounded, SampleSize, true);
+            return NewLinkedBlockingQueue(IsBounded, SampleSize, true);
         }
 
         protected virtual LinkedBlockingQueue<T> NewLinkedBlockingQueue()
         {
-            return NewLinkedBlockingQueue(IsUnbounded, SampleSize, false);
+            return NewLinkedBlockingQueue(IsBounded, SampleSize, false);
         }
 
-        internal static LinkedBlockingQueue<T> NewLinkedBlockingQueue(bool isUnbounded, int size, bool isFilled)
+        internal static LinkedBlockingQueue<T> NewLinkedBlockingQueue(bool isBounded, int size, bool isFilled)
         {
-            LinkedBlockingQueue<T> sut = isUnbounded ? 
-                new LinkedBlockingQueue<T>() : new LinkedBlockingQueue<T>(size);
+            LinkedBlockingQueue<T> sut = isBounded ? 
+                new LinkedBlockingQueue<T>(size) : new LinkedBlockingQueue<T>();
 
             if (isFilled)
             {
@@ -70,7 +70,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorCreatesQueueWithUnlimitedCapacity()
         {
-            Options.SkipWhenNot(CollectionContractOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Bounded);
             var queue = new LinkedBlockingQueue<T>();
             Assert.AreEqual(int.MaxValue, queue.RemainingCapacity);
             Assert.AreEqual(int.MaxValue, queue.Capacity);
@@ -79,7 +79,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorWelcomesNullElememtInCollectionArgument()
         {
-            Options.SkipWhenNot(CollectionContractOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Bounded);
             T[] arrayWithDefaulValue = new T[SampleSize];
             var q = new LinkedBlockingQueue<T>(arrayWithDefaulValue);
             foreach (T sample in arrayWithDefaulValue)
@@ -93,7 +93,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorChokesOnNullCollectionArgument()
         {
-            Options.SkipWhenNot(CollectionContractOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Bounded);
             var e = Assert.Throws<ArgumentNullException>(
                 () => { new LinkedBlockingQueue<T>(null); });
             Assert.That(e.ParamName, Is.EqualTo("collection"));
@@ -102,7 +102,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorCreatesQueueConstainsAllElementsInCollection()
         {
-            Options.SkipWhenNot(CollectionContractOptions.Unbounded);
+            Options.SkipWhen(CollectionContractOptions.Bounded);
             var q = new LinkedBlockingQueue<T>(Samples);
             foreach (T sample in Samples)
             {
@@ -115,7 +115,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorCreatesQueueWithGivenCapacity()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var queue = new LinkedBlockingQueue<T>(SampleSize);
             Assert.AreEqual(SampleSize, queue.RemainingCapacity);
             Assert.AreEqual(SampleSize, queue.Capacity);
@@ -124,7 +124,7 @@ namespace Spring.Threading.Collections.Generic
         [Test]
         public void ConstructorChokesOnNonPositiveCapacityArgument([Values(0, -1)] int capacity)
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var e = Assert.Throws<ArgumentOutOfRangeException>(
                 () => { new LinkedBlockingQueue<T>(capacity); });
             Assert.That(e.ParamName, Is.EqualTo("capacity"));
@@ -160,7 +160,7 @@ namespace Spring.Threading.Collections.Generic
 
         [Test] public void BlockedTimedOfferReturnsWhenQueueIsBroken()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var q = NewLinkedBlockingQueueFilledWithSample();
             var isOfferReturned = new AtomicBoolean();
             ThreadManager.StartAndAssertRegistered(
@@ -193,7 +193,7 @@ namespace Spring.Threading.Collections.Generic
 
         [Test] public void BlockedTryPutPuturnsFalseWhenQueueIsBroken()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var q = NewLinkedBlockingQueueFilledWithSample();
             var isTryPutReturned = new AtomicBoolean();
             ThreadManager.StartAndAssertRegistered(
@@ -212,7 +212,7 @@ namespace Spring.Threading.Collections.Generic
 
         [Test] public void BlockedTryPutPuturnsFalseWhenQueueIsStopped()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var q = NewLinkedBlockingQueueFilledWithSample();
             var isTryPutReturned = new AtomicBoolean();
             ThreadManager.StartAndAssertRegistered(
@@ -253,7 +253,7 @@ namespace Spring.Threading.Collections.Generic
 
         [Test] public void BlockedTryTakePuturnsWhenQueueIsBroken()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var q = NewLinkedBlockingQueue();
             var isTryTakeReturned = new AtomicBoolean();
             ThreadManager.StartAndAssertRegistered(
@@ -330,8 +330,8 @@ namespace Spring.Threading.Collections.Generic
             Assert.That(a2, Is.InstanceOf<string[]>());
         }
 
-        [TestFixture(typeof(string), CollectionContractOptions.Unbounded)]
-        [TestFixture(typeof(int), CollectionContractOptions.Unbounded)]
+        [TestFixture(typeof(string), CollectionContractOptions.Bounded)]
+        [TestFixture(typeof(int), CollectionContractOptions.Bounded)]
         [TestFixture(typeof(string))]
         [TestFixture(typeof(int))]
         public class AsNonGeneric : TypedQueueContract<T>
@@ -342,12 +342,12 @@ namespace Spring.Threading.Collections.Generic
 
             protected override IQueue NewQueue()
             {
-                return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, false);
+                return NewLinkedBlockingQueue(IsBounded, _sampleSize, false);
             }
 
             protected override IQueue NewQueueFilledWithSample()
             {
-                return NewLinkedBlockingQueue(IsUnbounded, _sampleSize, true);
+                return NewLinkedBlockingQueue(IsBounded, _sampleSize, true);
             }
         }
     }

@@ -27,10 +27,9 @@ namespace Spring.TestFixtures.Collections.NonGeneric
             get { return Options.Has(CollectionContractOptions.Fifo); }
             set { Options = Options.Set(CollectionContractOptions.Fifo, value); }
         }
-        protected bool IsUnbounded
+        protected bool IsBounded
         {
-            get { return Options.Has(CollectionContractOptions.Unbounded); }
-            set { Options = Options.Set(CollectionContractOptions.Unbounded, value); }
+            get { return Options.Has(CollectionContractOptions.Bounded); }
         }
 
         /// <summary>

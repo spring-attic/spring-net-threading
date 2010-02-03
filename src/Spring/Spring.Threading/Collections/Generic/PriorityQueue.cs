@@ -175,7 +175,7 @@ namespace Spring.Collections.Generic
         /// If <paramref name="initialCapacity"/> is less than 1.
         /// </exception>
         public PriorityQueue(int initialCapacity, Comparison<T> comparison)
-            : this (initialCapacity, ComparisonComparator.From(comparison)) {}
+            : this (initialCapacity, ComparisonComparer<T>.From(comparison)) {}
 
         /// <summary> 
         /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial
@@ -764,7 +764,7 @@ namespace Spring.Collections.Generic
             _queue = new T[arrayLength];
 
             var array = (T[]) serializationInfo.GetValue("Data", typeof(T[]));
-            Array.Copy(array, _queue, array.Length);
+            Array.Copy(array, 0, _queue, 0, array.Length);
             _size = array.Length;
         }
         #endregion
@@ -837,22 +837,6 @@ namespace Spring.Collections.Generic
             protected override T FetchCurrent()
             {
                 return _current;
-            }
-        }
-
-        [Serializable]
-        private class ComparisonComparator : IComparer<T>
-        {
-            private Comparison<T> _comparison;
-
-            public int Compare(T x, T y)
-            {
-                return _comparison(x, y);
-            }
-
-            internal static IComparer<T> From(Comparison<T> comparison)
-            {
-                return comparison == null ? null : new ComparisonComparator{_comparison=comparison};
             }
         }
     }

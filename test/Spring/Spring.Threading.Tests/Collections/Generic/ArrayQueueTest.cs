@@ -22,8 +22,10 @@ namespace Spring.Collections.Generic
     [TestFixture(typeof(int))]
     public class ArrayQueueTest<T> : QueueContract<T>
     {
-        public ArrayQueueTest()
-            : base(CollectionContractOptions.Fifo | CollectionContractOptions.WeaklyConsistentEnumerator)
+        public ArrayQueueTest() : base(
+            CollectionContractOptions.Fifo | 
+            CollectionContractOptions.Bounded |
+            CollectionContractOptions.WeaklyConsistentEnumerator)
         {
         }
         protected override IQueue<T> NewQueue()

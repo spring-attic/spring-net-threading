@@ -24,10 +24,9 @@ namespace Spring.TestFixtures.Collections.Generic
             get { return Options.Has(CollectionContractOptions.Fifo); }
             set { Options = Options.Set(CollectionContractOptions.Fifo, value); }
         }
-        protected bool IsUnbounded
+        protected bool IsBounded
         {
-            get { return Options.Has(CollectionContractOptions.Unbounded); }
-            set { Options = Options.Set(CollectionContractOptions.Unbounded, value); }
+            get { return Options.Has(CollectionContractOptions.Bounded); }
         }
         // Queue in .Net should allow null in gneneral.
         protected bool NoNull
@@ -75,7 +74,7 @@ namespace Spring.TestFixtures.Collections.Generic
 
         [Test] public virtual void AddChokesWhenQueueIsFull()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             IQueue<T> queue = NewQueueFilledWithSample();
             Assert.Throws<InvalidOperationException>(() => queue.Add(TestData<T>.One));
         }
@@ -105,7 +104,7 @@ namespace Spring.TestFixtures.Collections.Generic
 
         [Test] public virtual void OfferReturnsFalseWhenQueueIsFull()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             IQueue<T> queue = NewQueueFilledWithSample();
             Assert.IsFalse(queue.Offer(TestData<T>.One));
             Assert.That(queue.Count, Is.EqualTo(SampleSize));
@@ -284,7 +283,7 @@ namespace Spring.TestFixtures.Collections.Generic
 
         [Test] public virtual void TransitionsFromEmptyToFullWhenElementsAdded()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var q = NewQueue();
             Assert.That(q.Count, Is.EqualTo(0));
             AssertRemainingCapacity(q, SampleSize, "should have room for " + SampleSize);
@@ -412,13 +411,13 @@ namespace Spring.TestFixtures.Collections.Generic
 
         protected void AssertRemainingCapacity(IQueue<T> queue, int size, string message)
         {
-            if (IsUnbounded)
+            if (IsBounded)
             {
-                Assert.That(queue.RemainingCapacity, Is.EqualTo(int.MaxValue), message);
+                Assert.That(queue.RemainingCapacity, Is.EqualTo(size), message);
             }
             else
             {
-                Assert.That(queue.RemainingCapacity, Is.EqualTo(size), message);
+                Assert.That(queue.RemainingCapacity, Is.EqualTo(int.MaxValue), message);
             }
         }
 

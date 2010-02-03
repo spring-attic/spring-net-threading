@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Spring.Collections.Generic;
+using Spring.Threading.Collections.Generic;
 
 namespace Spring
 {
@@ -41,13 +42,7 @@ namespace Spring
         /// </returns>
         public static T[] ToArrayOptimized<T>(this IEnumerable<T> source)
         {
-            var list = source as List<T>;
-            if (list != null) return list.ToArray();
-
-            var ac = source as AbstractCollection<T>;
-            if (ac!=null) return ac.ToArray();
-
-            return source.ToArray();
+            return new EnumerableToArrayBuffer<T>(source).ToArray();
         }
 
         /// <summary>

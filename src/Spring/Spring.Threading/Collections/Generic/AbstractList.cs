@@ -36,6 +36,10 @@ namespace Spring.Collections.Generic
     [Serializable]
     public abstract class AbstractList<T> : AbstractCollection<T>, IList<T>, IList //NET_ONLY
     {
+        /// <summary>
+        /// <c>true</c> if <typeparamref name="T"/> is value type.
+        /// </summary>
+        protected static readonly bool IsValueType = typeof (T).IsValueType;
 
         #region IList<T> Members
 
@@ -139,6 +143,27 @@ namespace Spring.Collections.Generic
         }
 
         #endregion
+
+        #region ICollection<T> Members
+
+        /// <summary>
+        /// Determines whether the <see cref="ICollection{T}"/> contains a specific 
+        /// value. This implementation calls <see cref="IndexOf"/>.
+        /// </summary>
+        /// 
+        /// <param name="item">
+        /// The object to locate in the <see cref="ICollection{T}"/>.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if item is found in the <see cref="ICollection{T}"/>; 
+        /// otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Contains(T item)
+        {
+            return IndexOf(item) >= 0;
+        }
+
+        #endregion ICollection<T> Members
 
         #region IList Members
 
@@ -322,14 +347,19 @@ namespace Spring.Collections.Generic
             return index;
         }
 
+        private static bool IsValidType(object value)
+        {
+            return value is T || value == null && !IsValueType;
+        }
+
         private bool NonGenericContains(object value)
         {
-            return value is T && Contains((T)value);
+            return IsValidType(value) && Contains((T)value);
         }
 
         private int NonGenericIndexOf(object value)
         {
-            return value is T ? IndexOf((T)value) : -1;
+            return IsValidType(value) ? IndexOf((T)value) : -1;
         }
 
         private void NonGenericInsert(int index, object value)
@@ -339,7 +369,7 @@ namespace Spring.Collections.Generic
 
         private void NonGenericRemove(object value)
         {
-            if (value is T) Remove((T)value);
+            if (IsValidType(value)) Remove((T)value);
         }
 
         private object NonGenericIndexerGet(int index)

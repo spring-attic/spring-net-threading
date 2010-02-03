@@ -132,6 +132,7 @@
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueueTest.cs" />
     <Compile Include="TestFixtures\Threading\Collections\Generic\BlockingQueueContract.cs" />
+    <Compile Include="Threading\Collections\Generic\CopyOnWriteListTest.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />

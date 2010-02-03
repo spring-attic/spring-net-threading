@@ -46,7 +46,6 @@ namespace Spring.Threading.Collections.Generic
         where T : IDelayed, new()
     {
         private const CollectionContractOptions _defaultContractOptions = 
-            CollectionContractOptions.Unbounded | 
             CollectionContractOptions.NoNull |
             CollectionContractOptions.WeaklyConsistentEnumerator;
 

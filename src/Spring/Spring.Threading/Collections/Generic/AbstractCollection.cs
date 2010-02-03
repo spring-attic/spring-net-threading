@@ -410,6 +410,10 @@ namespace Spring.Collections.Generic
             {
                 CopyTo(array, index);
             }
+            catch (RankException re)
+            {
+                throw new ArgumentException("array must not be multi-dimensional.", "array", re);
+            }
             catch (IndexOutOfRangeException e)
             {
                 throw new ArgumentException("array is too small to fit the collection.", "array", e);
@@ -561,6 +565,9 @@ namespace Spring.Collections.Generic
         /// <param name="collection">
         /// The collection containing the elements to be added to this collection.
         /// </param>
+        /// <returns>
+        /// <c>true</c> if this collection is modified, else <c>false</c>.
+        /// </returns>
         /// <exception cref="System.ArgumentNullException">
         /// If the supplied <paramref name="collection"/> is <see langword="null"/>.
         /// </exception>
@@ -577,6 +584,19 @@ namespace Spring.Collections.Generic
             {
                 throw new ArgumentException("Cannot add to itself.", "collection");
             }
+            return DoAddRange(collection);
+        }
+
+        /// <summary>
+        /// Called by <see cref="AddRange"/> after the parameter is validated
+        /// to be neither <c>null</c> nor this collection itself.
+        /// </summary>
+        /// <param name="collection">Collection of items to be added.</param>
+        /// <returns>
+        /// <c>true</c> if this collection is modified, else <c>false</c>.
+        /// </returns>
+        protected virtual bool DoAddRange(IEnumerable<T> collection)
+        {
             bool modified = false;
             foreach (T element in collection)
             {

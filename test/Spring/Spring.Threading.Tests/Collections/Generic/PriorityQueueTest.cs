@@ -43,7 +43,6 @@ namespace Spring.Collections.Generic
     public class PriorityQueueTest<T>
     {
         private const CollectionContractOptions _defaultContractOptions =
-            CollectionContractOptions.Unbounded |
             CollectionContractOptions.NoNull |
             CollectionContractOptions.ToStringPrintItems;
 

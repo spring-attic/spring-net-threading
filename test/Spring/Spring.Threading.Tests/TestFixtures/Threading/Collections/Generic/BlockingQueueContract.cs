@@ -6,9 +6,7 @@ using NUnit.CommonFixtures;
 using NUnit.CommonFixtures.Collections;
 using NUnit.CommonFixtures.Threading;
 using NUnit.Framework;
-using Spring.Collections;
 using Spring.Collections.Generic;
-using Spring.TestFixtures.Collections;
 using Spring.TestFixtures.Collections.Generic;
 using Spring.Threading.AtomicTypes;
 using Spring.Threading.Collections.Generic;
@@ -121,7 +119,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void PutBlocksInterruptiblyWhenFull()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var q = NewBlockingQueueFilledWithSample();
             Thread t = ThreadManager.StartAndAssertRegistered(
                 "T1", () => Assert.Throws<ThreadInterruptedException>(
@@ -133,7 +131,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void PutBlocksWaitingForTakeWhenFull()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var q = NewBlockingQueueFilledWithSample();
             AtomicBoolean added = new AtomicBoolean(false);
             ThreadManager.StartAndAssertRegistered(
@@ -147,7 +145,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void FairQueueUnblocksOfferingThreadsInFifoOrder()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             Options.SkipWhenNot(CollectionContractOptions.Fair);
             const int size = 3;
             var q = NewBlockingQueueFilledWithSample();
@@ -214,7 +212,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void TimedOfferWaitsInterruptablyAndTimesOutIfFullAndSucceedAfterTaken()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var values = TestData<T>.MakeTestArray(SampleSize + 3);
             var q = NewBlockingQueueFilledWithSample();
             var timedout = new AtomicBoolean(false);
@@ -477,7 +475,7 @@ namespace Spring.TestFixtures.Threading.Collections.Generic
 
         [Test] public virtual void OfferTransfersElementsAcrossThreads()
         {
-            Options.SkipWhen(CollectionContractOptions.Unbounded);
+            Options.SkipWhenNot(CollectionContractOptions.Bounded);
             var q = NewBlockingQueueFilledWithSample();
             ThreadManager.StartAndAssertRegistered(
                 "T",

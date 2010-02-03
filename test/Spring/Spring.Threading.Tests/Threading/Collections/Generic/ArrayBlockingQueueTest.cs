@@ -25,6 +25,7 @@ namespace Spring.Threading.Collections.Generic
     {
         private const CollectionContractOptions _defaultContractOptions =
             CollectionContractOptions.Fifo |
+            CollectionContractOptions.Bounded |
             CollectionContractOptions.ToStringPrintItems |
             CollectionContractOptions.WeaklyConsistentEnumerator;
 

@@ -27,7 +27,7 @@ namespace Spring.Threading.Collections.Generic
     {
         public SynchronousQueueTest() : this(0) {}
         public SynchronousQueueTest(CollectionContractOptions options) 
-            : base(options | CollectionContractOptions.Fifo)
+            : base(options | CollectionContractOptions.Fifo | CollectionContractOptions.Bounded)
         {
             SampleSize = 0;
         }
