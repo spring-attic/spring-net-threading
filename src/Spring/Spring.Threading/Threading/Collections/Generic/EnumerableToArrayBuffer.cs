@@ -79,10 +79,9 @@ namespace Spring.Threading.Collections.Generic
         /// </summary>
         internal void CopyTo(T[] items, int index)
         {
-            if(_count == 0) return;
-            if (_collection != null)
+            if (_collection != null && _collection.Count > 0)
                 _collection.CopyTo(items, index);
-            else
+            else if(_count > 0)
                 Array.Copy(_items, 0, items, index, _count);
         }
     }

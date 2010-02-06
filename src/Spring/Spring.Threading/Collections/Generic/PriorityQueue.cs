@@ -793,7 +793,7 @@ namespace Spring.Collections.Generic
         /// </returns>
         protected override T[] DoCopyTo(T[] array, int arrayIndex, bool ensureCapacity)
         {
-            if (array == null || ensureCapacity) array = EnsureCapacity(array, Count);
+            if (ensureCapacity) array = EnsureCapacity(array, Count);
             Array.Copy(_queue, 0, array, arrayIndex, _size);
             return array;
         }

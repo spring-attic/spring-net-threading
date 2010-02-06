@@ -8,25 +8,9 @@ using System.Reflection;
 // associated with an assembly.
 //
 
-[assembly: AssemblyConfiguration("net-2.0.win32; Release")]
 [assembly: AssemblyCompany("http://www.springframework.net")]
-[assembly: AssemblyProduct("Spring Threading for .NET 1.0")]
-[assembly: AssemblyCopyright("Copyright 2002-2009 SpringSource.")]
-[assembly: AssemblyTrademark("Apache License, Version 2.0")]
-[assembly: AssemblyCulture("")]
-
-//
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      .NET Framework Version (RR)
-//      Revision = "1" for builds with VS.NET, nant build is # of days since 'project.year' 
-//      property
-//
-//
-// This is to support side-by-side deployment of .NET 1.1 and .NET 2.0 versions of the assembly.
-[assembly: AssemblyVersion("1.1.2.20125")]
+[assembly: AssemblyProduct("Spring Threading")]
+[assembly: AssemblyCopyright("Copyright 2002-2010 SpringSource.")]
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the 

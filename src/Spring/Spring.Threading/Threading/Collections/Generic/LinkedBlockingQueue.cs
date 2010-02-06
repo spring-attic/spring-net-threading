@@ -675,7 +675,7 @@ namespace Spring.Threading.Collections.Generic {
         protected override T[] DoCopyTo(T[] array, int arrayIndex, bool ensureCapacity) {
             lock(_putLock) {
                 lock(_takeLock) {
-                    if (array == null || ensureCapacity) array = EnsureCapacity(array, Count);
+                    if (ensureCapacity) array = EnsureCapacity(array, _activeCount);
                     for (Node p = _head.Next; p != null; p = p.Next)
                         array[arrayIndex++] = p.Item;
                     return array;
@@ -714,13 +714,30 @@ namespace Spring.Threading.Collections.Generic {
         /// <summary>
         /// Indicate if current queue is broken. A broken queue never blocks.
         /// </summary>
+        /// <para>
+        /// When a queue is broken, all blocking actions and subsequent put
+        /// actions will return immediately with unsuccesful status or 
+        /// <see cref="QueueBrokenException"/> is thrown if method doesn't 
+        /// return any status. Subsequent get actions will continue to sucess
+        /// until the queue becomes empty, then further get actions will return
+        /// unsuccesful status or throws <see cref="QueueBrokenException"/>.
+        /// </para>
+        /// <para>
+        /// Use <see cref="Break"/> or <see cref="Stop"/> to break a queue.
+        /// </para>
+        /// <para>
+        /// Use <see cref="Clear"/> to restore the queue back to normal state.
+        /// </para>
+        /// <seealso cref="Break"/>
+        /// <seealso cref="Stop"/>
+        /// <seealso cref="Clear"/>
         public virtual bool IsBroken
         {
             get { return _isBroken; }
         }
 
         /// <summary>
-        /// Break current queue. 
+        /// Breaks current queue. 
         /// </summary>
         /// <remarks>
         /// <para>
@@ -733,10 +750,16 @@ namespace Spring.Threading.Collections.Generic {
         /// <para>
         /// <see cref="Break"/> allows remaining elements in the queue to
         /// be consumed by subsequent get actions. Use <see cref="Stop"/> 
-        /// to break the queue and empties it in the meantime, which
-        /// effectively ensures any subsequent get action to fail.
+        /// to break and clear the queue in the same time, which effectively
+        /// ensures any subsequent get action to fail.
+        /// </para>
+        /// <para>
+        /// Use <see cref="Clear"/> to restore the queue back to normal state.
         /// </para>
         /// </remarks>
+        /// <seealso cref="IsBroken"/>
+        /// <seealso cref="Stop"/>
+        /// <seealso cref="Clear"/>
         public virtual void Break()
         {
             if (_isBroken) return;
@@ -752,103 +775,30 @@ namespace Spring.Threading.Collections.Generic {
         }
 
         /// <summary>
-        /// <see cref="Break"/> and empty current queue. 
+        /// <see cref="Break"/>s and empties current queue. 
         /// </summary>
         /// <remarks>
+        /// <para>
         /// As soon as a queue is stopped, all blocking queue modification 
         /// actions return immediately with unsuccesful status or 
         /// <see cref="QueueBrokenException"/> is thrown if method doesn't 
-        /// return any status. So does any subsequent queue modification
+        /// return any status. So do any subsequent queue modification
         /// actions.
+        /// </para>
+        /// <para>
+        /// Use <see cref="Break"/> to only affect put operations but allowing
+        /// get operations to continue untile queue is empty.
+        /// </para>
+        /// <para>
+        /// Use <see cref="Clear"/> to restore the queue back to normal state.
+        /// </para>
         /// </remarks>
+        /// <seealso cref="Break"/>
+        /// <seealso cref="IsBroken"/>
+        /// <seealso cref="Clear"/>
         public virtual void Stop()
         {
             EmptyQueue(true);
-        }
-
-        /// <summary> 
-        /// Returns an array containing all of the elements in this queue, in
-        /// proper sequence.
-        /// </summary>
-        /// <remarks> 
-        /// The returned array will be "safe" in that no references to it are
-        /// maintained by this queue.  (In other words, this method must allocate
-        /// a new array).  The caller is thus free to modify the returned array.
-        /// 
-        /// <p/>
-        /// This method acts as bridge between array-based and collection-based
-        /// APIs.
-        /// </remarks>
-        /// <returns> an array containing all of the elements in this queue</returns>
-        public override T[] ToArray() {
-            lock(_putLock) {
-                lock(_takeLock) {
-                    int size = _activeCount;
-                    T[] a = new T[size];
-                    int k = 0;
-                    for(Node p = _head.Next; p != null; p = p.Next)
-                        a[k++] = p.Item;
-                    return a;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns an array containing all of the elements in this queue, in
-        /// proper sequence; the runtime type of the returned array is that of
-        /// the specified array.  If the queue fits in the specified array, it
-        /// is returned therein.  Otherwise, a new array is allocated with the
-        /// runtime type of the specified array and the size of this queue.
-        ///	</summary>	 
-        /// <remarks>
-        /// If this queue fits in the specified array with room to spare
-        /// (i.e., the array has more elements than this queue), the element in
-        /// the array immediately following the end of the queue is set to
-        /// <c>null</c>.
-        /// <p/>
-        /// Like the <see cref="LinkedBlockingQueue{T}.ToArray()"/>  method, this method acts as bridge between
-        /// array-based and collection-based APIs.  Further, this method allows
-        /// precise control over the runtime type of the output array, and may,
-        /// under certain circumstances, be used to save allocation costs.
-        /// <p/>
-        /// Suppose <i>x</i> is a queue known to contain only strings.
-        /// The following code can be used to dump the queue into a newly
-        /// allocated array of <see cref="string"/>s:
-        /// 
-        /// <code>
-        ///		string[] y = x.ToArray(new string[0]);
-        ///	</code>
-        ///	<p/>	
-        /// Note that <i>ToArray(new T[0])</i> is identical in function to
-        /// <see cref="LinkedBlockingQueue{T}.ToArray()"/>.
-        /// 
-        /// </remarks>
-        /// <param name="targetArray">
-        /// the array into which the elements of the queue are to
-        /// be stored, if it is big enough; otherwise, a new array of the
-        /// same runtime type is allocated for this purpose
-        /// </param>
-        /// <returns> an array containing all of the elements in this queue</returns>
-        /// <exception cref="System.ArgumentNullException">
-        /// If the supplied <paramref name="targetArray"/> is
-        /// <c>null</c> and this queue does not permit <c>null</c>
-        /// elements.
-        /// </exception>
-        public override T[] ToArray(T[] targetArray) {
-            if (targetArray == null) throw new ArgumentNullException("targetArray");
-            lock(_putLock) {
-                lock(_takeLock) {
-                    int size = _activeCount;
-                    if (targetArray.Length < size)
-                        // new T[size] won't work here when targetArray is subtype of T.
-                        targetArray = (T[])Array.CreateInstance(targetArray.GetType().GetElementType(), size);
-
-                    int k = 0;
-                    for(Node p = _head.Next; p != null; p = p.Next)
-                        targetArray[k++] = p.Item;
-                    return targetArray;
-                }
-            }
         }
 
         /// <summary>

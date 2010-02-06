@@ -85,9 +85,9 @@ namespace Spring.Collections.Generic
 
         [TestFixture(typeof(string))] // reference type
         [TestFixture(typeof(int))] // value type
-        public class AsGeneric : CollectionContract<T>
+        public class AsGenericReadOnly : CollectionContract<T>
         {
-            public AsGeneric() : base(
+            public AsGenericReadOnly() : base(
                 CollectionContractOptions.ReadOnly | 
                 CollectionContractOptions.ToStringPrintItems)
             {
@@ -95,7 +95,7 @@ namespace Spring.Collections.Generic
 
             protected override ICollection<T> NewCollectionFilledWithSample()
             {
-                return new MockCollection
+                return new ReadOnlyMockCollection
                 {
                     TrueCollection = TestData<T>.MakeTestArray(SampleSize)
                 };
@@ -103,7 +103,7 @@ namespace Spring.Collections.Generic
 
             protected override ICollection<T> NewCollection()
             {
-                return new MockCollection
+                return new ReadOnlyMockCollection
                 {
                     TrueCollection = new T[0]
                 };
@@ -112,9 +112,23 @@ namespace Spring.Collections.Generic
 
         [TestFixture(typeof(string))] // reference type
         [TestFixture(typeof(int))] // value type
-        public class AsNonGeneric : CollectionContract
+        public class AsGeneric : CollectionContract<T>
         {
-            public AsNonGeneric() : base(
+            public AsGeneric() : base( CollectionContractOptions.ToStringPrintItems)
+            {
+            }
+
+            protected override ICollection<T> NewCollection()
+            {
+                return new MockCollection();
+            }
+        }
+
+        [TestFixture(typeof(string))] // reference type
+        [TestFixture(typeof(int))] // value type
+        public class AsNonGenericReadOnly : CollectionContract
+        {
+            public AsNonGenericReadOnly() : base(
                 CollectionContractOptions.ReadOnly | 
                 CollectionContractOptions.ToStringPrintItems)
             {
@@ -122,20 +136,64 @@ namespace Spring.Collections.Generic
 
             protected override ICollection NewCollection()
             {
-                return new MockCollection
+                return new ReadOnlyMockCollection
                 {
                     TrueCollection = TestData<T>.MakeTestArray(9)
                 };
             }
         }
 
-        private class MockCollection : AbstractCollection<T>
+        [TestFixture(typeof(string))] // reference type
+        [TestFixture(typeof(int))] // value type
+        public class AsNonGeneric : CollectionContract
+        {
+            public AsNonGeneric() : base(CollectionContractOptions.ToStringPrintItems)
+            {
+            }
+
+            protected override ICollection NewCollection()
+            {
+                return new MockCollection();
+            }
+        }
+
+        private class ReadOnlyMockCollection : AbstractCollection<T>
         {
             public ICollection<T> TrueCollection;
 
             public override IEnumerator<T> GetEnumerator()
             {
                 return TrueCollection.GetEnumerator();
+            }
+        }
+
+        private class MockCollection : ReadOnlyMockCollection
+        {
+            public MockCollection()
+            {
+                TrueCollection = new List<T>();
+            }
+            public override void Add(T item)
+            {
+                TrueCollection.Add(item);
+            }
+
+            public override void Clear()
+            {
+                TrueCollection.Clear();
+            }
+
+            public override bool Remove(T item)
+            {
+                return TrueCollection.Remove(item);
+            }
+
+            public override bool IsReadOnly
+            {
+                get
+                {
+                    return false;
+                }
             }
         }
     }

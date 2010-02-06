@@ -3,6 +3,8 @@ using System.Threading;
 using NUnit.CommonFixtures;
 using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
+using Spring.Collections.Generic;
+using Spring.TestFixtures.Collections;
 using Spring.TestFixtures.Collections.NonGeneric;
 using Spring.TestFixtures.Threading.Collections.Generic;
 using Spring.Threading.AtomicTypes;
@@ -271,65 +273,6 @@ namespace Spring.Threading.Collections.Generic
             ThreadManager.JoinAndVerify();
         }
 
-        [Test]
-        public void ToArrayWritesAllElementsToNewArray() 
-        {
-            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
-            T[] o = q.ToArray();
-            for(int i = 0; i < o.Length; i++)
-                Assert.AreEqual(o[i], q.Take());
-        }
-
-        [Test] public void ToArrayWritesAllElementsToExistingArray() 
-        {
-            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
-            T[] ints = new T[SampleSize];
-            ints = q.ToArray(ints);
-            for(int i = 0; i < ints.Length; i++)
-                Assert.AreEqual(ints[i], q.Take());
-        }
-
-        [Test] public void ToArrayChokesOnNullArray() 
-        {
-            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
-            var e = Assert.Throws<ArgumentNullException>(()=>q.ToArray(null));
-            Assert.That(e.ParamName, Is.EqualTo("targetArray"));
-        }
-
-        [Test] public void ToArrayChokesOnIncompatibleArray()
-        {
-            LinkedBlockingQueue<object> q = new LinkedBlockingQueue<object>(2);
-            q.Offer(new object());
-            Assert.Throws<ArrayTypeMismatchException>(() => q.ToArray(new string[10]));
-        }
-
-        [Test] public void ToArrayWorksFineWithArrayOfSubType()
-        {
-            LinkedBlockingQueue<object> q = new LinkedBlockingQueue<object>(2);
-            q.Offer(TestData<string>.One);
-            var a = new string[10];
-            q.ToArray(a);
-            Assert.That(a[0], Is.EqualTo(TestData<string>.One));
-        }
-
-        [Test] public void ToArrayExpendsShorterArray()
-        {
-            LinkedBlockingQueue<T> q = NewLinkedBlockingQueueFilledWithSample();
-            var a = new T[0];
-            var a2 = q.ToArray(a);
-            CollectionAssert.AreEqual(q, a2);
-        }
-
-        [Test] public void ToArrayExpendsShorterArrayWithSameType()
-        {
-            LinkedBlockingQueue<object> q = new LinkedBlockingQueue<object>();
-            q.Offer(TestData<string>.One);
-            var a = new string[0];
-            var a2 = q.ToArray(a);
-            CollectionAssert.AreEqual(q, a2);
-            Assert.That(a2, Is.InstanceOf<string[]>());
-        }
-
         [TestFixture(typeof(string), CollectionContractOptions.Bounded)]
         [TestFixture(typeof(int), CollectionContractOptions.Bounded)]
         [TestFixture(typeof(string))]
@@ -348,6 +291,20 @@ namespace Spring.Threading.Collections.Generic
             protected override IQueue NewQueueFilledWithSample()
             {
                 return NewLinkedBlockingQueue(IsBounded, SampleSize, true);
+            }
+        }
+
+        [TestFixture(typeof(string))]
+        [TestFixture(typeof(int))]
+        public class AsAbstractCollection : AbstractCollectionContract<T>
+        {
+            /// <summary>
+            /// Return a new empty <see cref="AbstractCollection{TE}"/>.
+            /// </summary>
+            /// <returns></returns>
+            protected override AbstractCollection<TE> NewCollection<TE>()
+            {
+                return new LinkedBlockingQueue<TE>(SampleSize);
             }
         }
     }

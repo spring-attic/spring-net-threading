@@ -130,9 +130,9 @@ namespace Spring.Collections.Generic
         /// <summary>
         /// Returns an array containing all of the elements in this collection, 
         /// in proper sequence; the runtime type of the returned array is that 
-        /// of the specified array.  If the queue fits in the specified array, 
-        /// it is returned therein.  Otherwise, a new array is allocated with 
-        /// the runtime type of the specified array and the size of this 
+        /// of the specified array.  If the collection fits in the specified
+        /// array, it is returned therein.  Otherwise, a new array is allocated
+        /// with the runtime type of the specified array and the size of this 
         /// collection.
         ///	</summary>	 
         /// <remarks>
@@ -145,7 +145,7 @@ namespace Spring.Collections.Generic
         /// </para>
         /// <para>
         /// Suppose <i>x</i> is a collection known to contain only strings.
-        /// The following code can be used to dump the queue into a newly
+        /// The following code can be used to dump the collection into a newly
         /// allocated array of <see cref="string"/>s:
         /// 
         /// <code language="c#">
@@ -168,6 +168,11 @@ namespace Spring.Collections.Generic
         /// <exception cref="ArgumentNullException">
         /// If the supplied <paramref name="targetArray"/> is
         /// <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArrayTypeMismatchException">
+        /// If type of <paramref name="targetArray"/> is a derived type of
+        /// <typeparamref name="T"/> and the collection contains element that
+        /// is not that derived type.
         /// </exception>
         public virtual T[] ToArray(T[] targetArray)
         {
@@ -249,7 +254,7 @@ namespace Spring.Collections.Generic
         /// </returns>
         protected virtual T[] DoCopyTo(T[] array, int arrayIndex, bool ensureCapacity)
         {
-            if (array == null || ensureCapacity) array = EnsureCapacity(array, Count);
+            if (ensureCapacity) array = EnsureCapacity(array, Count);
             foreach (T e in this) array[arrayIndex++] = e;
             return array;
         }

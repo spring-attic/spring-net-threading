@@ -402,7 +402,7 @@ namespace Spring.Threading.Collections.Generic
         {
             lock (_lock)
             {
-                if (array == null || ensureCapacity) array = EnsureCapacity(array, Count);
+                if (ensureCapacity) array = EnsureCapacity(array, Count);
                 _queue.CopyTo(array, arrayIndex);
                 return array;
             }

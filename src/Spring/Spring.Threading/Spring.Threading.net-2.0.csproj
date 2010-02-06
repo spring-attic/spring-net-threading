@@ -29,14 +29,14 @@
     <OldToolsVersion>2.0</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>..\..\..\build\VS.Net.2008.P1\Spring.Threading\Debug\</OutputPath>
+    <OutputPath>..\..\..\build\Spring.Threading\net-2.0\Debug\</OutputPath>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>TRACE;DEBUG;PHASED</DefineConstants>
-    <DocumentationFile>..\..\..\build\VS.Net.2008\Spring.Threading\Debug\Spring.Threading.XML</DocumentationFile>
+    <DocumentationFile>..\..\..\build\Spring.Threading\net-2.0\Debug\Spring.Threading.XML</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
@@ -51,14 +51,14 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>..\..\..\build\VS.Net.2008.P1\Spring.Threading\Release\</OutputPath>
+    <OutputPath>..\..\..\build\Spring.Threading\net-2.0\Release\</OutputPath>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
     <DefineConstants>PHASED</DefineConstants>
-    <DocumentationFile>..\..\..\build\VS.Net.2008\Spring.Threading\Release\Spring.Threading.XML</DocumentationFile>
+    <DocumentationFile>..\..\..\build\Spring.Threading\net-2.0\Release\Spring.Threading.XML</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
@@ -84,6 +84,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\AssemblyVersion.cs">
+      <Link>AssemblyVersion.cs</Link>
+    </Compile>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Collections\Generic\AbstractCollection.cs" />
     <Compile Include="Collections\Generic\AbstractEnumerator.cs" />
@@ -176,6 +179,7 @@
     <Compile Include="System\Threading\Tasks\ParallelOptions.cs" />
     <Compile Include="Threading\Runnable.cs" />
     <Compile Include="Threading\Void.cs" />
+    <Compile Include="Utility\Error.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
     <Compile Include="Utility\WaitTime.cs" />
   </ItemGroup>

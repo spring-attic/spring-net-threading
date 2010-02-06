@@ -841,7 +841,7 @@ namespace Spring.Threading.Collections.Generic
                 }
                 if (newItems.Length > index)
                     Array.Resize(ref newItems, index);
-                _items = items;
+                _items = newItems;
                 return size - index;
             }
         }
@@ -874,8 +874,7 @@ namespace Spring.Threading.Collections.Generic
                 size = items.Length;
                 if (index >= 0 && count >= 0 && count + index <= size)
                 {
-                    var newItems = RemoveRange(items, index, count);
-                    _items = newItems;
+                    if (count != 0) _items = RemoveRange(items, index, count);
                     return;
                 }
             }
@@ -1012,7 +1011,7 @@ namespace Spring.Threading.Collections.Generic
             {
                 var items = _items; // one volatile read only.
                 size = items.Length;
-                if (index >= 0 || index < size)
+                if (index >= 0 && index <= size)
                 {
                     if (InsertRange(ref items, index, collection))
                         _items = items;
@@ -1421,8 +1420,9 @@ namespace Spring.Threading.Collections.Generic
         protected override T[] DoCopyTo(T[] array, int arrayIndex, bool ensureCapacity)
         {
             var items = _items;
-            if (array == null || ensureCapacity) array = EnsureCapacity(array, items.Length);
-            Array.Copy(items, 0, array, arrayIndex, items.Length);
+            if (ensureCapacity) array = EnsureCapacity(array, items.Length);
+            try{Array.Copy(items, 0, array, arrayIndex, items.Length);}
+            catch (InvalidCastException e) { throw Error.NewArrayTypeMismatchException(e); }
             return array;
         }
 
@@ -1518,7 +1518,7 @@ namespace Spring.Threading.Collections.Generic
             var newItems = new T[size + count];
             buffer.CopyTo(newItems, index);
             if (index > 0)
-                Array.Copy(items, 0, newItems, 0, size);
+                Array.Copy(items, 0, newItems, 0, index);
             if (index < size)
                 Array.Copy(items, index, newItems, index + count, size - index);
             items = newItems;

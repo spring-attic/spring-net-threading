@@ -1,0 +1,189 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CFBFDB73-1391-45ED-87A7-6F28146319BA}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon>
+    </ApplicationIcon>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>Spring.Threading.Tests</AssemblyName>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Spring</RootNamespace>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <StartupObject>
+    </StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>..\..\..\build\Spring.Threading.Tests\net-3.5\Debug\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE;DEBUG;PHASED</DefineConstants>
+    <DocumentationFile>
+    </DocumentationFile>
+    <DebugSymbols>true</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>false</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>full</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\..\..\build\Spring.Threading.Tests\net-3.5\Release\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE;PHASED</DefineConstants>
+    <DocumentationFile>
+    </DocumentationFile>
+    <DebugSymbols>false</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>none</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="NUnit.CommonFixtures, Version=2.5.3.24, Culture=neutral, PublicKeyToken=f26aaedcfccca009, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\dependency\NUnit.CommonFixtures\net\3.5\$(Configuration)\NUnit.CommonFixtures.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework, Version=2.5.3.9345, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\dependency\NUnit\net\2.0\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Rhino.Mocks, Version=3.5.0.1337, Culture=neutral, PublicKeyToken=0b3305902db7183f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\dependency\RhinoMocks\net\3.5\Rhino.Mocks.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <Name>System</Name>
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\AssemblyVersion.cs">
+      <Link>AssemblyVersion.cs</Link>
+    </Compile>
+    <Compile Include="BaseAbstractCollectionTest.cs" />
+    <Compile Include="BaseThreadingTestCase.cs" />
+    <Compile Include="Collections\Generic\PriorityQueueTest.cs" />
+    <Compile Include="System\Threading\Tasks\ParallelTest.cs" />
+    <Compile Include="Collections\Generic\AbstractEnumeratorTest.cs" />
+    <Compile Include="Collections\Generic\AbstractListTest.cs" />
+    <Compile Include="Collections\Generic\AbstractQueueTest.cs" />
+    <Compile Include="Collections\Generic\ArrayQueueTest.cs" />
+    <Compile Include="TestFixtures\Collections\Generic\QueueContract.cs" />
+    <Compile Include="ExtensionAttribute.cs" />
+    <Compile Include="TestFixtures\Collections\NonGeneric\QueueContract.cs" />
+    <Compile Include="TestFixtures\Collections\NonGeneric\TypedQueueContract.cs" />
+    <Compile Include="TestFixtures\Threading\ThreadingTestFixture.cs" />
+    <Compile Include="Threading\AtomicTypes\AbstractAtomicArrayTest.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicArrayTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicBooleanTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicIntegerArrayTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicLongArrayTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicLongTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicMarkableReferenceTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicMarkableTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicReferenceArrayTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicReferenceTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicStampedReferenceTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicStampedTests.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicTests.cs" />
+    <Compile Include="Threading\CallableTest.cs" />
+    <Compile Include="Collections\Generic\AbstractCollectionTest.cs" />
+    <Compile Include="Collections\Generic\CollectionTestUtils.cs" />
+    <Compile Include="TestHelper.cs" />
+    <Compile Include="Threading\AtomicTypes\AtomicIntegerTests.cs" />
+    <Compile Include="Threading\Collections\Generic\ArrayBlockingQueueTest.cs" />
+    <Compile Include="Threading\Collections\Generic\AbstractBlockingQueueTest.cs" />
+    <Compile Include="TestFixtures\Threading\Collections\Generic\BlockingQueueContract.cs" />
+    <Compile Include="Threading\Collections\Generic\CopyOnWriteListTest.cs" />
+    <Compile Include="Threading\Collections\Generic\DelayQueueTest.cs" />
+    <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
+    <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
+    <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
+    <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
+    <Compile Include="Threading\CyclicBarrierTests.cs" />
+    <Compile Include="Threading\Execution\ExecutorServiceTestFixture.cs" />
+    <Compile Include="Threading\Execution\CancellationExceptionTest.cs" />
+    <Compile Include="Threading\Execution\ExecutionExceptionTest.cs" />
+    <Compile Include="Threading\Execution\DelegatedExecutorServiceTest.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionLocalTest.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionTestBase.cs" />
+    <Compile Include="Threading\Execution\ParallelExtensionTest.cs" />
+    <Compile Include="Threading\Execution\ParallelOptionsTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Threading\Execution\RejectedExecutionExceptionTest.cs" />
+    <Compile Include="Threading\Execution\ExecutionPolicy\DiscardOldestPolicyTest.cs" />
+    <Compile Include="Threading\Execution\ExecutionPolicy\DiscardPolicyTest.cs" />
+    <Compile Include="Threading\Execution\ExecutorCompletionServiceTest.cs" />
+    <Compile Include="Threading\Execution\ExecutorsTest.cs" />
+    <Compile Include="Threading\Execution\SimpleThreadFactory.cs" />
+    <Compile Include="Threading\CountDownLatchTests.cs" />
+    <Compile Include="System\Threading\Tasks\ParallelOptionsTest.cs" />
+    <Compile Include="Threading\Execution\ParallelCompletionNoLocalTest.cs" />
+    <Compile Include="Threading\RunnableTest.cs" />
+    <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
+    <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs" />
+    <Compile Include="Threading\Execution\ExecutionPolicy\AbortPolicyTests.cs" />
+    <Compile Include="Threading\Execution\ExecutionPolicy\CallerRunsPolicyTests.cs" />
+    <Compile Include="Threading\Execution\RejectedExecutionExceptionTests.cs" />
+    <Compile Include="Threading\Execution\ThreadPoolExecutorTests.cs" />
+    <Compile Include="Threading\Future\FutureTaskTests.cs" />
+    <Compile Include="Threading\Helpers\FIFOWaitNodeQueueTests.cs" />
+    <Compile Include="Threading\Helpers\WaitNodeTests.cs" />
+    <Compile Include="Threading\Locks\ReentrantLockTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Spring\Spring.Threading\Spring.Threading.net-3.5.csproj">
+      <Project>{4640D873-95DC-4130-98E2-2B931D390C20}</Project>
+      <Name>Spring.Threading.net-3.5</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>
