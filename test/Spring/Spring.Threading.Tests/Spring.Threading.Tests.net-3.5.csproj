@@ -109,6 +109,7 @@
     <Compile Include="Collections\Generic\AbstractListTest.cs" />
     <Compile Include="Collections\Generic\AbstractQueueTest.cs" />
     <Compile Include="Collections\Generic\ArrayQueueTest.cs" />
+    <Compile Include="TestFixtures\Collections\AbstractCollectionContract.cs" />
     <Compile Include="TestFixtures\Collections\Generic\QueueContract.cs" />
     <Compile Include="ExtensionAttribute.cs" />
     <Compile Include="TestFixtures\Collections\NonGeneric\QueueContract.cs" />
