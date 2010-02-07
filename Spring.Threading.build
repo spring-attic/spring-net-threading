@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<project name="Spring.Threading" default="build">
+  <property name="solution.home"             value="${path::get-full-path('.')}" />
+  <property name="solution.targetframework" value="net-3.5" overwrite="false" />
+  <include buildfile="${solution.home}/dependency/NAntCommonTargets/CommonTargets.build"/>
+  <property name="nant.settings.currentframework" value="net-3.5" />
+  <property name="build.solution.file" value="${build.project.name}.${solution.targetframework}.sln"/>
+
+  <property name="application.version" value="1.0.0" />
+
+  <!-- Uncomment lines below if multiple assemblies are built -->
+  <property name="build.assembly.1" value="Spring.Threading\${solution.targetframework}\${build.configuration}\Spring.Threading" />
+  <property name="build.assembly.2" value="Spring.Threading\${solution.targetframework}\${build.configuration}\LinqBridge" />
+  <property name="build.assembly.all" value="${build.assembly.1};${build.assembly.2}" />
+
+  <target name="all" depends="distribute, document, fxCop, coverage"/>
+
+  <target name="build" depends="buildSolution" />
+
+  <target name="fxCop" depends="build">
+    <call target="runFxCop"/>
+  </target>
+
+  <target name="distribute" depends="build">
+    <call target="createDistributionBinary" />
+  </target>
+
+  <target name="document" depends="build">
+    <call target="sandcastle" />
+  </target>
+
+  <!-- Sandcastle -->
+  <target name="sandcastle">
+
+    <!-- Uncomment below if additional dependencies need to be added -->
+    <property name="sandcastle.dependency.1" value="${solution.home}\dependency\CommonLogging\net\2.0\${build.configuration}\*.dll"/>
+    <property name="sandcastle.dependency.2" value="C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\System.Configuration.dll"/>
+    <property name="sandcastle.dependency.all" value="${sandcastle.dependency.1};${sandcastle.dependency.2}"/>
+
+    <call target="runSandcastle" />
+  </target>
+
+  <target name="test" depends="build">
+    <call target="runAllTestWithNCover"/>
+  </target>
+
+  <target name="coverage" depends="test, prepareCoverageXsl">
+    <call target="coverageReport"/>
+  </target>
+
+  <target name="coverageReport">
+
+    <!-- Uncomment below to customize the coverage minumum and satisfactory -->
+    <!--
+    <property name="coverage.satisfactory" value="80"/>
+    <property name="coverage.minimum" value="80"/>
+    -->
+
+    <!-- 
+      Uncomment below add additional exclusion patterns. Up to 3 patterns 
+      are support for assembly, namespace and class each 
+    -->
+    <!--
+    <property name="coverage.assembly.exclusion.1" value="DummyAssemblyPlaceHolder"/>
+    <property name="coverage.namespace.exclusion.1" value="DummyNamespacePlaceHolder"/>
+    <property name="coverage.class.exclusion.1" value="BN.Common.TestHelper"/>
+    -->
+
+    <call target="generateCoverageReport"/>
+  </target>
+
+</project>
