@@ -34,7 +34,7 @@ using Spring.TestFixtures.Collections;
 using Spring.Threading.AtomicTypes;
 using Spring.Utility;
 
-namespace Spring.Threading.Collections.Generic.AA
+namespace Spring.Threading.Collections.Generic
 {
     /// <summary>
     /// Test cases for <see cref="CopyOnWriteList{T}"/>.
