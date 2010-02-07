@@ -306,6 +306,7 @@ namespace Spring.Threading.Collections.Generic
         /// </exception>
         public CopyOnWriteList<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
         {
+            if (converter == null) throw new ArgumentNullException("converter");
             var items = _items; // one volatile read only.
             TOutput[] newItems = new TOutput[items.Length];
             for (int i = items.Length - 1; i >= 0; i--)
@@ -466,7 +467,7 @@ namespace Spring.Threading.Collections.Generic
         {
             VerifyMatchArgument(match);
             var items = _items;
-            return FindLastIndex(items, items.Length, items.Length, match);
+            return FindLastIndex(items, items.Length-1, items.Length, match);
         }
 
         /// <summary>
@@ -536,7 +537,7 @@ namespace Spring.Threading.Collections.Generic
             var items = _items;
             var size = items.Length;
             VerifyIndex(index, size, size);
-            return FindIndex(items, index, index, match);
+            return FindLastIndex(items, index, index+1, match);
         }
 
         /// <summary>
@@ -707,12 +708,9 @@ namespace Spring.Threading.Collections.Generic
         public int IndexOf(T item, int index)
         {
             var items = _items; // one volatile read only.
-            if (index > items.Length)
-            {
-                throw new ArgumentOutOfRangeException("index", index, 
-                    "Value cannot be greater than list size.");
-            }
-            return Array.IndexOf(items, item, index, items.Length - index);
+            int size = items.Length;
+            VerifyIndex(index, size, size);
+            return Array.IndexOf(items, item, index, size - index);
         }
 
         /// <summary>
@@ -751,7 +749,7 @@ namespace Spring.Threading.Collections.Generic
         {
             var items = _items; // one volatile read only.
             int size = items.Length;
-            VerifyIndex(index, size+1, size);
+            VerifyIndex(index, size, size);
             VerifyCountArgument(count, index, size);
             return Array.IndexOf(items, item, index, count);
         }
@@ -893,6 +891,7 @@ namespace Spring.Threading.Collections.Generic
                 var items = _items; // only read volatile once.
                 var size = items.Length;
                 var newItems = new T[size];
+                Array.Copy(items, 0, newItems, 0, size);
                 Array.Reverse(newItems, 0, size);
                 _items = newItems;
             }
@@ -928,10 +927,13 @@ namespace Spring.Threading.Collections.Generic
                 size = items.Length;
                 if (index >= 0 && count >= 0 && count + index <= size)
                 {
-                    var newItems = new T[size];
-                    Array.Copy(items, 0, newItems, 0, size);
-                    Array.Reverse(newItems, index, count);
-                    _items = newItems;
+                    if (count > 0)
+                    {
+                        var newItems = new T[size];
+                        Array.Copy(items, 0, newItems, 0, size);
+                        Array.Reverse(newItems, index, count);
+                        _items = newItems;
+                    }
                     return;
                 }
             }
@@ -1104,8 +1106,8 @@ namespace Spring.Threading.Collections.Generic
         {
             var items = _items; // only volatile read once.
             int size = items.Length;
-            VerifyIndex(index, size + 1, size);
-            VerifyCountArgument(count, index, size);
+            VerifyIndex(index, size, size);
+            VerifyCountArgument(count, index);
             return Array.LastIndexOf(items, item, index, count);
         }
 
@@ -1575,10 +1577,10 @@ namespace Spring.Threading.Collections.Generic
             {
                 throw new ArgumentOutOfRangeException("count", count, "Value must be positive.");
             }
-            if (count > index)
+            if (count > index + 1)
             {
                 throw new ArgumentException(
-                    string.Format("Parameter count({0}) must not be greater then index({1}).",
+                    string.Format("Parameter count({0}) must not be greater then index({1}) + 1.",
                     count, index));
             }
         }

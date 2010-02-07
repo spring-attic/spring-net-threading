@@ -132,7 +132,6 @@
     <Compile Include="Threading\Collections\Generic\AbstractBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\ArrayBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\BlockingQueueWrapper.cs" />
-    <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayList.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueue.cs" />
     <Compile Include="Threading\Collections\Generic\IBlockingQueue.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueue.cs" />

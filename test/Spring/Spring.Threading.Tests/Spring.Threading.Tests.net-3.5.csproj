@@ -139,7 +139,6 @@
     <Compile Include="Threading\Collections\Generic\CopyOnWriteListTest.cs" />
     <Compile Include="Threading\Collections\Generic\DelayQueueTest.cs" />
     <Compile Include="Threading\Collections\Generic\LinkedBlockingQueueTest.cs" />
-    <Compile Include="Threading\Collections\Generic\CopyOnWriteArrayListTests.cs" />
     <Compile Include="Threading\Collections\Generic\PriorityBlockingQueueTest.cs" />
     <Compile Include="Threading\ContextCopyingRunnableTest.cs" />
     <Compile Include="Threading\CyclicBarrierTests.cs" />
