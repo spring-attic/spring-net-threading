@@ -180,26 +180,26 @@ namespace Spring.Collections.Generic
         /// <summary> 
         /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial
         /// capacity that orders its elements according to the specified 
-        /// <paramref name="comparator"/>.
+        /// <paramref name="comparer"/>.
         /// </summary>
         /// <param name="initialCapacity">
         /// The initial capacity for this priority queue.
         /// </param>
-        /// <param name="comparator">
-        /// The comparator used to order this priority queue. If <c>null</c>
+        /// <param name="comparer">
+        /// The comparer used to order this priority queue. If <c>null</c>
         /// then the order depends on the elements' natural ordering.
         /// </param>
         /// <exception cref="ArgumentException">
         /// If <paramref name="initialCapacity"/> is less than 1.
         /// </exception>
-        public PriorityQueue(int initialCapacity, IComparer<T> comparator)
+        public PriorityQueue(int initialCapacity, IComparer<T> comparer)
         {
             // Note: This restriction of at least one is not actually needed,
             // but for Java compatibility
             if (initialCapacity < 1) throw new ArgumentOutOfRangeException(
                 "initialCapacity", initialCapacity, "Parameter value must be greater or equal to 1.");
             _queue = new T[initialCapacity];
-            _comparer = comparator;
+            _comparer = comparer;
         }
 
         /// <summary> 

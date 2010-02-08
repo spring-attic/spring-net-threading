@@ -44,13 +44,18 @@ namespace Spring.Threading.Execution
         private static ThreadPoolExecutor NewThreadPoolExecutorWithRejectHandler(int corePoolSize, int maxPoolSize)
         {
             return new ThreadPoolExecutor(corePoolSize, maxPoolSize, Delays.Long,
-                new ArrayBlockingQueue<IRunnable>(10), new NoOpREHandler());
+                new ArrayBlockingQueue<IRunnable>(10), new NoOpHandler());
         }
 
         private static ThreadPoolExecutor NewThreadPoolExecutorWithBoth(int corePoolSize, int maxPoolSize)
         {
             return new ThreadPoolExecutor(corePoolSize, maxPoolSize, Delays.Long,
-                new ArrayBlockingQueue<IRunnable>(10), new SimpleThreadFactory(), new NoOpREHandler());
+                new ArrayBlockingQueue<IRunnable>(10), new SimpleThreadFactory(), new NoOpHandler());
+        }
+
+        private class NoOpHandler : IRejectedExecutionHandler
+        {
+            public void RejectedExecution(IRunnable runnable, ThreadPoolExecutor executor) {}
         }
 
         [Test] public void ActiveCountIncreasesWhenThreadBecomeActiveButDoesNotOverestimate()
@@ -120,7 +125,7 @@ namespace Spring.Threading.Execution
         [Test] public void ThreadFactoryReturnsFactoryGivenInConstructor() {
             IThreadFactory tf = MockRepository.GenerateStub<IThreadFactory>();
 
-            ExecutorService = new ThreadPoolExecutor(1,2,Delays.Long, new ArrayBlockingQueue<IRunnable>(10), tf, new NoOpREHandler());
+            ExecutorService = new ThreadPoolExecutor(1,2,Delays.Long, new ArrayBlockingQueue<IRunnable>(10), tf, new NoOpHandler());
 
             Assert.AreSame(tf, ExecutorService.ThreadFactory);
             JoinPool(ExecutorService);
@@ -385,11 +390,11 @@ namespace Spring.Threading.Execution
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentOutOfRangeException>(
                 () => new ThreadPoolExecutor(1, 2, TimeSpan.FromTicks(-1),
-                    new ArrayBlockingQueue<IRunnable>(10), new NoOpREHandler()));
+                    new ArrayBlockingQueue<IRunnable>(10), new NoOpHandler()));
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentOutOfRangeException>(
                 () => new ThreadPoolExecutor(1, 2, TimeSpan.FromTicks(-1),
-                    new ArrayBlockingQueue<IRunnable>(10), new SimpleThreadFactory(), new NoOpREHandler()));
+                    new ArrayBlockingQueue<IRunnable>(10), new SimpleThreadFactory(), new NoOpHandler()));
             Assert.That(e.ParamName, Is.EqualTo(expected));
         }
 
@@ -424,11 +429,11 @@ namespace Spring.Threading.Execution
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentNullException>(
                 () => new ThreadPoolExecutor(1, 2, Delays.Long, null, 
-                    new NoOpREHandler()));
+                    new NoOpHandler()));
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentNullException>(
                 () => new ThreadPoolExecutor(1, 2, Delays.Long, null, 
-                    new SimpleThreadFactory(), new NoOpREHandler()));
+                    new SimpleThreadFactory(), new NoOpHandler()));
             Assert.That(e.ParamName, Is.EqualTo(expected));
         }
 
@@ -443,7 +448,7 @@ namespace Spring.Threading.Execution
             Assert.That(e.ParamName, Is.EqualTo(expected));
             e = Assert.Throws<ArgumentNullException>(
                 () => new ThreadPoolExecutor(1, 2, Delays.Long, 
-                    new ArrayBlockingQueue<IRunnable>(10), f, new NoOpREHandler()));
+                    new ArrayBlockingQueue<IRunnable>(10), f, new NoOpHandler()));
             Assert.That(e.ParamName, Is.EqualTo(expected));
         }
 
