@@ -16,7 +16,9 @@
 */
 #endregion
 
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
 
@@ -24,13 +26,25 @@ namespace Spring.Threading
 {
     /// <summary>
     /// A factory that creates instance of <see cref="IContextCarrier"/> that
-    /// copies specified data slots in the <see cref="LogicalThreadContext"/>
+    /// copies specified data slots in the "Spring.Threading.LogicalThreadContext, Spring.Core"
     /// and <see cref="Thread.CurrentPrincipal"/>.
     /// </summary>
     /// <author>Kenneth Xu</author>
     public class LogicalThreadContextCarrierFactory : IContextCarrierFactory //NET_ONLY
     {
+        private static readonly Func<string, object> _getData;
+        private static readonly Action<string, object> _setData;
+
         private IEnumerable<string> _names;
+
+        static LogicalThreadContextCarrierFactory()
+        {
+            var type = Type.GetType("Spring.Threading.LogicalThreadContext, Spring.Core");
+            var getDataMethod = type.GetMethod("GetData", BindingFlags.Static | BindingFlags.Public);
+            _getData = (Func<string, object>)Delegate.CreateDelegate(typeof(Func<string, object>), getDataMethod);
+            var setDataMethod = type.GetMethod("SetData", BindingFlags.Static | BindingFlags.Public);
+            _setData = (Action<string, object>)Delegate.CreateDelegate(typeof(Action<string, object>), setDataMethod);
+        }
 
         /// <summary>
         /// Gets and sets the names of the data slots to be copied.
@@ -62,7 +76,7 @@ namespace Spring.Threading
                 _contexts = new Dictionary<string, object>();
                 foreach (string name in names)
                 {
-                    _contexts[name] = LogicalThreadContext.GetData(name);
+                    _contexts[name] = _getData(name);
                 }
             }
 
@@ -74,7 +88,7 @@ namespace Spring.Threading
                     if (_contexts == null) return;
                     foreach (KeyValuePair<string, object> pair in _contexts)
                     {
-                        LogicalThreadContext.SetData(pair.Key, pair.Value);
+                        _setData(pair.Key, pair.Value);
                     }
                 }
 

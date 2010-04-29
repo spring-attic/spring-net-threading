@@ -26,14 +26,14 @@ using NUnit.CommonFixtures.Collections;
 using NUnit.Framework;
 using Spring.TestFixtures.Collections.Generic;
 using Spring.TestFixtures.Collections.NonGeneric;
-#if !PHASED
-using IQueue = Spring.Collections.IQueue;
-#else
-using IQueue = System.Collections.ICollection;
-#endif
 
 namespace Spring.Collections.Generic
 {
+#if !PHASED
+using IQueue = Spring.Collections.IQueue;
+#else
+using IQueue = ICollection;
+#endif
     /// <summary>
     /// Class PriorityQueueTest
     /// </summary>

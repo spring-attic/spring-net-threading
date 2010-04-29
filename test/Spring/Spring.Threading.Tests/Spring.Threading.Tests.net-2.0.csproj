@@ -91,6 +91,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\dependency\RhinoMocks\net\2.0\Rhino.Mocks.dll</HintPath>
     </Reference>
+    <Reference Include="Spring.Core, Version=1.1.2.20125, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\net\2.0\Spring.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System">
       <Name>System</Name>
     </Reference>
@@ -110,7 +114,6 @@
     <Compile Include="Collections\Generic\ArrayQueueTest.cs" />
     <Compile Include="TestFixtures\Collections\AbstractCollectionContract.cs" />
     <Compile Include="TestFixtures\Collections\Generic\QueueContract.cs" />
-    <Compile Include="ExtensionAttribute.cs" />
     <Compile Include="TestFixtures\Collections\NonGeneric\QueueContract.cs" />
     <Compile Include="TestFixtures\Collections\NonGeneric\TypedQueueContract.cs" />
     <Compile Include="TestFixtures\Threading\ThreadingTestFixture.cs" />
@@ -160,6 +163,7 @@
     <Compile Include="Threading\CountDownLatchTests.cs" />
     <Compile Include="System\Threading\Tasks\ParallelOptionsTest.cs" />
     <Compile Include="Threading\Execution\ParallelCompletionNoLocalTest.cs" />
+    <Compile Include="Threading\LogicalThreadContextCarrierFactoryTest.cs" />
     <Compile Include="Threading\RunnableTest.cs" />
     <Compile Include="Threading\Collections\Generic\SynchronousQueueTest.cs" />
     <Compile Include="Threading\Execution\AbstractExecutorServiceTests.cs" />
