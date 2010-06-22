@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spring.Threading.Examples", "Spring.Threading.Examples\Spring.Threading.Examples.csproj", "{BDB5C7C6-0B8C-4D48-B2A9-924E90EADD6A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spring.Threading.net-3.5", "..\..\..\src\Spring\Spring.Threading\Spring.Threading.net-3.5.csproj", "{4640D873-95DC-4130-98E2-2B931D390C20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExecutorService", "ExecutorService\ExecutorService.csproj", "{47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParallelExample", "Parallel\ParallelExample.csproj", "{B95BEC1E-7E37-4D92-81C8-9240408D9F01}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,14 +13,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BDB5C7C6-0B8C-4D48-B2A9-924E90EADD6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDB5C7C6-0B8C-4D48-B2A9-924E90EADD6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BDB5C7C6-0B8C-4D48-B2A9-924E90EADD6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BDB5C7C6-0B8C-4D48-B2A9-924E90EADD6A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4640D873-95DC-4130-98E2-2B931D390C20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4640D873-95DC-4130-98E2-2B931D390C20}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4640D873-95DC-4130-98E2-2B931D390C20}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4640D873-95DC-4130-98E2-2B931D390C20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B95BEC1E-7E37-4D92-81C8-9240408D9F01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B95BEC1E-7E37-4D92-81C8-9240408D9F01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B95BEC1E-7E37-4D92-81C8-9240408D9F01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B95BEC1E-7E37-4D92-81C8-9240408D9F01}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

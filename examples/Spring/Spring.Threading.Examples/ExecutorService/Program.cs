@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Text;
+using Spring.Threading.Examples;
 using Spring.Threading.Execution;
 
-namespace Spring.Threading.Examples
+namespace ExecutorService
 {
-    /// <summary>
-    /// Example taken from http://www.vogella.de/articles/JavaConcurrency/article.html#threadpools
-    /// </summary>
     class Program
     {
         private static readonly int THREAD_POOL_SIZE = 10;
