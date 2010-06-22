@@ -1,0 +1,122 @@
+<Configuration>
+  <SettingsComponent>
+    <string />
+    <integer />
+    <boolean>
+      <setting name="SolutionAnalysisEnabled">False</setting>
+    </boolean>
+  </SettingsComponent>
+  <NAntValidationSettings>
+    <NAntPath value="" />
+  </NAntValidationSettings>
+  <RecentFiles>
+    <RecentFiles>
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Collections/d:Generic/f:LinkedBlockingQueue.cs" caret="15383" fromTop="10" />
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Locks/f:ConditionVariable.cs" caret="5077" fromTop="10" />
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:ThreadPoolExecutor.cs" caret="61403" fromTop="10" />
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:System/d:Threading/d:Tasks/f:Parallel.cs" caret="57814" fromTop="12" />
+      <File id="B95BEC1E-7E37-4D92-81C8-9240408D9F01/f:Program.cs" caret="13" fromTop="0" />
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/f:ICallable.cs" caret="1796" fromTop="16" />
+      <File id="CFBFDB73-1391-45ED-87A7-6F28146319BA/d:Threading/d:Execution/f:ExecutorsTest.cs" caret="10769" fromTop="7" />
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:IExecutorService.cs" caret="2342" fromTop="4" />
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:Executors.cs" caret="3259" fromTop="6" />
+      <File id="47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1/f:Program.cs" caret="323" fromTop="4" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="200" fromTop="8" />
+    </RecentFiles>
+    <RecentEdits>
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:ThreadPoolExecutor.cs" caret="61402" fromTop="10" />
+      <File id="B95BEC1E-7E37-4D92-81C8-9240408D9F01/f:Program.cs" caret="1310" fromTop="28" />
+      <File id="B95BEC1E-7E37-4D92-81C8-9240408D9F01/f:Program.cs" caret="489" fromTop="17" />
+      <File id="B95BEC1E-7E37-4D92-81C8-9240408D9F01/f:Program.cs" caret="445" fromTop="12" />
+      <File id="47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1/f:Program.cs" caret="339" fromTop="14" />
+      <File id="B95BEC1E-7E37-4D92-81C8-9240408D9F01/f:Program.cs" caret="199" fromTop="7" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="961" fromTop="13" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="1837" fromTop="23" />
+      <File id="CFBFDB73-1391-45ED-87A7-6F28146319BA/d:Threading/d:Execution/f:ExecutorsTest.cs" caret="11036" fromTop="7" />
+      <File id="CFBFDB73-1391-45ED-87A7-6F28146319BA/d:Threading/d:Execution/f:ExecutorsTest.cs" caret="10719" fromTop="7" />
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:IExecutorService.cs" caret="2397" fromTop="6" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="936" fromTop="13" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="687" fromTop="8" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="900" fromTop="12" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="901" fromTop="14" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="687" fromTop="7" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="200" fromTop="8" />
+    </RecentEdits>
+  </RecentFiles>
+  <UnitTestRunner>
+    <Providers />
+  </UnitTestRunner>
+  <CompletionStatisticsManager>
+    <ItemStatistics item="Default">
+      <Item value="private" priority="1" />
+      <Item value="int" priority="7" />
+      <Item value="public" priority="0" />
+      <Item value="void" priority="0" />
+      <Item value="long" priority="0" />
+      <Item value="forr" priority="0" />
+      <Item value="for" priority="1" />
+      <Item value="countUntil" priority="0" />
+      <Item value="sum" priority="0" />
+      <Item value="i" priority="0" />
+      <Item value="ThreadStaticAttribute" priority="0" />
+      <Item value="executorService" priority="7" />
+      <Item value="Executors" priority="2" />
+      <Item value="static" priority="0" />
+      <Item value="readonly" priority="0" />
+      <Item value="SumNumbers" priority="1" />
+      <Item value="sumNumbers" priority="0" />
+      <Item value="new" priority="1" />
+      <Item value="TimeSpan" priority="0" />
+      <Item value="while" priority="0" />
+      <Item value="Thread" priority="0" />
+      <Item value="Console" priority="0" />
+      <Item value="Parallel" priority="0" />
+      <Item value="Action" priority="0" />
+      <Item value="GenerateNumbers" priority="1" />
+      <Item value="var" priority="1" />
+      <Item value="string" priority="2" />
+      <Item value="PrintCharacters" priority="1" />
+      <Item value="PrintArray" priority="1" />
+      <Item value="IFuture" priority="1" />
+      <Item value="f2" priority="0" />
+      <Item value="f3" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:@System.Console">
+      <Item value="WriteLine" priority="3" />
+      <Item value="ReadLine" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:@Spring.Threading.Execution.Executors">
+      <Item value="NewFixedThreadPool" priority="0" />
+      <Item value="CreateCallable" priority="2" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:Spring.Threading.Execution.IExecutorService">
+      <Item value="Execute" priority="0" />
+      <Item value="IsTerminated" priority="1" />
+      <Item value="AwaitTermination" priority="0" />
+      <Item value="IsShutdown" priority="0" />
+      <Item value="Submit" priority="2" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:Spring.Threading.Examples.SumNumbers">
+      <Item value="CalculateSum" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:@System.TimeSpan">
+      <Item value="MaxValue" priority="0" />
+      <Item value="FromMinutes" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:@System.Threading.Thread">
+      <Item value="CurrentThread" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:System.Threading.Thread">
+      <Item value="Name" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:@System.Threading.Tasks.Parallel">
+      <Item value="Invoke" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:Spring.Threading.ICallable`1">
+      <Item value="Call" priority="2" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:Spring.Threading.Future.IFuture`1">
+      <Item value="GetResult" priority="2" />
+    </ItemStatistics>
+  </CompletionStatisticsManager>
+</Configuration>

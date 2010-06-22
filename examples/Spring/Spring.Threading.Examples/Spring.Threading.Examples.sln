@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExecutorService", "Executor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParallelExample", "Parallel\ParallelExample.csproj", "{B95BEC1E-7E37-4D92-81C8-9240408D9F01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spring.Threading.Tests.net-3.5", "..\..\..\test\Spring\Spring.Threading.Tests\Spring.Threading.Tests.net-3.5.csproj", "{CFBFDB73-1391-45ED-87A7-6F28146319BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FutureExample", "CallableExample\FutureExample.csproj", "{AE53DBA0-52EF-4F5A-9316-BB04D6E75056}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +29,14 @@ Global
 		{B95BEC1E-7E37-4D92-81C8-9240408D9F01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B95BEC1E-7E37-4D92-81C8-9240408D9F01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B95BEC1E-7E37-4D92-81C8-9240408D9F01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFBFDB73-1391-45ED-87A7-6F28146319BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE53DBA0-52EF-4F5A-9316-BB04D6E75056}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE53DBA0-52EF-4F5A-9316-BB04D6E75056}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE53DBA0-52EF-4F5A-9316-BB04D6E75056}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE53DBA0-52EF-4F5A-9316-BB04D6E75056}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
