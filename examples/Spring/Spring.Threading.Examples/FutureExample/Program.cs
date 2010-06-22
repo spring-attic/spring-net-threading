@@ -9,6 +9,10 @@ using Spring.Threading.Future;
 namespace FutureExample
 {
 
+    /// <summary>
+    /// Based on examples from http://www.dotnetcurry.com/ShowArticle.aspx?ID=489&AspxAutoDetectCookieSupport=1
+    /// and http://www.vogella.de/articles/JavaConcurrency/article.html#futures
+    /// </summary>
     class Program
     {
         private static readonly int THREAD_POOL_SIZE = 10;
