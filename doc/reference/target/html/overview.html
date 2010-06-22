@@ -1,0 +1,133 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Chapter&nbsp;1.&nbsp;Spring Integration Overview</title><link rel="stylesheet" href="styles/html.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot_8103"><link rel="home" href="index.html" title="The Spring Threading Library for .NET"><link rel="up" href="index.html" title="The Spring Threading Library for .NET"><link rel="prev" href="index.html" title="The Spring Threading Library for .NET"><link rel="next" href="message.html" title="Chapter&nbsp;2.&nbsp;Message Construction"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div xmlns="http://www.w3.org/TR/xhtml1/transitional" xmlns:fo="http://www.w3.org/1999/XSL/Format" style="background-color:white;border:none;height:73px;border:1px solid black;"><a style="border:none;" href="http://www.springframework.net/" title="The Spring Framework"><img style="border:none;" src="images/xdev-spring_logo.jpg"></img></a><a style="border:none;" href="http://www.springsource.com/" title="SpringSource"><img style="border:none;position:absolute;padding-top:5px;right:42px;" src="images/S2-banner-rhs.png"></img></a></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="overview"></a>Chapter&nbsp;1.&nbsp;Spring Integration Overview</h2></div></div></div>
+  
+
+  <div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="overview-background"></a>1.1.&nbsp;Background</h2></div></div></div>
+    
+
+    <p>One of the key themes of the Spring Framework is <span class="emphasis"><em>inversion
+    of control</em></span>. In its broadest sense, this means that the
+    framework handles responsibilities on behalf of the components that are
+    managed within its context. The components themselves are simplified since
+    they are relieved of those responsibilities. For example,
+    <span class="emphasis"><em>dependency injection</em></span> relieves the components of the
+    responsibility of locating or creating their dependencies. Likewise,
+    <span class="emphasis"><em>aspect-oriented programming</em></span> relieves business
+    components of generic cross-cutting concerns by modularizing them into
+    reusable aspects. In each case, the end result is a system that is easier
+    to test, understand, maintain, and extend.</p>
+
+    <p>Furthermore, the Spring framework and portfolio provide a
+    comprehensive programming model for building enterprise applications.
+    Developers benefit from the consistency of this model and especially the
+    fact that it is based upon well-established best practices such as
+    programming to interfaces and favoring composition over inheritance.
+    Spring's simplified abstractions and powerful support libraries boost
+    developer productivity while simultaneously increasing the level of
+    testability and portability.</p>
+
+    <p>Spring Integration is a new member of the Spring portfolio motivated
+    by these same goals and principles. It extends the Spring programming
+    model into the messaging domain and builds upon Spring's existing
+    enterprise integration support to provide an even higher level of
+    abstraction. It supports message-driven architectures where inversion of
+    control applies to runtime concerns, such as <span class="emphasis"><em>when</em></span>
+    certain business logic should execute and <span class="emphasis"><em>where</em></span> the
+    response should be sent. It supports routing and transformation of
+    messages so that different transports and different data formats can be
+    integrated without impacting testability. In other words, the messaging
+    and integration concerns are handled by the framework, so business
+    components are further isolated from the infrastructure and developers are
+    relieved of complex integration responsibilities.</p>
+
+    <p>As an extension of the Spring programming model, Spring Integration
+    provides a wide variety of configuration options including annotations,
+    XML with namespace support, XML with generic "bean" elements, and of
+    course direct usage of the underlying API. That API is based upon
+    well-defined strategy interfaces and non-invasive, delegating adapters.
+    Spring Integration's design is inspired by the recognition of a strong
+    affinity between common patterns within Spring and the well-known <a class="ulink" href="http://www.eaipatterns.com" target="_top">Enterprise Integration Patterns</a>
+    as described in the book of the same name by Gregor Hohpe and Bobby Woolf
+    (Addison Wesley, 2004). Developers who have read that book should be
+    immediately comfortable with the Spring Integration concepts and
+    terminology.</p>
+  </div>
+
+  <div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="overview-goalsandprinciples"></a>1.2.&nbsp;Goals and Principles</h2></div></div></div>
+    
+
+    <p>Spring Integration is motivated by the following goals:
+    </p><div class="itemizedlist"><ul type="disc"><li>
+          <p>Provide a simple model for implementing complex enterprise
+          integration solutions.</p>
+        </li><li>
+          <p>Facilitate asynchronous, message-driven behavior within a
+          Spring-based application.</p>
+        </li><li>
+          <p>Promote intuitive, incremental adoption for existing Spring
+          users.</p>
+        </li></ul></div>
+
+    <p>Spring Integration is guided by the following principles:
+    </p><div class="itemizedlist"><ul type="disc"><li>
+          <p>Components should be <span class="emphasis"><em>loosely coupled</em></span> for
+          modularity and testability.</p>
+        </li><li>
+          <p>The framework should enforce <span class="emphasis"><em>separation of
+          concerns</em></span> between business logic and integration
+          logic.</p>
+        </li><li>
+          <p>Extension points should be abstract in nature but within
+          well-defined boundaries to promote <span class="emphasis"><em>reuse</em></span> and
+          <span class="emphasis"><em>portability</em></span>.</p>
+        </li></ul></div>
+  </div>
+
+  <div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="overview-endpoints"></a>1.3.&nbsp;Message Endpoints</h2></div></div></div>
+    
+
+    <p>A Message Endpoint represents the "filter" of a pipes-and-filters
+    architecture. As mentioned above, the endpoint's primary role is to
+    connect application code to the messaging framework and to do so in a
+    non-invasive manner. In other words, the application code should ideally
+    have no awareness of the Message objects or the Message Channels. This is
+    similar to the role of a Controller in the MVC paradigm. Just as a
+    Controller handles HTTP requests, the Message Endpoint handles Messages.
+    Just as Controllers are mapped to URL patterns, Message Endpoints are
+    mapped to Message Channels. The goal is the same in both cases: isolate
+    application code from the infrastructure. These concepts are discussed at
+    length along with all of the patterns that follow in the <a class="ulink" href="http://www.eaipatterns.com" target="_top">Enterprise Integration Patterns</a>
+    book. Here, we provide only a high-level description of the main endpoint
+    types supported by Spring Integration and their roles. The chapters that
+    follow will elaborate and provide sample code as well as configuration
+    examples.</p>
+
+    <div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="overview-endpoints-transformer"></a>1.3.1.&nbsp;Transformer</h3></div></div></div>
+      
+
+      <p>A Message Transformer is responsible for converting a Message's
+      content or structure and returning the modified Message. Probably the
+      most common type of transformer is one that converts the payload of the
+      Message from one format to another (e.g. from XML Document to
+      java.lang.String). Similarly, a transformer may be used to add, remove,
+      or modify the Message's header values.</p>
+    </div>
+
+    <div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="overview-endpoints-filter"></a>1.3.2.&nbsp;Filter</h3></div></div></div>
+      
+
+      <p>A Message Filter determines whether a Message should be passed to
+      an output channel at all. This simply requires a boolean test method
+      that may check for a particular payload content type, a property value,
+      the presence of a header, etc. If the Message is accepted, it is sent to
+      the output channel, but if not it will be dropped (or for a more severe
+      implementation, an Exception could be thrown). Message Filters are often
+      used in conjunction with a Publish Subscribe channel, where multiple
+      consumers may receive the same Message and use the filter to narrow down
+      the set of Messages to be processed based on some criteria. </p><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="images/admons/note.png"></td><th align="left">Note</th></tr><tr><td align="left" valign="top">
+           Be careful not to confuse the generic use of "filter" within the Pipes-and-Filters architectural pattern with this specific endpoint type that selectively narrows down the Messages flowing between two channels. The Pipes-and-Filters concept of "filter" matches more closely with Spring Integration's Message Endpoint: any component that can be connected to Message Channel(s) in order to send and/or receive Messages. 
+        </td></tr></table></div>
+    </div>
+  </div>
+</div><div xmlns="http://www.w3.org/TR/xhtml1/transitional" xmlns:fo="http://www.w3.org/1999/XSL/Format" class="navfooter"><hr></hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="index.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="message.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">The Spring Threading Library for .NET&nbsp;</td><td width="20%" align="center"><span style="color:white;font-size:90%;"><a href="http://www.springsource.com/" title="SpringSource">Sponsored by SpringSource</a></span></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;2.&nbsp;Message Construction</td></tr></table></div></body></html>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+-->
+<chapter id="overview">
+  <title>Spring Integration Overview</title>
+
+  <section id="overview-background">
+    <title>Background</title>
+
+    <para>One of the key themes of the Spring Framework is <emphasis>inversion
+    of control</emphasis>. In its broadest sense, this means that the
+    framework handles responsibilities on behalf of the components that are
+    managed within its context. The components themselves are simplified since
+    they are relieved of those responsibilities. For example,
+    <emphasis>dependency injection</emphasis> relieves the components of the
+    responsibility of locating or creating their dependencies. Likewise,
+    <emphasis>aspect-oriented programming</emphasis> relieves business
+    components of generic cross-cutting concerns by modularizing them into
+    reusable aspects. In each case, the end result is a system that is easier
+    to test, understand, maintain, and extend.</para>
+
+    <para>Furthermore, the Spring framework and portfolio provide a
+    comprehensive programming model for building enterprise applications.
+    Developers benefit from the consistency of this model and especially the
+    fact that it is based upon well-established best practices such as
+    programming to interfaces and favoring composition over inheritance.
+    Spring's simplified abstractions and powerful support libraries boost
+    developer productivity while simultaneously increasing the level of
+    testability and portability.</para>
+
+    <para>Spring Integration is a new member of the Spring portfolio motivated
+    by these same goals and principles. It extends the Spring programming
+    model into the messaging domain and builds upon Spring's existing
+    enterprise integration support to provide an even higher level of
+    abstraction. It supports message-driven architectures where inversion of
+    control applies to runtime concerns, such as <emphasis>when</emphasis>
+    certain business logic should execute and <emphasis>where</emphasis> the
+    response should be sent. It supports routing and transformation of
+    messages so that different transports and different data formats can be
+    integrated without impacting testability. In other words, the messaging
+    and integration concerns are handled by the framework, so business
+    components are further isolated from the infrastructure and developers are
+    relieved of complex integration responsibilities.</para>
+
+    <para>As an extension of the Spring programming model, Spring Integration
+    provides a wide variety of configuration options including annotations,
+    XML with namespace support, XML with generic "bean" elements, and of
+    course direct usage of the underlying API. That API is based upon
+    well-defined strategy interfaces and non-invasive, delegating adapters.
+    Spring Integration's design is inspired by the recognition of a strong
+    affinity between common patterns within Spring and the well-known <ulink
+    url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink>
+    as described in the book of the same name by Gregor Hohpe and Bobby Woolf
+    (Addison Wesley, 2004). Developers who have read that book should be
+    immediately comfortable with the Spring Integration concepts and
+    terminology.</para>
+  </section>
+
+  <section id="overview-goalsandprinciples">
+    <title>Goals and Principles</title>
+
+    <para>Spring Integration is motivated by the following goals:
+    <itemizedlist>
+        <listitem>
+          <para>Provide a simple model for implementing complex enterprise
+          integration solutions.</para>
+        </listitem>
+
+        <listitem>
+          <para>Facilitate asynchronous, message-driven behavior within a
+          Spring-based application.</para>
+        </listitem>
+
+        <listitem>
+          <para>Promote intuitive, incremental adoption for existing Spring
+          users.</para>
+        </listitem>
+      </itemizedlist></para>
+
+    <para>Spring Integration is guided by the following principles:
+    <itemizedlist>
+        <listitem>
+          <para>Components should be <emphasis>loosely coupled</emphasis> for
+          modularity and testability.</para>
+        </listitem>
+
+        <listitem>
+          <para>The framework should enforce <emphasis>separation of
+          concerns</emphasis> between business logic and integration
+          logic.</para>
+        </listitem>
+
+        <listitem>
+          <para>Extension points should be abstract in nature but within
+          well-defined boundaries to promote <emphasis>reuse</emphasis> and
+          <emphasis>portability</emphasis>.</para>
+        </listitem>
+      </itemizedlist></para>
+  </section>
+
+  <section id="overview-endpoints">
+    <title>Message Endpoints</title>
+
+    <para>A Message Endpoint represents the "filter" of a pipes-and-filters
+    architecture. As mentioned above, the endpoint's primary role is to
+    connect application code to the messaging framework and to do so in a
+    non-invasive manner. In other words, the application code should ideally
+    have no awareness of the Message objects or the Message Channels. This is
+    similar to the role of a Controller in the MVC paradigm. Just as a
+    Controller handles HTTP requests, the Message Endpoint handles Messages.
+    Just as Controllers are mapped to URL patterns, Message Endpoints are
+    mapped to Message Channels. The goal is the same in both cases: isolate
+    application code from the infrastructure. These concepts are discussed at
+    length along with all of the patterns that follow in the <ulink
+    url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink>
+    book. Here, we provide only a high-level description of the main endpoint
+    types supported by Spring Integration and their roles. The chapters that
+    follow will elaborate and provide sample code as well as configuration
+    examples.</para>
+
+    <section id="overview-endpoints-transformer">
+      <title>Transformer</title>
+
+      <para>A Message Transformer is responsible for converting a Message's
+      content or structure and returning the modified Message. Probably the
+      most common type of transformer is one that converts the payload of the
+      Message from one format to another (e.g. from XML Document to
+      java.lang.String). Similarly, a transformer may be used to add, remove,
+      or modify the Message's header values.</para>
+    </section>
+
+    <section id="overview-endpoints-filter">
+      <title>Filter</title>
+
+      <para>A Message Filter determines whether a Message should be passed to
+      an output channel at all. This simply requires a boolean test method
+      that may check for a particular payload content type, a property value,
+      the presence of a header, etc. If the Message is accepted, it is sent to
+      the output channel, but if not it will be dropped (or for a more severe
+      implementation, an Exception could be thrown). Message Filters are often
+      used in conjunction with a Publish Subscribe channel, where multiple
+      consumers may receive the same Message and use the filter to narrow down
+      the set of Messages to be processed based on some criteria. <note>
+           Be careful not to confuse the generic use of "filter" within the Pipes-and-Filters architectural pattern with this specific endpoint type that selectively narrows down the Messages flowing between two channels. The Pipes-and-Filters concept of "filter" matches more closely with Spring Integration's Message Endpoint: any component that can be connected to Message Channel(s) in order to send and/or receive Messages. 
+        </note></para>
+    </section>
+  </section>
+</chapter>

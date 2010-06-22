@@ -247,6 +247,7 @@
     <Compile Include="Threading\WaiterPreferenceSemaphore.cs" />
     <Compile Include="Threading\WaitFreeQueue.cs" />
     <Compile Include="Utility\ComparisonComparer.cs" />
+    <Compile Include="Utility\Error.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
     <Compile Include="Utility\WaitTime.cs" />
   </ItemGroup>

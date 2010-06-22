@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE book  [
+  <!ENTITY overview             SYSTEM "overview.xml">
+  <!ENTITY executor             SYSTEM "executor.xml">
+]>
+<book xmlns="http://docbook.org/ns/docbook" 
+      xmlns:xlink="http://www.w3.org/1999/xlink" 
+      xmlns:xi="http://docbook.org/ns/docbook/xi" 
+      version="5.0" 
+      xml:lang="en">
+  <info>
+    <title>The Spring Threading Library for .NET</title>
+    <subtitle>Reference Documentation</subtitle>
+    <releaseinfo>Version 1.0.0 M1</releaseinfo>
+    <pubdate>Last Updated June 22, 2010<ulink url="http://www.springframework.net/se-thread-net/doc-latest/reference/html/index.html">(Latest documentation)</ulink></pubdate>
+    <authorgroup>
+      <author>
+        <firstname>Mark</firstname>
+        <surname>Pollack</surname>
+      </author>
+    </authorgroup>
+    <legalnotice>
+      <para>
+        Copies of this document may be made for your own use and for
+        distribution to others, provided that you do not charge any fee for such
+        copies and further provided that each copy contains this Copyright
+        Notice, whether distributed in print or electronically.
+      </para>
+    </legalnotice>
+  </info>
+  <toc/>
+  
+  &overview;
+  &executor;
+
+</book>
