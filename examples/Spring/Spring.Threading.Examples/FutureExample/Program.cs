@@ -21,7 +21,7 @@ namespace FutureExample
         {
 
             IExecutorService executorService = Executors.NewFixedThreadPool(THREAD_POOL_SIZE);
-
+            
             IFuture<int>  f1 = executorService.Submit<int>(GenerateNumbers);
             IFuture<string> f2 = executorService.Submit<string>(PrintCharacters);
             IFuture<int> f3 = executorService.Submit<int>(PrintArray);
@@ -32,23 +32,50 @@ namespace FutureExample
 
 
             Console.WriteLine("---------");
+            
             Console.WriteLine("Calculating sums...");
-            var list = new List<IFuture<long>>();
-
+            
+            var futures = new List<IFuture<long>>();
+            
+            // Call without method arguments
             for (int i = 0; i < 20000; i++)
             {
                 SumNumbers sumNumbers = new SumNumbers(100 + i);
-                IFuture<long> submit = executorService.Submit<long>(sumNumbers.CalculateSum);                
-                list.Add(submit);
+                IFuture<long> submit = executorService.Submit<long>(sumNumbers.CalculateSum);
+                futures.Add(submit);
             }
+
+            long sum = 0;
+            foreach (var future in futures)
+            {
+                sum += future.GetResult();
+            }
+            Console.WriteLine("Sum = " + sum);
+
+            futures.Clear();
+
+            Console.WriteLine("---------");
+
+            Console.WriteLine("Calculating sums...");
+
+            // Call with method arguments
+            for (int i = 0; i < 20000; i++ )
+            {
+                SumNumbers2 sumNumbers2 = new SumNumbers2();                
+                int i1 = i;  // copy to local variable for closure.
+                IFuture<long> submit =
+                    executorService.Submit(() => sumNumbers2.CalculateSumWithArgsAndReturnValue(100 + i1));
+                futures.Add(submit);                
+            }
+            
 
 
             // This will make the executor accept no new threads
             // and finish all existing threads in the queue
             executorService.Shutdown();
 
-            long sum = 0;
-            foreach (var future in list)
+            sum = 0;
+            foreach (var future in futures)
             {
                 sum += future.GetResult();
             }

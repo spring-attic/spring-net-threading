@@ -48,6 +48,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SumNumbers.cs" />
+    <Compile Include="SumNumbers2.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Spring\Spring.Threading\Spring.Threading.net-3.5.csproj">

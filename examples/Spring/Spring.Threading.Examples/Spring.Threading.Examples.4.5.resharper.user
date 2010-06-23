@@ -17,19 +17,24 @@
       <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:System/d:Threading/d:Tasks/f:Parallel.cs" caret="57814" fromTop="12" />
       <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/f:ICallable.cs" caret="1796" fromTop="16" />
       <File id="CFBFDB73-1391-45ED-87A7-6F28146319BA/d:Threading/d:Execution/f:ExecutorsTest.cs" caret="10769" fromTop="7" />
-      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:IExecutorService.cs" caret="2342" fromTop="4" />
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:IExecutorService.cs" caret="53923" fromTop="4" />
       <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:Executors.cs" caret="3259" fromTop="6" />
       <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Collections/d:Generic/f:LinkedBlockingQueue.cs" caret="15383" fromTop="6" />
       <File id="47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1/f:Program.cs" caret="632" fromTop="3" />
       <File id="47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1/f:SumNumbers.cs" caret="158" fromTop="8" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:SumNumbers.cs" caret="0" fromTop="0" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="683" fromTop="22" />
     </RecentFiles>
     <RecentEdits>
       <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:ThreadPoolExecutor.cs" caret="61402" fromTop="10" />
       <File id="47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1/f:Program.cs" caret="339" fromTop="14" />
       <File id="CFBFDB73-1391-45ED-87A7-6F28146319BA/d:Threading/d:Execution/f:ExecutorsTest.cs" caret="11036" fromTop="7" />
       <File id="CFBFDB73-1391-45ED-87A7-6F28146319BA/d:Threading/d:Execution/f:ExecutorsTest.cs" caret="10719" fromTop="7" />
-      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:IExecutorService.cs" caret="2397" fromTop="6" />
+      <File id="4640D873-95DC-4130-98E2-2B931D390C20/d:Threading/d:Execution/f:IExecutorService.cs" caret="53923" fromTop="6" />
       <File id="47E0D8CF-8CAE-4E5B-A893-7EBF4E9D19F1/f:SumNumbers.cs" caret="158" fromTop="0" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="241" fromTop="12" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="53923" fromTop="22" />
+      <File id="AE53DBA0-52EF-4F5A-9316-BB04D6E75056/f:Program.cs" caret="683" fromTop="22" />
     </RecentEdits>
   </RecentFiles>
   <UnitTestRunner>

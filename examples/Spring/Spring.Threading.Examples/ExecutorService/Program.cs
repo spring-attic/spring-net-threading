@@ -13,10 +13,19 @@ namespace ExecutorService
         static void Main(string[] args)
         {
             IExecutorService executorService = Executors.NewFixedThreadPool(THREAD_POOL_SIZE);
+
+
+
             for (int i = 0; i < 100; i++)
             {
                 SumNumbers sumNumbers = new SumNumbers(10000000 + i);
                 executorService.Execute(sumNumbers.CalculateSum);
+            }
+
+            for (int i = 0; i < 100; i++ )
+            {
+                SumNumbers2 sumNumbers2 = new SumNumbers2();
+                executorService.Execute(() => sumNumbers2.CalculateSumWithArgs(100));
             }
 
             // This will make the executor accept no new threads
