@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
+using Spring.Expressions;
+using Spring.Reflection.Dynamic;
 using Spring.Threading.Execution;
 using Spring.Threading.Future;
+using Spring.Util;
 
 namespace FutureExample
 {
@@ -70,16 +74,43 @@ namespace FutureExample
             
 
 
-            // This will make the executor accept no new threads
-            // and finish all existing threads in the queue
-            executorService.Shutdown();
-
             sum = 0;
             foreach (var future in futures)
             {
                 sum += future.GetResult();
             }
             Console.WriteLine("Sum = " + sum);
+
+
+            //Say this was created at runtime and we don't know the type or parameter values at compile time.
+            object obj = new SumNumbers2();         
+            object[] parameters = new object[] {100};
+
+            //Find the method we want to invoke
+            MethodInfo methodInfo = ReflectionUtils.GetMethod(obj.GetType(), 
+                                                             "CalculateSumWithArgsAndReturnValue", 
+                                                             ReflectionUtils.GetTypes(parameters));
+
+
+            //Use expression trees to generate code to invoke method and assign to a delegate.
+            LateBoundMethod methodCallback = DelegateFactory.Create(methodInfo);
+
+            IFuture<object> futureLong = executorService.Submit(() => methodCallback(obj, parameters));
+            var result = futureLong.GetResult();            
+            Console.WriteLine("LateBoundMethod Style : Result = " + result);
+
+            ///Use Spring's IL generation to invoke method dynamically.
+            IDynamicMethod method = DynamicMethod.Create(methodInfo);    
+                    
+            IFuture<object> futureLongViaDM = executorService.Submit(() => method.Invoke(obj, parameters));
+            var resultViaDM = futureLongViaDM.GetResult();
+            Console.WriteLine("Spring's IDynamicMethod Style: Result = " + resultViaDM);
+
+
+            // This will make the executor accept no new threads
+            // and finish all existing threads in the queue
+            executorService.Shutdown();
+
 
             Console.WriteLine("Hit return to exit");
             Console.ReadLine();
