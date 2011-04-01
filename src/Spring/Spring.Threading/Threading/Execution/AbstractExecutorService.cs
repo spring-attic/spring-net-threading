@@ -81,6 +81,16 @@ namespace Spring.Threading.Execution
         /// </summary>
         public event ThreadExceptionEventHandler ThreadException;
 
+
+        /// <summary>
+        /// Calls <see cref="Shutdown"/> to complete all pending tasks and shutdown service.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public virtual void Dispose()
+        {
+            Shutdown();
+        }
+
         #region Abstract Methods
 
         /// <summary> 

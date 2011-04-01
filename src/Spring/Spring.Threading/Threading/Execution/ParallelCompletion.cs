@@ -77,12 +77,23 @@ namespace Spring.Threading.Execution
         protected override void Process(ILoopState state, IEnumerable<TSource> sources)
         {
             var local = _localInit();
-            foreach (var source in sources)
+            try
             {
-                local = _body(source, state, local);
+                foreach (var source in sources)
+                {
+                    local = _body(source, state, local);
+                }
             }
-            //TODO should we put this in finally block? MSDN doc isn't clear on this.
-            _localFinally(local);
+            catch(Exception e)
+            {
+                // we must handle it here otherwise exception from
+                // finally block will mask this exception.
+                HandleException(e);
+            }
+            finally
+            {
+                _localFinally(local);
+            }
         }
     }
 }

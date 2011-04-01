@@ -524,6 +524,11 @@ namespace Spring.Threading.Execution
                 _executorService.Execute(action);
             }
 
+            public virtual void Dispose()
+            {
+                _executorService.Dispose();
+            }
+
 			public virtual void Shutdown()
 			{
 				_executorService.Shutdown();

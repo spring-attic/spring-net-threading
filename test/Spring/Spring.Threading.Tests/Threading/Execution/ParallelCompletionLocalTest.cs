@@ -237,6 +237,85 @@ namespace Spring.Threading.Execution
             ThreadManager.JoinAndVerify();
         }
 
+        [Test] public void ForEachCallsLocalFinallyOnExceptionFromBody()
+        {
+            T[] sources = TestData<T>.MakeTestArray(_sampleSize);
+            Thread failedThread = null;
+            var failedThreadFinalized = false;
+            var sut = new ParallelCompletion<T, Thread>(
+                _executor,
+                () => Thread.CurrentThread,
+                (t, s, l) =>
+                    {
+                        if (TestData<T>.Three.Equals(t))
+                        {
+                            failedThread = l;
+                            throw new Exception();
+                        }
+                        return l;
+                    },
+                l =>
+                    {
+                        if (l == failedThread) failedThreadFinalized = true;
+                    });
+            ThreadManager.StartAndAssertRegistered(
+                "Driver", () =>
+                              {
+                                  try
+                                  {
+                                      sut.ForEach(sources, Parallelism);
+                                      Assert.Fail("Expecting System.AggregateException, but didn't occur.");
+                                  }
+                                  catch (AggregateException)
+                                  {
+                                  }
+                              }
+                );
+            Thread.Sleep(Delays.Short);
+            ThreadManager.JoinAndVerify();
+            Assert.That(failedThreadFinalized);
+        }
+
+        [Test] public void ForEachInnerExceptionIsFromBodyNotFinally()
+        {
+            T[] sources = TestData<T>.MakeTestArray(_sampleSize);
+            Thread failedThread = null;
+            var sut = new ParallelCompletion<T, Thread>(
+                _executor,
+                () => Thread.CurrentThread,
+                (t, s, l) =>
+                    {
+                        if (TestData<T>.Three.Equals(t))
+                        {
+                            failedThread = l;
+                            throw new Exception("body");
+                        }
+                        return l;
+                    },
+                l =>
+                    {
+                        if (l == failedThread)
+                        {
+                            throw new Exception("localFinally");
+                        }
+                    });
+            ThreadManager.StartAndAssertRegistered("Driver",
+                () =>
+                    {
+                        try
+                        {
+                            sut.ForEach(sources, Parallelism);
+                            Assert.Fail("Expecting System.AggregateException, but didn't occur.");
+                        }
+                        catch (AggregateException e)
+                        {
+                            Assert.That(e.InnerExceptions.Count, Is.GreaterThanOrEqualTo(1));
+                            Assert.That(e.InnerException.Message, Is.EqualTo("body"));
+                        }
+                    });
+            ThreadManager.JoinAndVerify();
+        }
+
         [Test] public void ForEachStopsAsSoonAsStopCalledAt(
             [Values(Parallelism / 2, Parallelism, Parallelism*2)] int cancelAt)
         {

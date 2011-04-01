@@ -39,7 +39,7 @@ namespace Spring.Threading.Execution
         private LinkedBlockingQueue<KeyValuePair<long, T>> _itemQueue;
         private readonly AtomicLong _lowestBreakIteration = new AtomicLong(-1);
         private List<IFuture<Void>> _futures;
-        private volatile Exception _exception;
+        private volatile IList<Exception> _exceptions;
         private int _taskCount;
         private int _maxCount;
         private volatile bool _isStopped;
@@ -64,6 +64,24 @@ namespace Spring.Threading.Execution
             }
         }
 
+        protected void HandleException(Exception e)
+        {
+            lock (this)
+            {
+                var exceptions = _exceptions;
+                if (exceptions == null)
+                {
+                    _exceptions = new List<Exception>{e};
+                    var queue = _itemQueue;
+                    if(queue != null) queue.Stop();
+                }
+                else
+                {
+                    exceptions.Add(e);
+                }
+            }
+        }
+
         protected abstract void Process(ILoopState state, IEnumerable<T> sources);
 
         internal void Break(long iteration)
@@ -81,7 +99,7 @@ namespace Spring.Threading.Execution
             long lowestBreakIteration = _lowestBreakIteration;
             var isBroken = (lowestBreakIteration >= 0 && iteration >= lowestBreakIteration);
             if (isBroken) _itemQueue.Break();
-            return isBroken || _isStopped || _exception != null;
+            return isBroken || _isStopped || _exceptions != null;
         }
 
         internal bool IsStopped
@@ -102,7 +120,7 @@ namespace Spring.Threading.Execution
         {
             get
             {
-                return _exception != null;
+                return _exceptions != null;
             }
         }
 
@@ -177,11 +195,7 @@ namespace Spring.Threading.Execution
                         }
                         catch (Exception e)
                         {
-                            lock (this)
-                            {
-                                if (_exception == null) _exception = e;
-                                _itemQueue.Stop();
-                            }
+                            HandleException(e);
                         }
                         finally
                         {
@@ -195,11 +209,12 @@ namespace Spring.Threading.Execution
             var f = new FutureTask<Void>(task, null);
             lock (this)
             {
+                if (_exceptions != null) return;
                 _taskCount++; // Must increase before submit for accurate counting.
                 _executor.Execute(f);
                 _maxCount = Math.Max(_taskCount,_maxCount);
+                _futures.Add(f);
             }
-            _futures.Add(f);
         }
 
         private void StartParallel()
@@ -232,13 +247,13 @@ namespace Spring.Threading.Execution
             {
                 while (true)
                 {
-                    if (_exception != null)
+                    if (_exceptions != null)
                     {
                         foreach (var future in _futures)
                         {
                             future.Cancel(true);
                         }
-                        throw new AggregateException(_exception.Message, _exception);
+                        throw new AggregateException(_exceptions);
                     }
                     if (_taskCount == 0) return;
                     Monitor.Wait(this);

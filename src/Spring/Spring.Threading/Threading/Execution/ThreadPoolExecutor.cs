@@ -1995,7 +1995,7 @@ namespace Spring.Threading.Execution
         /// <summary>
         /// Shutsdown and disposes of this <see cref="ThreadPoolExecutor"/>.
         /// </summary>
-        public void Dispose()
+        public override void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
