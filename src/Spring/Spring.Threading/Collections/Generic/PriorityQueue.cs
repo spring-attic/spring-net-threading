@@ -89,6 +89,7 @@ namespace Spring.Collections.Generic
 
         private static readonly bool _isValueType;
         private static readonly Func<T, T, bool> _areEqual;
+        private static readonly IComparer<T> _defaultComparer;
 
         static PriorityQueue()
         {
@@ -98,6 +99,12 @@ namespace Spring.Collections.Generic
                 _areEqual = (x, y) => x.Equals(y);
             else
                 _areEqual = (x, y) => ReferenceEquals(x, y);
+            if (typeof (IComparable<T>).IsAssignableFrom(typeof (T)))
+            {
+                _defaultComparer = (IComparer<T>) typeof (ComparableComparer<>).MakeGenericType(typeof (T))
+                    .GetField("Default").GetValue(null);
+            }
+
         }
 
         private const int _defaultInitialCapacity = 11;
@@ -142,7 +149,7 @@ namespace Spring.Collections.Generic
         /// ordering (using <see cref="IComparable"/>).
         /// </summary>
         public PriorityQueue()
-            : this(_defaultInitialCapacity, (IComparer<T>)null) {}
+            : this(_defaultInitialCapacity, _defaultComparer) {}
 
         /// <summary> 
         /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial 
@@ -156,7 +163,7 @@ namespace Spring.Collections.Generic
         /// If <paramref name="initialCapacity"/> is less than 1.
         /// </exception>
         public PriorityQueue(int initialCapacity)
-            : this(initialCapacity, (IComparer<T>)null) {}
+            : this(initialCapacity, _defaultComparer) { }
 
         /// <summary> 
         /// Creates a <see cref="PriorityQueue{T}"/> with the specified initial
@@ -236,7 +243,7 @@ namespace Spring.Collections.Generic
             // }
             else
             {
-                _comparer = null;
+                _comparer = _defaultComparer;
                 Heapify();
             }
         }
@@ -537,11 +544,13 @@ namespace Spring.Collections.Generic
         }
 
         /// <summary> 
-        /// Retrieves, but does not remove, the head of this queue,
-        /// or returns <c>null</c> if this queue is empty.
+        /// Retrieves, but does not remove, the head of this queue into the
+        /// out parameter <paramref name="element"/>, or returns <c>false</c>
+        /// if this queue is empty.
         /// </summary>
         /// <returns> 
-        /// The head of this queue, or <c>null</c> if this queue is empty.
+        /// <c>true</c> when the the head of this queue is return. <c>false</c>
+        /// when the queue is empty.
         /// </returns>
         public override bool Peek(out T element ) {
             if(_size == 0)
@@ -605,11 +614,13 @@ namespace Spring.Collections.Generic
         }
 
         /// <summary> 
-        /// Retrieves and removes the head of this queue,
-        /// or returns <c>null</c> if this queue is empty.
+        /// Retrieves and removes the head of this queue into the out parameter
+        /// <paramref name="element"/>, or returns <c>false</c> if this queue
+        /// is empty.
         /// </summary>
         /// <returns> 
-        /// The head of this queue, or <c>null</c> if this queue is empty.
+        /// <c>true</c> when the the head of this queue is return. <c>false</c>
+        /// when the queue is empty.
         /// </returns>
         public override bool Poll(out T element) 
         {
