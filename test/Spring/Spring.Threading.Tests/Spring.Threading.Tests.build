@@ -4,10 +4,9 @@
   <description>Run unit test and collect coverage.</description>
 
   <property name="solution.home"             value="${path::get-full-path('..\..\..')}" />
-  <property name="solution.targetframework" value="net-3.5" overwrite="false" />
-  
+
   <!-- Uncomment the line below to specify a different set of assembly list to profile -->
-  <property name="coverage.assembly.list"    value="Spring.Threading" />
+  <property name="coverage.assembly.list"    value="Spring.Extension" />
 
   <include buildfile="${solution.home}/dependency/NAntCommonTargets/CommonTargets.build"/>
 

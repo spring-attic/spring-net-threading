@@ -23,7 +23,6 @@ using System.Threading;
 
 namespace Spring.Threading.Locks
 {
-    //TODO PHASED correct the link to <see cref="T:Spring.Threading.Locks.IReadWriteLock"/>
     /// <summary> 
 	/// <see cref="ILock"/> implementations provide more extensive locking
 	/// operations than can be obtained using <see cref="Monitor"/> class and 
@@ -38,7 +37,7 @@ namespace Spring.Threading.Locks
 	/// shared resource: only one thread at a time can acquire the lock and
 	/// all access to the shared resource requires that the lock be
 	/// acquired first. However, some locks may allow concurrent access to
-	/// a shared resource, such as the read lock of a <see cref="T:Spring.Threading.Locks.IReadWriteLock"/> 
+	/// a shared resource, such as the read lock of a <see cref="IReadWriteLock"/> 
     /// </para>
     /// <para>
     /// The use of <see cref="Monitor"/> class or <c>lock</c> statement provides
@@ -193,7 +192,7 @@ namespace Spring.Threading.Locks
         /// </remarks>
         /// <returns>
         /// An <see cref="IDisposable"/> that <see cref="Unlock"/>s the lock
-        /// open <see cref="IDisposable.Dispose"/>.
+        /// upon <see cref="IDisposable.Dispose"/>.
         /// </returns>
         IDisposable Lock();
 

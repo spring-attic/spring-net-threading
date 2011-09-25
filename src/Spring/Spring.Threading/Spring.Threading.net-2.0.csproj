@@ -94,6 +94,8 @@
     <Compile Include="Collections\Generic\AbstractQueue.cs" />
     <Compile Include="Collections\Generic\ArrayQueue.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactory.cs" />
+    <Compile Include="Threading\Locks\IReadWriteLock.cs" />
+    <Compile Include="Utility\ComparableComparer.cs" />
     <Compile Include="Utility\ComparisonComparer.cs" />
     <Compile Include="Collections\Generic\IQueue.cs" />
     <Compile Include="Collections\Generic\PriorityQueue.cs" />

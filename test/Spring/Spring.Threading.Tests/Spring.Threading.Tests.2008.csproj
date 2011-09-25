@@ -128,7 +128,7 @@
     <Compile Include="StandardsComplianceTest.cs" />
     <Compile Include="System\Threading\Tasks\ParallelOptionsTest.cs" />
     <Compile Include="System\Threading\Tasks\ParallelTest.cs" />
-    <Compile Include="TestFixtures\Collections\AbstractCollectionTestFixture.cs" />
+    <Compile Include="TestFixtures\Collections\AbstractCollectionContract.cs" />
     <Compile Include="TestFixtures\Collections\Generic\QueueContract.cs" />
     <Compile Include="TestFixtures\Collections\NonGeneric\QueueContract.cs" />
     <Compile Include="TestFixtures\Collections\NonGeneric\TypedQueueContract.cs" />
@@ -189,7 +189,6 @@
     <Compile Include="Threading\AtomicTypes\AtomicTests.cs" />
     <Compile Include="Threading\LatchTest.cs" />
     <Compile Include="Threading\Locks\ReentrantLockTests.cs" />
-    <Compile Include="Threading\Locks\ReentrantReadWriteLockTests.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactoryTest.cs" />
     <Compile Include="Threading\RunnableTest.cs" />
     <Compile Include="Threading\SemaphoreTest.cs" />

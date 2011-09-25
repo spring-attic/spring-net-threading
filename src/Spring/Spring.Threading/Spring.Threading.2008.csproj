@@ -215,18 +215,12 @@
     <Compile Include="Threading\LinkedNode.cs" />
     <Compile Include="Threading\LinkedQueue.cs" />
     <Compile Include="Threading\LockedExecutor.cs" />
-    <Compile Include="Threading\Locks\AbstractSignallerLock.cs" />
     <Compile Include="Threading\Locks\ConditionVariable.cs" />
     <Compile Include="Threading\Locks\FIFOConditionVariable.cs" />
     <Compile Include="Threading\Locks\ICondition.cs" />
     <Compile Include="Threading\Locks\ILock.cs" />
     <Compile Include="Threading\Locks\IReadWriteLock.cs" />
-    <Compile Include="Threading\Locks\ISignaller.cs" />
-    <Compile Include="Threading\Locks\NullSignaller.cs" />
-    <Compile Include="Threading\Locks\ReaderLock.cs" />
     <Compile Include="Threading\Locks\ReentrantLock.cs" />
-    <Compile Include="Threading\Locks\ReentrantReadWriteLock.cs" />
-    <Compile Include="Threading\Locks\WriterLock.cs" />
     <Compile Include="Threading\LogicalThreadContextCarrierFactory.cs" />
     <Compile Include="Threading\Mutex.cs" />
     <Compile Include="Threading\NullRunnable.cs" />
@@ -246,6 +240,7 @@
     <Compile Include="Threading\WaitableRunnable.cs" />
     <Compile Include="Threading\WaiterPreferenceSemaphore.cs" />
     <Compile Include="Threading\WaitFreeQueue.cs" />
+    <Compile Include="Utility\ComparableComparer.cs" />
     <Compile Include="Utility\ComparisonComparer.cs" />
     <Compile Include="Utility\Error.cs" />
     <Compile Include="Utility\SerializationUtilities.cs" />
