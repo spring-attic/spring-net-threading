@@ -145,16 +145,13 @@ namespace Spring.Threading.Execution
                                     Thread.Sleep(Delays.Short);
                                     throw exception;
                                 }
-                                var e2 = Assert.Throws<ThreadInterruptedException>(
-                                    () => Thread.Sleep(Delays.LongMillis));
-                                if (!Equals(t, sources[_sampleSize-1])) throw e2;
                             });
             ThreadManager.StartAndAssertRegistered("Driver",
                 () => {
                     var e = Assert.Throws<AggregateException>(() =>
                         _sut.ForEach(sources, Parallelism));
                     Assert.That(e.InnerException, Is.SameAs(exception));
-                    Assert.That(_executor.ThreadCount.Value, Is.EqualTo(Parallelism));
+                    Assert.That(_executor.ThreadCount.Value, Is.GreaterThanOrEqualTo(2));
                 });
             Thread.Sleep(Delays.Short);
             ThreadManager.JoinAndVerify();

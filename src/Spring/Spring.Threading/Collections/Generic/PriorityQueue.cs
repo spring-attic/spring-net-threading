@@ -130,6 +130,7 @@ namespace Spring.Collections.Generic
         /// The comparator, or null if priority queue uses elements'
         /// natural ordering.
         /// </summary>
+        [NonSerialized]
         private readonly IComparer<T> _comparer;
 
         /// <summary> 
@@ -737,7 +738,7 @@ namespace Spring.Collections.Generic
         /// </returns>
         public virtual IComparer<T> Comparer
         {
-            get { return _comparer; }
+            get { return _comparer == _defaultComparer ? null : _comparer; }
         }
 
         #endregion
@@ -755,11 +756,15 @@ namespace Spring.Collections.Generic
         /// <param name="context">the context</param>
         public virtual void GetObjectData(SerializationInfo serializationInfo, StreamingContext context) {
             SerializationUtilities.DefaultWriteObject(serializationInfo, context, this);
+
             // Write out array length
             serializationInfo.AddValue("Length", _queue.Length);
 
             // Write out all elements in the proper order.
             serializationInfo.AddValue("Data", ToArray());
+
+            // Writer out the comparer if not the _defaultComparer.
+            serializationInfo.AddValue("Comparer", Comparer);
         }
 
         /// <summary> 
@@ -777,6 +782,9 @@ namespace Spring.Collections.Generic
             var array = (T[]) serializationInfo.GetValue("Data", typeof(T[]));
             Array.Copy(array, 0, _queue, 0, array.Length);
             _size = array.Length;
+
+            var comparer = (IComparer<T>) serializationInfo.GetValue("Comparer", typeof (IComparer<T>));
+            _comparer = comparer?? _defaultComparer;
         }
         #endregion
 

@@ -84,12 +84,6 @@ namespace Spring.Threading.Execution
                     local = _body(source, state, local);
                 }
             }
-            catch(Exception e)
-            {
-                // we must handle it here otherwise exception from
-                // finally block will mask this exception.
-                HandleException(e);
-            }
             finally
             {
                 _localFinally(local);

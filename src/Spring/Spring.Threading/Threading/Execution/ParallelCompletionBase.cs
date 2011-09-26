@@ -245,20 +245,14 @@ namespace Spring.Threading.Execution
         {
             lock (this)
             {
-                while (true)
+                while (_taskCount > 0)
                 {
-                    if (_exceptions != null)
-                    {
-                        foreach (var future in _futures)
-                        {
-                            future.Cancel(true);
-                        }
-                        throw new AggregateException(_exceptions);
-                    }
-                    if (_taskCount == 0) return;
                     Monitor.Wait(this);
                 }
             }
+
+            if (_exceptions != null)
+                throw new AggregateException(_exceptions);
         }
 
         private void Process(IEnumerator<T> iterator)

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using NUnit.CommonFixtures;
 using NUnit.Framework;
-using Spring;
 using Spring.Threading.AtomicTypes;
 
 #if !NET_4_0
@@ -412,6 +411,79 @@ namespace System.Threading.Tasks
                 Assert.That(completed.Count, Is.GreaterThanOrEqualTo(breakAt));
                 Assert.That(completed, Has.Member(sources[0]));
             }
+        }
+
+        [Test] public void FinallyIsCalledWhenBodyThrows()
+        {
+            var finallyCalled = false;
+            Assert.Throws<AggregateException>(
+                () =>
+                Parallel.For(1, 200,
+                             () => 100L,
+                             (a, s, b) =>
+                             {
+                                 Thread.Sleep(300);
+                                 throw new Exception("body-" + a);
+                             },
+                             x =>
+                             {
+                                 finallyCalled = true;
+                             })
+                );
+            Assert.That(finallyCalled, "Failed to call local finally action");
+        }
+
+        [Test] public void BodyExceptionsAreAggregated()
+        {
+            var e = Assert.Throws<AggregateException>(
+                () => Parallel.For(1, 200,
+                                   i =>
+                                       {
+                                           Thread.Sleep(300);
+                                           Console.WriteLine("do " + i);
+                                           throw new Exception("body-" + i);
+                                       })
+                );
+            Assert.That(e.InnerExceptions.Count, Is.GreaterThan(1));
+        }
+
+        [Test] public void InitExceptionsAreAggregated()
+        {
+            var e = Assert.Throws<AggregateException>(
+                () =>
+                Parallel.For<int>(1, 200,
+                             () =>
+                                 {
+                                     try{Thread.Sleep(100);}
+                                     catch (ThreadInterruptedException) { Thread.Sleep(100); }
+                                     throw new Exception("init");
+                                 },
+                             (a, s, b) => 1,
+                             x => { })
+                );
+            Thread.Sleep(100);
+            Assert.That(e.InnerExceptions.Count, Is.GreaterThan(1));
+            Assert.That(e.InnerException.Message, Is.EqualTo("init"));
+        }
+
+        [Test] public void FinallyExceptionsAreAggregated()
+        {
+            var e = Assert.Throws<AggregateException>(
+                () =>
+                Parallel.For(1, 200,
+                             () => 100L,
+                             (a, s, b) =>
+                                 {
+                                     throw new Exception("body-" + a);
+                                 },
+                             x =>
+                                 {
+                                     Thread.Sleep(100);
+                                     throw new Exception("finally");
+                                 })
+                );
+            Assert.That(e.InnerExceptions.Count, Is.GreaterThan(1));
+            Assert.That(e.InnerException.Message, Is.EqualTo("finally"));
         }
     }
 }

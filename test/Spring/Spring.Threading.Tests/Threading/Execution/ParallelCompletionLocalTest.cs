@@ -219,9 +219,6 @@ namespace Spring.Threading.Execution
                         Thread.Sleep(Delays.Short);
                         throw exception;
                     }
-                    var e2 = Assert.Throws<ThreadInterruptedException>(
-                        () => Thread.Sleep(Delays.LongMillis));
-                    if (!Equals(t, sources[_sampleSize - 1])) throw e2;
                     return 0;
                 },
                 _localFinally);
@@ -231,7 +228,7 @@ namespace Spring.Threading.Execution
                     var e = Assert.Throws<AggregateException>(() =>
                         _sut.ForEach(sources, Parallelism));
                     Assert.That(e.InnerException, Is.SameAs(exception));
-                    Assert.That(_executor.ThreadCount.Value, Is.EqualTo(Parallelism));
+                    Assert.That(_executor.ThreadCount.Value, Is.GreaterThanOrEqualTo(2));
                 });
             Thread.Sleep(Delays.Short);
             ThreadManager.JoinAndVerify();
@@ -276,7 +273,7 @@ namespace Spring.Threading.Execution
             Assert.That(failedThreadFinalized);
         }
 
-        [Test] public void ForEachInnerExceptionIsFromBodyNotFinally()
+        [Test] public void ForEachInnerExceptionIsFromFinallyNotBody()
         {
             T[] sources = TestData<T>.MakeTestArray(_sampleSize);
             Thread failedThread = null;
@@ -310,7 +307,7 @@ namespace Spring.Threading.Execution
                         catch (AggregateException e)
                         {
                             Assert.That(e.InnerExceptions.Count, Is.GreaterThanOrEqualTo(1));
-                            Assert.That(e.InnerException.Message, Is.EqualTo("body"));
+                            Assert.That(e.InnerException.Message, Is.EqualTo("localFinally"));
                         }
                     });
             ThreadManager.JoinAndVerify();
