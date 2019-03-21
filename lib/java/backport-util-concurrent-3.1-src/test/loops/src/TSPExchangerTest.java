@@ -1,7 +1,7 @@
 /*
  * Written by Doug Lea and Bill Scherer with assistance from members
  * of JCP JSR-166 Expert Group and released to the public domain, as
- * explained at http://creativecommons.org/licenses/publicdomain
+ * explained at https://creativecommons.org/licenses/publicdomain
  */
 
 import edu.emory.mathcs.backport.java.util.*;

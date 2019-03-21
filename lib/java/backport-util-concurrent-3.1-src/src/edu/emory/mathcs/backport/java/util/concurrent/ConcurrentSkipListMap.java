@@ -1,7 +1,7 @@
 /*
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/licenses/publicdomain
+ * https://creativecommons.org/licenses/publicdomain
  */
 
 package edu.emory.mathcs.backport.java.util.concurrent;
@@ -26,7 +26,7 @@ import java.util.List;
  * creation time, depending on which constructor is used.
  *
  * <p>This class implements a concurrent variant of <a
- * href="http://www.cs.umd.edu/~pugh/">SkipLists</a> providing
+ * href="https://www.cs.umd.edu/~pugh/">SkipLists</a> providing
  * expected average <i>log(n)</i> time cost for the
  * <tt>containsKey</tt>, <tt>get</tt>, <tt>put</tt> and
  * <tt>remove</tt> operations and their variants.  Insertion, removal,
@@ -102,10 +102,10 @@ public class ConcurrentSkipListMap extends AbstractMap
      * The base lists use a variant of the HM linked ordered set
      * algorithm. See Tim Harris, "A pragmatic implementation of
      * non-blocking linked lists"
-     * http://www.cl.cam.ac.uk/~tlh20/publications.html and Maged
+     * https://www.cl.cam.ac.uk/~tlh20/publications.html and Maged
      * Michael "High Performance Dynamic Lock-Free Hash Tables and
      * List-Based Sets"
-     * http://www.research.ibm.com/people/m/michael/pubs.htm.  The
+     * https://www.research.ibm.com/people/m/michael/pubs.htm.  The
      * basic idea in these lists is to mark the "next" pointers of
      * deleted nodes when deleting to avoid conflicts with concurrent
      * insertions, and when traversing to keep track of triples
@@ -277,8 +277,8 @@ public class ConcurrentSkipListMap extends AbstractMap
      * For explanation of algorithms sharing at least a couple of
      * features with this one, see Mikhail Fomitchev's thesis
      * (http://www.cs.yorku.ca/~mikhail/), Keir Fraser's thesis
-     * (http://www.cl.cam.ac.uk/users/kaf24/), and Hakan Sundell's
-     * thesis (http://www.cs.chalmers.se/~phs/).
+     * (https://www.cl.cam.ac.uk/users/kaf24/), and Hakan Sundell's
+     * thesis (https://www.chalmers.se/cse).
      *
      * Given the use of tree-like index nodes, you might wonder why
      * this doesn't use some kind of search tree instead, which would

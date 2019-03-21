@@ -2,7 +2,7 @@
  * Written by Dawid Kurzyniec, on the basis of public specifications and
  * public domain sources from JSR 166 and the Doug Lea's collections package,
  * and released to the public domain,
- * as explained at http://creativecommons.org/licenses/publicdomain.
+ * as explained at https://creativecommons.org/licenses/publicdomain.
  */
 
 package edu.emory.mathcs.backport.java.util;

@@ -1,6 +1,6 @@
 ﻿/*
 * Written by Dawid Kurzyniec and released to the public domain, as explained
-* at http://creativecommons.org/licenses/publicdomain
+* at https://creativecommons.org/licenses/publicdomain
 */
 using System;
 namespace edu.emory.mathcs.backport.java.util.concurrent.helpers

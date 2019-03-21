@@ -1,7 +1,7 @@
 /*
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/licenses/publicdomain
+ * https://creativecommons.org/licenses/publicdomain
  * Other contributors include Andrew Wright, Jeffrey Hayes,
  * Pat Fisher, Mike Judd.
  */
@@ -25,7 +25,7 @@ namespace Spring.Threading.Collections.Generic
     /// Test cases for <see cref="PriorityBlockingQueue{T}"/>.
     /// </summary>
     /// <author>Doug Lea>author>
-    /// <author>Andreas Döhring (.NET)</author>
+    /// <author>Andreas Dï¿½hring (.NET)</author>
     /// <author>Kenneth Xu</author>
     public class PriorityBlockingQueueTest {
 

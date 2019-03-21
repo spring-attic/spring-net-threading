@@ -1,6 +1,6 @@
 #region License
 /*
-* Copyright © 2002-2005 the original author or authors.
+* Copyright ï¿½ 2002-2005 the original author or authors.
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ namespace Spring.Threading
 	/// extremely wasteful.  </p>
 	/// <p>
 	/// This class is adapted from the algorithm described in <a
-	/// href="http://www.cs.rochester.edu/u/michael/PODC96.html"> Simple,
+	/// href="https://www.cs.rochester.edu/u/michael/PODC96.html"> Simple,
 	/// Fast, and Practical Non-Blocking and Blocking Concurrent Queue
 	/// Algorithms</a> by Maged M. Michael and Michael L. Scott.  This
 	/// implementation is not strictly wait-free since it relies on locking

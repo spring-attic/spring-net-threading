@@ -1,7 +1,7 @@
 /*
  * Written by Dawid Kurzyniec, based on public domain code written by Doug Lea
  * and publictly available documentation, and released to the public domain, as
- * explained at http://creativecommons.org/licenses/publicdomain
+ * explained at https://creativecommons.org/licenses/publicdomain
  */
 
 package edu.emory.mathcs.backport.java.util;

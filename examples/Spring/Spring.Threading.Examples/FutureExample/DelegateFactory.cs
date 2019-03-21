@@ -7,7 +7,7 @@ using System.Reflection;
 namespace FutureExample
 {
     /// <summary>
-    /// Copied from http://kohari.org/2009/03/06/fast-late-bound-invocation-with-expression-trees/
+    /// Copied from https://kohari.org/2009/03/06/fast-late-bound-invocation-with-expression-trees/
     /// </summary>
     public static class DelegateFactory
     {

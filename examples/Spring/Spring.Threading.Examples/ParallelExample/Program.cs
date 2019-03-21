@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace ParallelExample
 {
     /// <summary>
-    /// Example taken from http://www.dotnetcurry.com/ShowArticle.aspx?ID=489
+    /// Example taken from https://www.dotnetcurry.com/ShowArticle.aspx?ID=489
     /// </summary>
     class Program
     {
