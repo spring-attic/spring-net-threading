@@ -7,7 +7,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -434,7 +434,7 @@ namespace Spring.Threading.Collections.Generic
         /// <returns>
         /// The zero-based index of the first occurrence of an element that
         /// matches the conditions defined by <paramref name="match"/>, if
-        /// found; otherwise, –1.
+        /// found; otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="match"/> is null.
@@ -458,7 +458,7 @@ namespace Spring.Threading.Collections.Generic
         /// <returns>
         /// The zero-based index of the last occurrence of an element that
         /// matches the conditions defined by <paramref name="match"/>, if
-        /// found; otherwise, –1.
+        /// found; otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="match"/> is null.
@@ -487,7 +487,7 @@ namespace Spring.Threading.Collections.Generic
         /// <returns>
         /// The zero-based index of the first occurrence of an element that
         /// matches the conditions defined by <paramref name="match"/>, if
-        /// found; otherwise, –1.
+        /// found; otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/> is outside the range of valid indexes for
@@ -522,7 +522,7 @@ namespace Spring.Threading.Collections.Generic
         /// <returns>
         /// The zero-based index of the last occurrence of an element that
         /// matches the conditions defined by <paramref name="match"/>, if
-        /// found; otherwise, –1.
+        /// found; otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/> is outside the range of valid indexes for
@@ -560,7 +560,7 @@ namespace Spring.Threading.Collections.Generic
         /// <returns>
         /// The zero-based index of the first occurrence of an element that
         /// matches the conditions defined by <paramref name="match"/>, if
-        /// found; otherwise, –1.
+        /// found; otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/> is outside the range of valid indexes for
@@ -605,7 +605,7 @@ namespace Spring.Threading.Collections.Generic
         /// <returns>
         /// The zero-based index of the last occurrence of an element that
         /// matches the conditions defined by <paramref name="match"/>, if
-        /// found; otherwise, –1.
+        /// found; otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/> is outside the range of valid indexes for
@@ -699,7 +699,7 @@ namespace Spring.Threading.Collections.Generic
         /// <returns>
         /// The zero-based index of the first occurrence of item within the
         /// range of elements in the <see cref="CopyOnWriteList{T}"/> that
-        /// extends from index to the last element, if found; otherwise, –1.
+        /// extends from index to the last element, if found; otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// index is outside the range of valid indexes for the 
@@ -733,7 +733,7 @@ namespace Spring.Threading.Collections.Generic
         /// The zero-based index of the first occurrence of item within the
         /// range of elements in the <see cref="CopyOnWriteList{T}"/> that
         /// starts at index and contains count number of elements, if found;
-        /// otherwise, –1.
+        /// otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/> is outside the range of valid indexes for
@@ -1034,7 +1034,7 @@ namespace Spring.Threading.Collections.Generic
         /// </param>
         /// <returns>
         /// The zero-based index of the last occurrence of item within the
-        /// entire <see cref="CopyOnWriteList{T}"/>, if found; otherwise, –1.
+        /// entire <see cref="CopyOnWriteList{T}"/>, if found; otherwise, ï¿½1.
         /// </returns>
         public int LastIndexOf(T item)
         {
@@ -1059,7 +1059,7 @@ namespace Spring.Threading.Collections.Generic
         /// The zero-based index of the last occurrence of item within the
         /// range of elements in the <see cref="CopyOnWriteList{T}"/> that
         /// extends from the first element to <paramref name="index"/>, if
-        /// found; otherwise, –1.
+        /// found; otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/> is outside the range of valid indexes for
@@ -1090,7 +1090,7 @@ namespace Spring.Threading.Collections.Generic
         /// The zero-based index of the last occurrence of item within the
         /// range of elements in the <see cref="CopyOnWriteList{T}"/> that
         /// contains <paramref name="count"/> number of elements and ends at
-        /// <paramref name="index"/>, if found; otherwise, –1.
+        /// <paramref name="index"/>, if found; otherwise, ï¿½1.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/> is outside the range of valid indexes for
