@@ -6,7 +6,7 @@
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * 
-*      http://www.apache.org/licenses/LICENSE-2.0
+*      https://www.apache.org/licenses/LICENSE-2.0
 * 
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -287,7 +287,7 @@ namespace Spring.Threading.Execution
             Assert.That(e.ParamName, Is.EqualTo("call"));
         }
 
-        [Test, Description("Submit(runnable, result£©runs the runnable and sets the future result")]
+        [Test, Description("Submit(runnable, resultï¿½ï¿½runs the runnable and sets the future result")]
         public void SubmitExecutesTheRunnableAndSetFutureResult()
         {
             var future = ExecutorService.Submit(_runnable, TestData<T>.One);
@@ -297,7 +297,7 @@ namespace Spring.Threading.Execution
             JoinPool(ExecutorService);
         }
 
-        [Test, Description("Submit(action, result£©runs the action and sets the future result")]
+        [Test, Description("Submit(action, resultï¿½ï¿½runs the action and sets the future result")]
         public void SubmitExecutesTheActionAndSetFutureResult()
         {
             var future = ExecutorService.Submit(_action, TestData<T>.One);
