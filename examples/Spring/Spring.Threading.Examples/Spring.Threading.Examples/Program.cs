@@ -5,7 +5,7 @@ using Spring.Threading.Execution;
 namespace Spring.Threading.Examples
 {
     /// <summary>
-    /// Example taken from http://www.vogella.de/articles/JavaConcurrency/article.html#threadpools
+    /// Example taken from https://www.vogella.de/articles/JavaConcurrency/article.html#threadpools
     /// </summary>
     class Program
     {

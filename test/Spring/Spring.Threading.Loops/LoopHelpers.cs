@@ -1,7 +1,7 @@
 ﻿/*
 * Written by Doug Lea with assistance from members of JCP JSR-166
 * Expert Group and released to the public domain, as explained at
-* http://creativecommons.org/licenses/publicdomain
+* https://creativecommons.org/licenses/publicdomain
 */
 /// <summary> Misc utilities in JSR166 performance tests</summary>
 //UPGRADE_TODO: The package 'edu.emory.mathcs.backport.java.util.concurrent' could not be found. If it was not included in the conversion, there may be compiler issues. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1262'"
@@ -20,7 +20,7 @@ class LoopHelpers
     // Some mindless computation to do between synchronizations...
 
     /// <summary> generates 32 bit pseudo-random numbers.
-    /// Adapted from http://www.snippets.org
+    /// Adapted from https://www.snippets.org
     /// </summary>
     public static int compute1(int x)
     {

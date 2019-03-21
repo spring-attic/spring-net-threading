@@ -1,6 +1,6 @@
 #region License
 /*
-* Copyright © 2002-2005 the original author or authors.
+* Copyright ï¿½ 2002-2005 the original author or authors.
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -59,9 +59,9 @@ namespace Spring.Threading.ForkJoin
 	/// <p>
 	/// The algorithms are minor variants of those used
 	/// in <A href="http://supertech.lcs.mit.edu/cilk/"> Cilk</A> and
-	/// <A href="http://www.cs.utexas.edu/users/hood/"> Hood</A>, and
+	/// <A href="https://www.cs.utexas.edu/users/hood/"> Hood</A>, and
 	/// to a lesser extent 
-	/// <A href="http://www.cs.uga.edu/~dkl/filaments/dist.html"> Filaments</A>,
+	/// <A href="http://cobweb.cs.uga.edu/~dkl/filaments/dist.html"> Filaments</A>,
 	/// but are adapted to work in Java.
 	/// </p>
 	/// <p>

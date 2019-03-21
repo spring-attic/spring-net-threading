@@ -30,7 +30,7 @@ namespace Spring.Threading
         /// <summary>
         /// Needed to test .Net Thread behaviour when interruped
         /// </summary>
-        /// <seealso>http://opensource.atlassian.com/projects/spring/browse/SPRNET-9</seealso>
+        /// <seealso>https://opensource.atlassian.com/projects/spring/browse/SPRNET-9</seealso>
         private interface IAfterInterruptionStrategy
         {
             void AfterInterruption ();

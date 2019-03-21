@@ -1,7 +1,7 @@
 /*
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/licenses/publicdomain
+ * https://creativecommons.org/licenses/publicdomain
  */
 /**
  * Misc utilities in JSR166 performance tests
@@ -19,7 +19,7 @@ class LoopHelpers {
 
     /**
      * generates 32 bit pseudo-random numbers.
-     * Adapted from http://www.snippets.org
+     * Adapted from https://www.snippets.org
      */
     public static int compute1(int x) {
         int lo = 16807 * (x & 0xFFFF);

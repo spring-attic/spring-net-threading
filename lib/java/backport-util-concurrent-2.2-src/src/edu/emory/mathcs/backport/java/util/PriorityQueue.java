@@ -1,7 +1,7 @@
 /*
  * Written by Dawid Kurzyniec, on the basis of public specifications of class
  * java.util.PriorityQueue by Josh Bloch, and released to the public domain,
- * as explained at http://creativecommons.org/licenses/publicdomain
+ * as explained at https://creativecommons.org/licenses/publicdomain
  */
 
 package edu.emory.mathcs.backport.java.util;

@@ -1,7 +1,7 @@
 /*
  * Written by Dawid Kurzyniec, based on code written by Doug Lea with assistance
  * from members of JCP JSR-166 Expert Group. Released to the public domain,
- * as explained at http://creativecommons.org/licenses/publicdomain.
+ * as explained at https://creativecommons.org/licenses/publicdomain.
  *
  * Thanks to Craig Mattocks for suggesting to use <code>sun.misc.Perf</code>.
  */

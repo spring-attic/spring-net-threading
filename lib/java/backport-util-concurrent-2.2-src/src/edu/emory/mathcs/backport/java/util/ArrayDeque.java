@@ -1,6 +1,6 @@
 /*
  * Written by Josh Bloch of Google Inc. and released to the public domain,
- * as explained at http://creativecommons.org/licenses/publicdomain.
+ * as explained at https://creativecommons.org/licenses/publicdomain.
  */
 
 package edu.emory.mathcs.backport.java.util;

@@ -14,8 +14,8 @@ namespace FutureExample
 {
 
     /// <summary>
-    /// Based on examples from http://www.dotnetcurry.com/ShowArticle.aspx?ID=489&AspxAutoDetectCookieSupport=1
-    /// and http://www.vogella.de/articles/JavaConcurrency/article.html#futures
+    /// Based on examples from https://www.dotnetcurry.com/ShowArticle.aspx?ID=489&AspxAutoDetectCookieSupport=1
+    /// and https://www.vogella.de/articles/JavaConcurrency/article.html#futures
     /// </summary>
     class Program
     {

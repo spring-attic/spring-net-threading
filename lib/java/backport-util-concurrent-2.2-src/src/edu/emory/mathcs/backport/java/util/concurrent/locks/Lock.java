@@ -1,7 +1,7 @@
 /*
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/licenses/publicdomain
+ * https://creativecommons.org/licenses/publicdomain
  */
 
 package edu.emory.mathcs.backport.java.util.concurrent.locks;
@@ -92,7 +92,7 @@ import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
  *
  * <p>All {@code Lock} implementations <em>must</em> enforce the same
  * memory synchronization semantics as provided by the built-in monitor
- * lock, as described in <a href="http://java.sun.com/docs/books/jls/">
+ * lock, as described in <a href="https://java.sun.com/docs/books/jls/">
  * The Java Language Specification, Third Edition (17.4 Memory Model)</a>:
  * <ul>
  * <li>A successful {@code lock} operation has the same memory

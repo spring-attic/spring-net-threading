@@ -1,6 +1,6 @@
 /*
  * Written by Doug Lea and released to the public domain, as explained at
- * http://creativecommons.org/licenses/publicdomain
+ * https://creativecommons.org/licenses/publicdomain
  */
 
 /*

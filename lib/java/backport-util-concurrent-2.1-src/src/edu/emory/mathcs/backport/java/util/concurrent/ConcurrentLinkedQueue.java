@@ -1,7 +1,7 @@
 /*
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/licenses/publicdomain
+ * https://creativecommons.org/licenses/publicdomain
  */
 
 package edu.emory.mathcs.backport.java.util.concurrent;
@@ -28,7 +28,7 @@ import java.util.NoSuchElementException;
  *
  * <p>This implementation employs an efficient &quot;wait-free&quot;
  * algorithm based on one described in <a
- * href="http://www.cs.rochester.edu/u/michael/PODC96.html"> Simple,
+ * href="https://www.cs.rochester.edu/u/michael/PODC96.html"> Simple,
  * Fast, and Practical Non-Blocking and Blocking Concurrent Queue
  * Algorithms</a> by Maged M. Michael and Michael L. Scott.
  *

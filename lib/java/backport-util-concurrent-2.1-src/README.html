@@ -7,7 +7,7 @@
 
 <h1>backport-util-concurrent</h1>
 <p>Backport ot JSR 166 (java.util.concurrent) to Java 1.4</p>
-<p><a href="http://dcl.mathcs.emory.edu/util/backport-util-concurrent/">http://dcl.mathcs.emory.edu/util/backport-util-concurrent/</a></p>
+<p><a href="https://dcl.mathcs.emory.edu/util/backport-util-concurrent/">https://dcl.mathcs.emory.edu/util/backport-util-concurrent/</a></p>
 <hr class="hide">
 
 <h2>Overview</h2>
@@ -16,7 +16,7 @@
 This package is the backport of 
 <a href="http://gee.cs.oswego.edu/dl/concurrency-interest/">java.util.concurrent</a> API, 
 introduced in 
-<a href="http://java.sun.com/j2se/1.5.0/docs/guide/concurrency/overview.html">Java 5.0</a>,
+<a href="https://java.sun.com/j2se/1.5.0/docs/guide/concurrency/overview.html">Java 5.0</a>,
 to Java 1.4. The backport is based on public-domain sources from the
 <a href="http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/main/java/">
 JSR 166 CVS repository</a>, the
@@ -44,7 +44,7 @@ that should work with Java 5.0 simply by changing package names.
 
 <p>
 This software is released to the 
-<a href="http://creativecommons.org/licenses/publicdomain">public domain</a>,
+<a href="https://creativecommons.org/licenses/publicdomain">public domain</a>,
 in the spirit of the original code written by Doug Lea.
 The code can be used for any purpose, modified, and redistributed 
 without acknowledgment. No warranty is provided, either express or implied.
@@ -140,7 +140,7 @@ is presented below.
 <p>
 Package java.util.concurrent exploits new language features
 introduced in Java 5.0. In particular, most API classes are
-<a href="http://java.sun.com/j2se/1.5.0/docs/guide/language/generics.html">generic types</a>.
+<a href="https://java.sun.com/j2se/1.5.0/docs/guide/language/generics.html">generic types</a>.
 In the backport, they have been flattened to standard, non-generic 
 classes. Still, programs linked against the backport should compile 
 with Java 5.0 (after changing package names). Nevertheless, you may 
@@ -373,7 +373,7 @@ works fine.
 
 <p>
 
-Version 2.1 (Jan 28, 2006) [<a href="http://www.mathcs.emory.edu/dcl/util/backport-util-concurrent/dist/backport-util-concurrent-2.1/backport-util-concurrent-2.1-changelog.html">CVS log</a>]
+Version 2.1 (Jan 28, 2006) [<a href="https://dcl.mathcs.emory.edu//util/backport-util-concurrent/dist/backport-util-concurrent-2.1/backport-util-concurrent-2.1-changelog.html">CVS log</a>]
 <ul>
 <li>New features</li>
   <ul>
@@ -413,12 +413,12 @@ Version 2.1 (Jan 28, 2006) [<a href="http://www.mathcs.emory.edu/dcl/util/backpo
   </ul>
 </ul>
 
-Version 2.0_01 (Aug 3, 2005) [<a href="http://www.mathcs.emory.edu/dcl/util/backport-util-concurrent/dist/backport-util-concurrent-2.0_01/backport-util-concurrent-2.0_01-changelog.html">CVS log</a>]
+Version 2.0_01 (Aug 3, 2005) [<a href="https://dcl.mathcs.emory.edu//util/backport-util-concurrent/dist/backport-util-concurrent-2.0_01/backport-util-concurrent-2.0_01-changelog.html">CVS log</a>]
 <ul>
 <li>Compatibility fix: ConcurrentHashMap was no longer inheriting from java.util.AbstractMap, although it was in version 1.1_01. Now it does again.</li>
 <li>Licensing: new, public-domain implementation of PriorityQueue, and refactoring of backported AbstractMap so that it also contains only the public domain code.</li>
 </ul>
-Version 2.0 (Jul 6, 2005) [<a href="http://www.mathcs.emory.edu/dcl/util/backport-util-concurrent/dist/backport-util-concurrent-2.0/backport-util-concurrent-2.0-changelog.html">CVS log</a>]
+Version 2.0 (Jul 6, 2005) [<a href="https://dcl.mathcs.emory.edu//util/backport-util-concurrent/dist/backport-util-concurrent-2.0/backport-util-concurrent-2.0-changelog.html">CVS log</a>]
 <ul>
 <li>New features</li>
 <ul>
@@ -477,7 +477,7 @@ Version 2.0 (Jul 6, 2005) [<a href="http://www.mathcs.emory.edu/dcl/util/backpor
     [Collection,Map]WordLoops, CASLoops, and more</li>
 </ul>
 </ul>
-Version 1.1_01 (Feb 7, 2005) [<a href="http://www.mathcs.emory.edu/dcl/util/backport-util-concurrent/dist/backport-util-concurrent-1.1_01/backport-util-concurrent-1.1_01-changelog.html">CVS log</a>]
+Version 1.1_01 (Feb 7, 2005) [<a href="https://dcl.mathcs.emory.edu//util/backport-util-concurrent/dist/backport-util-concurrent-1.1_01/backport-util-concurrent-1.1_01-changelog.html">CVS log</a>]
 <ul>
 <li>Bugfix: race condition in the fair implementation of ReentrantLock 
 caused it to occassionally cause IllegalMonitorState exceptions. Non-fair
@@ -491,7 +491,7 @@ Thanks to Ramesh Nethi for reporting this bug and helping to track it down.</li>
 are included in the development source bundle.</li>
 </ul>
 
-Version 1.1 (Jan 21, 2005) [<a href="http://www.mathcs.emory.edu/dcl/util/backport-util-concurrent/dist/backport-util-concurrent-1.1/backport-util-concurrent-1.1-changelog.html">CVS log</a>]
+Version 1.1 (Jan 21, 2005) [<a href="https://dcl.mathcs.emory.edu//util/backport-util-concurrent/dist/backport-util-concurrent-1.1/backport-util-concurrent-1.1-changelog.html">CVS log</a>]
 <ul>
 <li>Bugfix: on Windows platforms with Java 1.4.2, the library
 were sometimes behaving as if timeouts were ignored or misinterpreted,
@@ -522,7 +522,7 @@ to tracking it down.</li>
 </li>
 </ul>
 
-Version 1.0_01 (Dec 28, 2004) [<a href="http://www.mathcs.emory.edu/dcl/util/backport-util-concurrent/dist/backport-util-concurrent-1.0_01/backport-util-concurrent-1.0_01-changelog.html">CVS log</a>]
+Version 1.0_01 (Dec 28, 2004) [<a href="https://dcl.mathcs.emory.edu//util/backport-util-concurrent/dist/backport-util-concurrent-1.0_01/backport-util-concurrent-1.0_01-changelog.html">CVS log</a>]
 <ul>
 <li>Feature: development source bundle with ant scripts allowing to build and
     test the distribution is now available for download.</li>
@@ -559,9 +559,9 @@ For more information:
 <LI>Consult the original 
     <a href="http://gee.cs.oswego.edu/dl/concurrency-interest/">
     java.util.concurrent</a> documentation and Java 5.0 
-    <a href="http://java.sun.com/j2se/1.5.0/docs/guide/concurrency/overview.html">Concurrency Utilities Overview</a></LI>
+    <a href="https://java.sun.com/j2se/1.5.0/docs/guide/concurrency/overview.html">Concurrency Utilities Overview</a></LI>
 
-<li>Check the <a href="http://dcl.mathcs.emory.edu/util/backport-util-concurrent/">project Web page</a> for updates.</li>
+<li>Check the <a href="https://dcl.mathcs.emory.edu/util/backport-util-concurrent/">project Web page</a> for updates.</li>
 
 <li>For questions, comments, and discussion, use the
 <a href="http://altair.cs.oswego.edu/mailman/listinfo/concurrency-interest">Concurrency-Interest 
@@ -574,7 +574,7 @@ e-mail directly to <a href="mailto:dawidk@mathcs.emory.edu">Dawid Kurzyniec</a>.
 </p>
 
 <hr>
-Copyright (C) 2004-2006 <a href="http://dcl.mathcs.emory.edu/">Distributed Computing Laboratory</a>, Emory University<br>
+Copyright (C) 2004-2006 <a href="https://dcl.mathcs.emory.edu/">Distributed Computing Laboratory</a>, Emory University<br>
 
 </body>
 </html>
